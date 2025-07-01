@@ -194,7 +194,15 @@ services:
     ports:
       - "443:443"
       - "4200:4200"
-    command: bash /code/front/start.sh openidc basic angular compile serve
+    command: bash /code/front/start.sh openidc basic angular compile serve-auto
+    
+    # healthcheck:
+    #   test: ["CMD", "curl", "-s", "-k", "https://localhost/lb_test.html"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 60s
+
     # command: bash /code/start.sh compile 
     environment:
       - DJANGO_SERVER_URL=django

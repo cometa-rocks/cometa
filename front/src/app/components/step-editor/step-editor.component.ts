@@ -167,6 +167,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
 
+  // Track last checked index for multi-selection
+  private lastEnableCheckedIndex: number | null = null;
+  private lastScreenshotCheckedIndex: number | null = null;
+  private lastCompareCheckedIndex: number | null = null;
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -1693,6 +1698,64 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (hasExplicitNewline || isVisuallyWrapped) {
       this.renderer.addClass(textarea, 'allow-resize');
     }
+  }
+
+  /**
+   * Handles click on Enable checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onEnableCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastEnableCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastEnableCheckedIndex, index].sort((a, b) => a - b);
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('enabled')?.setValue(checked);
+      }
+      event.preventDefault(); // Prevent default click behavior
+    }
+    this.lastEnableCheckedIndex = index;
+  }
+
+  /**
+   * Handles click on Screenshot checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onScreenshotCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastScreenshotCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastScreenshotCheckedIndex, index].sort((a, b) => a - b);
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('screenshot')?.setValue(checked);
+      }
+      event.preventDefault();
+    }
+    this.lastScreenshotCheckedIndex = index;
+  }
+
+  /**
+   * Handles click on Compare checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onCompareCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastCompareCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastCompareCheckedIndex, index].sort((a, b) => a - b); 
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('compare')?.setValue(checked);
+        // If compare is checked, ensure screenshot is also checked
+        if (checked) {
+          this.stepsForm.at(i).get('screenshot')?.setValue(true);
+        }
+      }
+      event.preventDefault();
+    }
+    this.lastCompareCheckedIndex = index;
   }
 
 }
