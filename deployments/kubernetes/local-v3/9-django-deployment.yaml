@@ -1,0 +1,210 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-django-deployment
+  namespace: cometa  # Added namespace
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: cometa-django-pod  # Ensure this matches the label used in the template
+  template:
+    metadata:
+      labels:
+        app: cometa-django-pod
+    spec:
+      serviceAccountName: pod-manager
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+      - name: cometa-django
+        image: cometa/django:latest
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        # command: ["/bin/bash", "-c", "sleep infinity"]
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: DATABASE_SERVER
+          value: "postgres-service"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef: 
+              name: cometa-secrets
+              key: DATABASE_PASSWORD
+          # Note: Please change the password before the deployment
+        - name: FRONT_SERVER_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: FRONT_SERVER_HOST 
+        - name: CRONTAB_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap 
+              key: CRONTAB_SERVER_URL 
+        - name: CRONTAB_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap  
+              key: CRONTAB_SERVER_PORT
+        - name: SOCKET_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap  
+              key: SOCKET_SERVER_URL 
+        - name: SOCKET_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap 
+              key: SOCKET_SERVER_PORT
+        - name: BEHAVE_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap 
+              key: BEHAVE_SERVER_URL 
+        - name: BEHAVE_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap 
+              key: BEHAVE_SERVER_PORT
+        - name: DJANGO_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap 
+              key: DJANGO_SERVER_URL 
+        - name: DJANGO_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap 
+              key: DJANGO_SERVER_PORT
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /data/screenshots
+          subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          mountPath: /data/videos
+          subPath: ./data/cometa/videos
+        - name: cometa-volume
+          mountPath: /data/pdf
+          subPath: ./data/cometa/pdf
+        - name: cometa-volume
+          mountPath: /code/config
+          subPath: ./data/cometa/config
+        - name: cometa-volume
+          mountPath: /data/downloads
+          subPath: ./data/cometa/downloads
+        - name: cometa-volume
+        # FIXME to mountPath : /data/uploads 
+          mountPath: /data/uploads 
+          subPath: ./data/cometa/uploads
+        - name: cometa-volume
+          mountPath: /data/department_data
+          subPath: ./data/department_data
+        - name: cometa-volume
+          # mountPath: /code/opt/migrations
+          mountPath: /opt/code/migrations
+          subPath: ./django/migrations
+        - name: cometa-volume
+          mountPath: /opt/code/logs
+          subPath: ./django/logs
+        - name: cometa-volume
+          mountPath: /var/lib/clamav
+          subPath: ./django/clamav
+        - name: cometa-volume
+          mountPath: /code
+          subPath: ./share
+
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-data-volume-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-django-service
+  namespace: cometa  # Added namespace
+spec:
+  selector:
+    app: cometa-django-pod
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cometa-django-network-policy
+  namespace: cometa
+spec:
+  podSelector: 
+    matchLabels:
+      app: cometa-django-pod # This matches all pods in the namespace
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: cometa-behave-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+        - podSelector:
+            matchLabels:
+              app: cometa-front-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+        - podSelector:
+            matchLabels:
+              app: cometa-scheduler-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace

@@ -47,6 +47,7 @@ import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 import { GraphViewComponent } from '../../views/detail-view/graph-view/graph-view.component';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'detail-view',
@@ -144,6 +145,7 @@ export class DetailViewComponent implements OnInit {
     private _dialog: MatDialog,
     private _sanitizer: DomSanitizer,
     private _store: Store,
+    private logger: LogService,
     @Inject(API_BASE) private api_base: string
   ) {}
 
@@ -283,7 +285,10 @@ export class DetailViewComponent implements OnInit {
         distinctUntilChanged(),
         switchMap(stepResultId => this._api.getStepResult(stepResultId))
       )
-      .subscribe(stepResult => this.currentStepResult$.next(stepResult));
+      .subscribe(stepResult => {
+        this.currentStepResult$.next(stepResult);
+        this.logger.msg('4',stepResult,'detail-view');
+      });
   }
 
   makeZoom(screenshot) {

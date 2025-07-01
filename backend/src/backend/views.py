@@ -27,6 +27,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseBadRequ
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, \
     get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, \
     get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
@@ -2266,6 +2267,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants all the step_results related to the feature_result_id
         feature_result_id = self.kwargs.get('feature_result_id', None)
         if feature_result_id:
+            logger.debug(f"StepResultViewSet: Getting list of step results for feature result {feature_result_id}")
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
             queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
@@ -2293,6 +2295,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants to only see that particular step_result
         step_result_id = self.kwargs.get('step_result_id', None)
         if step_result_id:
+            logger.debug(f"StepResultViewSet: Getting details for step result {step_result_id}")
             # if step_result_id was found in the url
             # find the step_result that related to specified step_result_id
             step_result = Step_result.objects.filter(step_result_id=step_result_id)
@@ -2324,6 +2327,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
                 "success": True,
                 "results": StepResultRegularSerializer(step_result, many=False).data
             }
+            logger.debug(f"StepResultViewSet: Sending response for step result {data}")
             # send the response to user.
             return Response(data)
 
@@ -3020,7 +3024,7 @@ class DatasetViewset(viewsets.ModelViewSet):
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")
-        file_name_date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        file_name_date = timezone.now().strftime("%Y%m%d-%H%M%S")
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename=Dataset_{file_name_date}.xlsx'
         # Attach workbook to reponse
@@ -3877,7 +3881,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
 
         # get all schedules whom delete date is not due yet
-        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        schedules = Schedule.objects.filter(Q(delete_on__gt=timezone.now()) | Q(delete_on=None))
 
         # save all schedules here
         cronSchedules = []

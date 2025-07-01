@@ -149,9 +149,15 @@ class DockerServiceManager:
 
     # This method will create the container base on the environment
     def create_service(self, configuration) -> dict:
-        logger.info(f"Creating container with configuration : {configuration}")
-        container = self.docker_client.containers.run(**configuration)
-        return container.attrs
+        try:
+            logger.info(f"Creating container with configuration : {configuration}")
+            container = self.docker_client.containers.run(**configuration)
+            return container.attrs
+        except docker.errors.NotFound:
+            return {"error": f"Image {configuration['image']} not found"}
+        except Exception as e:
+            return {"error": f"{str(e)}"}
+        
 
     def get_service_name(self, uuid):
         return self.inspect_service(uuid)['Config']['Hostname']           
