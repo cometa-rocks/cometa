@@ -10,7 +10,7 @@ from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
 import asyncio
 import io
-import tarfile
+import tarfile, docker
 
 # setup logging
 logger = logging.getLogger(__name__)
