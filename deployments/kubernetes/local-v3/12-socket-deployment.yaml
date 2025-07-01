@@ -84,9 +84,25 @@ spec:
   - Ingress
   ingress:
   - from:
-    - namespaceSelector:
+    - podSelector: # this means only allow connection from namespace cometa and pods with this label cometa-django-pod
         matchLabels:
-          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+          app: cometa-django-pod  
+      namespaceSelector:
+        matchLabels:
+          name: cometa    
+    - podSelector: # this means only allow connection from namespace cometa and pods with this label cometa-behave-pod
+        matchLabels:
+          app: cometa-behave-pod  
+      namespaceSelector: 
+        matchLabels:
+          name: cometa  
+    - podSelector: # this means only allow connection from namespace cometa and pods with this label cometa-front-pod
+        matchLabels:
+          app: cometa-front-pod 
+      namespaceSelector:
+        matchLabels:
+          name: cometa 
+
     ports:
     - protocol: TCP
-      port: 3001  # Specific port for the socket service
+      port: 3001 
