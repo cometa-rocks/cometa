@@ -35,16 +35,7 @@
     - echo $GITLAB_OIDC_SECRETS > $COMETA_DATA_FOLDER/front/apache2/metadata/git.amvara.de.client
     - echo $GITLAB_OIDC_CONFIGURATION > $COMETA_DATA_FOLDER/front/apache2/metadata/git.amvara.de.conf
     
-    # FIXME OLD Remove after 13-04-2025
-    # # Replace oAuth information in openidc
-    # - sed -i 's|@@COMETA_CLIENT01_INT_CLIENTID@@|'$COMETA_CLIENT01_INT_CLIENTID'|g' front/apache-conf/metadata/client001.client
-    # - sed -i 's|@@COMETA_CLIENT01_INT_SECRETKEY@@|'$COMETA_CLIENT01_INT_SECRETKEY'|g' front/apache-conf/metadata/client001.client
-    # - sed -i 's|@@COMETA_CLIENT01_OIDCHOST@@|'$COMETA_CLIENT01_OIDCHOST'|g' front/apache-conf/metadata/client001.provider
-    # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
-    # - mv front/apache-conf/metadata/client001.client front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.client
-    # - mv front/apache-conf/metadata/client001.conf front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.conf
-    # - mv front/apache-conf/metadata/client001.provider front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.provider
-    
+     
   after_script:
     #########################################################
     # FRONTEND
