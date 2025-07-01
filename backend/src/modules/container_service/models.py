@@ -103,6 +103,8 @@ class ContainerService(models.Model):
                 )
                 
             service_details = service_manager.create_service()
+            if "error" in service_details:
+                raise ValidationError(service_details["error"])
             self.service_id = service_details["Id"]
             self.service_status = "Running"
             self.information = service_details

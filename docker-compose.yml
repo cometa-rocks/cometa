@@ -152,6 +152,8 @@ services:
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      # httpd.conf file and paths.conf file are kept during build, 
+      # cometa_conf folder is only mapped for openidc.conf file
       - ./data/front/apache2/conf:/usr/local/apache2/cometa_conf
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots
@@ -166,6 +168,13 @@ services:
       - "<outside_port>:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-k", "https://localhost/lb_test.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 6s
+
     environment:
       - DJANGO_SERVER_URL=django
       - DJANGO_SERVER_PORT=8000
