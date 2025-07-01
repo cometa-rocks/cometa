@@ -30,6 +30,7 @@ spec:
         command: ["./utils/novnc_proxy", "--listen", "8080"]
         ports:
         - containerPort: 8080  # Assuming noVNC listens on port 80
+          name: http
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -42,11 +43,19 @@ spec:
             type: RuntimeDefault
         resources:
           limits:
-            cpu: "2"
+            cpu: "1"
             memory: "2Gi"
           requests:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: "0.5"
+            memory: "0.5Gi"
+        livenessProbe:
+          httpGet:
+            path: /vnc.html
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
 
 ---
 
