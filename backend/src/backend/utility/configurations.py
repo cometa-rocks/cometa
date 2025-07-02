@@ -24,6 +24,7 @@ import base64
 from psycopg2.errors import ForeignKeyViolation
 from django.core.management.utils import get_random_secret_key
 from backend.utility.functions import detect_deployment_environment
+from django.utils import timezone
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -253,8 +254,8 @@ class ConfigurationManager:
             default_value = ""
 
             # Define the values to be inserted
-            created_on = datetime.datetime.utcnow()
-            updated_on = datetime.datetime.utcnow()
+            created_on = timezone.now()
+            updated_on = timezone.now()
 
             default_value = ""
             created_by = 1
@@ -268,8 +269,8 @@ class ConfigurationManager:
             self.__db_connection.commit()
 
             # Define the values to be inserted
-        created_on = datetime.datetime.utcnow()
-        updated_on = datetime.datetime.utcnow()
+        created_on = timezone.now()
+        updated_on = timezone.now()
         string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, configuration_type, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True','backend', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
         # Generate the SQL query
         query = sql.SQL(string_query)
@@ -398,7 +399,7 @@ CONFIGURATION_UPDATE_WATCHED_FILE = os.path.join(CONFIGURATION_UPDATE_WATCHED_DI
 
 def update_config_tracker():
     with open(CONFIGURATION_UPDATE_WATCHED_FILE, "w") as f:
-        time = datetime.datetime.utcnow().isoformat()
+        time = timezone.now().isoformat()
         logger.debug(f"Updating configuration tracker at {time}")
         f.write(time)
 
