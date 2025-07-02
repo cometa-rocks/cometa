@@ -11,32 +11,97 @@
   <div *ngIf="stand_by_browsers.length === 0">
     Please start your favourite browser to speed up your testing
   </div>
-  <div class="grid-table">
-    <!-- Header Row -->
-    <div class="header">ID</div>
-    <div class="header">Name</div>
-    <div class="header">Service ID</div>
-    <div class="header">Status</div>
-    <div class="header">Usage</div>
-    <div class="header">Info</div>
-    <div class="header">Created On</div>
-    <div class="header">Action</div>
   
-    <!-- Data Rows -->
-    <ng-container *ngFor="let stand_by_browser of stand_by_browsers">
-      <div class="row name">{{ stand_by_browser.id}}</div>
-      <div class="row name">{{ stand_by_browser | standByBrowserComboText }}</div>
-      <div class="row name">{{ stand_by_browser.service_id }}</div>
-      <div class="row">{{ stand_by_browser.service_status }}</div>
-      <div class="row">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</div>
-      <div class="row"><pre>{{ stand_by_browser.labels | json}}</pre></div>
-      <div class="row">{{ stand_by_browser.created_on | amParse
-        | amDateFormat: "MMMM d yyyy',' HH:mm a"
-        | firstLetterUppercase  }}</div>
-      <div class="row">
-        <div (click)="removeBrowserContainer(stand_by_browser.id)" class="remove">
-        </div>
+  <div class="specs">
+    <!-- Header Row -->
+    <div class="id">
+     <span>ID</span>
+    </div>
+    <div class="name">
+      <span>Name</span>
+    </div>
+    <div class="service_id">
+      <span>Service ID</span>
+    </div>
+    <div class="status">
+      <span>Status</span>
+    </div>
+    <div class="usage">
+      <span> Usage</span>
+    </div>
+    <div class="info">
+      <span>Info</span>
+    </div>
+    <div class="created_on">
+      <span>Created On </span>
+    </div>
+    <div class="action">
+      <span>Action</span>
+    </div>
+  </div>
+  
+    <div class="checkbox">
+        <mat-checkbox
+          [checked]="checked$ | async"
+          (change)="checkboxChange.emit($event.checked)"
+          color="primary"></mat-checkbox>
       </div>
+    <!-- Data Rows -->
+    <ng-container *ngFor="let stand_by_browser of stand_by_browsers" >
+
+      
+      <div class="specs" >
+
+          <!-- Browser ID -->
+      <div class="id" matTooltip="ID" matTooltipPosition="above">
+        <span>{{ stand_by_browser.id }}</span>
+      </div>
+
+      <div class="name">
+           <input
+            [value]="stand_by_browser | standByBrowserComboText"
+            readonly
+            spellcheck="false"
+            autocomplete="off"
+            (focus)="onInputFocus()"
+            (blur)="onInputBlur()" />
+      </div>
+
+          <!-- Service ID -->
+          <div class="service_id" matTooltip="Service_ID" matTooltipPosition="above">
+          <span>{{ stand_by_browser.service_id }}</span>
+          </div>
+
+          <!-- Status -->
+          <div class="status" matTooltip="Status" matTooltipPosition="above">
+            <span>{{ stand_by_browser.service_status }}</span>
+          </div>
+
+          <!-- Usage -->
+          <div class="usage" matTooltip="Usage" matTooltipPosition="above"> 
+            <span>{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</span>
+          </div>
+
+          <!-- Labels -->
+          <div class="info" matTooltip="Info" matTooltipPosition="above">
+            <pre>{{ stand_by_browser.labels | json }}</pre>
+          </div>
+
+          <!-- Created On -->
+          <div class="created_on" matTooltip="Created_On" matTooltipPosition="above">
+            <span>{{
+              stand_by_browser.created_on
+              | amParse
+              | amDateFormat: "MMMM d yyyy',' HH:mm a"
+              | firstLetterUppercase
+            }}</span>
+          </div>
+
+           <div (click)="removeBrowserContainer(stand_by_browser.id)" class="remove"> </div>
+        </div>
+      <!-- Actions -->
+    
+
     </ng-container>
-  </div>  
+  
 </div>
