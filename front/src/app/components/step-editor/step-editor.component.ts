@@ -479,8 +479,63 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // maintains focus on text area while firing events on arrow keys to select variables
   onTextareaArrowKey(event: Event, direction: string, step) {
+    console.log('onTextareaArrowKey called with direction:', direction, 'event:', event);
+    console.log('Event details - key:', (event as KeyboardEvent).key, 'ctrlKey:', (event as KeyboardEvent).ctrlKey, 'shiftKey:', (event as KeyboardEvent).shiftKey);
+    
     event.preventDefault();
 
+    // If direction is 'up', open the autocomplete
+    if (direction === 'up') {
+      console.log('Direction is UP, trying to open autocomplete...');
+      
+      // Check if Ctrl is actually pressed - if so, this should be handled by insertStep
+      if ((event as KeyboardEvent).ctrlKey) {
+        console.log('Ctrl is pressed, this should be handled by insertStep, not here');
+        return;
+      }
+      
+      // Find the current step index from the event target
+      const textarea = event.target as HTMLTextAreaElement;
+      const stepRows = document.querySelectorAll('.step-row');
+      let currentIndex = -1;
+      
+      for (let i = 0; i < stepRows.length; i++) {
+        const textareaInRow = stepRows[i].querySelector('textarea');
+        if (textareaInRow === textarea) {
+          currentIndex = i;
+          break;
+        }
+      }
+      
+      console.log('Found currentIndex:', currentIndex);
+      console.log('Total autocompleteTriggers:', this.autocompleteTriggers?.length);
+      
+      if (currentIndex >= 0) {
+        // Get the autocomplete trigger for this step and open it
+        const autocompleteTriggers = this.autocompleteTriggers.toArray();
+        console.log('Autocomplete triggers array length:', autocompleteTriggers.length);
+        
+        if (autocompleteTriggers[currentIndex]) {
+          console.log('Opening autocomplete panel for index:', currentIndex);
+          autocompleteTriggers[currentIndex].openPanel();
+          this.isAutocompleteOpened = true;
+          this.stepVisible[currentIndex] = true;
+          
+          // Update icon position after panel opens
+          setTimeout(() => {
+            this.updateIconPosition();
+          }, 100);
+        } else {
+          console.log('No autocomplete trigger found for index:', currentIndex);
+        }
+        return;
+      } else {
+        console.log('Could not find current index');
+      }
+    }
+
+    // Original logic for variable selection
+    console.log('Executing original variable selection logic for direction:', direction);
     setTimeout(() => {
       const varlistItems = this.varlistItems.toArray();
 
@@ -929,6 +984,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   @HostListener('document:keydown', ['$event'])
   handleGlobalKeyDown(event: KeyboardEvent): void {
+    console.log('Global keydown event:', event.key, 'ctrlKey:', event.ctrlKey, 'shiftKey:', event.shiftKey);
+    
     const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
     if (!isEscape) {
       return;
@@ -1038,6 +1095,110 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       url = 'http://' + url;
     }
     return url;
+  }
+
+  /**
+   * Tries to open autocomplete for a specific step index with retry logic
+   * This handles the timing issue when inserting steps above
+   */
+  private tryOpenAutocomplete(index: number, attempt: number = 0) {
+    // Force change detection on each attempt
+    this._cdr.detectChanges();
+    
+    const triggers = this.autocompleteTriggers.toArray();
+    console.log(`Attempt ${attempt + 1}: Autocomplete triggers available:`, triggers.length);
+    
+    if (triggers[index]) {
+      console.log(`Found autocomplete trigger for index: ${index}`);
+      
+      // Focus textarea
+      const stepRows = document.querySelectorAll('.step-row');
+      if (stepRows[index]) {
+        const textarea = stepRows[index].querySelector('textarea') as HTMLTextAreaElement;
+        if (textarea) {
+          textarea.focus();
+          this.stepVisible[index] = true;
+          this.isAutocompleteOpened = true;
+          triggers[index].openPanel();
+          setTimeout(() => this.updateIconPosition(), 100);
+          console.log(`Successfully opened autocomplete for index: ${index}`);
+        }
+      }
+    } else if (attempt < 20) { // Increased attempts
+      console.log(`Attempt ${attempt + 1} failed, retrying in 100ms...`);
+      
+      // Force mark for check on each retry attempt
+      this._cdr.markForCheck();
+      
+      setTimeout(() => this.tryOpenAutocomplete(index, attempt + 1), 100);
+    } else {
+      console.warn(`Could not open autocomplete after 20 attempts for index: ${index}`);
+      // Fallback: try to open autocomplete using DOM manipulation
+      this.fallbackOpenAutocomplete(index);
+    }
+  }
+
+  /**
+   * Fallback method to open autocomplete using DOM manipulation
+   * This is used when ViewChildren are not updated in time
+   */
+  private fallbackOpenAutocomplete(index: number) {
+    console.log('Using fallback method to open autocomplete');
+    
+    const stepRows = document.querySelectorAll('.step-row');
+    if (stepRows[index]) {
+      const textarea = stepRows[index].querySelector('textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        // Focus the textarea
+        textarea.focus();
+        this.stepVisible[index] = true;
+        this.isAutocompleteOpened = true;
+        
+        // Try to find the autocomplete trigger in the DOM
+        const autocompleteContainer = stepRows[index].querySelector('.autocomplete-container');
+        if (autocompleteContainer) {
+          const autocompleteElement = autocompleteContainer.querySelector('mat-autocomplete');
+          if (autocompleteElement) {
+            console.log('Found autocomplete element in DOM, trying to open...');
+            
+            // Try to find the MatAutocompleteTrigger directly from the DOM
+            const triggerElement = textarea.closest('.mat-autocomplete-trigger');
+            if (triggerElement) {
+              console.log('Found trigger element, trying to access MatAutocompleteTrigger');
+              
+              // Try to get the MatAutocompleteTrigger instance from the element
+              const triggerInstance = (triggerElement as any).__ngContext__?.find((item: any) => 
+                item?.constructor?.name === 'MatAutocompleteTrigger'
+              );
+              
+              if (triggerInstance) {
+                console.log('Found MatAutocompleteTrigger instance, opening panel');
+                triggerInstance.openPanel();
+                setTimeout(() => this.updateIconPosition(), 100);
+                return;
+              }
+            }
+            
+            // Simulate user interaction to trigger autocomplete
+            const inputEvent = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(inputEvent);
+            
+            const focusEvent = new Event('focus', { bubbles: true });
+            textarea.dispatchEvent(focusEvent);
+            
+            // Also try to dispatch a keydown event to simulate typing
+            const keydownEvent = new KeyboardEvent('keydown', { 
+              key: 'a', 
+              bubbles: true 
+            });
+            textarea.dispatchEvent(keydownEvent);
+            
+            setTimeout(() => this.updateIconPosition(), 100);
+            console.log('Fallback autocomplete trigger attempted');
+          }
+        }
+      }
+    }
   }
 
   trackStep = index => index;
@@ -1461,7 +1622,50 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepsForm.push(defaultStep);
   }
 
+  openAutocomplete(event: KeyboardEvent, i: number) {
+    console.log('openAutocomplete called with index:', i);
+    event.preventDefault();
+    
+    // Clear any existing autocomplete panels
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        console.log('Removing existing autocomplete panel');
+        autocompletePanel.remove();
+    }
+    
+    // Clear variables display
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    
+    // Get the autocomplete trigger for this step
+    const autocompleteTriggers = this.autocompleteTriggers.toArray();
+    console.log('openAutocomplete - autocompleteTriggers length:', autocompleteTriggers.length);
+    
+    if (autocompleteTriggers[i]) {
+      console.log('openAutocomplete - Opening panel for index:', i);
+      // Open the autocomplete panel
+      autocompleteTriggers[i].openPanel();
+      this.isAutocompleteOpened = true;
+      this.stepVisible[i] = true;
+      
+      // Update icon position after panel opens
+      setTimeout(() => {
+        this.updateIconPosition();
+      }, 100);
+    } else {
+      console.log('openAutocomplete - No trigger found for index:', i);
+    }
+  }
+
   insertStep(event: KeyboardEvent, i: number){
+    console.log('insertStep called with key:', event.key, 'ctrlKey:', event.ctrlKey, 'shiftKey:', event.shiftKey, 'index:', i);
+    
+    // Only proceed if Ctrl is actually pressed
+    if (!event.ctrlKey) {
+      console.log('Ctrl not pressed, this should not happen');
+      return;
+    }
+    
     event.preventDefault();
     // Cerrar el autocompletado
     const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
@@ -1473,12 +1677,49 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData.currentStepIndex = null;
     this.isAutocompleteOpened = false;
     
+    let newStepIndex: number;
+    
     if(event.key == 'ArrowDown'){
         this.addEmpty(i+1);
+        newStepIndex = i+1;
+        console.log('ArrowDown: New step inserted at index:', newStepIndex);
     }
     else if (event.key == 'ArrowUp'){
         this.addEmpty(i);
+        newStepIndex = i; // This is correct - the new step is at index i
+        console.log('ArrowUp: New step inserted at index:', newStepIndex);
     }
+    
+    // Open autocomplete on the new step using retry logic
+    console.log('Opening autocomplete on new step at index:', newStepIndex);
+    console.log('Total steps in form:', this.stepsForm.length);
+    console.log('Original step index was:', i);
+    console.log('Event key was:', event.key);
+    
+    // Force change detection to ensure DOM is updated
+    this._cdr.detectChanges();
+    this._cdr.markForCheck();
+    
+    // Run in ngZone to ensure proper change detection
+    this._ngZone.run(() => {
+      // Use retry logic to open autocomplete
+      this.tryOpenAutocomplete(newStepIndex);
+    });
+    
+    // Also try an immediate attempt after a very short delay
+    setTimeout(() => {
+      console.log('Immediate attempt to open autocomplete');
+      this._cdr.detectChanges();
+      this._cdr.markForCheck();
+      this.tryOpenAutocomplete(newStepIndex);
+    }, 10);
+    
+    // Try using the existing openAutocomplete method as a fallback
+    setTimeout(() => {
+      console.log('Trying existing openAutocomplete method');
+      const fakeEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+      this.openAutocomplete(fakeEvent, newStepIndex);
+    }, 100);
   }
 
   copyStep(event: KeyboardEvent, i: number){
@@ -1612,6 +1853,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     
     // The "Select All" checkbox is marked as true only if the number of steps with compare is equal to the total number of steps
     return stepsWithCompare.length === totalSteps;
+  }
+
+  autoGrowTextarea(event: any) {
+    const textarea = event.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   }
 
   getGroupedActions(actions: Action[]): { name: string; actions: Action[] }[] {
