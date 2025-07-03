@@ -208,23 +208,38 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                     "error": str(err) 
                 }, status=200)
         elif is_excel and sheet_name:
-            # For Excel files with a specified sheet, we need to reparse with the selected sheet
-            # when not already doing a reparse
-            logger.info(f"Fetching specific sheet '{sheet_name}' for Excel file {file_id}")
-            try:
-                # For Excel files with selected sheet, we'll get data for that sheet only
-                # We don't delete existing data here as we're not doing a full reparse
-                temp_data = getFileContent(file, sheet_name=sheet_name)
+            # For Excel files with a specified sheet, filter existing data by sheet
+            logger.info(f"Filtering existing data for sheet '{sheet_name}' in Excel file {file_id}")
+            
+            # First, try to get existing data for the specified sheet
+            sheet_data = file_data.filter(sheet=sheet_name)
+            
+            if sheet_data.exists():
+                # Use existing data for the sheet
+                file_data = sheet_data
+                logger.info(f"Found {sheet_data.count()} existing records for sheet '{sheet_name}'")
+            else:
+                # If no data exists for this sheet, check if there's data with sheet=NULL 
+                # (which might be the same data but without sheet info)
+                null_sheet_data = file_data.filter(sheet__isnull=True)
                 
-                # We don't save the file here, just return the sheet data
-                # The data here is temporary just for this response
-                file_data = temp_data
-                
-            except Exception as err:
-                return JsonResponse({
-                    "success": False,
-                    "error": f"Error parsing sheet '{sheet_name}': {str(err)}" 
-                }, status=200)
+                if null_sheet_data.exists() and sheet_name in (file.sheet_names or []):
+                    # This might be legacy data before sheet support was added
+                    logger.info(f"Found {null_sheet_data.count()} records with NULL sheet, which might be '{sheet_name}' data")
+                    file_data = null_sheet_data
+                else:
+                    # If no data exists for this sheet, try to parse it
+                    logger.info(f"No existing data for sheet '{sheet_name}', attempting to parse")
+                    try:
+                        # Parse data for the specific sheet and save it
+                        temp_data = getFileContent(file, sheet_name=sheet_name)
+                        file_data = temp_data
+                        logger.info(f"Successfully parsed {len(temp_data)} rows for sheet '{sheet_name}'")
+                    except Exception as err:
+                        return JsonResponse({
+                            "success": False,
+                            "error": f"Error parsing sheet '{sheet_name}': {str(err)}" 
+                        }, status=200)
         
         # paginate the queryset
         page = self.paginate_queryset(file_data)
@@ -702,9 +717,10 @@ def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
             ddr.execution_time += fr.execution_time
             ddr.save()
 
-            # Send incremental progress update to WebSocket
+            # Send incremental progress update to WebSocket with user context
             try:
-                progress_response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{
+                user = request.session.get('user', {})
+                progress_payload = {
                     "running": True,
                     "status": "Running",
                     "total": ddr.total,
@@ -712,16 +728,25 @@ def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
                     "fails": ddr.fails,
                     "skipped": ddr.skipped,
                     "execution_time": ddr.execution_time,
-                    "pixel_diff": ddr.pixel_diff
-                })
+                    "pixel_diff": ddr.pixel_diff,
+                    "user_id": user.get('user_id'),
+                    "department_id": ddr.file.department_id
+                }
+                
+                logger.info(f"[DATA-DRIVEN PROGRESS] Sending progress update for run {ddr.run_id} - Total: {ddr.total}, OK: {ddr.ok}, Fails: {ddr.fails}, User: {user.get('user_id')}")
+                
+                progress_response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}', progress_payload)
                 if progress_response.status_code != 200:
-                    logger.error(f"Failed to send incremental progress update for run {ddr.run_id}")
+                    logger.error(f"[DATA-DRIVEN PROGRESS] Failed to send progress update for run {ddr.run_id}: {progress_response.status_code} - {progress_response.text}")
+                else:
+                    logger.debug(f"[DATA-DRIVEN PROGRESS] Progress update sent successfully for run {ddr.run_id}")
             except Exception as e:
-                logger.error(f"Exception sending incremental progress update: {e}")
+                logger.error(f"[DATA-DRIVEN PROGRESS] Exception sending progress update: {e}")
 
 def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
     user = request.session['user']
-    logger.info(f"Starting Data Driven Test {user['name']}")
+    origin = request.META.get('HTTP_COMETA_ORIGIN', 'MANUAL')
+    logger.info(f"[DATA-DRIVEN THREAD] Starting Data Driven Test {user['name']} (ID: {user['user_id']}) - Run: {ddr.run_id}, Origin: {origin}, Rows: {len(rows)}")
     
     try:
         # This executes one row data at a time with selected browsers 
@@ -756,8 +781,9 @@ def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
     if ddr.status != 'Terminated': 
         ddr.status = 'Failed' if ddr.fails > 0 else 'Passed'
     ddr.save()
-    # Update to cometa Socket
-    response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{
+    # Update to cometa Socket with user context
+    user = request.session.get('user', {})
+    final_payload = {
         "running": False,
         "status": ddr.status,
         "total": ddr.total,
@@ -765,15 +791,29 @@ def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
         "fails": ddr.fails,
         "skipped": ddr.skipped,
         "execution_time": ddr.execution_time,
-        "pixel_diff": ddr.pixel_diff
-    })
-    if response.status_code != 200 :
+        "pixel_diff": ddr.pixel_diff,
+        "user_id": user.get('user_id'),
+        "department_id": ddr.file.department_id
+    }
+    
+    logger.info(f"[DATA-DRIVEN COMPLETION] Sending final status for run {ddr.run_id} - Status: {ddr.status}, Total: {ddr.total}, OK: {ddr.ok}, Fails: {ddr.fails}, User: {user.get('user_id')}")
+    
+    response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}', final_payload)
+    if response.status_code != 200:
+        logger.error(f"[DATA-DRIVEN COMPLETION] Failed to send final status: {response.status_code} - {response.text}")
         raise Exception("Not able to connect cometa_socket")
+    else:
+        logger.info(f"[DATA-DRIVEN COMPLETION] Final status sent successfully for run {ddr.run_id}")
 
 @csrf_exempt
 @require_subscription()
 @require_permissions("run_feature")
 def runDataDriven(request, *args, **kwargs):
+    # Log the execution source and user context
+    user = request.session.get('user', {})
+    origin = request.META.get('HTTP_COMETA_ORIGIN', 'MANUAL')
+    logger.info(f"[DATA-DRIVEN EXECUTION] Starting data-driven test - Origin: {origin}, User: {user.get('name', 'Unknown')} (ID: {user.get('user_id', 'Unknown')})")
+    
     # Verify body can be parsed as JSON
     try:
         data = json.loads(request.body)
@@ -782,7 +822,10 @@ def runDataDriven(request, *args, **kwargs):
     
     file_id = data.get('file_id', None)
     if not file_id:
+        logger.error(f"[DATA-DRIVEN EXECUTION] No file_id provided in request - Origin: {origin}")
         return JsonResponse({ 'success': False, 'error': 'Missing \'file_id\' parameter.' }, status=200)
+    
+    logger.info(f"[DATA-DRIVEN EXECUTION] Processing file_id: {file_id} - Origin: {origin}")
     user_departments = GetUserDepartments(request)
     # User security added
     try:
@@ -842,7 +885,11 @@ def runDataDriven(request, *args, **kwargs):
     try:
         ddr = DataDriven_Runs(file_id=file_id, running=True, status="Running")
         ddr.save()
-        requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{
+        
+        logger.info(f"[DATA-DRIVEN EXECUTION] Created DataDriven_Runs record {ddr.run_id} for file {file.name} - Origin: {origin}, User: {user.get('name', 'Unknown')}")
+        
+        # Send initial WebSocket message with user context
+        socket_payload = {
             "running": True,
             "status": "Running",
             "total": 0,
@@ -850,8 +897,18 @@ def runDataDriven(request, *args, **kwargs):
             "fails": 0,
             "skipped": 0,
             "execution_time": 0,
-            "pixel_diff": 0
-        })
+            "pixel_diff": 0,
+            "user_id": user.get('user_id'),
+            "department_id": file.department_id
+        }
+        
+        logger.info(f"[DATA-DRIVEN EXECUTION] Sending initial WebSocket message for run {ddr.run_id} - User: {user.get('user_id')}, Department: {file.department_id}")
+        
+        response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}', socket_payload)
+        if response.status_code != 200:
+            logger.error(f"[DATA-DRIVEN EXECUTION] Failed to send initial WebSocket message: {response.status_code} - {response.text}")
+        else:
+            logger.info(f"[DATA-DRIVEN EXECUTION] Initial WebSocket message sent successfully for run {ddr.run_id}")
         # Spawn thread to launch feature run
         t = Thread(target=startDataDrivenRun, args=(request, file_data, ddr))
         t.start()

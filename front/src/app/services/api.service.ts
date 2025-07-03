@@ -988,4 +988,19 @@ export class ApiService {
     return this._http.delete(`${this.api}housekeeping/`);
   }
 
+  /**
+   * Get the existing schedule for a data-driven file.
+   */
+  getFileSchedule(fileId: number) {
+    return this._http.get<{ success: boolean; schedule: string; original_cron: string | null; original_timezone: string | null }>(`${this.base}schedule_data_driven/${fileId}/`);
+  }
+
+  /**
+   * Update or create a schedule entry for a data-driven file.
+   * NOTE: Backend endpoint `schedule_data_driven` must exist.
+   */
+  updateFileSchedule(fileId: number, payload: { schedule: string; original_timezone?: string | null }) {
+    return this._http.patch<Success>(`${this.base}schedule_data_driven/${fileId}/`, payload);
+  }
+
 }

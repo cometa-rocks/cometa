@@ -98,6 +98,7 @@ interface FileUploadDepartment {
 
 // Add import for AddColumnNameDialogComponent
 import { AddColumnNameDialogComponent } from '@dialogs/add-column-name/add-column-name.component';
+import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 
 @Component({
   selector: 'app-files-management',
@@ -420,7 +421,18 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
               this.onDeleteFile(result);
             },
             iif: row => !row.is_removed,
-          }
+          },
+          {
+            type: 'icon',
+            text: 'schedule',
+            icon: 'schedule',
+            tooltip: 'Schedule data-driven test',
+            color: 'accent',
+            click: (result: UploadedFile) => {
+              this.openScheduleDialog(result);
+            },
+            iif: row => this.showDataChecks(row) && this.dataDrivenExecutable(row) && !row.is_removed,
+          },
         ]
       }
     ];
@@ -2710,6 +2722,14 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         this.isDirty[fileId] = true;
         this.log.msg('4', `Renamed column '${field}' to '${trimmedName}' (field: '${newFieldName}') in file ${fileId}`, 'RenameColumn');
       }
+    });
+  }
+
+  // Open schedule dialog for a given file
+  openScheduleDialog(file: UploadedFile): void {
+    this._dialog.open(EditSchedule, {
+      panelClass: EditSchedule.panelClass,
+      data: { fileId: file.id }
     });
   }
 } 
