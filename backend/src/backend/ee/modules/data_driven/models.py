@@ -7,13 +7,13 @@ from backend.models import (
     Feature_result
 )
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
 
 class DataDriven_Runs(SoftDeletableModel):
     run_id = models.AutoField(primary_key=True)
     file = models.ForeignKey("File", on_delete=models.SET_NULL, null=True, related_name="ddr_file")
     feature_results = models.ManyToManyField(Feature_result)
-    date_time = models.DateTimeField(default=datetime.utcnow, editable=True, null=False, blank=False)
+    date_time = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     archived = models.BooleanField(default=False)
     status = models.CharField(max_length=100, default='')
     running = models.BooleanField(default=False)
