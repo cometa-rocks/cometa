@@ -90,6 +90,7 @@ interface UploadedFile {
   mime?: string;
   type?: string;
   file_type?: string;
+  schedule?: string; // Added for schedule data
 }
 
 // Use the global DataDrivenRun interface from interfaces.d.ts
@@ -219,6 +220,23 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     { header: 'Uploaded By', field: 'uploaded_by.name', sortable: true },
     { header: 'Uploaded On', field: 'created_on', sortable: true },
     {
+      header: 'Schedule',
+      field: 'schedule',
+      sortable: true,
+      hide: false, // Show by default
+      formatter: (rowData: UploadedFile) => {
+        const fileId = rowData.id;
+        const scheduleValue = rowData.schedule;
+        
+        
+        if (scheduleValue && typeof scheduleValue === 'string' && scheduleValue.trim() !== '') {
+          return scheduleValue;
+        }
+        
+        return '-';
+      }
+    },
+    {
       header: 'Options',
       field: 'options',
       right: '0px',
@@ -248,6 +266,18 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         },
         {
           type: 'icon',
+          text: 'schedule',
+          icon: 'schedule',
+          tooltip
+          : 'Schedule data-driven test',
+          color: 'accent',
+          click: (result: UploadedFile) => {
+            this.openScheduleDialog(result);
+          },
+          iif: row => this.showDataChecks(row) && this.dataDrivenExecutable(row) && !row.is_removed,
+        },
+        {
+          type: 'icon',
           text: 'delete',
           icon: 'delete',
           tooltip: 'Delete file',
@@ -256,17 +286,6 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             this.onFileDeleted(result);
           },
           iif: row => !row.is_removed,
-        },
-        {
-          type: 'icon',
-          text: 'schedule',
-          icon: 'schedule',
-          tooltip: 'Schedule data-driven test',
-          color: 'accent',
-          click: (result: UploadedFile) => {
-            this.openScheduleDialog(result);
-          },
-          iif: row => this.showDataChecks(row) && this.dataDrivenExecutable(row) && !row.is_removed,
         },
       ],
     },
@@ -309,17 +328,13 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     this.actionsSubscription = this.actions$
       .pipe(ofActionSuccessful(DataDriven.StatusUpdate)) // Listen for the specific action type
       .subscribe((action: DataDriven.StatusUpdate) => {
-        console.log('[DATA-DRIVEN COMPONENT] Received DataDriven.StatusUpdate action:', {
-          run_id: action.run_id,
-          running: action.running,
-          status: action.status,
-          total: action.total,
-          ok: action.ok,
-          fails: action.fails,
-          skipped: action.skipped,
-          execution_time: action.execution_time,
-          pixel_diff: action.pixel_diff
-        });
+        this.log.msg('4', `Received DataDriven.StatusUpdate action for run ${action.run_id}`, 'WebSocket', {
+        running: action.running,
+        status: action.status,
+        total: action.total,
+        ok: action.ok,
+        fails: action.fails
+      });
         this.updateRunStatusFromAction(action);
       });
   }
@@ -405,6 +420,9 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   focusSubscription: Subscription;
   private actionsSubscription: Subscription;
   private pendingUpdates: { [runId: number]: DataDriven.StatusUpdate } = {};
+  
+  // Store cron expressions for files with schedules
+  fileScheduleCronExpressions: { [fileId: number]: string } = {};
 
 
   query = {
@@ -420,39 +438,49 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
 
   openContent(run: DataDrivenRun) {
     if (run.running) {
-      // For running tests, we need to get the feature_id associated with this run
-      this._http.get(`/backend/api/data_driven/results/${run.run_id}/`)
-        .subscribe({
-          next: (response: any) => {
-            if (response && response.results && response.results.length > 0) {
-              const featureResult = response.results[0];
-              const featureId = featureResult.feature_id;
-              
-              // Now open LiveStepsComponent with the feature_id
-              this._dialog.open(LiveStepsComponent, {
-                disableClose: false,
-                panelClass: 'live-steps-panel',
-                width: '95vw',
-                maxWidth: '95vw',
-                height: '95vh',
-                maxHeight: '95vh',
-                data: featureId
-              });
-            } else {
-              this._snackBar.open('No feature results found for this run', 'OK', {
-                duration: 5000,
-                panelClass: ['file-management-custom-snackbar']
-              });
-            }
-          },
-          error: (err) => {
-            this.log.msg('2', 'Error loading live steps for this run', 'API', err);
-            this._snackBar.open('Error loading live steps for this run', 'OK', {
+      // For running DDT tests, open LiveSteps in data-driven mode
+      this._api.getDDTAllFeatures(run.run_id).subscribe({
+        next: (response) => {
+          if (response.success && response.features) {
+            // Convert backend features to LiveSteps format
+            const ddtFeatures = response.features.map(f => ({
+              feature_id: f.feature_id,
+              feature_name: f.feature_name,
+              status: f.status,
+              current_step: f.current_step
+            }));
+            
+            // Open LiveSteps in DDT mode by passing the correct data structure
+            this._dialog.open(LiveStepsComponent, {
+              disableClose: false,
+              panelClass: 'live-steps-panel',
+              width: '95vw',
+              maxWidth: '95vw',
+              height: '95vh',
+              maxHeight: '95vh',
+              data: {
+                mode: 'data-driven',
+                feature_id: ddtFeatures[0]?.feature_id, // Use first feature as initial selection
+                ddt_run_id: run.run_id, // Pass the DDT run ID to enable DDT mode
+                ddt_features: ddtFeatures,
+                file_name: run.file?.name || 'Data-Driven Test'
+              }
+            });
+          } else {
+            this._snackBar.open('No features found for this run', 'OK', {
               duration: 5000,
               panelClass: ['file-management-custom-snackbar']
             });
           }
-        });
+        },
+        error: (err) => {
+          this.log.msg('2', 'Error loading live steps for DDT run', 'API', err);
+          this._snackBar.open('Error loading live steps for this run', 'OK', {
+            duration: 5000,
+            panelClass: ['file-management-custom-snackbar']
+          });
+        }
+      });
     } else {
       // For completed tests, navigate to the details page
       this._router.navigate(['data-driven', run.run_id]);
@@ -516,21 +544,18 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             const pendingAction = this.pendingUpdates[runId]; // Get pending action
             const runIndex = newResults.findIndex(run => run.run_id === runId);
 
-            console.log('[DATA-DRIVEN COMPONENT] Applying pending update:', {
-              run_id: runId,
+            this.log.msg('4', `Applying pending update for run ${runId}`, 'WebSocket', {
               found_run: runIndex !== -1,
-              pending_metrics: {
-                total: pendingAction.total,
-                ok: pendingAction.ok,
-                fails: pendingAction.fails
-              }
+              total: pendingAction.total,
+              ok: pendingAction.ok,
+              fails: pendingAction.fails
             });
 
             if (runIndex !== -1) {
               // Create a new object with the pending update applied
               const updatedRun = this.applyUpdate(newResults[runIndex], pendingAction);
               
-              console.log('[DATA-DRIVEN COMPONENT] Applied pending update:', {
+              this.log.msg('4', `Applied pending update for run ${runId}`, 'WebSocket', {
                 old_total: newResults[runIndex].total,
                 new_total: updatedRun.total,
                 old_ok: newResults[runIndex].ok,
@@ -1017,29 +1042,27 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
 
   // Add method to handle the action payload
   private updateRunStatusFromAction(action: DataDriven.StatusUpdate) {
-    console.log('[DATA-DRIVEN COMPONENT] Processing status update:', {
-      run_id: action.run_id,
+    this.log.msg('4', `Processing status update for run ${action.run_id}`, 'WebSocket', {
       has_results: !!this.results,
       results_length: this.results?.length || 0
     });
 
     if (!this.results) {
       // If results array doesn't even exist yet, definitely queue the update
-      console.log('[DATA-DRIVEN COMPONENT] No results array yet, queuing update for run_id:', action.run_id);
+      this.log.msg('4', `No results array yet, queuing update for run ${action.run_id}`, 'WebSocket');
       this.pendingUpdates[action.run_id] = action;
       return;
     }
 
     const runIndex = this.results.findIndex(run => run.run_id === action.run_id);
-    console.log('[DATA-DRIVEN COMPONENT] Searching for run_id:', action.run_id, 'found at index:', runIndex);
+    this.log.msg('4', `Searching for run ${action.run_id}, found at index ${runIndex}`, 'WebSocket');
     
     if (runIndex !== -1) {
       // Run found - Apply update by replacing the object and creating a new array reference
       const oldRun = this.results[runIndex];
       const updatedRun = this.applyUpdate(oldRun, action);
       
-      console.log('[DATA-DRIVEN COMPONENT] Updating run:', {
-        run_id: action.run_id,
+      this.log.msg('4', `Updating run ${action.run_id}`, 'WebSocket', {
         old_status: oldRun.status,
         new_status: updatedRun.status,
         old_running: oldRun.running,
@@ -1049,15 +1072,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         old_ok: oldRun.ok,
         new_ok: updatedRun.ok,
         old_fails: oldRun.fails,
-        new_fails: updatedRun.fails,
-        action_metrics: {
-          total: action.total,
-          ok: action.ok,
-          fails: action.fails,
-          skipped: action.skipped,
-          execution_time: action.execution_time,
-          pixel_diff: action.pixel_diff
-        }
+        new_fails: updatedRun.fails
       });
       
       // Create a new array with the updated item replaced
@@ -1069,10 +1084,10 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       
       // Force change detection for OnPush strategy
       this.cdRef.markForCheck();
-      console.log('[DATA-DRIVEN COMPONENT] Update applied and change detection triggered');
+      this.log.msg('4', `Update applied and change detection triggered for run ${action.run_id}`, 'WebSocket');
     } else {
       // Run not found - This might be a new scheduled run, refresh results to fetch it
-      console.log('[DATA-DRIVEN COMPONENT] Run not found in results, queuing update and refreshing results for run_id:', action.run_id);
+      this.log.msg('4', `Run ${action.run_id} not found in results, queuing update and refreshing`, 'WebSocket');
       this.pendingUpdates[action.run_id] = action;
       
       // Automatically refresh results to fetch the new run
@@ -1369,6 +1384,86 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     this.inputFocus = isFocused;
     this.inputFocusService.setInputFocus(isFocused);
     this.cdRef.markForCheck();
+  }
+  
+  onScheduleDataUpdated(event: {fileId: number, hasCron: boolean, cronExpression?: string}): void {
+    
+    // Update the file object directly in the department and create new file array
+    if (this.department && this.department.files) {
+      const updatedFiles = this.department.files.map(file => {
+        if (file.id === event.fileId) {
+          const updatedFile = { ...file };
+          if (event.hasCron && event.cronExpression) {
+            updatedFile.schedule = event.cronExpression;
+          } else {
+            delete updatedFile.schedule;
+          }
+          return updatedFile;
+        }
+        return file;
+      });
+      
+      // Create completely new department object with new files array
+      this.department = {
+        ...this.department,
+        files: updatedFiles
+      };
+    }
+    
+    // Force change detection to update the Schedule column
+    this.cdRef.detectChanges();
+  }
+
+  // Method to refresh schedule data for all current files
+  refreshScheduleData(): void {
+    // This will be called by the files-management component when it has schedule data
+  }
+
+  // Load schedule data for current department files
+  private loadScheduleDataForFiles(): void {
+    if (!this.department?.files) {
+      return;
+    }
+
+    
+    // Get file IDs for files that can have schedules
+    const fileIds = this.department.files
+      .filter(file => file.id && this.showDataChecks(file) && this.dataDrivenExecutable(file))
+      .map(file => file.id)
+      .filter(id => id !== undefined) as number[];
+    
+    if (fileIds.length === 0) {
+      return;
+    }
+    
+    // Make bulk API call
+    this._api.getBulkFileSchedules(fileIds).subscribe({
+      next: (response) => {
+        if (response.success && response.schedules) {
+          
+          // Process each file's schedule data
+          Object.entries(response.schedules).forEach(([fileIdStr, scheduleData]) => {
+            const fileId = parseInt(fileIdStr);
+            const schedule = scheduleData.schedule;
+            const scheduleNotEmpty = schedule && schedule.trim() !== '';
+            
+            if (scheduleNotEmpty) {
+              this.fileScheduleCronExpressions[fileId] = schedule;
+              // Also attach to the file object for immediate display
+              const file = this.department?.files?.find(f => f.id === fileId);
+              if (file) {
+                (file as any).schedule = schedule;
+              }
+            }
+          });
+        } else {
+          this.log.msg('2', 'Bulk schedule API failed', 'Schedule', response.error);
+        }
+      },
+      error: (error) => {
+        this.log.msg('2', 'Error in bulk schedule load', 'Schedule', error);
+      }
+    });
   }
 
   // ===== Schedule Dialog =====

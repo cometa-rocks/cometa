@@ -4375,7 +4375,7 @@ def UpdateFileSchedule(request, file_id, *args, **kwargs):
     # Validate file exists and user has access
     try:
         user_departments = GetUserDepartments(request)
-        _ = File.objects.get(pk=file_id, department_id__in=user_departments)
+        _ = File.all_objects.get(pk=file_id, department_id__in=user_departments)
     except File.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'File not found or access denied.'})
 
@@ -4434,3 +4434,83 @@ def UpdateFileSchedule(request, file_id, *args, **kwargs):
     
     else:
         return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
+
+
+@csrf_exempt
+def GetBulkFileSchedules(request):
+    """HTTP handler to get schedule data for multiple files at once."""
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON payload.'})
+    
+    file_ids = data.get('file_ids', [])
+    if not file_ids or not isinstance(file_ids, list):
+        return JsonResponse({'success': False, 'error': 'file_ids must be a non-empty list.'})
+    
+    # Validate user has access to all files
+    try:
+        user_departments = GetUserDepartments(request)
+        accessible_files = File.all_objects.filter(
+            pk__in=file_ids, 
+            department_id__in=user_departments
+        ).values_list('id', flat=True)
+        
+        # Check if all requested files are accessible
+        inaccessible_files = set(file_ids) - set(accessible_files)
+        if inaccessible_files:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Access denied to files: {list(inaccessible_files)}'
+            })
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({'success': False, 'error': 'Error validating file access.'})
+    
+    # Get schedule data for all accessible files
+    try:
+        # Convert file_ids to strings since they're stored as strings in the JSON field
+        file_ids_as_strings = [str(file_id) for file_id in file_ids]
+        
+        # Query for schedules using Django ORM
+        schedules = Schedule.objects.filter(
+            parameters__file_id__in=file_ids_as_strings
+        ).values(
+            'parameters__file_id',
+            'schedule',
+            'original_cron',
+            'original_timezone'
+        )
+        
+        # Create a mapping of file_id to schedule data
+        schedule_data = {}
+        for schedule in schedules:
+            file_id = schedule['parameters__file_id']
+            schedule_data[file_id] = {
+                'schedule': schedule['original_cron'] or schedule['schedule'],
+                'original_cron': schedule['original_cron'],
+                'original_timezone': schedule['original_timezone']
+            }
+        
+        # Add empty entries for files without schedules
+        for file_id in file_ids:
+            file_id_str = str(file_id)  # Convert to string to match database keys
+            if file_id_str not in schedule_data:
+                schedule_data[file_id_str] = {
+                    'schedule': '',
+                    'original_cron': None,
+                    'original_timezone': None
+                }
+        
+        return JsonResponse({
+            'success': True,
+            'schedules': schedule_data
+        })
+        
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({'success': False, 'error': 'Error retrieving schedule data.'})

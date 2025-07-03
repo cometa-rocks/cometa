@@ -1264,3 +1264,222 @@ def stop_data_driven_test(request, *args, **kwargs):
     except Exception as e:
         logger.exception(e)
         return JsonResponse({"success": False, "tasks": len(tasks)}, status=200)
+
+@csrf_exempt
+@require_permissions('view_feature')
+@require_http_methods(["GET"])
+def get_ddt_currently_running_feature(request, run_id, usersOwn=False):
+    """
+    Get the feature that is currently executing in a data-driven test run.
+    Returns the active feature information for real-time LiveSteps tracking.
+    """
+    try:
+        # Validate run_id parameter
+        try:
+            run_id = int(run_id)
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'success': False, 
+                'error': 'Invalid run_id parameter'
+            }, status=200)
+        
+        # Get the data-driven run with department filtering
+        try:
+            ddr = DataDriven_Runs.objects.get(
+                run_id=run_id,
+                file__department__in=GetUserDepartments(request)
+            )
+        except DataDriven_Runs.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Data-driven run not found or access denied'
+            }, status=200)
+        
+        # Check if the DDT run is still active
+        if not ddr.running:
+            return JsonResponse({
+                'success': True,
+                'current_feature': None,
+                'status': 'completed',
+                'message': 'Data-driven test has completed'
+            })
+        
+        # Get all feature results associated with this DDT run
+        if ddr.feature_results.exists():
+            # Get all feature results with related feature data (feature_results is a ManyToManyField)
+            # Find the currently running feature (most recent running=True)
+            current_running_result = ddr.feature_results.filter(
+                running=True
+            ).select_related('feature_id').order_by('-result_date').first()
+            
+            if current_running_result:
+                # Get feature information
+                feature = current_running_result.feature_id
+                
+                # Get current step from feature status
+                current_step = getattr(feature, 'status', None)
+                
+                return JsonResponse({
+                    'success': True,
+                    'current_feature': {
+                        'feature_id': feature.feature_id,
+                        'feature_name': feature.feature_name,
+                        'feature_result_id': current_running_result.feature_result_id,
+                        'current_step': current_step,
+                        'running': True,
+                        'date_time': current_running_result.result_date.isoformat() if current_running_result.result_date else None
+                    },
+                    'ddt_info': {
+                        'run_id': ddr.run_id,
+                        'file_name': ddr.file.name if ddr.file else 'Unknown',
+                        'total_features': ddr.feature_results.count(),
+                        'status': ddr.status
+                    }
+                })
+            else:
+                # No currently running features - check if any are queued
+                queued_features = ddr.feature_results.filter(
+                    running=False,
+                    result_date__isnull=True  # Not yet started
+                ).select_related('feature_id').order_by('feature_result_id')[:1]
+                
+                if queued_features:
+                    next_feature = queued_features[0].feature_id
+                    return JsonResponse({
+                        'success': True,
+                        'current_feature': {
+                            'feature_id': next_feature.feature_id,
+                            'feature_name': next_feature.feature_name,
+                            'feature_result_id': queued_features[0].feature_result_id,
+                            'current_step': 'Queued for execution',
+                            'running': False,
+                            'date_time': None
+                        },
+                        'ddt_info': {
+                            'run_id': ddr.run_id,
+                            'file_name': ddr.file.name if ddr.file else 'Unknown',
+                            'total_features': ddr.feature_results.count(),
+                            'status': ddr.status
+                        }
+                    })
+                else:
+                    # All features completed but DDT still marked as running
+                    return JsonResponse({
+                        'success': True,
+                        'current_feature': None,
+                        'status': 'finalizing',
+                        'message': 'All features completed, finalizing results'
+                    })
+        else:
+            # No feature results yet
+            return JsonResponse({
+                'success': True,
+                'current_feature': None,
+                'status': 'initializing',
+                'message': 'Data-driven test is initializing'
+            })
+            
+    except Exception as e:
+        logger.error(f"[DDT-CURRENT-FEATURE] Error getting current feature for run {run_id}: {e}")
+        logger.exception(e)
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error while getting current feature'
+        }, status=200)
+
+@csrf_exempt  
+@require_permissions('view_feature')
+@require_http_methods(["GET"])
+def get_ddt_all_features(request, run_id, usersOwn=False):
+    """
+    Get all features and their current status for a data-driven test run.
+    Used for multi-feature overview in LiveSteps component.
+    """
+    try:
+        # Validate run_id parameter
+        try:
+            run_id = int(run_id)
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid run_id parameter'
+            }, status=200)
+        
+        # Get the data-driven run with department filtering
+        try:
+            ddr = DataDriven_Runs.objects.get(
+                run_id=run_id,
+                file__department__in=GetUserDepartments(request)
+            )
+        except DataDriven_Runs.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Data-driven run not found or access denied'
+            }, status=200)
+        
+        # Get all feature results
+        features_info = []
+        if ddr.feature_results.exists():
+            try:
+                # Get all feature results with related feature data (feature_results is a ManyToManyField)
+                feature_results = ddr.feature_results.select_related('feature_id').order_by('feature_result_id')
+                
+                for fr in feature_results:
+                    feature = fr.feature_id
+                    
+                    # Determine status
+                    if fr.running:
+                        status = 'running'
+                        current_step = getattr(feature, 'status', None)
+                    elif fr.result_date is None:
+                        status = 'queued'
+                        current_step = None
+                    elif fr.success:
+                        status = 'completed'
+                        current_step = None
+                    else:
+                        status = 'failed'
+                        current_step = None
+                    
+                    features_info.append({
+                        'feature_id': feature.feature_id,
+                        'feature_name': feature.feature_name,
+                        'feature_result_id': fr.feature_result_id,
+                        'status': status,
+                        'current_step': current_step,
+                        'running': fr.running,
+                        'success': fr.success,
+                        'date_time': fr.result_date.isoformat() if fr.result_date else None,
+                        'execution_time': fr.execution_time
+                    })
+                    
+            except ValueError:
+                logger.error(f"[DDT-ALL-FEATURES] Invalid feature_results format for run {run_id}: {ddr.feature_results}")
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid feature results data'
+                }, status=200)
+        
+        return JsonResponse({
+            'success': True,
+            'features': features_info,
+            'ddt_info': {
+                'run_id': ddr.run_id,
+                'file_name': ddr.file.name if ddr.file else 'Unknown',
+                'status': ddr.status,
+                'running': ddr.running,
+                'total': ddr.total,
+                'ok': ddr.ok,
+                'fails': ddr.fails,
+                'skipped': ddr.skipped,
+                'execution_time': ddr.execution_time
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"[DDT-ALL-FEATURES] Error getting all features for run {run_id}: {e}")
+        logger.exception(e)
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error while getting feature list'
+        }, status=200)
