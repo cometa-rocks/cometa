@@ -1415,3 +1415,20 @@ mat-slide-toggle {
   justify-content: flex-end;
   background-color: $bg-mat-dialog-container;
 }
+
+// Custom styles for APK tooltip
+::ng-deep .mat-tooltip {
+  max-width: 400px !important;
+  white-space: pre-line !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  padding: 8px 12px !important;
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+::ng-deep .mat-tooltip-panel {
+  max-width: 400px !important;
+}

@@ -810,4 +810,39 @@ export class MobileListComponent implements OnInit, OnDestroy {
     return container.id;
   }
 
+  // Check if container has installed APKs
+  hasInstalledApks(container: Container): boolean {
+    return container?.apk_file && Array.isArray(container.apk_file) && container.apk_file.length > 0;
+  }
+
+  // Get tooltip text for installed APKs
+  getApkTooltipText(container: Container): string {
+    if (!this.hasInstalledApks(container)) {
+      return '';
+    }
+
+    // Get APK names from the departments files
+    const apkNames: string[] = [];
+    // Ensure apk_file is always an array
+    const apkFileArray = Array.isArray(container.apk_file) ? container.apk_file : (container.apk_file ? [container.apk_file] : []);
+    
+    this.departments.forEach(department => {
+      const depData = JSON.parse(JSON.stringify(department));
+      const departmentApks = depData.files.filter(file => file.name.endsWith('.apk'));
+      
+      apkFileArray.forEach(apkId => {
+        const apk = departmentApks.find(file => file.id === apkId);
+        if (apk) {
+          apkNames.push(apk.name);
+        }
+      });
+    });
+
+    if (apkNames.length === 0) {
+      return 'No APK names found';
+    }
+
+    return `Installed Apps:\n${apkNames.join('\n\n')}`;
+  }
+
 }
