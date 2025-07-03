@@ -16,7 +16,7 @@ def get_schedules():
         schedules = response.json().get('schedules', [])
         return schedules
     else:
-        print("Failed to fetch schedules:", response.text)
+        logger.error(f"Failed to fetch schedules: {response.text}")
         return []
 
 

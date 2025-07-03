@@ -103,6 +103,7 @@ urlpatterns = [
     url(r'^stepsByName/', views.GetStepsByName),
     url(r'^schedule/(?P<feature_id>.+)/', views.UpdateSchedule),
     url(r'^schedule_data_driven/(?P<file_id>.+)/', views.UpdateFileSchedule),
+    url(r'^bulk_file_schedules/', views.GetBulkFileSchedules),
     url(r'^validateCron/', views.ValidateCron),
     url(r'^exectest/', views.runTest),
     url(r'^exec_batch/', views.runBatch),

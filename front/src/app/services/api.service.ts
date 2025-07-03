@@ -799,6 +799,10 @@ export class ApiService {
     return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
   }
 
+  stopDataDrivenTest(run_id: number) {
+    return this._http.post<{ success: boolean; tasks: number; run_id: number }>(`${this.base}stop_data_driven/${run_id}`, {});
+  }
+
   /**
    * Updates the data in a data-driven file
    * @param fileId The ID of the file to update
@@ -996,11 +1000,81 @@ export class ApiService {
   }
 
   /**
+   * Get schedule data for multiple files at once
+   */
+  getBulkFileSchedules(fileIds: number[]) {
+    return this._http.post<{
+      success: boolean;
+      schedules: { [fileId: number]: { schedule: string; original_cron: string | null; original_timezone: string | null } };
+      error?: string;
+    }>(`${this.base}bulk_file_schedules/`, { file_ids: fileIds });
+  }
+
+  /**
    * Update or create a schedule entry for a data-driven file.
    * NOTE: Backend endpoint `schedule_data_driven` must exist.
    */
   updateFileSchedule(fileId: number, payload: { schedule: string; original_timezone?: string | null }) {
-    return this._http.patch<Success>(`${this.base}schedule_data_driven/${fileId}/`, payload);
+    return this._http.patch<{success: boolean}>(`${this.base}schedule_data_driven/${fileId}/`, payload);
   }
+
+  /**
+   * Get the currently running feature for a data-driven test run.
+   * Used for real-time LiveSteps tracking in DDT mode.
+   */
+  getDDTCurrentlyRunningFeature(runId: number) {
+    return this._http.get<{
+      success: boolean;
+      current_feature: {
+        feature_id: number;
+        feature_name: string;
+        feature_result_id: number;
+        current_step: string;
+        running: boolean;
+        date_time: string | null;
+      } | null;
+      ddt_info?: {
+        run_id: number;
+        file_name: string;
+        total_features: number;
+        status: string;
+      };
+      status?: string;
+      message?: string;
+    }>(`${this.base}data_driven/${runId}/current_feature/`);
+  }
+
+  /**
+   * Get all features and their status for a DDT run.
+   * Used for LiveSteps component in data-driven mode.
+   */
+  getDDTAllFeatures(runId: number) {
+    return this._http.get<{
+      success: boolean;
+      features: Array<{
+        feature_id: number;
+        feature_name: string;
+        feature_result_id: number;
+        status: 'queued' | 'running' | 'completed' | 'failed';
+        current_step: string | null;
+        running: boolean;
+        success: boolean;
+        date_time: string | null;
+        execution_time: number;
+      }>;
+      ddt_info: {
+        run_id: number;
+        file_name: string;
+        status: string;
+        running: boolean;
+        total: number;
+        ok: number;
+        fails: number;
+        skipped: number;
+        execution_time: number;
+      };
+    }>(`${this.base}data_driven/${runId}/all_features/`);
+  }
+
 
 }

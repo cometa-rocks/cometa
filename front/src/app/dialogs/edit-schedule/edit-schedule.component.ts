@@ -310,7 +310,7 @@ export class EditSchedule {
           }
         },
         error: (error) => {
-          console.error('Failed to load file schedule:', error);
+          // Failed to load file schedule
           this.enableSchedule.next(false);
         }
       });

@@ -56,34 +56,8 @@ export class SocketService {
   onMessageReceived(data: any) {
     if (this.logWebsockets) console.log('[WEBSOCKET] Raw message received:', data);
     
-    // Enhanced logging for data-driven messages
-    if (data.type === '[WebSockets] DataDrivenStatusUpdate') {
-      console.log('[WEBSOCKET] DataDriven status update received:', {
-        run_id: data.run_id,
-        running: data.running,
-        status: data.status,
-        total: data.total,
-        ok: data.ok,
-        fails: data.fails,
-        skipped: data.skipped,
-        execution_time: data.execution_time,
-        pixel_diff: data.pixel_diff,
-        user_id: data.user_id,
-        department_id: data.department_id,
-        // Check data types
-        total_type: typeof data.total,
-        ok_type: typeof data.ok,
-        fails_type: typeof data.fails
-      });
-    }
-    
     // Handle specific WebSocket message types that need conversion to NGXS actions
     const action = this.convertWebSocketMessageToAction(data);
-    
-    // Log the action being dispatched
-    if (data.type === '[WebSockets] DataDrivenStatusUpdate') {
-      console.log('[WEBSOCKET] Dispatching DataDriven.StatusUpdate action:', action);
-    }
     
     this._store.dispatch(action);
   }
