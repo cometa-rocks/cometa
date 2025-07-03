@@ -305,16 +305,22 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-# Select ServiceManager Parent class based on the deployment 
-service_manager = DockerServiceManager
 
-IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
+# Try to detect if Docker is available by testing the Docker client connection
+def detect_service_manager():
+    try:
+        # Test Docker client connection
+        docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
+        # Try to ping the Docker daemon to verify connection
+        docker_client.ping()
+        logger.debug("Docker is available, using DockerServiceManager")
+        return DockerServiceManager
+    except Exception as e:
+        logger.debug(f"Docker is not available ({str(e)}), using KubernetesServiceManager")
+        return KubernetesServiceManager
 
-if IS_KUBERNETES_DEPLOYMENT:
-    service_manager = KubernetesServiceManager
-    logger.debug(
-        f'Deployment type is {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT","docker")}'
-    )
+service_manager = detect_service_manager()
+
 
 
 class ServiceManager(service_manager):

@@ -1,15 +1,74 @@
 #!/bin/bash
 # #########################################
-# AMVARA CONSULTING S.L. - 2024
+# AMVARA CONSULTING S.L. - 2025
 # #########################################
+# Motivation: 
+# This file is used in production environments to start the apache server 
+# This is kept separate to avoid the building angular code in the server
 
-source ./s_apache_conf.sh
+
+
+OPENIDC_SOURCE="/code/front/apache2/conf/openidc.conf"
+OPENIDC_DESTINATION="/usr/local/apache2/cometa_conf/openidc.conf"
+
+# Check if destination is a directory and remove it if it is
+if [ -d "$OPENIDC_DESTINATION" ]; then
+    rm -rf "$OPENIDC_DESTINATION"
+    echo "Removed directory $OPENIDC_DESTINATION"
+fi
+
+
+if [ ! -f "$OPENIDC_DESTINATION" ]; then
+  echo "\e[1;33m$OPENIDC_DESTINATION not found. Attempting to copy from $OPENIDC_SOURCE...\e[0m"
+
+  cp "$OPENIDC_SOURCE" "$OPENIDC_DESTINATION"
+  if [ $? -ne 0 ]; then
+    echo -e "\e[31mERROR: Failed to copy $OPENIDC_SOURCE to $OPENIDC_DESTINATION\e[0m"
+    exit 1
+  else
+    echo "Successfully copied $OPENIDC_SOURCE to $OPENIDC_DESTINATION"
+  fi
+else
+  echo "$OPENIDC_DESTINATION already exists."
+fi
+
+METADATA_SOURCE="/code/front/apache2/metadata"
+METADATA_DESTINATION="/usr/local/apache2/conf/metadata"
+
+echo "Checking contents of $METADATA_DESTINATION"
+
+# Check if there are *no* files in the destination
+if [ -z "$(find "$METADATA_DESTINATION" -type f 2>/dev/null)" ]; then
+  echo "No metadata files found in $METADATA_DESTINATION. Copying from source..."
+
+  cp -r "$METADATA_SOURCE"/* "$METADATA_DESTINATION/"
+  if [ $? -ne 0 ]; then
+    echo -e "\e[31mERROR: Failed to copy metadata files from $METADATA_SOURCE to $METADATA_DESTINATION\e[0m"
+    exit 1
+  else
+    echo "Successfully copied $METADATA_SOURCE to $METADATA_DESTINATION"
+  fi
+else
+  echo "Apache metadata files already exist in $METADATA_DESTINATION"
+fi
+
+
+METADATA_DIR="/usr/local/apache2/conf/metadata"
+
+for file in "$METADATA_DIR"/*.client; do
+  if grep -q "CLIENTID@@" "$file"; then
+    echo -e "\e[1;33mWARNING: Client secrets are not updated in $(basename "$file"), you might not be able to login\e[0m"
+  fi
+done
+
 
 if [ $? -ne 0 ]; then
   echo "ERROR: Failed to execute apache configurations check"
   exit 1
 fi
 
+touch /usr/local/apache2/logs/error_log
+touch /usr/local/apache2/logs/access.log
 
 mkdir -p /usr/local/apache2/htdocs/infra
 
@@ -93,6 +152,6 @@ echo -e "\e[32mSuccessful\e[0m"
 # #########################################
 # Restart apache server
 # #########################################
-httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k start
+httpd -k start
 
 find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log
