@@ -141,7 +141,8 @@ def getFileContent(file: File, sheet_name=None):
             raise Exception("Unable to parse excel or csv file.")
     
     # replace " " with "_" and to lower the column names
-    df.columns = df.columns.str.replace(" ", "_").str.lower()
+    if len(df.columns)  > 0:
+        df.columns = df.columns.str.replace(" ", "_").str.lower()
 
     # check if feature id or feature name column is present
     ddr_ready = 'feature_id' in df.columns or 'feature_name' in df.columns
@@ -161,8 +162,11 @@ def getFileContent(file: File, sheet_name=None):
     # convert row to json
     json_data = df.to_json(orient='records', lines=True).splitlines()
 
-    # add all the lines to the FileData
-    rows = (FileData(file=file, data=json.loads(data)) for data in json_data)
+    if len(json_data) > 1:
+        # add all the lines to the FileData
+        rows = (FileData(file=file, data=json.loads(data)) for data in json_data)
+    else:
+        rows = []
     
     # how many row we want to save in single query
     batch_size = 100

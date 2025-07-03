@@ -1,68 +1,33 @@
 {
   "browsers": [
-    {
-      "name": "cometa/chrome:129.0",
-      "image": "selenium/standalone-chrome:129.0"
-    }, 
-    {
-      "name": "cometa/chrome:130.0",
-      "image": "selenium/standalone-chrome:130.0"
-    },  
-    {
-      "name": "cometa/chrome:131.0",
-      "image": "selenium/standalone-chrome:131.0"
-    },    
-    {
-      "name": "cometa/chrome:132.0",
-      "image": "selenium/standalone-chrome:132.0"
-    },        
-    {
-      "name": "cometa/chrome:133.0",
-      "image": "selenium/standalone-chrome:133.0"
-    },      
-    {
-      "name": "cometa/chrome:134.0",
-      "image": "selenium/standalone-chrome:134.0"
-    },      
-    {
-      "name": "cometa/firefox:131.0",
-      "image": "selenium/standalone-firefox:131.0"
-    },
-    {
-      "name": "cometa/firefox:132.0",
-      "image": "selenium/standalone-firefox:132.0"
-    },   
-    {
-      "name": "cometa/firefox:133.0",
-      "image": "selenium/standalone-firefox:133.0"
-    },      
-    {
-      "name": "cometa/firefox:134.0",
-      "image": "selenium/standalone-firefox:134.0"
-    },      
-    {
-      "name": "cometa/firefox:135.0",
-      "image": "selenium/standalone-firefox:135.0"
-    },      
-    {
-      "name": "cometa/edge:129.0",
-      "image": "selenium/standalone-edge:129.0"
-    },
-    {
-      "name": "cometa/edge:130.0",
-      "image": "selenium/standalone-edge:130.0"
-    },
-    {
-      "name": "cometa/edge:131.0",
-      "image": "selenium/standalone-edge:131.0"
-    },      
-    {
-      "name": "cometa/edge:132.0",
-      "image": "selenium/standalone-edge:132.0"
-    },      
-    {
-      "name": "cometa/edge:133.0",
-      "image": "selenium/standalone-edge:133.0"
-    }
+    {"name": "cometa/chrome:129.0", "image": "selenium/standalone-chrome:129.0"},
+    {"name": "cometa/chrome:130.0", "image": "selenium/standalone-chrome:130.0"},
+    {"name": "cometa/chrome:131.0", "image": "selenium/standalone-chrome:131.0"},
+    {"name": "cometa/chrome:132.0", "image": "selenium/standalone-chrome:132.0"},
+    {"name": "cometa/chrome:133.0", "image": "selenium/standalone-chrome:133.0"},
+    {"name": "cometa/chrome:134.0", "image": "selenium/standalone-chrome:134.0"},
+    {"name": "cometa/chrome:135.0", "image": "selenium/standalone-chrome:135.0"},
+    {"name": "cometa/chrome:136.0", "image": "selenium/standalone-chrome:136.0"},
+    {"name": "cometa/chrome:137.0", "image": "selenium/standalone-chrome:137.0"},
+    
+    {"name": "cometa/firefox:131.0", "image": "selenium/standalone-firefox:131.0"},
+    {"name": "cometa/firefox:132.0", "image": "selenium/standalone-firefox:132.0"},
+    {"name": "cometa/firefox:133.0", "image": "selenium/standalone-firefox:133.0"},
+    {"name": "cometa/firefox:134.0", "image": "selenium/standalone-firefox:134.0"},
+    {"name": "cometa/firefox:135.0", "image": "selenium/standalone-firefox:135.0"},
+    {"name": "cometa/firefox:136.0", "image": "selenium/standalone-firefox:136.0"},
+    {"name": "cometa/firefox:137.0", "image": "selenium/standalone-firefox:137.0"},
+    {"name": "cometa/firefox:138.0", "image": "selenium/standalone-firefox:138.0"},
+    {"name": "cometa/firefox:139.0", "image": "selenium/standalone-firefox:139.0"},
+
+    {"name": "cometa/edge:129.0", "image": "selenium/standalone-edge:129.0"},
+    {"name": "cometa/edge:130.0", "image": "selenium/standalone-edge:130.0"},
+    {"name": "cometa/edge:131.0", "image": "selenium/standalone-edge:131.0"},
+    {"name": "cometa/edge:132.0", "image": "selenium/standalone-edge:132.0"},
+    {"name": "cometa/edge:133.0", "image": "selenium/standalone-edge:133.0"},
+    {"name": "cometa/edge:134.0", "image": "selenium/standalone-edge:134.0"},
+    {"name": "cometa/edge:135.0", "image": "selenium/standalone-edge:135.0"},
+    {"name": "cometa/edge:136.0", "image": "selenium/standalone-edge:136.0"},
+    {"name": "cometa/edge:137.0", "image": "selenium/standalone-edge:137.0"}
   ]
 }

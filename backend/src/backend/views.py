@@ -27,6 +27,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseBadRequ
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, \
     get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, \
     get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
@@ -310,7 +311,7 @@ def GetStepResultsData(request, *args, **kwargs):
     response = HttpResponse(
         content_type="text/csv",
         headers={
-            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")}.csv"'
+            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{timezone.now().strftime("%Y%m%d%H%M%S")}.csv"'
         },
     )
 
@@ -1008,7 +1009,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                     return {'success': False, 'error': str(err)}
 
     # create a run id for the executed test
-    date_time = datetime.datetime.utcnow()
+    date_time = timezone.now()
     fRun = Feature_Runs(feature=feature, date_time=date_time)
     fRun.save()
 
@@ -1056,7 +1057,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             # create a feature_result
             feature_result = Feature_result(
                 feature_id_id=feature.feature_id,
-                result_date=datetime.datetime.utcnow(),
+                result_date=timezone.now(),
                 run_hash=run_hash,
                 running=True,
                 network_logging_enabled = feature.network_logging,
@@ -2266,6 +2267,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants all the step_results related to the feature_result_id
         feature_result_id = self.kwargs.get('feature_result_id', None)
         if feature_result_id:
+            logger.debug(f"StepResultViewSet: Getting list of step results for feature result {feature_result_id}")
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
             queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
@@ -2293,6 +2295,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants to only see that particular step_result
         step_result_id = self.kwargs.get('step_result_id', None)
         if step_result_id:
+            logger.debug(f"StepResultViewSet: Getting details for step result {step_result_id}")
             # if step_result_id was found in the url
             # find the step_result that related to specified step_result_id
             step_result = Step_result.objects.filter(step_result_id=step_result_id)
@@ -2324,6 +2327,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
                 "success": True,
                 "results": StepResultRegularSerializer(step_result, many=False).data
             }
+            logger.debug(f"StepResultViewSet: Sending response for step result {data}")
             # send the response to user.
             return Response(data)
 
@@ -2691,7 +2695,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             generate_dataset=request.data.get('generate_dataset', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
-            last_edited_date=datetime.datetime.utcnow(),
+            last_edited_date=timezone.now(),
             created_by_id=request.session['user']['user_id']
         )
  
@@ -2768,7 +2772,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Update last edited fields
         """
         feature.last_edited_id = request.session['user']['user_id']
-        feature.last_edited_date = datetime.datetime.utcnow()
+        feature.last_edited_date = timezone.now()
 
         """
         Save submitted feature steps
@@ -3020,7 +3024,7 @@ class DatasetViewset(viewsets.ModelViewSet):
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")
-        file_name_date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        file_name_date = timezone.now().strftime("%Y%m%d-%H%M%S")
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename=Dataset_{file_name_date}.xlsx'
         # Attach workbook to reponse
@@ -3877,7 +3881,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
 
         # get all schedules whom delete date is not due yet
-        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        schedules = Schedule.objects.filter(Q(delete_on__gt=timezone.now()) | Q(delete_on=None))
 
         # save all schedules here
         cronSchedules = []

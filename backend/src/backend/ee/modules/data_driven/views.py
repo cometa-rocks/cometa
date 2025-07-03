@@ -39,7 +39,7 @@ from .models import DataDriven_Runs
 from .serializers import DataDrivenRunsSerializer
 import time, json
 from django.views.decorators.http import require_http_methods
-import requests
+import requests, traceback
 from backend.utility.config_handler import *
 from rest_framework.response import Response
 import tempfile
@@ -60,14 +60,14 @@ class DataDrivenResultsViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 'success': False,
                 'error': 'No \'run_id\' provided.'
-            }, status=400)
+            }, status=200)
         try:
             ddr = DataDriven_Runs.objects.prefetch_related('feature_results').get(pk=run_id, file__department_id__in=user_departments)
         except DataDriven_Runs.DoesNotExist:
             return JsonResponse({
                 'success': False,
                 'error': 'Data Driven Run not found.'
-            }, status=404)
+            }, status=200)
 
         page = self.paginate_queryset(ddr.feature_results.all())
         # serialize the data
@@ -91,7 +91,7 @@ class DataDrivenViewset(viewsets.ModelViewSet):
                 return JsonResponse({
                     'success': False,
                     'error': 'Data Driven Run not found.'
-                }, status=404)
+                }, status=200)
             # get the data related to the run
             return JsonResponse({
                 'success': True,
@@ -109,7 +109,7 @@ class DataDrivenViewset(viewsets.ModelViewSet):
                 department_id_int = int(department_id)
                 ddrs = ddrs.filter(file__department_id=department_id_int)
             except (ValueError, TypeError):
-                return JsonResponse({'success': False, 'error': 'Invalid department_id parameter.'}, status=400)
+                return JsonResponse({'success': False, 'error': 'Invalid department_id parameter.'}, status=200)
 
         # Get file_id from query parameters
         file_id = request.GET.get('file_id', None)
@@ -119,7 +119,7 @@ class DataDrivenViewset(viewsets.ModelViewSet):
                 file_id_int = int(file_id)
                 ddrs = ddrs.filter(file_id=file_id_int)
             except (ValueError, TypeError):
-                return JsonResponse({'success': False, 'error': 'Invalid file_id parameter.'}, status=400)
+                return JsonResponse({'success': False, 'error': 'Invalid file_id parameter.'}, status=200)
         
         # Filter by active files only if requested
         active_files_only = request.GET.get('active_files_only', None)
@@ -143,7 +143,7 @@ class DataDrivenViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 'success': False,
                 'error': 'Missing \'run_id\' parameter.'
-            }, status=400)
+            }, status=200)
 
         try:
             ddr = DataDriven_Runs.objects.get(pk=run_id, file__department__in=GetUserDepartments(request))
@@ -151,7 +151,7 @@ class DataDrivenViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 'success': False,
                 'error': 'Run not found.'
-            }, status=404)
+            }, status=200)
         
         ddr.delete()
 
@@ -174,7 +174,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 "success": False,
                 "error": "File not found."
-            }, status=404)
+            }, status=200)
         
         # get user departments
         user_departments = GetUserDepartments(request)
@@ -182,7 +182,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 "success": False,
                 "error": "You do not have access to this object."
-            }, status=403)
+            }, status=200)
         
         # Check if a specific sheet was requested for Excel files
         sheet_name = request.GET.get('sheet', None)
@@ -202,10 +202,11 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                 file_data = getFileContent(file, sheet_name=sheet_name if is_excel else None)
                 file.save()
             except Exception as err:
+                traceback.print_exc()
                 return JsonResponse({
                     "success": False,
                     "error": str(err) 
-                }, status=400)
+                }, status=200)
         elif is_excel and sheet_name:
             # For Excel files with a specified sheet, we need to reparse with the selected sheet
             # when not already doing a reparse
@@ -218,11 +219,12 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                 # We don't save the file here, just return the sheet data
                 # The data here is temporary just for this response
                 file_data = temp_data
+                
             except Exception as err:
                 return JsonResponse({
                     "success": False,
                     "error": f"Error parsing sheet '{sheet_name}': {str(err)}" 
-                }, status=400)
+                }, status=200)
         
         # paginate the queryset
         page = self.paginate_queryset(file_data)
@@ -268,12 +270,12 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         try:
             request_data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' }, status=400)
+            return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' }, status=200)
             
         # Get the data array from the request
         file_data_rows = request_data.get('data', None)
         if not file_data_rows:
-            return JsonResponse({ 'success': False, 'error': 'Missing data in request.' }, status=400)
+            return JsonResponse({ 'success': False, 'error': 'Missing data in request.' }, status=200)
         
         # Get the column order from the request if provided
         column_order = request_data.get('column_order', None)
@@ -288,7 +290,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 "success": False,
                 "error": "File not found or you don't have access to it."
-            }, status=404)
+            }, status=200)
         
         try:
             import pandas as pd
@@ -637,7 +639,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             return JsonResponse({
                 "success": False,
                 "error": str(err)
-            }, status=500)
+            }, status=200)
 
 def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
     data = row.data
@@ -776,11 +778,11 @@ def runDataDriven(request, *args, **kwargs):
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' }, status=400)
+        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' }, status=200)
     
     file_id = data.get('file_id', None)
     if not file_id:
-        return JsonResponse({ 'success': False, 'error': 'Missing \'file_id\' parameter.' }, status=400)
+        return JsonResponse({ 'success': False, 'error': 'Missing \'file_id\' parameter.' }, status=200)
     user_departments = GetUserDepartments(request)
     # User security added
     try:
@@ -789,7 +791,7 @@ def runDataDriven(request, *args, **kwargs):
         return JsonResponse({
             "success": False,
             "error": "File not found."
-        }, status=404)
+        }, status=200)
     
     file_data = file.file.all()
 
@@ -797,7 +799,7 @@ def runDataDriven(request, *args, **kwargs):
         return JsonResponse({
             "success": False,
             "error": "No rows found for selected data driven file."
-        }, status=400)
+        }, status=200)
     
     # --- BEGIN VALIDATION --- 
     missing_features = []
@@ -810,7 +812,7 @@ def runDataDriven(request, *args, **kwargs):
             return JsonResponse({
                 'success': False,
                 'error': f'Row {index + 1}: Missing \'feature_id\' or \'feature_name\'.'
-            }, status=400)
+            }, status=200)
         
         feature_exists = False
         try:
@@ -834,7 +836,7 @@ def runDataDriven(request, *args, **kwargs):
         return JsonResponse({
             'success': False,
             'error': error_message
-        }, status=400)
+        }, status=200)
     # --- END VALIDATION ---
     
     try:
@@ -865,7 +867,7 @@ def runDataDriven(request, *args, **kwargs):
 def stop_data_driven_test(request, *args, **kwargs):  
     run_id = kwargs.get('run_id', None)
     if not run_id:
-        return JsonResponse({ 'success': False, 'error': 'Missing \'run_id\'' }, status=400)
+        return JsonResponse({ 'success': False, 'error': 'Missing \'run_id\'' }, status=200)
 
     # User security added
     user_departments = GetUserDepartments(request)
@@ -875,13 +877,13 @@ def stop_data_driven_test(request, *args, **kwargs):
         return JsonResponse({
             "success": False,
             "error": f"data driven run not found with id : {run_id}"
-        }, status=404)
+        }, status=200)
     # Get all feature results ID
     feature_results = data_driven_run.feature_results.all()
 
     # User security added
     if len(feature_results)>0 and feature_results[0].department_id not in user_departments:
-         return JsonResponse({ 'success': False, 'error': 'You do not have access to this department' }, status=400)
+         return JsonResponse({ 'success': False, 'error': 'You do not have access to this department' }, status=200)
 
     # Get all task ID which are running feature with different browsers and test data
     tasks = Feature_Task.objects.filter(feature_result_id__in=feature_results)
@@ -920,4 +922,4 @@ def stop_data_driven_test(request, *args, **kwargs):
 
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({"success": False, "tasks": len(tasks)}, status=500)
+        return JsonResponse({"success": False, "tasks": len(tasks)}, status=200)

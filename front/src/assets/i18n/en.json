@@ -224,10 +224,6 @@
     "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
     "not_starred": "Add to favorites"
   },
-  "step_editor": {
-    "feature_link_tooltip": "Click to navigate to the feature",
-    "feature_link_not_found": "Feature not found"
-  },
   "live_steps": {
     "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
     "button_when_starting": "Wait until the feature is started"
@@ -239,6 +235,9 @@
     "compare_enabled": "Enabling compare automatically activates screenshot",
     "screenshot_disabled": "Disabling this checkbox implies disabling the compare checkbox",
     "feature_link_tooltip": "Click to navigate to the feature",
-    "feature_link_not_found": "Feature not found"
+    "feature_link_not_found": "Feature not found",
+    "select_all_steps": "Select or deselect all steps in the list. Selected steps can be copied, deleted, or used for bulk actions. This does not affect other checkboxes like Enable, Screenshot, or Compare.",
+    "copy_selected_steps": "Copy all selected steps to the clipboard so you can paste them elsewhere in the list.",
+    "paste_steps_here": "Paste the steps you have copied at the current position in the list."
   }
 }

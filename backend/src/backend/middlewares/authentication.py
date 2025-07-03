@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 from backend.utility.configurations import ConfigurationManager
 import urllib3
 from backend.utility.config_handler import get_config
+from django.utils import timezone
 logger = getLogger()
 
 DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
@@ -190,7 +191,7 @@ class AuthenticationMiddleware:
         # update user name just in case
         user.name = self.user_info.get('name', user.name)
         # update user last login
-        user.last_login = datetime.datetime.utcnow()
+        user.last_login = timezone.now()
         user.login_counter = user.login_counter + 1
         user.save()
         # get the mod_auth_sessionid and save it as user.sessionid
