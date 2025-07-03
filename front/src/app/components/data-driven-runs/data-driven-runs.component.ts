@@ -368,7 +368,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           click: (row: DataDrivenRun) => {
             this.openContent(row);
           },
-          iif: (row: DataDrivenRun) => !!row.running,
+          iif: (row: DataDrivenRun) => !!row.running && row.status !== 'Queued',
         },
         {
           type: 'icon',
@@ -912,27 +912,56 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           }
 
           if (res.success) {
-            const runId = res.run_id;
-            const runIndex = parent.results.findIndex(run => run.run_id === runId);
-            
-            if (runIndex !== -1) {
-              // Update existing run
-              parent.results = [
-                ...parent.results.slice(0, runIndex),
-                { ...parent.results[runIndex], running: true, status: 'Running' },
-                ...parent.results.slice(runIndex + 1)
-              ];
+            if (res.status === 'queued') {
+              // Handle queued DDT test
+              const runId = res.run_id;
+              const runIndex = parent.results.findIndex(run => run.run_id === runId);
+              
+              if (runIndex !== -1) {
+                // Update existing run to show queued status
+                parent.results = [
+                  ...parent.results.slice(0, runIndex),
+                  { ...parent.results[runIndex], running: false, status: 'Queued' },
+                  ...parent.results.slice(runIndex + 1)
+                ];
+              }
+              
+              parent.cdRef.markForCheck();
+              
+              // Show snackbar notification for queued status
+              parent._snackBar.open(
+                res.snackbar_message || `Data-driven test for ${file.name} has been queued and will start shortly.`,
+                'OK',
+                { 
+                  duration: 5000,
+                  panelClass: ['file-management-custom-snackbar']
+                }
+              );
+              parent.getResults(); // Refresh to show the queued test
+            } else {
+              // Handle successful immediate execution
+              const runId = res.run_id;
+              const runIndex = parent.results.findIndex(run => run.run_id === runId);
+              
+              if (runIndex !== -1) {
+                // Update existing run
+                parent.results = [
+                  ...parent.results.slice(0, runIndex),
+                  { ...parent.results[runIndex], running: true, status: 'Running' },
+                  ...parent.results.slice(runIndex + 1)
+                ];
+              }
+              
+              parent.cdRef.markForCheck();
+              
+              parent._dialog.open(DataDrivenTestExecuted, {
+                data: {
+                  run_id: res.run_id,
+                  file_name: file.name,
+                },
+              });
+              parent.getResults();
             }
-            
-            parent.cdRef.markForCheck();
-            
-            parent._dialog.open(DataDrivenTestExecuted, {
-              data: {
-                run_id: res.run_id,
-                file_name: file.name,
-              },
-            });
-            parent.getResults();
           } else {
             // Handle failure from backend (e.g., feature validation failed)
             const errorMessage = res.error || 'Unknown error occurred during execution start.';

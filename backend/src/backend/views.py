@@ -4433,4 +4433,4 @@ def UpdateFileSchedule(request, file_id, *args, **kwargs):
         return JsonResponse({'success': True})
     
     else:
-        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
