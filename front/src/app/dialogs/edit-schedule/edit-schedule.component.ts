@@ -233,10 +233,19 @@ export class EditSchedule {
     });
 
     // set the default layout of the form for editing schedule
-    // "1" is the crontab like layout
+    // "1" is the crontab like layout (horizontal)
     // "2" is the vertical form layout
-    this.formLayout = 2;
-    this.formLayoutTextSelected = 'horizontal';
+    const savedLayout = localStorage.getItem('co_schedule_form_layout');
+    if (savedLayout === '1' || savedLayout === '2') {
+      this.formLayout = Number(savedLayout);
+    } else {
+      // Default to horizontal layout (1) if no preference saved
+      this.formLayout = 1;
+    }
+
+    // Initialize helper text and icon according to the current layout
+    this.formLayoutTextSelected = this.formLayout === 1 ? 'vertical' : 'horizontal';
+    this.formLayoutIcon = this.formLayout === 1 ? 'rotate_right' : 'rotate_left';
 
     // Create empty form
     this.schedule = this._fb.group({});
@@ -557,6 +566,8 @@ export class EditSchedule {
       this.formLayout == 1 ? 'vertical' : 'horizontal';
     // Toggle the Icon
     this.formLayoutIcon = this.formLayout == 1 ? 'rotate_right' : 'rotate_left';
+    // Persist the user preference in localStorage so the chosen layout is remembered
+    localStorage.setItem('co_schedule_form_layout', this.formLayout.toString());
   }
 
   updateSchedule() {
