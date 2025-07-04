@@ -1,5 +1,5 @@
 {
-  "version": "3.0.68",
+  "version": "3.0.69",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.69",
+      "date": "2025-07-04",
+      "features": [
+        {
+          "title": "Updated Step Context Menu",
+          "description": "The positions of the copy and paste buttons have been changed. A new 'Delete' functionality has been added to remove selected steps. Right-clicking on a step now shows all available options."
+        }
+      ]
+    },    
     {
       "version": "3.0.68",
       "date": "2025-06-30",
