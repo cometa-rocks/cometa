@@ -8,7 +8,12 @@
   <br>
   <br>
 
-<stand-by-browser
-[stand_by_browsers]="stand_by_browsers" 
-(browserRemoved)="removeStandByBrowser($event)"
-></stand-by-browser>
+  <stand-by-browser-header 
+    [stand-by-browser-header]="stand-by-browser-header" 
+    (showHeader)="showHeaderStandByBrowser($event)">
+  </stand-by-browser-header>
+  
+  <stand-by-browser
+    [stand_by_browsers]="stand_by_browsers" 
+    (browserRemoved)="removeStandByBrowser($event)"
+  ></stand-by-browser>

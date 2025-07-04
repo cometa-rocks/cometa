@@ -5,6 +5,7 @@ import { BrowsersState } from '@store/browsers.state';
 import { Observable } from 'rxjs';
 import { BrowserComponent } from './browser/browser.component';
 import { StandByBrowserComponent } from './stand-by-browser/stand-by-browser.component';
+import { StandByBrowserHeaderComponent } from './stand-by-browser/stand-by-browser-header /stand-by-browser-header.component';
 import { NgFor, AsyncPipe, NgIf } from '@angular/common';
 import { ApiService } from '@services/api.service';
 
@@ -16,7 +17,7 @@ import { ApiService } from '@services/api.service';
   styleUrls: ['./browsers.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent, AsyncPipe],
+  imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent, StandByBrowserHeaderComponent,AsyncPipe],
 })
 export class BrowsersComponent  implements OnInit {
   @Select(BrowsersState.getBrowserJsons) browsers$: Observable<
@@ -24,6 +25,7 @@ export class BrowsersComponent  implements OnInit {
   >;
 
   stand_by_browsers: Container[] = [];
+  header_stand_by_browsers: Container[] = [];
   isLoading = true;
 
   constructor(private _api: ApiService,private _cdr: ChangeDetectorRef,) {}
@@ -36,6 +38,7 @@ export class BrowsersComponent  implements OnInit {
     this._api.getContainerServices().subscribe((res: ContainerServiceResponse) => {
       if (res.success) {
         this.stand_by_browsers = res.containerservices;
+        this.header_stand_by_browsers = res.containerservices;
       }
       this.isLoading = false;
       this._cdr.detectChanges();
@@ -44,6 +47,12 @@ export class BrowsersComponent  implements OnInit {
 
   removeStandByBrowser(id: number) {
     this.stand_by_browsers = this.stand_by_browsers.filter(browser => browser.id !== id);
+    this._cdr.detectChanges();
+  }
+
+  showHeaderStandByBrowser(header_stand_by_browsers: Container) {
+    this.stand_by_browsers.push(header_stand_by_browsers);
+    console.log(this.stand_by_browsers);
     this._cdr.detectChanges();
   }
 
