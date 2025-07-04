@@ -99,6 +99,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 ],
 })
 export class ModifyEmulatorDialogComponent {
+  isSaving = false;
 
   editMobileForm: FormGroup;
   selectedApks: any[] = [];
@@ -192,6 +193,8 @@ export class ModifyEmulatorDialogComponent {
   }
 
   saveChanges(): void {
+    this.isSaving = true;
+    
     const selectedApp = this.editMobileForm.value.selectedApp;
     const isShared = this.editMobileForm.value.shared;
     const currentSharedStatus = this.data.runningContainer?.shared;
@@ -202,6 +205,7 @@ export class ModifyEmulatorDialogComponent {
     
     // If no changes, just close the dialog without updating
     if (!hasSharedChanges && !hasNewApks) {
+      this.isSaving = false;
       this.dialogRef.close({ updatedContainer: this.data.runningContainer });
       return;
     }
@@ -209,7 +213,8 @@ export class ModifyEmulatorDialogComponent {
     if (this.editMobileForm.valid && hasSharedChanges) {
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
-        .subscribe((updatedContainer: any) => {
+        .subscribe({
+          next: (updatedContainer: any) => {
           // Install APKs sequentially if there are new ones
           if (hasNewApks) {
             const installApks = this.selectedApks.reduce((obs, apk) => {
@@ -225,16 +230,26 @@ export class ModifyEmulatorDialogComponent {
                 const existingApks = updatedContainer.apk_file || [];
                 const newApkIds = this.selectedApks.map(apk => apk.id);
                 updatedContainer.apk_file = this.mergeApkIds(existingApks, newApkIds);
+                this.isSaving = false;
                 this.dialogRef.close({ updatedContainer });
               },
               error: (error) => {
                 console.error('Error installing APKs:', error);
                 this.snack.open("Error installing one or more APKs", "OK");
+                this.isSaving = false;
+                this._cdr.detectChanges();
               }
             });
           } else {
             // Only shared status changed, no new APKs
+            this.isSaving = false;
             this.dialogRef.close({ updatedContainer });
+          }
+        },
+                  error: (error) => {
+            console.error('Error updating shared status:', error);
+            this.isSaving = false;
+            this._cdr.detectChanges();
           }
         });
     } else {
@@ -253,15 +268,19 @@ export class ModifyEmulatorDialogComponent {
             const existingApks = this.data.runningContainer.apk_file || [];
             const newApkIds = this.selectedApks.map(apk => apk.id);
             this.data.runningContainer.apk_file = this.mergeApkIds(existingApks, newApkIds);
+            this.isSaving = false;
             this.dialogRef.close({ updatedContainer: this.data.runningContainer });
           },
           error: (error) => {
             console.error('Error installing APKs:', error);
             this.snack.open("Error installing one or more APKs", "OK");
+            this.isSaving = false;
+            this._cdr.detectChanges();
           }
         });
       } else {
         // No changes at all
+        this.isSaving = false;
         this.dialogRef.close({ updatedContainer: this.data.runningContainer });
       }
     }

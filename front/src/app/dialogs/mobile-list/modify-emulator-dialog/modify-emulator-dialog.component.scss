@@ -200,6 +200,24 @@ h2, h3 {
    background-color: $blue;
  }
 
+// Save button styles
+.save-button {
+  min-width: 80px;
+  height: 36px;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.save-spinner {
+  margin: 0;
+}
+
 // Asegura que el panel del dropdown sea lo suficientemente ancho y permita ver todo el texto
 ::ng-deep .mat-select-panel {
   min-width: 400px !important; // o el valor que prefieras

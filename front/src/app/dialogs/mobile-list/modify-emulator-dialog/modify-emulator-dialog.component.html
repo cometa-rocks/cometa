@@ -107,14 +107,6 @@
           <p>No APKs selected yet. Please select an APK to add it here.</p>
         </div>
         
-        <!-- APK filename requirements info -->
-        <div class="apk-requirements-info">
-          <mat-icon class="info-icon">info</mat-icon>
-          <div>
-            <p><strong>APK filename requirements:</strong> Any valid filename is accepted. The system will handle special characters automatically.</p>
-            <p class="apk-examples"><strong>Note:</strong> Long filenames with special characters may take longer to process during installation.</p>
-          </div>
-        </div>
         <div class="">
           <mat-chip-grid #installChipGrid>
             <mat-chip-row
@@ -211,6 +203,21 @@
       mat-dialog-close
       mat-button
       (click)="closeDialog()">Cancel</button>
-    <button mat-stroked-button color="primary" (click)="saveChanges()">Save</button>
+    <button 
+      mat-stroked-button 
+      color="primary" 
+      (click)="saveChanges()"
+      [disabled]="isSaving"
+      class="save-button">
+      <div class="button-content">
+        <mat-spinner 
+          *ngIf="isSaving" 
+          diameter="16" 
+          color="primary"
+          class="save-spinner">
+        </mat-spinner>
+        <span *ngIf="!isSaving">Save</span>
+      </div>
+    </button>
   </mat-dialog-actions>
 </form>
