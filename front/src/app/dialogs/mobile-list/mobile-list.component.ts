@@ -842,7 +842,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
       return 'No APK names found';
     }
 
-    return `Installed Apps:\n${apkNames.join('\n\n')}`;
+    return `Installed Apps:\n${apkNames.map((name, index) => `${index + 1}. ${name}`).join('\n\n')}`;
   }
 
 }
