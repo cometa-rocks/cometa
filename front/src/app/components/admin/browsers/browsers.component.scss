@@ -26,22 +26,9 @@ browser:nth-child(2n + 2) {
 }
 
 
-// .grid-table {
-//   display: grid;
-//   grid-template-columns: repeat(5, 1fr); /* 4 equal columns */
-//   gap: 1px;
-//   background-color: #444;
-//   width: 600px;
-//   margin: 20px auto;
-//   font-family: Arial, sans-serif;
-// }
-
 .header {
   font-weight: bold;
   background-color: #f0f0f0;
 }
 
-stand-by-browser:nth-child(2n + 2) {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 5px;
-}
+

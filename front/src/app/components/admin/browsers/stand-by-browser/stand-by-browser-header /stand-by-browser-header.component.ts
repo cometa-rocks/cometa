@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
-import { BrowserComboTextPipe } from '../../../../pipes/browser-combo-text.pipe';
-import { StandByBrowserComboTextPipe } from '../../../../pipes/stand-by-browser-combo-text.pipe';
-import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
+import { BrowserComboTextPipe } from '../../../../../pipes/browser-combo-text.pipe';
+import { StandByBrowserComboTextPipe } from '../../../../../pipes/stand-by-browser-combo-text.pipe';
+import { DisableAutocompleteDirective } from '../../../../../directives/disable-autocomplete.directive';
 import { InputFocusService } from '@services/inputFocus.service';
 import { map } from 'rxjs/operators';
 import { ApiService } from '@services/api.service';
@@ -25,10 +25,14 @@ import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
 import { Browsers } from '@store/actions/browsers.actions';
+
+
+
+
 @Component({
-  selector: 'stand-by-browser',
-  templateUrl: './stand-by-browser.component.html',
-  styleUrls: ['./stand-by-browser.component.scss'],
+  selector: 'stand-by-browser-header',
+  templateUrl: './stand-by-browser-header.component.html',
+  styleUrls: ['./stand-by-browser-header.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
@@ -50,8 +54,10 @@ import { Browsers } from '@store/actions/browsers.actions';
     MatLegacyCheckboxModule
   ],
 })
-export class StandByBrowserComponent{
+export class StandByBrowserHeaderComponent{
+
   @Input() stand_by_browsers:  Container[];  
+  @Input() header_stand_by_browsers:  Container[];  
   @Output() checkboxChange = new EventEmitter<boolean>();
    
   inputFocus: boolean = false;
