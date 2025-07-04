@@ -12,7 +12,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import time, requests, json, os, datetime, sys, subprocess, re, shutil
+import time, requests, json, os, datetime, sys, subprocess, re, shutil, random, string
 
 sys.path.append("/opt/code/behave_django")
 
@@ -491,10 +491,11 @@ def tempFile(source):
             logger.error("Unable to remove the file.")
             logger.exception(err)
 
-            # get the timestamp
+            # get the timestamp and add more random text
             ts = time.time()
-            logger.debug(f"Setting a different filename: /tmp/{ts}-{filename}")
-            target = f"/tmp/{ts}-{filename}"
+            additional_random = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+            logger.debug(f"Setting a different filename: /tmp/{ts}_{additional_random}_{filename}")
+            target = f"/tmp/{ts}_{additional_random}_{filename}"
 
     logger.info(f"TMP file will be created at {target} for {source}.")
 

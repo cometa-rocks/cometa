@@ -311,7 +311,7 @@ def GetStepResultsData(request, *args, **kwargs):
     response = HttpResponse(
         content_type="text/csv",
         headers={
-            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")}.csv"'
+            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{timezone.now().strftime("%Y%m%d%H%M%S")}.csv"'
         },
     )
 
@@ -1009,7 +1009,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                     return {'success': False, 'error': str(err)}
 
     # create a run id for the executed test
-    date_time = datetime.datetime.utcnow()
+    date_time = timezone.now()
     fRun = Feature_Runs(feature=feature, date_time=date_time)
     fRun.save()
 
@@ -1057,7 +1057,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             # create a feature_result
             feature_result = Feature_result(
                 feature_id_id=feature.feature_id,
-                result_date=datetime.datetime.utcnow(),
+                result_date=timezone.now(),
                 run_hash=run_hash,
                 running=True,
                 network_logging_enabled = feature.network_logging,
@@ -2695,7 +2695,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             generate_dataset=request.data.get('generate_dataset', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
-            last_edited_date=datetime.datetime.utcnow(),
+            last_edited_date=timezone.now(),
             created_by_id=request.session['user']['user_id']
         )
  
@@ -2772,7 +2772,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Update last edited fields
         """
         feature.last_edited_id = request.session['user']['user_id']
-        feature.last_edited_date = datetime.datetime.utcnow()
+        feature.last_edited_date = timezone.now()
 
         """
         Save submitted feature steps
