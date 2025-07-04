@@ -66,6 +66,7 @@ default_cometa_configurations = {
     "COMETA_EMAIL_TLS": False,
     "COMETA_EMAIL_USER": "",
     "COMETA_EMAIL_PASSWORD": "",
+    "COMETA_EMAIL_FROM_DEFAULT": "no-reply@cometa.rocks",
     "COMETA_PROXY_ENABLED": False,
     "COMETA_NO_PROXY": "",
     "COMETA_PROXY": "",
