@@ -3875,7 +3875,7 @@ def fetch_all_network_requests(context, variable):
             "url": req['url'],
             "request_headers": req['headers'],
             "request_body": req.get('body'),
-            "request_body": req.get('method'),
+            "request_method": req.get('method'),
         }
         if resp:
             entry.update({
