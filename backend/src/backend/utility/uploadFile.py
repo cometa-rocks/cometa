@@ -100,9 +100,10 @@ def getFileContent(file: File, sheet_name=None):
                 if sheet_name and sheet_name in sheet_names:
                     logger.info(f"Reading Excel file with specified sheet: {sheet_name}")
                     df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+                    selected_sheet = sheet_name
                 else:
                     # If no sheet specified or specified sheet not found, use first sheet
-                    selected_sheet = sheet_names[0] if sheet_names else 0
+                    selected_sheet = sheet_names[0] if sheet_names else 'Sheet1'
                     logger.info(f"Reading Excel file with first sheet: {selected_sheet}")
                     df = pd.read_excel(xls, sheet_name=selected_sheet, header=0)
                 
@@ -126,7 +127,9 @@ def getFileContent(file: File, sheet_name=None):
             # Use requested sheet if specified and available
             if sheet_name and sheet_name in xls.sheet_names:
                 df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+                selected_sheet = sheet_name
             else:
+                selected_sheet = xls.sheet_names[0] if xls.sheet_names else 'Sheet1'
                 df = pd.read_excel(xls, header=0)
             
             original_columns = list(df.columns)
@@ -162,9 +165,17 @@ def getFileContent(file: File, sheet_name=None):
     # convert row to json
     json_data = df.to_json(orient='records', lines=True).splitlines()
 
+    # Determine the sheet name to use for FileData objects
+    if file.name.lower().endswith('.csv'):
+        # For CSV files, there's no sheet concept, but we'll use None
+        file_sheet_name = None
+    else:
+        # For Excel files, use the selected sheet name (if defined)
+        file_sheet_name = selected_sheet if 'selected_sheet' in locals() else (file.sheet_names[0] if file.sheet_names else 'Sheet1')
+
     if len(json_data) > 1:
-        # add all the lines to the FileData
-        rows = (FileData(file=file, data=json.loads(data)) for data in json_data)
+        # add all the lines to the FileData with proper sheet name
+        rows = (FileData(file=file, data=json.loads(data), sheet=file_sheet_name) for data in json_data)
     else:
         rows = []
     
