@@ -306,15 +306,15 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
 
 use_step_matcher("re")
 
+
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
-@step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"')
-@done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
-def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name):
+@step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"(?: with extraction type "(?P<extraction_type>.+?)")?')
+@done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"(?: with extraction type "{extraction_type}")?')
+def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name, extraction_type="text"):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
 
     variable_value = getVariable(context, variable_name) 
-    logger.debug(variable_value)
     
     # Check if the value is a string and attempt JSON loading
     if isinstance(variable_value, str):
@@ -324,9 +324,21 @@ def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name)
             raise CustomError(f"Failed to parse JSON: {e}")
 
     try:
-        parsed_value = jq.compile(jq_pattern).input(variable_value).text()
-        logger.debug(type(parsed_value))
-        logger.debug(parsed_value)
+        parsed_value = None
+        if extraction_type == "text":
+            parsed_value = jq.compile(jq_pattern).input(variable_value).text()
+        else:   
+            result = jq.compile(jq_pattern).input(variable_value).first()
+            if extraction_type == "str":
+                parsed_value = str(result)
+            elif extraction_type == "int":
+                parsed_value = int(result)
+            elif extraction_type == "float":
+                parsed_value = float(result)
+        
+        if parsed_value==None:
+            raise CustomError(f"Invalid extraction type: {extraction_type}")
+
         addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
     except Exception as err:
         logger.error(err)

@@ -35,7 +35,7 @@ class Configuration(models.Model):
     updated_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
     
     def save(self, *args, **kwargs):            
-        self.updated_on = datetime.datetime.utcnow()
+        self.updated_on = timezone.now()
         if self.encrypted:
             self.configuration_value = encrypt(self.configuration_value)
         logger.info(f"Saving configuration {self.configuration_name}")

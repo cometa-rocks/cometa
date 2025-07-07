@@ -700,7 +700,7 @@ class PDFAndEmailManager:
         email = EmailMultiAlternatives(
             self.subject,
             '',
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=self.feature_template.email_address,
             cc=self.feature_template.email_cc_address,
             bcc=self.feature_template.email_bcc_address,
