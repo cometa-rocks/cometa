@@ -253,9 +253,13 @@
         {
           "title": "Updated Step Context Menu",
           "description": "The positions of the copy and paste buttons have been changed. A new 'Delete' functionality has been added to remove selected steps. Right-clicking on a step now shows all available options."
+        },
+        {
+          "title": "Schedule data driven tests",
+          "description": "Data driven tests can be scheduled to run at a specific time or date."
         }
       ]
-    },    
+    },
     {
       "version": "3.0.68",
       "date": "2025-06-30",

@@ -321,15 +321,29 @@ export class DataDrivenExecution implements OnInit {
         next(res: any) {
           res = JSON.parse(res);
           if (res.success) {
-            parent._dialog.open(DataDrivenTestExecuted, {
-              minWidth: '500px',
-              panelClass: 'edit-feature-panel',
-              data: {
-                run_id: res.run_id,
-                file_name: file.name,
-              },
-            });
-            parent.dialogRef.close();
+            if (res.status === 'queued') {
+              // Handle queued DDT test
+              parent._snackBar.open(
+                res.snackbar_message || `Data-driven test for ${file.name} has been queued and will start shortly.`,
+                'OK',
+                { 
+                  duration: 5000,
+                  panelClass: ['file-management-custom-snackbar']
+                }
+              );
+              parent.dialogRef.close(); // Close dialog for queued test
+            } else {
+              // Handle successful immediate execution
+              parent._dialog.open(DataDrivenTestExecuted, {
+                minWidth: '500px',
+                panelClass: 'edit-feature-panel',
+                data: {
+                  run_id: res.run_id,
+                  file_name: file.name,
+                },
+              });
+              parent.dialogRef.close();
+            }
           }
         },
         error(err) {
