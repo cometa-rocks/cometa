@@ -32,12 +32,15 @@ def convert_cron_to_utc(cron_expression: str, user_timezone_str: str) -> str | N
         
         minute_str, hour_str, day_month_str, month_str, weekday_str = parts
         
-        # Check if fields are simple numbers
+        # Check if fields are simple numbers or comma-separated numbers
         def is_simple_number(field_str):
-            return field_str.isdigit()
+            # Accept single numbers or comma-separated numbers (e.g., "5" or "1,2,3")
+            return field_str.replace(',', '').isdigit()
         
         def has_patterns(field_str):
-            return ('*' in field_str or '/' in field_str or '-' in field_str or ',' in field_str)
+            # Commas are NOT patterns - they represent specific values
+            # Only *, /, and - are actual patterns
+            return ('*' in field_str or '/' in field_str or '-' in field_str)
         
         minute_is_simple = is_simple_number(minute_str)
         hour_is_simple = is_simple_number(hour_str)
@@ -61,7 +64,7 @@ def convert_cron_to_utc(cron_expression: str, user_timezone_str: str) -> str | N
         if hour_is_simple and minute_is_simple:
             # Both are simple numbers - standard conversion
             return _convert_simple_time_to_utc(
-                int(minute_str), int(hour_str), user_tz, utc_tz, now_in_user_tz,
+                minute_str, hour_str, user_tz, utc_tz, now_in_user_tz,
                 day_month_str, month_str, weekday_str, cron_expression, user_timezone_str
             )
         
@@ -90,30 +93,55 @@ def convert_cron_to_utc(cron_expression: str, user_timezone_str: str) -> str | N
 
 def _convert_simple_time_to_utc(minute_val, hour_val, user_tz, utc_tz, now_in_user_tz,
                                day_month_str, month_str, weekday_str, cron_expression, user_timezone_str):
-    """Convert simple hour:minute to UTC"""
+    """Convert simple hour:minute to UTC - handles comma-separated values"""
     try:
+        # Parse values - handle both single numbers and comma-separated lists
+        def parse_field(field):
+            return [int(v.strip()) for v in str(field).split(',')]
+        
+        minutes = parse_field(minute_val)
+        hours = parse_field(hour_val)
+        
+        # Use first value for timezone conversion (offset is same for all values in same day)
         naive_user_dt = datetime.datetime(
             now_in_user_tz.year, now_in_user_tz.month, now_in_user_tz.day, 
-            hour_val, minute_val
+            hours[0], minutes[0]
         )
         
         try:
             localized_user_dt = user_tz.localize(naive_user_dt, is_dst=None)
         except pytz.exceptions.NonExistentTimeError:
             logger.warning(
-                f"Local time {hour_val}:{minute_val:02d} does not exist in {user_timezone_str} "
+                f"Local time {hours[0]}:{minutes[0]:02d} does not exist in {user_timezone_str} "
                 f"on {now_in_user_tz.date()} due to DST (spring forward). Cron: '{cron_expression}'."
             )
             return None
         except pytz.exceptions.AmbiguousTimeError:
             localized_user_dt = user_tz.localize(naive_user_dt, is_dst=False)
             logger.warning(
-                f"Local time {hour_val}:{minute_val:02d} is ambiguous in {user_timezone_str} "
+                f"Local time {hours[0]}:{minutes[0]:02d} is ambiguous in {user_timezone_str} "
                 f"on {now_in_user_tz.date()} due to DST (fall back). Using standard time."
             )
         
         utc_dt = localized_user_dt.astimezone(utc_tz)
-        utc_cron = f"{utc_dt.minute} {utc_dt.hour} {day_month_str} {month_str} {weekday_str}"
+        
+        # Calculate offset to apply to all values
+        hour_offset = utc_dt.hour - hours[0]
+        minute_offset = utc_dt.minute - minutes[0]
+        
+        # Apply offset to all values
+        utc_hours = [(h + hour_offset) % 24 for h in hours]
+        utc_minutes = [(m + minute_offset) % 60 for m in minutes]
+        
+        # Format back to strings - preserve comma-separated format if multiple values
+        def format_field(values):
+            unique_values = sorted(set(values))
+            return ','.join(str(v) for v in unique_values) if len(unique_values) > 1 else str(unique_values[0])
+        
+        utc_minute_str = format_field(utc_minutes)
+        utc_hour_str = format_field(utc_hours)
+        
+        utc_cron = f"{utc_minute_str} {utc_hour_str} {day_month_str} {month_str} {weekday_str}"
         
         logger.info(
             f"Converted cron from '{cron_expression}' ({user_timezone_str}) to '{utc_cron}' (UTC)"
@@ -128,29 +156,40 @@ def _convert_hour_preserve_minute_pattern(minute_pattern, hour_val, user_tz, utc
                                         day_month_str, month_str, weekday_str, cron_expression, user_timezone_str):
     """Convert specific hour to UTC while preserving minute pattern (e.g., */1 3 * * *)"""
     try:
+        # Parse hour values - handle both single numbers and comma-separated lists
+        hours = [int(h.strip()) for h in str(hour_val).split(',')]
+        
         # Use minute 0 as reference for the hour conversion
         naive_user_dt = datetime.datetime(
             now_in_user_tz.year, now_in_user_tz.month, now_in_user_tz.day, 
-            hour_val, 0
+            hours[0], 0
         )
         
         try:
             localized_user_dt = user_tz.localize(naive_user_dt, is_dst=None)
         except pytz.exceptions.NonExistentTimeError:
             logger.warning(
-                f"Local time {hour_val}:00 does not exist in {user_timezone_str} "
+                f"Local time {hours[0]}:00 does not exist in {user_timezone_str} "
                 f"on {now_in_user_tz.date()} due to DST (spring forward). Cron: '{cron_expression}'."
             )
             return None
         except pytz.exceptions.AmbiguousTimeError:
             localized_user_dt = user_tz.localize(naive_user_dt, is_dst=False)
             logger.warning(
-                f"Local time {hour_val}:00 is ambiguous in {user_timezone_str} "
+                f"Local time {hours[0]}:00 is ambiguous in {user_timezone_str} "
                 f"on {now_in_user_tz.date()} due to DST (fall back). Using standard time."
             )
         
         utc_dt = localized_user_dt.astimezone(utc_tz)
-        utc_cron = f"{minute_pattern} {utc_dt.hour} {day_month_str} {month_str} {weekday_str}"
+        
+        # Calculate hour offset and apply to all hour values
+        hour_offset = utc_dt.hour - hours[0]
+        utc_hours = [(h + hour_offset) % 24 for h in hours]
+        
+        # Format hours back to string
+        utc_hour_str = ','.join(str(h) for h in sorted(set(utc_hours))) if len(set(utc_hours)) > 1 else str(utc_hours[0])
+        
+        utc_cron = f"{minute_pattern} {utc_hour_str} {day_month_str} {month_str} {weekday_str}"
         
         logger.info(
             f"Converted cron hour from '{cron_expression}' ({user_timezone_str}) to '{utc_cron}' (UTC), preserving minute pattern"

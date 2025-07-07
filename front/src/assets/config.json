@@ -1,5 +1,5 @@
 {
-  "version": "3.0.68",
+  "version": "3.0.69",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.69",
+      "date": "2025-07-03",
+      "features": [
+        {
+          "title": "Schedule data driven tests",
+          "description": "Data driven tests can be scheduled to run at a specific time or date."
+        }
+      ]
+    },
     {
       "version": "3.0.68",
       "date": "2025-06-30",
