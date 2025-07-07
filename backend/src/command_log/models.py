@@ -5,6 +5,7 @@ from typing import Optional
 
 from django.db import models
 from django.utils.timezone import now
+from django.utils import timezone
 
 
 class ManagementCommandLog(models.Model):
@@ -82,7 +83,7 @@ class ManagementCommandLog(models.Model):
         """Mark the beginning of a management command execution."""
         if any([self.started_at, self.finished_at, self.output, self.exit_code]):
             raise ValueError("Log object is already in use.")
-        self.started_at = datetime.datetime.utcnow()
+        self.started_at = timezone.now()
         self.save()
 
     def stop(
@@ -93,7 +94,7 @@ class ManagementCommandLog(models.Model):
             raise ValueError("Log object has not been started.")
         if any([self.finished_at, self.output, self.exit_code]):
             raise ValueError("Log object has already completed.")
-        self.finished_at = datetime.datetime.utcnow()
+        self.finished_at = timezone.now()
         self.output = output
         self.error = str(error) if error else ""
         self.exit_code = exit_code

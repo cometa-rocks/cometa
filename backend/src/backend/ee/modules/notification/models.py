@@ -4,7 +4,7 @@ import datetime
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
-
+from django.utils import timezone
 
 class FeatureTelegramOptions(models.Model):
     """
@@ -50,11 +50,11 @@ class FeatureTelegramOptions(models.Model):
     number_notification_sent_telegram = models.IntegerField(default=0, validators=[MinValueValidator(0)], help_text="Current count of consecutive Telegram notifications sent on errors")
     
     # Timestamps
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    updated_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    updated_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     
     def save(self, *args, **kwargs):
-        self.updated_on = datetime.datetime.utcnow()
+        self.updated_on = timezone.now()
         return super().save(*args, **kwargs)
     
     def __str__(self):

@@ -1075,16 +1075,19 @@ def step_impl(context):
 # Example: I can switch to iFrame with id '1'
 @step(u'I can switch to iFrame with id "{iframe_id}"')
 @done(u'I can switch to iFrame with id "{iframe_id}"')
-# @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
-def step_impl(context,iframe_id):
-    while True:
+def step_impl(context, iframe_id):
+    start_time = time.time()
+    while time.time() - start_time < context.step_data['timeout']:
         logger.debug("Switching to iFrame with id: %s" % iframe_id)
         try:
             # Try getting iframe by iframe_id as text
             iframe = context.browser.find_element(By.ID,  iframe_id )
             context.browser.switch_to.frame( iframe )
             return True
-        except:
+        except Exception as e:
+            logger.debug(e)
+            import traceback
+            traceback.print_exc()
             # failed switching to ID .. try overloading
             # Added method overloading with error handling by Ralf
             # Get total iframe count on current page source
@@ -1096,7 +1099,22 @@ def step_impl(context,iframe_id):
                     # Try getting iframe by iframe_id as index (int)
                     context.browser.switch_to.frame( iframes[iframe_id] )
                     return True
-        time.sleep(1)
+
+        time.sleep(0.5)
+    
+    raise CustomError("Unable to switch to iFrame with id: %s" % iframe_id)
+
+# Switches to a iframe tag inside the document within the specified ID
+# Example: I can switch to iFrame with selector '//iframe[@name="test_frame"]'
+@step(u'I can switch to iFrame with selector "{selector}"')
+@done(u'I can switch to iFrame with selector "{selector}"')
+# @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
+def step_impl(context, selector):
+    send_step_details(context, f'Looking for {selector}')
+    # Try getting iframe by iframe_id as text
+    iframe = waitSelector(context, "name", selector)
+    context.browser.switch_to.frame(iframe)
+
 
 # Switches to an iframe tag inside the document within the specified ID
 # Example: I can switch to iFrame with id '__privateStripeMetricsController8240'
@@ -1106,7 +1124,7 @@ def step_impl(context,iframe_name):
     send_step_details(context, 'Looking for selector')
     iframe = waitSelector(context, "name", iframe_name )
     send_step_details(context, 'Switching to iframe')
-    context.browser.switch_to.frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name'))
 
 # Changes the testing context to the main document in the current Tab/Window, similar to using window.top
 # Example: I switch to defaultContent
@@ -3857,7 +3875,7 @@ def fetch_all_network_requests(context, variable):
             "url": req['url'],
             "request_headers": req['headers'],
             "request_body": req.get('body'),
-            "request_body": req.get('method'),
+            "request_method": req.get('method'),
         }
         if resp:
             entry.update({
