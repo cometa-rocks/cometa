@@ -46,7 +46,7 @@ export class FeatureComponent implements OnInit {
   canDeleteFeature$: Observable<boolean>;
   inputFocus: boolean = false;
 
-  @Output() checkboxChange = new EventEmitter<boolean>();
+  
 
   constructor(
     private _api: ApiService,
