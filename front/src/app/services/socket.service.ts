@@ -7,6 +7,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { skip } from 'rxjs/operators';
+import { DataDriven } from '@store/actions/datadriven.actions';
 
 @Injectable()
 export class SocketService {
@@ -53,8 +54,38 @@ export class SocketService {
    * @param {any} data
    */
   onMessageReceived(data: any) {
-    if (this.logWebsockets) console.log(data);
-    this._store.dispatch(data);
+    if (this.logWebsockets) console.log('[WEBSOCKET] Raw message received:', data);
+    
+    // Handle specific WebSocket message types that need conversion to NGXS actions
+    const action = this.convertWebSocketMessageToAction(data);
+    
+    this._store.dispatch(action);
+  }
+
+  /**
+   * Converts WebSocket messages to proper NGXS actions
+   * @param {any} data Raw WebSocket message data
+   * @returns Action object for NGXS store
+   */
+  private convertWebSocketMessageToAction(data: any): any {
+    // Handle DataDriven StatusUpdate messages
+    if (data.type === '[WebSockets] DataDrivenStatusUpdate') {
+      return new DataDriven.StatusUpdate(
+        data.run_id,
+        data.running,
+        data.status,
+        data.total,
+        data.ok,
+        data.fails,
+        data.skipped,
+        data.execution_time,
+        data.pixel_diff
+      );
+    }
+    
+    // For all other message types, return the data as-is
+    // This maintains backward compatibility with existing WebSocket actions
+    return data;
   }
 
   /**
