@@ -613,4 +613,20 @@
   z-index: 5 !important;
 }
 
+// Schedule icon font weight and color styling
+:host ::ng-deep {
+  // Default: All schedule icons are gray and bold
+  button[ng-reflect-message*="Schedule"] .mat-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon {
+    font-weight: 600 !important;
+    color: #666666 !important; // Default gray color
+  }
+  
+  // Blue color for schedule icons with the has-schedule-icon class (higher specificity)
+  button[ng-reflect-message*="Schedule"] .mat-icon.has-schedule-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon.has-schedule-icon {
+    color: #1976d2 !important; // Primary blue
+  }
+}
+
 

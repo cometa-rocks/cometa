@@ -106,6 +106,7 @@
         <div *ngIf="selectedApks.length === 0" class="no-apks-message">
           <p>No APKs selected yet. Please select an APK to add it here.</p>
         </div>
+        
         <div class="">
           <mat-chip-grid #installChipGrid>
             <mat-chip-row
@@ -202,6 +203,21 @@
       mat-dialog-close
       mat-button
       (click)="closeDialog()">Cancel</button>
-    <button mat-stroked-button color="primary" (click)="saveChanges()">Save</button>
+    <button 
+      mat-stroked-button 
+      color="primary" 
+      (click)="saveChanges()"
+      [disabled]="isSaving"
+      class="save-button">
+      <div class="button-content">
+        <mat-spinner 
+          *ngIf="isSaving" 
+          diameter="16" 
+          color="primary"
+          class="save-spinner">
+        </mat-spinner>
+        <span *ngIf="!isSaving">Save</span>
+      </div>
+    </button>
   </mat-dialog-actions>
 </form>
