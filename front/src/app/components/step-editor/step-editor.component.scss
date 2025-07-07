@@ -828,42 +828,16 @@ textarea {
   }
 }
 
-// .fake-hash {
-//   @include for-tablet-portrait-up {
-//     flex: 0 0 40px;
-//   }
-//   flex: 0 0 20px;
-//   text-align: center;
-//   font-weight: bold;
-// }
 
-// .select-step {
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   justify-content: center;
-//   min-width: 80px;
-//   max-width: 100px;
-//   flex: 0 0 80px;
-//   height: 50px;
-//   @include for-tablet-portrait-up {
-//     min-width: 80px;
-//     max-width: 100px;
-//     flex: 0 0 80px;
-//   }
-//   span.desktop {
-//     display: inline-block;
-//     font-weight: 500;
-//     margin-bottom: 2px;
-//     margin-right: 0;
-//   }
-//   span.mobile {
-//     display: none;
-//   }
-//   .mat-checkbox {
-//     margin: 0 auto;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//   }
-// }
+// Custom badge styles for context menu
+::ng-deep .step-contect-menu {
+  .mat-badge-medium.mat-badge-overlap.mat-badge-after .mat-badge-content {
+    right: -20px;
+    top: -5px;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 16px;
+    color: white;
+  }
+}

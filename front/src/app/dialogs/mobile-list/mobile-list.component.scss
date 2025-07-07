@@ -1415,3 +1415,7 @@ mat-slide-toggle {
   justify-content: flex-end;
   background-color: $bg-mat-dialog-container;
 }
+
+// ::ng-deep .mat-tooltip-panel {
+//   max-width: 400px !important;
+// }
