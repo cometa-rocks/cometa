@@ -419,18 +419,18 @@
                             class="emulator-info">
                             <mat-icon
                               [matBadge]="runningContainer?.apk_file?.length"
-
                               class="get-app"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
                               matTooltipPosition="above">
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               file_download
                             </mat-icon>
                             <p
                               class="installedApp"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               matTooltipPosition="above">
                               Number installed Apps
-
                             </p>
                           </div>
                         </div>
@@ -941,13 +941,15 @@
                             <mat-icon
                               [matBadge]="runningContainer?.apk_file?.length"
                               class="get-app"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               matTooltipPosition="above">
                               file_download
                             </mat-icon>
                             <p
                               class="installedApp"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               matTooltipPosition="above">
                               Number installed Apps
 
