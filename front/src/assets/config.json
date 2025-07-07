@@ -1,5 +1,5 @@
 {
-  "version": "3.0.68",
+  "version": "3.0.70",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,30 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.70",
+      "date": "2025-07-05",
+      "features": [
+        {
+          "title": "Mobile emulator enhancements",
+          "description": "APK list and install logic fail with duplicate names; old file ID is used, UI needs wider dropdown and auto-refresh, etc"
+        }
+      ]
+    },   
+    {
+      "version": "3.0.69",
+      "date": "2025-07-04",
+      "features": [
+        {
+          "title": "Updated Step Context Menu",
+          "description": "The positions of the copy and paste buttons have been changed. A new 'Delete' functionality has been added to remove selected steps. Right-clicking on a step now shows all available options."
+        },
+        {
+          "title": "Schedule data driven tests",
+          "description": "Data driven tests can be scheduled to run at a specific time or date."
+        }
+      ]
+    },
     {
       "version": "3.0.68",
       "date": "2025-06-30",
