@@ -99,6 +99,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ApiTestingComponent } from '@components/api-testing/api-testing.component';
 import { TruncateApiBodyPipe } from '../../pipes/truncate-api-body.pipe';
+import { MatBadgeModule } from '@angular/material/badge';
 
 interface StepState {
   showLinkIcon: boolean;
@@ -138,6 +139,7 @@ interface StepState {
     CheckDuplicatePipe,
     TranslateModule,
     TruncateApiBodyPipe,
+    MatBadgeModule,
   ],
 })
 export class StepEditorComponent extends SubSinkAdapter implements OnInit {
@@ -175,6 +177,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   private lastEnableCheckedIndex: number | null = null;
   private lastScreenshotCheckedIndex: number | null = null;
   private lastCompareCheckedIndex: number | null = null;
+  private lastSelectCheckedIndex: number | null = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -1296,8 +1299,33 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
 
   deleteStep(i: number) {
+    // Check if the step being deleted was selected
+    const stepToDelete = this.stepsForm.at(i);
+    const wasSelected = stepToDelete?.get('selected')?.value;
+    
+    // Remove the step
     this.stepsForm.removeAt(i);
+    
+    // If the deleted step was selected, clear the clipboard
+    if (wasSelected) {
+      this.clearClipboardIfNoSelectedSteps();
+    }
+    
     this._cdr.detectChanges();
+  }
+
+  /**
+   * Clears the clipboard if there are no more selected steps.
+   * This ensures the paste option is properly disabled when all selected steps are deleted.
+   */
+  private clearClipboardIfNoSelectedSteps(): void {
+    const hasAnySelectedSteps = this.stepsForm.controls.some(control => 
+      control.get('selected')?.value
+    );
+    
+    if (!hasAnySelectedSteps) {
+      this.clipboardSteps = [];
+    }
   }
 
   focusStep(childIndex) {
@@ -1716,6 +1744,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepsForm.controls.forEach(control => {
       control.get('selected')?.setValue(checked);
     });
+    
+    // Automatically copy selected steps when select all changes
+    setTimeout(() => {
+      this.copySelectedSteps();
+    }, 0);
+    
     this._cdr.detectChanges();
   }
 
@@ -1743,6 +1777,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   /**
+   * Returns the number of selected steps.
+   */
+  getSelectedStepsCount(): number {
+    return this.stepsForm.controls.filter(control => control.get('selected')?.value).length;
+  }
+
+  /**
    * Copies the selected steps to the clipboardSteps array.
    */
   copySelectedSteps() {
@@ -1761,16 +1802,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   /**
    * Pastes the steps from clipboardSteps after the last selected step, or at the end if none selected.
    */
-  pasteSteps() {
-    // Find the last selected index, or -1 if none
-    let lastSelectedIndex = -1;
-    this.stepsForm.controls.forEach((control, index) => {
-      if (control.get('selected')?.value) {
-        lastSelectedIndex = index;
-      }
-    });
+  pasteSteps(insertAtIndex?: number) {
+    let insertIndex: number;
     
-    const insertIndex = lastSelectedIndex >= 0 ? lastSelectedIndex + 1 : this.stepsForm.length;
+    if (insertAtIndex !== undefined) {
+      // If called from context menu, insert at the specified index
+      insertIndex = insertAtIndex + 1;
+    } else {
+      // Original behavior: find the last selected index, or -1 if none
+      let lastSelectedIndex = -1;
+      this.stepsForm.controls.forEach((control, index) => {
+        if (control.get('selected')?.value) {
+          lastSelectedIndex = index;
+        }
+      });
+      insertIndex = lastSelectedIndex >= 0 ? lastSelectedIndex + 1 : this.stepsForm.length;
+    }
+    
     // Insert each step from clipboardSteps
     this.clipboardSteps.forEach((step, i) => {
       const formGroup = this._fb.group({
@@ -1794,6 +1842,78 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       control.get('selected')?.setValue(false);
     });
     this._cdr.detectChanges();
+  }
+
+  /**
+   * Automatically copies selected steps when selection changes.
+   */
+  onSelectStepChange(event: MatCheckboxChange, index: number) {
+    // Automatically copy selected steps whenever selection changes
+    setTimeout(() => {
+      this.copySelectedSteps();
+    }, 0);
+  }
+
+  /**
+   * Handles click on Select checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onSelectCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastSelectCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastSelectCheckedIndex, index].sort((a, b) => a - b);
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('selected')?.setValue(checked);
+      }
+      event.preventDefault(); // Prevent default click behavior
+      
+      // Update clipboard after multi-selection
+      setTimeout(() => {
+        this.copySelectedSteps();
+        this._cdr.detectChanges(); // Force UI update to reflect Select All checkbox state
+      }, 0);
+    }
+    this.lastSelectCheckedIndex = index;
+  }
+
+  /**
+   * Deletes the selected steps after confirmation.
+   */
+  deleteSelectedSteps() {
+    const selectedCount = this.stepsForm.controls.filter(control => control.get('selected')?.value).length;
+    
+    this._dialog
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'Delete Selected Steps',
+          description: `Are you sure you want to delete ${selectedCount} selected step${selectedCount > 1 ? 's' : ''}?`,
+        } as AreYouSureData,
+        autoFocus: true,
+      })
+      .afterClosed()
+      .subscribe(confirmed => {
+        if (confirmed) {
+          // Get indices of selected steps in reverse order to maintain correct indices during deletion
+          const selectedIndices: number[] = [];
+          this.stepsForm.controls.forEach((control, index) => {
+            if (control.get('selected')?.value) {
+              selectedIndices.push(index);
+            }
+          });
+          
+          // Delete in reverse order to maintain indices
+          selectedIndices.reverse().forEach(index => {
+            this.stepsForm.removeAt(index);
+          });
+          
+          // Clear clipboard since all selected steps were deleted
+          this.clipboardSteps = [];
+          
+          this._cdr.detectChanges();
+        }
+      });
   }
 
   /**
