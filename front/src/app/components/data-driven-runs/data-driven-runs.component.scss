@@ -118,3 +118,29 @@ mat-accordion {
 .file-toolbar {
   justify-content: flex-end !important;
 }
+
+// Schedule icon font weight and color styling
+:host ::ng-deep {
+  // Default: All schedule icons are gray and bold
+  button[ng-reflect-message*="Schedule"] .mat-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon {
+    font-weight: 600 !important;
+    color: #666666 !important; // Default gray color
+  }
+  
+  // Blue color for files with schedules - try multiple selector approaches
+  td.has-schedule button[ng-reflect-message*="Schedule"] .mat-icon,
+  td.has-schedule button[ng-reflect-message*="schedule"] .mat-icon,
+  .mtx-cell.has-schedule button[ng-reflect-message*="Schedule"] .mat-icon,
+  .mtx-cell.has-schedule button[ng-reflect-message*="schedule"] .mat-icon,
+  .has-schedule button[ng-reflect-message*="Schedule"] .mat-icon,
+  .has-schedule button[ng-reflect-message*="schedule"] .mat-icon {
+    color: #1976d2 !important; // Primary blue
+  }
+  
+  // Alternative approach: Force blue for specific files we know have schedules (temporary test)
+  .mtx-grid tr:has([data-file-id="97"]) button[ng-reflect-message*="Schedule"] .mat-icon,
+  .mtx-grid tr:has([data-file-id="98"]) button[ng-reflect-message*="Schedule"] .mat-icon {
+    color: #1976d2 !important; // Force blue for testing
+  }
+}

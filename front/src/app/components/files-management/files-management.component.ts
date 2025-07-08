@@ -74,6 +74,7 @@ interface UploadedFile {
   mime?: string;
   type?: string;
   file_type?: string;
+  uploadPath?: string;
 }
 
 // Add interface for sheet information
@@ -98,6 +99,7 @@ interface FileUploadDepartment {
 
 // Add import for AddColumnNameDialogComponent
 import { AddColumnNameDialogComponent } from '@dialogs/add-column-name/add-column-name.component';
+import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 
 @Component({
   selector: 'app-files-management',
@@ -148,6 +150,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   @Output() panelToggled = new EventEmitter<boolean>();
   @Output() paginationChanged = new EventEmitter<{event: PageEvent, file?: UploadedFile}>();
   @Output() searchFocusChange = new EventEmitter<boolean>();
+  @Output() scheduleDataUpdated = new EventEmitter<{fileId: number, hasCron: boolean, cronExpression?: string}>();
   
   // View children for templates
   @ViewChild('editInput') editInput: ElementRef;
@@ -193,6 +196,15 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   // Debouncing for save operations to prevent spam
   private saveDebounceTimers: Record<number, any> = {};
   
+  // Track which files have schedules for conditional icon coloring
+  fileScheduleStatus: { [fileId: number]: boolean } = {};
+  
+  // Track files currently being processed to avoid duplicate API calls
+  schedulingInProgress: Set<number> = new Set();
+  
+  // Store cron expressions for files with schedules
+  fileScheduleCronExpressions: { [fileId: number]: string } = {};
+  
   constructor(
     private cdRef: ChangeDetectorRef,
     private _http: HttpClient,
@@ -233,6 +245,14 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   ngOnInit(): void {
     // Initialize displayFiles from department.files but respect the showRemovedFiles setting
     this.updateDisplayFiles();
+    
+    // Check schedule status for all files if file_type is datadriven
+    if (this.file_type === 'datadriven' && this.displayFiles.length > 0) {
+      // Give the grid time to render before checking schedules
+      setTimeout(() => {
+        this.checkAllFileSchedules();
+      }, 100);
+    }
     
     // Subscribe to input focus events
     this.focusSubscription = this.inputFocusService.inputFocus$.subscribe((inputFocused) => {
@@ -411,6 +431,17 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           },
           {
             type: 'icon',
+            text: 'schedule',
+            icon: 'schedule',
+            tooltip: 'Schedule data-driven test',
+            // No default color – the icon will be gray unless .has-schedule-icon is added dynamically
+            click: (result: UploadedFile) => {
+              this.openScheduleDialog(result);
+            },
+            iif: row => this.showDataChecks(row) && this.dataDrivenExecutable(row) && !row.is_removed,
+          },
+          {
+            type: 'icon',
             text: 'delete',
             icon: 'delete',
             tooltip: 'Delete file',
@@ -420,7 +451,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
               this.onDeleteFile(result);
             },
             iif: row => !row.is_removed,
-          }
+          },
         ]
       }
     ];
@@ -1349,6 +1380,20 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             button.iif = (row: UploadedFile) => !row.is_removed;
           }
         }
+        
+        // Handle schedule button
+        if (button.icon === 'schedule' || button.text === 'schedule') {
+          this.log.msg('4', 'Found schedule button, ensuring correct handler', 'Init');
+          const originalClick = button.click;
+          button.click = (file: UploadedFile) => {
+            // Always use our own handler to ensure we can update colors
+            this.openScheduleDialog(file);
+          };
+          // Remove default color so icon is gray unless CSS class applies
+          if (button.color) {
+            delete (button as any).color;
+          }
+        }
       });
     }
     
@@ -1393,6 +1438,13 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (changes.department) {
       // When department changes, update internal lists and re-apply search
       this._updateInternalFileLists();
+      
+      // Check schedule status for new department files if datadriven
+      if (this.file_type === 'datadriven' && this.displayFiles.length > 0) {
+        setTimeout(() => {
+          this.checkAllFileSchedules();
+        }, 100);
+      }
     }
     // Ensure columns are initialized or updated if they change
     if (changes.fileColumns && !changes.fileColumns.firstChange) {
@@ -1815,7 +1867,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     } else {
       const searchTermLower = this.fileSearchTerm.toLowerCase();
       this.displayFiles = this.allCurrentlyRelevantFiles.filter(file =>
-        file.name.toLowerCase().includes(searchTermLower)
+        file.name.toLowerCase().includes(searchTermLower) || file.uploadPath.toLowerCase().includes(searchTermLower)
+        || file.id.toString().includes(searchTermLower) || file.uploaded_by?.name.toLowerCase().includes(searchTermLower)
       );
     }
     this.cdRef.markForCheck();
@@ -2711,5 +2764,291 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         this.log.msg('4', `Renamed column '${field}' to '${trimmedName}' (field: '${newFieldName}') in file ${fileId}`, 'RenameColumn');
       }
     });
+  }
+
+  // Open schedule dialog for a given file
+  openScheduleDialog(file: UploadedFile): void {
+    const dialogRef = this._dialog.open(EditSchedule, {
+      panelClass: EditSchedule.panelClass,
+      data: { fileId: file.id }
+    });
+    
+    // Re-check schedule status after dialog closes
+    dialogRef.afterClosed().subscribe(() => {
+      if (file.id) {
+        this.checkFileScheduleStatus(file.id, () => {
+          // Update the icon color immediately
+          this.updateColumnClasses();
+        });
+      }
+    });
+  }
+  
+  /**
+   * Check schedule status for all files using bulk API call
+   * Optimized to make single API call instead of individual requests
+   */
+  private checkAllFileSchedules() {
+    if (!this.displayFiles || this.displayFiles.length === 0) {
+      return;
+    }
+    
+    // Filter files that need checking (avoid duplicate calls)
+    const filesToCheck = this.displayFiles.filter(file => 
+      file.id && 
+      this.fileScheduleStatus[file.id] === undefined && 
+      !this.schedulingInProgress.has(file.id)
+    );
+    
+    if (filesToCheck.length === 0) {
+      this.updateColumnClasses();
+      return;
+    }
+    
+    
+    // Mark files as being processed to avoid duplicate requests
+    const fileIds = filesToCheck.map(file => file.id).filter(id => id !== undefined) as number[];
+    fileIds.forEach(fileId => {
+      this.schedulingInProgress.add(fileId);
+    });
+    
+    // Make single bulk API call
+    this.processBulkScheduleCheck(fileIds);
+  }
+  
+  /**
+   * Process schedule checks using bulk API call
+   */
+  private processBulkScheduleCheck(fileIds: number[]) {
+    if (fileIds.length === 0) {
+      return;
+    }
+    
+    this._api.getBulkFileSchedules(fileIds).subscribe({
+      next: (response) => {
+        // Mark all files as no longer in progress
+        fileIds.forEach(fileId => {
+          this.schedulingInProgress.delete(fileId);
+        });
+        
+        if (response.success && response.schedules) {
+          // Process each file's schedule data
+          Object.entries(response.schedules).forEach(([fileIdStr, scheduleData]) => {
+            const fileId = parseInt(fileIdStr);
+            const schedule = scheduleData.schedule;
+            const scheduleNotEmpty = schedule && schedule.trim() !== '';
+            
+            if (scheduleNotEmpty) {
+              this.fileScheduleStatus[fileId] = true;
+              this.fileScheduleCronExpressions[fileId] = schedule;
+              
+              // Attach the cron expression directly to the file object
+              const fileInDisplay = this.displayFiles?.find(f => f.id === fileId);
+              if (fileInDisplay) {
+                (fileInDisplay as any).schedule = schedule;
+              }
+              const fileInDepartment = this.department?.files?.find(f => f.id === fileId);
+              if (fileInDepartment) {
+                (fileInDepartment as any).schedule = schedule;
+              }
+              
+              
+              // Emit the schedule data to parent component
+              this.scheduleDataUpdated.emit({
+                fileId: fileId,
+                hasCron: true,
+                cronExpression: schedule
+              });
+            } else {
+              this.fileScheduleStatus[fileId] = false;
+              delete this.fileScheduleCronExpressions[fileId];
+              
+              // Clear any previous schedule value on the file objects
+              const fileInDisplay = this.displayFiles?.find(f => f.id === fileId);
+              if (fileInDisplay && (fileInDisplay as any).schedule !== undefined) {
+                delete (fileInDisplay as any).schedule;
+              }
+              const fileInDepartment = this.department?.files?.find(f => f.id === fileId);
+              if (fileInDepartment && (fileInDepartment as any).schedule !== undefined) {
+                delete (fileInDepartment as any).schedule;
+              }
+              
+              
+              // Emit that this file has no schedule
+              this.scheduleDataUpdated.emit({
+                fileId: fileId,
+                hasCron: false
+              });
+            }
+          });
+          
+          
+          // Force MTX-Grid to refresh by recreating the displayFiles array
+          this.displayFiles = [...this.displayFiles];
+          
+          // Trigger change detection so the grid updates
+          this.cdRef.markForCheck();
+          this.cdRef.detectChanges(); // Force immediate change detection
+          
+          // Update column classes with a longer delay to ensure DOM is ready
+          setTimeout(() => {
+            this.updateColumnClasses();
+          }, 500);
+        } else {
+          this.log.msg('2', 'Failed to get schedules in bulk check', 'Schedule', response.error);
+          // Mark all files as not having schedules if the call failed
+          fileIds.forEach(fileId => {
+            this.fileScheduleStatus[fileId] = false;
+          });
+        }
+      },
+      error: (error: any) => {
+        // Mark all files as no longer in progress
+        fileIds.forEach(fileId => {
+          this.schedulingInProgress.delete(fileId);
+        });
+        
+        this.log.msg('2', 'Error in bulk schedule check', 'Schedule', error);
+        // Mark all files as not having schedules if the call failed
+        fileIds.forEach(fileId => {
+          this.fileScheduleStatus[fileId] = false;
+        });
+      }
+    });
+  }
+  
+  /**
+   * Check schedule status for a single file
+   */
+  private checkFileScheduleStatus(fileId: number, onComplete?: () => void): void {
+    this._api.getFileSchedule(fileId).subscribe({
+      next: (response: any) => {
+        // Mark as no longer in progress
+        this.schedulingInProgress.delete(fileId);
+        
+        let parsedResponse = response;
+        if (typeof response === 'string') {
+          try {
+            parsedResponse = JSON.parse(response);
+          } catch (e) {
+            this.log.msg('2', `Failed to parse schedule response for file ${fileId}`, 'Schedule', e);
+            if (onComplete) onComplete();
+            return;
+          }
+        }
+        
+        const hasSuccess = parsedResponse.success;
+        const schedule = parsedResponse.schedule;
+        const scheduleNotEmpty = schedule && schedule.trim() !== '';
+        
+        if (hasSuccess && schedule && scheduleNotEmpty) {
+          this.fileScheduleStatus[fileId] = true;
+          this.fileScheduleCronExpressions[fileId] = schedule;
+
+          // NEW: attach the cron expression directly to the file object so the grid can display it via the "schedule" field
+          const fileInDisplay = this.displayFiles?.find(f => f.id === fileId);
+          if (fileInDisplay) {
+            // @ts-ignore – extend the UploadedFile object at runtime
+            (fileInDisplay as any).schedule = schedule;
+          }
+          const fileInDepartment = this.department?.files?.find(f => f.id === fileId);
+          if (fileInDepartment) {
+            // @ts-ignore – extend the UploadedFile object at runtime
+            (fileInDepartment as any).schedule = schedule;
+          }
+
+          
+          // Emit the schedule data to parent component
+          this.scheduleDataUpdated.emit({
+            fileId: fileId,
+            hasCron: true,
+            cronExpression: schedule
+          });
+        } else {
+          this.fileScheduleStatus[fileId] = false;
+          delete this.fileScheduleCronExpressions[fileId];
+
+          // Ensure we clear any previous schedule value on the file objects
+          const fileInDisplay = this.displayFiles?.find(f => f.id === fileId);
+          if (fileInDisplay && (fileInDisplay as any).schedule !== undefined) {
+            delete (fileInDisplay as any).schedule;
+          }
+          const fileInDepartment = this.department?.files?.find(f => f.id === fileId);
+          if (fileInDepartment && (fileInDepartment as any).schedule !== undefined) {
+            delete (fileInDepartment as any).schedule;
+          }
+
+          
+          // Emit that this file has no schedule
+          this.scheduleDataUpdated.emit({
+            fileId: fileId,
+            hasCron: false
+          });
+        }
+        
+        // Force MTX-Grid to refresh by recreating the displayFiles array
+        this.displayFiles = [...this.displayFiles];
+        
+        // Trigger change detection so the grid updates when we modify file rows
+        this.cdRef.markForCheck();
+        
+        if (onComplete) onComplete();
+      },
+      error: (error) => {
+        // Mark as no longer in progress
+        this.schedulingInProgress.delete(fileId);
+        
+        this.log.msg('2', `Error checking schedule for file ${fileId}`, 'Schedule', error);
+        this.fileScheduleStatus[fileId] = false;
+        if (onComplete) onComplete();
+      }
+    });
+  }
+  
+  /**
+   * Update column classes to apply schedule styling
+   */
+  private updateColumnClasses() {
+    // Simple DOM manipulation approach
+    setTimeout(() => {
+      this.log.msg('4', 'Starting updateColumnClasses', 'DOM');
+      
+      // Find all schedule buttons in the grid using multiple selectors
+      const scheduleButtons = document.querySelectorAll(
+        'button[mattooltip*="Schedule"], button[mattooltip*="schedule"], ' +
+        'button[ng-reflect-message*="Schedule"], button[ng-reflect-message*="schedule"]'
+      );
+      this.log.msg('4', `Found ${scheduleButtons.length} schedule buttons`, 'DOM');
+      
+      scheduleButtons.forEach((button) => {
+        // Find the parent row to get the file ID
+        const row = button.closest('tr');
+        if (row) {
+          // Get file ID from the row data
+          const cells = row.querySelectorAll('td');
+          if (cells.length > 0) {
+            // First cell usually contains the ID
+            const fileId = parseInt(cells[0].textContent?.trim() || '0');
+            
+            if (fileId && this.fileScheduleStatus[fileId] !== undefined) {
+              const hasSchedule = this.fileScheduleStatus[fileId];
+              const icon = button.querySelector('.mat-icon');
+              
+              if (icon) {
+                if (hasSchedule) {
+                  // Add blue color for files with schedules
+                  icon.classList.add('has-schedule-icon');
+                  this.log.msg('4', `File ${fileId} - Added blue color`, 'DOM');
+                } else {
+                  // Remove blue color for files without schedules
+                  icon.classList.remove('has-schedule-icon');
+                  this.log.msg('4', `File ${fileId} - Removed blue color`, 'DOM');
+                }
+              }
+            }
+          }
+        }
+      });
+    }, 100); // Small delay to ensure DOM is rendered
   }
 } 

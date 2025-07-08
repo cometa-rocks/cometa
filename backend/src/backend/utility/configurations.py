@@ -24,6 +24,7 @@ import base64
 from psycopg2.errors import ForeignKeyViolation
 from django.core.management.utils import get_random_secret_key
 from backend.utility.functions import detect_deployment_environment
+from django.utils import timezone
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -65,6 +66,7 @@ default_cometa_configurations = {
     "COMETA_EMAIL_TLS": False,
     "COMETA_EMAIL_USER": "",
     "COMETA_EMAIL_PASSWORD": "",
+    "COMETA_EMAIL_FROM_DEFAULT": "no-reply@cometa.rocks",
     "COMETA_PROXY_ENABLED": False,
     "COMETA_NO_PROXY": "",
     "COMETA_PROXY": "",
@@ -88,6 +90,7 @@ default_cometa_configurations = {
     # Add host hostAliases to test environments 
     # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
     "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",
+    "CONTAINER_ENVS": "{}", # this is used to set environment variables in the containers, i.e proxy settings
     "USE_COMETA_BROWSER_IMAGES": True,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",
@@ -253,8 +256,8 @@ class ConfigurationManager:
             default_value = ""
 
             # Define the values to be inserted
-            created_on = datetime.datetime.utcnow()
-            updated_on = datetime.datetime.utcnow()
+            created_on = timezone.now()
+            updated_on = timezone.now()
 
             default_value = ""
             created_by = 1
@@ -268,8 +271,8 @@ class ConfigurationManager:
             self.__db_connection.commit()
 
             # Define the values to be inserted
-        created_on = datetime.datetime.utcnow()
-        updated_on = datetime.datetime.utcnow()
+        created_on = timezone.now()
+        updated_on = timezone.now()
         string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, configuration_type, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True','backend', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
         # Generate the SQL query
         query = sql.SQL(string_query)
@@ -398,7 +401,7 @@ CONFIGURATION_UPDATE_WATCHED_FILE = os.path.join(CONFIGURATION_UPDATE_WATCHED_DI
 
 def update_config_tracker():
     with open(CONFIGURATION_UPDATE_WATCHED_FILE, "w") as f:
-        time = datetime.datetime.utcnow().isoformat()
+        time = timezone.now().isoformat()
         logger.debug(f"Updating configuration tracker at {time}")
         f.write(time)
 

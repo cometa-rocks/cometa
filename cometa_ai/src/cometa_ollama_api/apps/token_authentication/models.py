@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db.models import UniqueConstraint
+from django.utils import timezone
 import datetime
 import secrets
 import string
@@ -16,8 +17,8 @@ class OIDCUserAppSecret(models.Model):
         max_length=250
     )
     name = models.CharField(max_length=100)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    last_used = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    last_used = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     failed_count = models.IntegerField(default=0, help_text="+1 on each failed login.")
 
     class Meta:
