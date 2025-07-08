@@ -74,6 +74,7 @@ interface UploadedFile {
   mime?: string;
   type?: string;
   file_type?: string;
+  uploadPath?: string;
 }
 
 // Add interface for sheet information
@@ -1866,7 +1867,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     } else {
       const searchTermLower = this.fileSearchTerm.toLowerCase();
       this.displayFiles = this.allCurrentlyRelevantFiles.filter(file =>
-        file.name.toLowerCase().includes(searchTermLower)
+        file.name.toLowerCase().includes(searchTermLower) || file.uploadPath.toLowerCase().includes(searchTermLower)
+        || file.id.toString().includes(searchTermLower) || file.uploaded_by?.name.toLowerCase().includes(searchTermLower)
       );
     }
     this.cdRef.markForCheck();
