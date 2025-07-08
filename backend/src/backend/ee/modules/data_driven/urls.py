@@ -7,7 +7,9 @@ from .views import (
     DataDrivenFileViewset,
     DataDrivenViewset,
     runDataDriven,
-    stop_data_driven_test
+    stop_data_driven_test,
+    get_ddt_currently_running_feature,
+    get_ddt_all_features
 )
 from django.conf.urls import url
 
@@ -32,7 +34,9 @@ def register_data_driven_urlpatterns(urlpatterns) :
 
     urlpatterns = urlpatterns + [
         url(r'^exec_data_driven/', runDataDriven),
-        url(r'^stop_data_driven/(?P<run_id>[0-9]+)', stop_data_driven_test)
+        url(r'^stop_data_driven/(?P<run_id>[0-9]+)', stop_data_driven_test),
+        url(r'^data_driven/(?P<run_id>[0-9]+)/current_feature/', get_ddt_currently_running_feature),
+        url(r'^data_driven/(?P<run_id>[0-9]+)/all_features/', get_ddt_all_features),
     ]
     return urlpatterns
     

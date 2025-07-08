@@ -48,6 +48,7 @@
     <span class="mobile"><i></i></span>
     <mat-checkbox
       (change)="toggleSelectAllSteps($event)"
+      [checked]="areAllStepsSelected()"
       color="primary"
       class="select-all checkbox-blue"
       aria-label="Select all steps"
@@ -119,6 +120,42 @@
       <span>Delete</span>
     </div>
   </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="canPasteSteps()"
+      (click)="pasteSteps(item)"
+      [matTooltip]="'step_editor.paste_steps_here' | translate" 
+      matTooltipPosition="right">
+      <mat-icon matBadge="{{ clipboardSteps.length }}" matBadgeColor="primary">archive</mat-icon>
+      <span>Paste steps here</span>
+    </div>
+    <div 
+      *ngIf="!canPasteSteps()"
+      [matTooltip]="'No steps in clipboard to paste'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
+      <mat-icon>archive</mat-icon>
+      <span>Paste steps here</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="hasSelectedSteps()"
+      (click)="deleteSelectedSteps()"
+      [matTooltip]="'step_editor.delete_selected_steps' | translate" 
+      matTooltipPosition="right">
+      <mat-icon matBadge="{{ getSelectedStepsCount() }}" matBadgeColor="warn" class="delete">delete_sweep</mat-icon>
+      <span>Delete selected steps</span>
+    </div>
+    <div 
+      *ngIf="!hasSelectedSteps()"
+      [matTooltip]="'No steps selected to delete'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
+      <mat-icon class="delete">delete_sweep</mat-icon>
+      <span>Delete selected steps</span>
+    </div>
+  </ng-template>
 </context-menu>
 <!-- Editor step rows -->
 <div class="DragDropContainer" cdkDropList (cdkDropListDropped)="drop($event)">
@@ -175,7 +212,9 @@
                 formControlName="selected"
                 color="primary"
                 class="select-step checkbox-blue"
-                aria-label="Select step"></mat-checkbox>
+                aria-label="Select step"
+                (click)="onSelectCheckboxClick($event, i)"
+                (change)="onSelectStepChange($event, i)"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">
@@ -458,28 +497,6 @@
 </div>
 <div class="button-actions">
   <div class="left">
-    <button
-      type="button"
-      color="primary"
-      (click)="copySelectedSteps()"
-      [disabled]="!hasSelectedSteps()"
-      mat-stroked-button
-      class="copy_selected_steps"
-      [matTooltip]="'step_editor.copy_selected_steps' | translate"
-      matTooltipPosition="above">
-      COPY SELECTED STEPS
-    </button>
-    <button
-      *ngIf="canPasteSteps()"
-      type="button"
-      color="primary"
-      (click)="pasteSteps()"
-      mat-stroked-button
-      class="paste_steps"
-      [matTooltip]="'step_editor.paste_steps_here' | translate"
-      matTooltipPosition="above">
-      PASTE STEPS HERE
-    </button>
     <button
       type="button"
       color="primary"
