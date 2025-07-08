@@ -49,21 +49,21 @@ ws_server_stable_version=$(cat backend/ws-server/version.json | jq -r '.stable_v
 front_stable_version=$(cat front/src/assets/config.json | jq -r '.stable_version')
 
 echo "Restarting cometa-django-deployment"
-kubectl edit deployment cometa-django-deployment cometa-django=cometa/django:$django_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-django-deployment cometa-django=cometa/django:$django_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-django-deployment restarted"
 
 echo "Restarting cometa-behave-deployment"
-kubectl edit deployment cometa-behave-deployment cometa-behave=cometa/behave:$behave_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-behave-deployment cometa-behave=cometa/behave:$behave_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-behave-deployment restarted"
 
 echo "Restarting cometa-scheduler-deployment"
-kubectl edit deployment cometa-scheduler-deployment cometa-scheduler=cometa/scheduler:$scheduler_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-scheduler-deployment cometa-scheduler=cometa/scheduler:$scheduler_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-scheduler-deployment restarted"
 
 echo "Restarting cometa-socket-deployment"
-kubectl edit deployment cometa-socket-deployment cometa-socket=cometa/socket:$ws_server_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-socket-deployment cometa-socket=cometa/socket:$ws_server_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-socket-deployment restarted"
 
 echo "Restarting cometa-front-deployment"
-kubectl edit deployment cometa-front-deployment cometa-front=cometa/front:$front_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-front-deployment cometa-front=cometa/front:$front_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-front-deployment restarted"
