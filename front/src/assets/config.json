@@ -1,5 +1,5 @@
 {
-  "version": "3.0.70",
+  "version": "3.0.73",
   "stable_version": "3.0.67",
   "language": "en",
   "appTitle": "co.meta",
@@ -237,6 +237,36 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.73",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Fixed issue with preselected department in user settings,mobile, DDT and Data Driven Execution dialogs - #6462",
+          "description": "Fixed issue with preselected department in user settings, mobile, DDT and Data Driven Execution dialogs"
+        }
+      ]
+    },
+    {
+      "version": "3.0.72",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Pop-up conflict resolution, deprecated use of ngModel",
+          "description": "Fixed the conflict resolution pop-up when closing the edit feature dialog. Deprecated the use of ngModel in the edit feature dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.71",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Step editor improvements",
+          "description": "Added a tooltip to the select step checkbox in the step editor. When selecting 'Uncheck All Screenshots', all enabled checkboxes will be unchecked."
+        }
+      ]
+    },
     {
       "version": "3.0.70",
       "date": "2025-07-05",
