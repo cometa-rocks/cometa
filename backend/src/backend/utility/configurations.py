@@ -90,6 +90,7 @@ default_cometa_configurations = {
     # Add host hostAliases to test environments 
     # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
     "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",
+    "CONTAINER_ENVS": "{}", # this is used to set environment variables in the containers, i.e proxy settings
     "USE_COMETA_BROWSER_IMAGES": True,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",

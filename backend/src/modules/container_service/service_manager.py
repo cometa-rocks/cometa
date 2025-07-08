@@ -434,6 +434,15 @@ class ServiceManager(service_manager):
         except Exception as e:
             logger.error("Exception loading the test hostAliases configurations", e)
             return []
+
+    def get_container_environments(self):
+        # Load the container environment variables
+        try:
+            container_envs = ConfigurationManager.get_configuration("CONTAINER_ENVS", '{}')
+            return json.loads(container_envs)
+        except Exception as e:
+            logger.error("Exception loading the container environments configurations", e)
+            return {}
         
     def get_video_volume(self):
         info = self.inspect_service("cometa_behave")
@@ -443,6 +452,7 @@ class ServiceManager(service_manager):
 
     def prepare_emulator_service_configuration(self, image):
         host_mappings = self.get_host_name_mapping()
+        container_envs = self.get_container_environments()
         
         # Flatten the host mappings for `extra_hosts`
         extra_hosts = [
@@ -465,7 +475,8 @@ class ServiceManager(service_manager):
                 "environment": {
                     "DISPLAY": ":0",
                     "VIDEO_PATH": "/video",
-                    "AUTO_RECORD": "true"
+                    "AUTO_RECORD": "true",
+                    **container_envs  # Add custom container environments from configuration
                 },  # Set the DISPLAY environment variable
                 "network": "cometa_testing",  # Attach the container to the 'testing' network
                 "restart_policy": {"Name": "unless-stopped"},
@@ -489,6 +500,7 @@ class ServiceManager(service_manager):
         browser_cpu=int(ConfigurationManager.get_configuration("COMETA_BROWSER_CPU","1"))
         
         host_mappings = self.get_host_name_mapping()
+        container_envs = self.get_container_environments()
         
         if super().deployment_type == "docker":        
             video_volume = self.get_video_volume()
@@ -514,6 +526,7 @@ class ServiceManager(service_manager):
                     "SE_SESSION_REQUEST_TIMEOUT": "7200",
                     "SE_NODE_SESSION_TIMEOUT": "7200",
                     "SE_NODE_OVERRIDE_MAX_SESSIONS": "true",
+                    **container_envs  # Add custom container environments from configuration
                 },  # Set environment variables
                 "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
                 "restart_policy": {"Name": "unless-stopped"},
@@ -583,6 +596,9 @@ class ServiceManager(service_manager):
                                 {"name": "SE_SESSION_REQUEST_TIMEOUT", "value": "7200"},
                                 {"name": "SE_NODE_SESSION_TIMEOUT", "value": "7200"},
                                 {"name": "SE_NODE_OVERRIDE_MAX_SESSIONS", "value": "true"}
+                            ] + [
+                                {"name": key, "value": str(value)} 
+                                for key, value in container_envs.items()
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},
