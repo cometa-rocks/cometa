@@ -1,5 +1,6 @@
 {
   "version": "3.0.68",
+  "stable_version": "3.0.67",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -243,6 +244,10 @@
         {
           "title": "Copy and paste steps functionality",
           "description": "Added the ability to copy and paste steps in the Step Editor."
+        },
+        {
+          "title": "Improved search file functionality",
+          "description": "Added the ability to search files by name, id, uploaded by, upload path."
         }
       ]
     },
