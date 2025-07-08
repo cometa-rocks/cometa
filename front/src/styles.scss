@@ -809,6 +809,10 @@ h3 {
     background-color: $blue;
     border-bottom: 4px solid darken($blue, 10);
   }
+  &.queued {
+    background-color: $orange;
+    border-bottom: 4px solid darken($orange, 10);
+  }
 }
 
 .menu-header {
