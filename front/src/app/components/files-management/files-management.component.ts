@@ -782,10 +782,46 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             if (resp && resp.sheet_names && Array.isArray(resp.sheet_names) && resp.sheet_names.length > 0) {
               this.log.msg('4', `Excel sheet names found for file ${fileId}: ${resp.sheet_names.join(', ')}`, 'GetData');
               
+              // If we have not yet selected a sheet (first time opening this file),
+              // automatically choose the first sheet, persist it, and re-fetch the data
+              const currentSheetSelection = this.file_data[fileId].sheets?.current;
+              const needDefaultSheet        = !currentSheetSelection || currentSheetSelection === '';
+
+              // Always (re)store the sheet names list
+              if (!this.file_data[fileId].sheets) {
+                this.file_data[fileId].sheets = { names: [], current: '' } as any;
+              }
+
+              if (needDefaultSheet) {
+                const defaultSheet = resp.sheet_names[0];
+                this.file_data[fileId].sheets = {
+                  names: resp.sheet_names,
+                  current: defaultSheet
+                } as any;
+
+                // Persist the default so subsequent openings include the param on first call
+                localStorage.setItem(`co_excel_sheet_${fileId}`, defaultSheet);
+
+                // Immediately re-request the data with the selected sheet so that the user
+                // doesn't see the "No data found" placeholder.
+                this.log.msg('4', `Auto-selecting default sheet '${defaultSheet}' for file ${fileId} and reloading data`, 'GetData');
+
+                // Avoid infinite recursion by ensuring we only retry once (now that we have a sheet)
+                // The saved value in localStorage guarantees the next call will include the sheet param.
+                setTimeout(() => this.getFileData(file), 0);
+                return; // Skip further processing of the current (sheet-less) response
+              } else {
+                // We already have a sheet selected – just update the names list if needed
+                this.file_data[fileId].sheets = {
+                  names: resp.sheet_names,
+                  current: currentSheetSelection
+                } as any;
+              }
+
               this.file_data[fileId].sheets = {
-                names: resp.sheet_names,
-                // If no current sheet is set, default to the first one
-                current: this.file_data[fileId].sheets.current || resp.sheet_names[0]
+                  names: resp.sheet_names,
+                  // If no current sheet is set, default to the first one
+                  current: this.file_data[fileId].sheets.current || resp.sheet_names[0]
               };
             }
             
@@ -2044,9 +2080,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  // Add helper to check if a file has multiple sheets
+  // display sheet selector when there is at least one sheet
   hasMultipleSheets(fileId: number): boolean {
-    return this.file_data[fileId]?.sheets?.names?.length > 1;
+    return (this.file_data[fileId]?.sheets?.names?.length || 0) > 0;
   }
 
   // Add helper to get sheet names for a file
