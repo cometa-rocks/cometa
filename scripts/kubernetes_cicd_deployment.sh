@@ -53,17 +53,17 @@ kubectl set image deployment cometa-django-deployment cometa-django=cometa/djang
 echo "cometa-django-deployment restarted"
 
 echo "Restarting cometa-behave-deployment"
-kubectl set image deployment cometa-behave-deployment cometa-behave=cometa/behave:$behave_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-behave-deployment cometa-behave-container=cometa/behave:$behave_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-behave-deployment restarted"
 
 echo "Restarting cometa-scheduler-deployment"
-kubectl set image deployment cometa-scheduler-deployment cometa-scheduler=cometa/scheduler:$scheduler_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-scheduler-deployment cometa-scheduler-container=cometa/scheduler:$scheduler_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-scheduler-deployment restarted"
 
 echo "Restarting cometa-socket-deployment"
-kubectl set image deployment cometa-socket-deployment cometa-socket=cometa/socket:$ws_server_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-socket-deployment cometa-socket-container=cometa/socket:$ws_server_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-socket-deployment restarted"
 
 echo "Restarting cometa-front-deployment"
-kubectl set image deployment cometa-front-deployment cometa-front=cometa/front:$front_stable_version --record --namespace=$NAME_SPACE
+kubectl set image deployment cometa-front-deployment cometa-front-container=cometa/front:$front_stable_version --record --namespace=$NAME_SPACE
 echo "cometa-front-deployment restarted"
