@@ -15,7 +15,7 @@ import logging
 import threading
 import ssl
 from typing import Optional, Dict, Any
-from backend.utility.config_handler import ConfigurationManager
+from backend.utility.config_handler import get_cometa_redis_host, get_cometa_redis_port
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +61,8 @@ class FileLockManager:
         """Initialize Redis connection with connection pooling and best practices."""
         try:
             # Use internal Redis container for file locking (verified working)
-            redis_host = 'cometa_redis'  # Internal Redis container hostname
-            redis_port = 6379
+            redis_host = get_cometa_redis_host()  # Internal Redis container hostname
+            redis_port = get_cometa_redis_port()
             redis_db = 0
             
             # Simple Redis connection pattern for internal container
