@@ -18,6 +18,12 @@ def get_cometa_behave_url():
 def get_cometa_backend_url():
     return f'http://{get_config("DJANGO_SERVER_URL","django")}:{get_config("DJANGO_SERVER_PORT","8000")}'
 
+def get_cometa_redis_host():
+    return get_config("REDIS_SERVER","redis")
+
+def get_cometa_redis_port():
+    return get_config("REDIS_PORT","6379")
+
 def get_ollama_ai_api_url():
     ssl_enabled = ConfigurationManager.get_configuration('OLLAMA_AI_TLS_SSL_ENABLED', 'False')=='True'
     host = ConfigurationManager.get_configuration('OLLAMA_AI_HOST', 'ollama.ai')
