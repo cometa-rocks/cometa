@@ -12,6 +12,7 @@ import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Applications } from '@store/actions/applications.actions';
 import { JsonPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -24,7 +25,13 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
-import { Browsers } from '@store/actions/browsers.actions';
+import { StandByBrowserHeaderComponent } from './stand-by-browser-header /stand-by-browser-header.component';
+
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { SlicePipe } from '@angular/common';
+
+
 @Component({
   selector: 'stand-by-browser',
   templateUrl: './stand-by-browser.component.html',
@@ -37,7 +44,9 @@ import { Browsers } from '@store/actions/browsers.actions';
     StandByBrowserComboTextPipe,
     ReactiveFormsModule,
     DisableAutocompleteDirective,
+    StandByBrowserHeaderComponent,
     FormsModule,
+    MatIconModule,
     NgIf,
     NgClass,
     AsyncPipe,
@@ -46,16 +55,21 @@ import { Browsers } from '@store/actions/browsers.actions';
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     FirstLetterUppercasePipe,
+    MatLegacyTooltipModule,
     JsonPipe, 
-    MatLegacyCheckboxModule
+    MatLegacyCheckboxModule,
+    MatLegacyButtonModule,
+    SlicePipe,
   ],
 })
 export class StandByBrowserComponent{
   @Input() stand_by_browsers:  Container[];  
+  // @Input() header_stand_by_browsers:  Container[];  
   @Output() checkboxChange = new EventEmitter<boolean>();
-   
+   selectedBrowserIds: number[] = [];
   inputFocus: boolean = false;
   @Output() browserRemoved = new EventEmitter<number>();
+  
   isLoading = true;
 
   constructor(
@@ -108,4 +122,25 @@ export class StandByBrowserComponent{
       console.error('Failed to copy text: ', err);
     });
   }
+
+  deleteAllBrowsers(ids: number[]) {
+    ids.forEach(id => this.removeBrowserContainer(id));
+    this.selectedBrowserIds = []; // clear selection
+  }
+
+  onBrowserSelectionChanged(ids: number[]) {
+    this.selectedBrowserIds = ids;
+    this._cdr.detectChanges(); //  force checkbox state to reflect changes
+  }
+
+  onCheckboxToggle(id: number, checked: boolean) {
+    if (checked && !this.selectedBrowserIds.includes(id)) {
+      this.selectedBrowserIds.push(id);
+    } else if (!checked) {
+      this.selectedBrowserIds = this.selectedBrowserIds.filter(bid => bid !== id);
+    }
+  }
+
+
+
 }

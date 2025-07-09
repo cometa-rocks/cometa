@@ -1,76 +1,74 @@
 
-<div class="specs header">
-    <!-- Header Row -->
-    <div class="id">
-      <span>ID</span>/<span >Image</span>
-    </div>
-    
-    <div class="service_id">
-      <span>Service ID</span>
-    </div>
-    <div class="status">
-      <span>Status</span>/<span> Usage</span>
-    </div>
-    <div class="info">
-      <span>Info</span>
-    </div>
-    <div class="created_on">
-      <span>Created On </span>
-    </div>
-    <div class="action">
-      <span>Action</span>
-    </div>
-</div>
-  
+<stand-by-browser-header
+  [header_stand_by_browsers]="stand_by_browsers"
+  (selectionChanged)="onBrowserSelectionChanged($event)"
+  (deleteMultiple)="deleteAllBrowsers($event)">
+</stand-by-browser-header>
+
+
+
     
 <!-- Data Rows -->
      
 <div *ngFor="let stand_by_browser of stand_by_browsers; let i = index; trackBy: trackByFn" [ngClass]="{ 'even': i % 2 === 1 }">
   <div class="specs"> 
-    
+      
+      <!-- Check Box -->
       <div class="checkbox">
         <mat-checkbox
-          [checked]="checked$ | async"
-          (change)="checkboxChange.emit($event.checked)"
-          color="primary">
-        </mat-checkbox>
+          [checked]="selectedBrowserIds.includes(stand_by_browser.id)"
+          (change)="onCheckboxToggle(stand_by_browser.id, $event.checked)">
+        </mat-checkbox>        
       </div>
   
-      <!-- Browser ID --><!-- Name -->
-      <div class="name" matTooltip="ID" matTooltipPosition="above">
-        <span>{{ stand_by_browser.id}}</span>/<input
+      <!-- Browser ID -->
+      <div class="id" >
+        <span matTooltip="ID" matTooltipPosition="above">{{ stand_by_browser.id}}</span>
+      </div>
+      
+      <!-- Name -->
+      <div class="name" >
+        <input
           [value]="stand_by_browser | standByBrowserComboText"
           readonly
           spellcheck="false"
           autocomplete="off"
           (focus)="onInputFocus()"
-          (blur)="onInputBlur()" />
+          (blur)="onInputBlur()" matTooltip="Name" matTooltipPosition="above"/>
         
       </div>
    
     
         
       <!-- Service ID -->
-      <div class="service_id" matTooltip="Service_ID" matTooltipPosition="above" (click)="copyToClipboard(service_id)">
-        <!--  <span>{{ stand_by_browser.service_id }}</span> -->
-        <!-- <p class="icon-container-clipboard">
-            <!-- <span class="icon-container-clipboard" >
-              <i >content_copy</i>
-            </span> 
-            <span class="material-icons clipboard-icon" >{{ stand_by_browser.service_id }}</span>
-          </p> -->
-          <span  >{{ stand_by_browser.service_id }}</span>
+      <div class="service_id" matTooltip="Service_ID" matTooltipPosition="above" (click)="copyToClipboard(stand_by_browser.service_id)">
+           <!--<span>{{ stand_by_browser.service_id | slice:0:12 }}</span>-->
+
+            <span class="icon-container-clipboard">
+              <i class="material-icons clipboard-icon">content_copy</i>
+            </span>
+            <span class="id-container">
+              {{ stand_by_browser.service_id | slice:0:12 }}
+            </span>
+          
       </div>
 
       
 
-      <!-- Status --><!-- Usage -->
-      <div class="status" matTooltip="Status" matTooltipPosition="above">
-        <span>{{ stand_by_browser.service_status }}</span>/<span>{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</span>
+      <!-- Statu-->
+      <div class="status" >
+        <span matTooltip="Status" matTooltipPosition="above">{{ stand_by_browser.service_status }}</span>
+      </div>
+
+      
+      
+      <!-- Usage -->
+      <div class="status" >
+        <span matTooltip="Usage" matTooltipPosition="above">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</span>
       </div>
 
       <!-- Labels -->
-      <div class="info" matTooltip="Info" matTooltipPosition="above">
+      <div class="info" matTooltip="Information" matTooltipPosition="above">
         <pre>{{ stand_by_browser.labels | json }}</pre>
       </div>
 
@@ -84,15 +82,14 @@
         }}</span>
       </div>
       
-    <div class="remove-action">
-      <div (click)="removeBrowserContainer(stand_by_browser.id)" matTooltip="Remove"
-          matTooltipPosition="above" class="remove "> 
-      </div>
+    <!-- Remove -->
+      <div (click)="removeBrowserContainer(stand_by_browser.id)"
+           class="remove "></div>
     </div>
 
 
   </div>
-</div>
+
            
         
 

@@ -4,10 +4,9 @@
 
 :host {
   width: 100%;
-  height: 40px;
   align-items: center;
   margin-bottom: 10px;
-  padding-left: 15px;
+  //padding-left: 15px;
   line-height: 40px;
   color: rgba($color: $primary-color, $alpha: 1);
   display: block;
@@ -17,7 +16,7 @@
     outline: 0;
     border: 2px solid transparent;
     border-radius: 3px;
-    padding: 0 15px;
+   // padding: 0 15px;
     box-sizing: border-box;
     font-size: 16px;
 }
@@ -31,7 +30,6 @@
   flex: 1;
   display: flex;
   box-sizing: border-box;
-  width: 100%;
   height: 100%;
   background: transparent;
   border-radius: 3px;
@@ -40,42 +38,38 @@
   border: 0;
   outline: 0;
   border: 2px solid transparent;
-  text-align: center;
-  
-    
+   
 }
 
 
-.header{
-  text-align: center;
-  // margin-left: 50px;
-  padding-left: 15px;
-}
+
 
 
 .id {
-  //white-space: nowrap;
-  margin-left: 30px;
- 
-}
-
-.name {
-  //flex: 0 50px;
-  //margin-left: 30px;
   text-overflow: ellipsis;
   //overflow: hidden;
   white-space: nowrap; 
   border: 2px solid transparent;
   border-radius: 3px;
-  // box-sizing: border-box;
-  input,span {
-    //display: inline-block;
-    //vertical-align: middle;
+  font-weight: bold;
+   span {
     background: transparent;
-    //display: inline-block;
-    // text-overflow: ellipsis;
-    // overflow: hidden;
-    // white-space: nowrap;
+    border: 0;
+    outline: 0;
+  }
+  
+}
+
+.name {
+  flex: 0 120px;
+  margin-left: 50px;
+  text-overflow: ellipsis;
+  //overflow: hidden;
+  white-space: nowrap; 
+  border: 2px solid transparent;
+  border-radius: 3px;
+  input {
+    background: transparent;
     border: 0;
     outline: 0;
   }
@@ -84,13 +78,12 @@
 
 
 .service_id {
-  flex: 0 200px;
-  //font-size: 14px;
-  margin-left: 20px;
+ flex: 0 120px;
+  margin-left: 50px;
   text-overflow: ellipsis;
   //overflow: hidden;
   white-space: nowrap;
-   // display: block;
+   display: inline-block;
     background: transparent;
     border: 0;
     outline: 0;
@@ -105,8 +98,8 @@
 }
 
 .status {
-  flex: 0 100px;
-  margin-left: 20px;
+ flex: 0 120px;
+  margin-left: 50px;
   text-overflow: ellipsis;
   //overflow: hidden;
   white-space: nowrap;
@@ -122,27 +115,27 @@
   }
 }
 
-// .usage {
-//   flex: 0 150px;
-//   margin-left: 50px;
-//   text-overflow: ellipsis;
-//   overflow: hidden;
-//   white-space: nowrap;
-//   display: block;
-//   background: transparent;
-//   border: 0;
-//   outline: 0;
-//   font-weight: bold;
-//   span {
-//     display: inline-block;
-//     vertical-align: middle;
-    
-//   }
-// }
+.usage {
+  flex: 0 150px;
+  margin-left: 50px;
+  text-overflow: ellipsis;
+  //overflow: hidden;
+   white-space: nowrap;
+   display: block;
+   background: transparent;
+   border: 0;
+   outline: 0;
+   font-weight: bold;
+   span {
+     display: inline-block;
+     vertical-align: middle;
+   }
+ }
 
 .info {
-  flex: 0 100px;
-  margin-left: 20px;
+  flex: 0 120px;
+  margin-left: 50px;  
+  //overflow: hidden;
   display: block;
   background: transparent;
   border: 0;
@@ -158,10 +151,10 @@
 }
 
 .created_on {
-  flex: 0 150px;
-  margin-left: 20px;
+  flex: 0 120px;
+  margin-left: 50px;
   text-overflow: ellipsis;
-  // overflow: hidden;
+  //overflow: hidden;
   white-space: nowrap;
   background: transparent;
   border: 0;
@@ -180,7 +173,8 @@
 
 
 .remove {
-  flex: 0 0 40px;
+  flex: 0 0 100px;
+  margin-left: 250px;
   padding: 0 10px;
   box-sizing: border-box;
   position: relative;
@@ -215,33 +209,10 @@
 }
 
 
-
-.action {
-  flex: 0 120px;
-  margin-left: 50px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  display: block;
-  background: transparent;
-  border: 0;
-  outline: 0;
-  border: 2px solid transparent;
-  border-radius: 3px;
-  padding: 0 15px;
-  box-sizing: border-box;
-  span {
-    display: inline-block;
-    vertical-align: middle; 
-  }
-
-}
-
 .created_on,
 .info,
 .status,
 .usage,
-.id,
 .name,
 .action,
 .service_id {
@@ -257,14 +228,6 @@
   //width: 100%;
 }
 
-.remove-action{
-  flex: 0 120px;
-  margin-left: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
 
 
 
@@ -274,62 +237,24 @@
 
 
 
-
-  // .id-container {
-  //   white-space: nowrap;
-  //   overflow: hidden;
-  //   text-overflow: ellipsis;
-  //   max-width: 200px;
-  // }
-
-  // .star-button {
-  //   width: 28px;
-  //   height: 28px;
-  //   line-height: 28px;
-  //   margin: 0;
-  //   padding: 0;
-    
-  //   &.starred {
-  //     mat-icon {
-  //       color: #666;
-  //     }
-  //   } 
-
-  //   mat-icon {
-  //     font-size: 20px;
-  //     width: 20px;
-  //     height: 20px;
-  //     line-height: 20px;
-  //     transition: color 0.2s ease;
-  //     color: #666;
-  //   }
-
-  //   &:hover {
-  //     i {
-  //       color: $secondary-color;
-  //     }
-  //   }
-  // }
-
-
-  
-    .clipboard-icon {
-      font-size: 14px;
-      color: $dark;
-      opacity: 0.8;
-    }
+//.clipboard-icon {
+ // font-size: 14px;
+ // color: $dark;
+//  opacity: 0.8;
+//}
 
 
 .icon-container-clipboard {
-  opacity: 0;
+ opacity: 0;
 }
 
 
-.service_id span:hover .icon-container-clipboard {
+.service_id .id-container:hover .icon-container-clipboard {
   opacity: 1;
   position: relative;
   right: 5px;
   top: 2px;
+  color: $dark;
 }
 
 .clipboard-icon {
@@ -337,3 +262,14 @@
   color: #555;
   opacity: 0.8;
 }
+
+
+
+.id-text {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    font-size: 15px;
+    max-width: 100%;
+  }
