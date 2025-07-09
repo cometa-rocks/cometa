@@ -1,31 +1,17 @@
-<h2>Manage Stand By browsers</h2>
 
-<div *ngIf="!stand_by_browsers">
-  Loading...
-</div>
-<div *ngIf="stand_by_browsers" >
-  <div *ngIf="stand_by_browsers.length === 0">
-    Please start your favourite browser to speed up your testing
-  </div>
+
 
 <div class="header-container">
-  <h2>Manage features</h2>
-  <button
-    *ngIf="canCreateFeature"
-    class="add-item"
-    (click)="new()"
-    mat-stroked-button>
-    <mat-icon>add</mat-icon>Add feature
-  </button>
+  <h2>Manage Stand By browsers</h2>
+ 
   <button class="select-all" (click)="selectAll()" mat-stroked-button>
     <mat-icon>check_box</mat-icon>Select all
   </button>
-  <button class="export-features" (click)="export()" mat-stroked-button>
-    <mat-spinner
-      diameter="25"
-      *ngIf="loadingExport$ | async; else exportText"></mat-spinner>
-    <ng-template #exportText>
-      <mat-icon>add</mat-icon>Export as JSON
-    </ng-template>
+
+
+  <button class="delete-all" (click)="deleteAll()" mat-stroked-button>  
+    <mat-icon>delete</mat-icon>Delete all
   </button>
+
 </div>
+

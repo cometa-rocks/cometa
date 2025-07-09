@@ -58,7 +58,7 @@ export class FeatureComponent implements OnInit {
   ) {}
 
   checked$: Observable<boolean>;
-
+   @Output() checkboxChange = new EventEmitter<boolean>();
   @Input() feature: Feature;
 
   ngOnInit() {
