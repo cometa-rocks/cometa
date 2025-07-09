@@ -47,6 +47,11 @@ import os
 import subprocess
 from django.db import transaction
 from backend.utility.file_lock_manager import file_lock_manager, FileLockAcquisitionError
+from backend.utility.excel_handler import (
+    DataValidationUtils, 
+    DataFrameUtils, 
+    FileUpdateManager
+)
 
 
 def process_queued_ddt_runs(file_id):
@@ -321,8 +326,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         sheet_name = request.GET.get('sheet', None)
         
         # Determine if it's an Excel file by extension
-        file_name = file.name.lower()
-        is_excel = file_name.endswith('.xls') or file_name.endswith('.xlsx')
+        is_excel = DataFrameUtils.is_excel_file(file.name)
         
         # file.all() comes from the reverse relation between FileData and File model.
         file_data = file.file.all()
@@ -382,22 +386,93 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         paginated_response = self.get_paginated_response(serialized_data)
         # Add the columns_ordered field to the response data
         response_data = paginated_response.data
-        # Include the column_order field from the file model if available
-        if hasattr(file, 'column_order') and file.column_order:
-            response_data['columns_ordered'] = [h.lower().replace(' ', '_') for h in file.column_order]
-            # Also include a mapping from field names to original headers
-            response_data['column_headers'] = {h.lower().replace(' ', '_'): h for h in file.column_order}
+        # ALWAYS extract column information from the actual data being returned (sheet-specific)
+        # This ensures each sheet gets its correct columns regardless of what's stored globally
+        logger.info(f"Processing {len(serialized_data)} data rows for file {file.id}, sheet '{sheet_name if sheet_name else 'default'}'")
+        
+        # First, try to use saved sheet-specific column order if available
+        saved_columns = None
+        saved_headers = None
+        
+        if sheet_name and hasattr(file, 'extras') and file.extras and 'sheet_columns' in file.extras:
+            sheet_columns = file.extras['sheet_columns'].get(sheet_name, {})
+            if sheet_columns:
+                saved_columns = sheet_columns.get('columns_ordered', [])
+                saved_headers = sheet_columns.get('column_headers', {})
+                if saved_columns and saved_headers:
+                    logger.info(f"Using saved column order for file {file.id}, sheet '{sheet_name}': {saved_columns}")
+        
+        if serialized_data and len(serialized_data) > 0:
+            first_data = serialized_data[0].get('data', {})
+            if isinstance(first_data, dict) and first_data:
+                # Check if we have saved column order and it matches the data
+                if saved_columns and saved_headers:
+                    # Verify that saved columns match the actual data columns
+                    data_columns = set(first_data.keys())
+                    saved_columns_set = set(saved_columns)
+                    
+                    if data_columns == saved_columns_set:
+                        # Use saved column order (maintains consistency)
+                        response_data['columns_ordered'] = saved_columns
+                        response_data['column_headers'] = saved_headers
+                        logger.info(f"Using saved column order for file {file.id}, sheet '{sheet_name}': {saved_columns}")
+                    else:
+                        # Columns don't match, fall back to data order but update saved info
+                        logger.warning(f"Saved columns don't match data for file {file.id}, sheet '{sheet_name}'. Using data order.")
+                        original_columns = list(first_data.keys())
+                        column_headers = {}
+                        for original_col in original_columns:
+                            cleaned_header = DataFrameUtils.clean_header_for_display(original_col)
+                            column_headers[original_col] = cleaned_header
+                        
+                        response_data['columns_ordered'] = original_columns
+                        response_data['column_headers'] = column_headers
+                        saved_columns = original_columns
+                        saved_headers = column_headers
+                else:
+                    # No saved columns, extract from data
+                    original_columns = list(first_data.keys())
+                    column_headers = {}
+                    for original_col in original_columns:
+                        cleaned_header = DataFrameUtils.clean_header_for_display(original_col)
+                        column_headers[original_col] = cleaned_header
+                    
+                    response_data['columns_ordered'] = original_columns
+                    response_data['column_headers'] = column_headers
+                    saved_columns = original_columns
+                    saved_headers = column_headers
+                    
+                if sheet_name:
+                    logger.info(f"Final column order for file {file.id}, sheet '{sheet_name}': {response_data['columns_ordered']}")
+                else:
+                    logger.info(f"Final column order for file {file.id}: {response_data['columns_ordered']}")
+            else:
+                # No data in the response, fall back to empty columns
+                response_data['columns_ordered'] = []
+                response_data['column_headers'] = {}
+                logger.warning(f"No data found in first row for file {file.id}, sheet '{sheet_name if sheet_name else 'default'}'")
         else:
-            # Fallback: If no column_order is available, extract column names from the first data row
-            # and create a mapping where processed names map to themselves (for consistency)
-            if serialized_data and len(serialized_data) > 0:
-                first_data = serialized_data[0].get('data', {})
-                if isinstance(first_data, dict) and first_data:
-                    columns_from_data = list(first_data.keys())
-                    response_data['columns_ordered'] = columns_from_data
-                    # For consistency, map field names to themselves (no original names available)
-                    response_data['column_headers'] = {col: col for col in columns_from_data}
-                    logger.info(f"Using fallback column extraction for file {file.id}: {columns_from_data}")
+            # No data rows returned, fall back to empty columns
+            response_data['columns_ordered'] = []
+            response_data['column_headers'] = {}
+            logger.warning(f"No data rows returned for file {file.id}, sheet '{sheet_name if sheet_name else 'default'}'")
+            
+        # Store/update sheet-specific column information in file extras for future reference
+        if sheet_name and response_data['columns_ordered']:
+            if not hasattr(file, 'extras') or not file.extras:
+                file.extras = {}
+            if 'sheet_columns' not in file.extras:
+                file.extras['sheet_columns'] = {}
+            file.extras['sheet_columns'][sheet_name] = {
+                'columns_ordered': response_data['columns_ordered'],
+                'column_headers': response_data['column_headers'],
+                'original_columns': response_data['columns_ordered']  # Store original names for downloads
+            }
+            try:
+                file.save()
+                logger.info(f"Saved sheet-specific columns for file {file.id}, sheet '{sheet_name}'")
+            except Exception as save_error:
+                logger.warning(f"Failed to save sheet columns for file {file.id}: {save_error}")
         
         if hasattr(file, 'sheet_names') and file.sheet_names:
             response_data['sheet_names'] = file.sheet_names
@@ -441,329 +516,68 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             }, status=200)
         
         try:
-            import pandas as pd
-            import os
-            import tempfile
-            import subprocess
             from backend.utility.config_handler import get_cometa_socket_url
             from backend.utility.configurations import ConfigurationManager
+            from backend.utility.uploadFile import decryptFile
             
             # Check if it's an Excel file
-            file_name = file.name.lower()
-            is_excel = file_name.endswith('.xls') or file_name.endswith('.xlsx')
+            is_excel = DataFrameUtils.is_excel_file(file.name)
             
             # Make everything atomic - both file and database update must succeed together
             with transaction.atomic():
-                # Create a pandas DataFrame from the updated data
-                df = pd.DataFrame(file_data_rows)
-                
-                # Log DataFrame info for debugging
-                logger.info(f"DataFrame columns: {df.columns.tolist()}")
-                logger.info(f"DataFrame shape: {df.shape}")
-                
-                # Convert any problematic data types (like complex objects) to strings
-                for col in df.columns:
-                    # Check for nested objects or lists that might cause issues
-                    if df[col].apply(lambda x: isinstance(x, (dict, list))).any():
-                        logger.info(f"Converting column '{col}' from complex type to string")
-                        df[col] = df[col].apply(lambda x: str(x) if x is not None else '')
-                
-                # Ensure feature_id is numeric if present (avoid type issues)
-                if 'feature_id' in df.columns:
-                    logger.info("Ensuring feature_id is properly formatted")
-                    df['feature_id'] = pd.to_numeric(df['feature_id'], errors='coerce').fillna(0).astype(int)
-                
-                # Handle column ordering and renaming
-                if column_order:
-                    logger.info(f"Processing column order: {column_order}")
-                    
-                    # Create mapping from field names (lowercase with underscores) to display headers
-                    field_to_header_map = {}
-                    header_to_field_map = {}
-                    
-                    for header in column_order:
-                        field_name = header.lower().replace(' ', '_')
-                        field_to_header_map[field_name] = header
-                        header_to_field_map[header] = field_name
-                    
-                    logger.info(f"Field to header mapping: {field_to_header_map}")
-                    
-                    # Reorder DataFrame columns to match the desired order
-                    ordered_columns = []
-                    df_columns = df.columns.tolist()
-                    
-                    # First, add columns in the order specified by column_order
-                    for header in column_order:
-                        field_name = header.lower().replace(' ', '_')
-                        if field_name in df_columns:
-                            ordered_columns.append(field_name)
-                            df_columns.remove(field_name)
-                    
-                    # Then add any remaining columns that weren't in column_order
-                    ordered_columns.extend(df_columns)
-                    
-                    logger.info(f"Reordering DataFrame columns to: {ordered_columns}")
-                    df = df[ordered_columns]
-                    
-                    # Rename columns for file output using the display headers
-                    rename_dict = {}
-                    for field_name in df.columns:
-                        if field_name in field_to_header_map:
-                            rename_dict[field_name] = field_to_header_map[field_name]
-                    
-                    if rename_dict:
-                        logger.info(f"Renaming columns for file output: {rename_dict}")
-                        df = df.rename(columns=rename_dict)
-                else:
-                    # Fallback to original logic if no column_order provided
-                    original_columns = file.column_order
-                    
-                    # If there are original columns, reorder to match them
-                    if original_columns:
-                        # Create a dict to map lowercase_no_spaces to original
-                        column_mapping = {col.lower().replace(' ', '_'): col for col in original_columns}
-                        
-                        # Rename columns back to their original format for the file output
-                        df_columns = df.columns
-                        rename_dict = {}
-                        for col in df_columns:
-                            if col in column_mapping:
-                                rename_dict[col] = column_mapping[col]
-                        
-                        if rename_dict:
-                            df = df.rename(columns=rename_dict)
-                
-                # Create a temporary file with the correct extension
-                # Determine original file extension to save in same format
-                original_name = file.name.lower()
-                if original_name.endswith('.csv'):
-                    file_extension = '.csv'
-                elif original_name.endswith('.xlsx'):
-                    file_extension = '.xlsx'
-                elif original_name.endswith('.xls'):
-                    file_extension = '.xls'
-                else:
-                    # Default to CSV if unknown format
-                    file_extension = '.csv'
-                
-                # Create a temporary file with the correct extension
-                with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False) as temp_file:
-                    temp_path = temp_file.name
-                
-                # Log the temporary file path for debugging
-                logger.info(f"Created temporary file: {temp_path}")
-                
-                # Double-check that the file has the correct extension
-                if not temp_path.endswith(file_extension):
-                    logger.warning(f"Temporary file doesn't have proper extension. Adding {file_extension}")
-                    # If tempfile didn't add the extension correctly, add it manually
-                    os.rename(temp_path, temp_path + file_extension)
-                    temp_path = temp_path + file_extension
-                
-                # Save in the correct format based on extension
-                if file_extension == '.csv':
-                    logger.info(f"Saving updated file to CSV format: {temp_path}")
-                    df.to_csv(temp_path, index=False)
-                else:
-                    # For Excel files, we need to handle sheet updates differently
-                    try:
-                        logger.info(f"Attempting to save as Excel format: {temp_path}")
-                        import openpyxl
-                        
-                        # If this is an update to a specific sheet in an Excel file
-                        if is_excel and sheet_name:
-                            logger.info(f"Updating specific sheet '{sheet_name}' in Excel file")
-                            
-                            # First, we need to decrypt the original file to read all sheets
-                            from backend.utility.uploadFile import decryptFile
-                            original_file_path = decryptFile(file.path)
-                            
-                            try:
-                                # Read all sheets from the original Excel file
-                                with pd.ExcelFile(original_file_path) as xls:
-                                    sheet_names = xls.sheet_names
-                                    logger.info(f"Original file has sheets: {sheet_names}")
-                                    
-                                    # Create a new Excel writer
-                                    with pd.ExcelWriter(temp_path, engine='openpyxl') as writer:
-                                        # Copy all sheets from the original file
-                                        for original_sheet in sheet_names:
-                                            if original_sheet == sheet_name:
-                                                # For the sheet being updated, write new data
-                                                logger.info(f"Writing updated data to sheet: {sheet_name}")
-                                                df.to_excel(writer, sheet_name=sheet_name, index=False)
-                                            else:
-                                                # For other sheets, copy original data
-                                                logger.info(f"Copying original data from sheet: {original_sheet}")
-                                                sheet_df = pd.read_excel(xls, sheet_name=original_sheet)
-                                                sheet_df.to_excel(writer, sheet_name=original_sheet, index=False)
-                            finally:
-                                # Clean up the decrypted original file
-                                if os.path.exists(original_file_path):
-                                    try:
-                                        os.remove(original_file_path)
-                                    except Exception as cleanup_err:
-                                        logger.warning(f"Failed to remove temporary original file: {cleanup_err}")
-                        else:
-                            # If no specific sheet is specified but it's an Excel file,
-                            # we should still try to preserve all sheets
-                            if is_excel and hasattr(file, 'sheet_names') and len(file.sheet_names) > 0:
-                                # Similar approach as above, but if no sheet_name specified, use first sheet as default
-                                logger.info(f"No specific sheet specified, but preserving all sheets in Excel file")
-                                default_sheet = file.sheet_names[0] if file.sheet_names else 'Sheet1'
-                                
-                                # Decrypt the original file
-                                from backend.utility.uploadFile import decryptFile
-                                original_file_path = decryptFile(file.path)
-                                
-                                try:
-                                    # Read all sheets from the original file
-                                    with pd.ExcelFile(original_file_path) as xls:
-                                        sheet_names = xls.sheet_names
-                                        logger.info(f"Original file has sheets: {sheet_names}")
-                                        
-                                        # Create a new Excel writer
-                                        with pd.ExcelWriter(temp_path, engine='openpyxl') as writer:
-                                            # Copy all sheets from the original file
-                                            for original_sheet in sheet_names:
-                                                if original_sheet == default_sheet:
-                                                    # For the default sheet, write new data
-                                                    logger.info(f"Writing updated data to default sheet: {default_sheet}")
-                                                    df.to_excel(writer, sheet_name=default_sheet, index=False)
-                                                else:
-                                                    # For other sheets, copy original data
-                                                    logger.info(f"Copying original data from sheet: {original_sheet}")
-                                                    sheet_df = pd.read_excel(xls, sheet_name=original_sheet)
-                                                    sheet_df.to_excel(writer, sheet_name=original_sheet, index=False)
-                                finally:
-                                    # Clean up
-                                    if os.path.exists(original_file_path):
-                                        try:
-                                            os.remove(original_file_path)
-                                        except Exception as cleanup_err:
-                                            logger.warning(f"Failed to remove temporary original file: {cleanup_err}")
-                            else:
-                                # If not a multi-sheet Excel file or no sheet_names attribute, just save directly
-                                df.to_excel(temp_path, index=False, engine='openpyxl')
-                            
-                        logger.info("Successfully saved Excel file with openpyxl engine")
-                    except ImportError as ie:
-                        # Fall back to CSV if openpyxl not available
-                        logger.warning(f"Excel dependency missing: {str(ie)}")
-                        logger.warning("openpyxl not available. Falling back to CSV format.")
-                        temp_path = temp_path.replace(file_extension, '.csv')
-                        df.to_csv(temp_path, index=False)
-                    except Exception as excel_err:
-                        # If any other error occurs during Excel export, fall back to CSV
-                        logger.error(f"Error saving Excel file: {str(excel_err)}")
-                        logger.exception(excel_err)
-                        logger.warning("Falling back to CSV format due to Excel error.")
-                        temp_path = temp_path.replace(file_extension, '.csv')
-                        df.to_csv(temp_path, index=False)
-                
                 # Get encryption passphrase
                 COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
                 
-                # Encrypt the updated file - THIS MUST SUCCEED OR THE TRANSACTION WILL ROLLBACK
-                try:
-                    # Check if the encryption passphrase is set
-                    if not COMETA_UPLOAD_ENCRYPTION_PASSPHRASE:
-                        raise Exception("Encryption passphrase is not configured")
+                # Use the new FileUpdateManager to handle the file update
+                update_result = FileUpdateManager.update_file_with_dataframe(
+                    file_data_rows=file_data_rows,
+                    file_path=file.path,
+                    file_name=file.name,
+                    encryption_passphrase=COMETA_UPLOAD_ENCRYPTION_PASSPHRASE,
+                    column_order=column_order,
+                    sheet_name=sheet_name,
+                    original_columns=file.column_order,
+                    decrypt_function=decryptFile
+                )
+                
+                if not update_result['success']:
+                    raise Exception(update_result['error'])
+                
+                # Update the database
+                if is_excel and sheet_name:
+                    # For Excel sheet updates, only update the relevant data
+                    logger.info(f"Excel file with sheet '{sheet_name}': deleting only data for this sheet")
+                    FileData.objects.filter(file=file, sheet=sheet_name).delete()
                     
-                    # Check if the temp file exists
-                    if not os.path.exists(temp_path):
-                        raise Exception(f"Temporary file {temp_path} not found")
+                    # Create new file data objects only for the specified sheet
+                    new_file_data = []
+                    for row_data in file_data_rows:
+                        new_file_data.append(FileData(file=file, data=row_data, sheet=sheet_name))
+                else:
+                    # For CSV or entire Excel file without specific sheet, replace all
+                    logger.info(f"Replacing all file data for file ID {file_id}")
+                    FileData.objects.filter(file=file).delete()
                     
-                    # Check if the target directory exists
-                    target_dir = os.path.dirname(file.path)
-                    if not os.path.exists(target_dir):
-                        logger.info(f"Creating target directory: {target_dir}")
-                        os.makedirs(target_dir, exist_ok=True)
-                        
-                    # Use the same encryption method as in UploadFile.encrypt
-                    encryption_cmd = f"gpg --output {file.path} --batch --yes --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} --symmetric --cipher-algo AES256 {temp_path}"
-                    logger.info(f"Running encryption command (sensitive data redacted)")
-                    
-                    result = subprocess.run(["bash", "-c", encryption_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                    
-                    # If we get here, encryption succeeded, now update the database
-                    if is_excel and sheet_name:
-                        # For Excel sheet updates, only update the relevant data
-                        # First, delete existing file data for this sheet if it exists
-                        if 'sheet' in request_data and request_data['sheet'] == sheet_name:
-                            # If we're updating a specific sheet, only delete that sheet's data
-                            logger.info(f"Deleting data for sheet '{sheet_name}' in Excel file {file_id}")
-                            sheet_data_count = FileData.objects.filter(file=file, sheet=sheet_name).count()
-                            logger.info(f"Found {sheet_data_count} rows to delete in sheet '{sheet_name}'")
-                            FileData.objects.filter(file=file, sheet=sheet_name).delete()
-                        else:
-                            logger.info(f"Sheet name not explicitly provided in request, using URL parameter '{sheet_name}'")
-                            sheet_data_count = FileData.objects.filter(file=file, sheet=sheet_name).count()
-                            logger.info(f"Found {sheet_data_count} rows to delete in sheet '{sheet_name}'")
-                            FileData.objects.filter(file=file, sheet=sheet_name).delete()
-                            
-                        # Create new file data objects with sheet info
-                        new_file_data = []
-                        for row_data in file_data_rows:
-                            new_file_data.append(FileData(file=file, data=row_data, sheet=sheet_name))
-                        
-                        logger.info(f"Creating {len(new_file_data)} new rows for sheet '{sheet_name}'")
-                    else:
-                        # For CSV or entire Excel file updates, we need to handle this differently
-                        # First, let's retrieve all existing data for this file
-                        if is_excel and sheet_name:
-                            # For Excel files with a specific sheet, only delete and update that sheet
-                            logger.info(f"Excel file with sheet '{sheet_name}': deleting only data for this sheet")
-                            FileData.objects.filter(file=file, sheet=sheet_name).delete()
-                            
-                            # Create new file data objects only for the specified sheet
-                            new_file_data = []
-                            for row_data in file_data_rows:
-                                new_file_data.append(FileData(file=file, data=row_data, sheet=sheet_name))
-                        else:
-                            # For CSV or entire Excel file without specific sheet, replace all
-                            logger.info(f"Replacing all file data for file ID {file_id}")
-                            
-                            # For non-Excel files or Excel files without sheet specification
-                            # We delete all existing data and replace with the new data
-                            FileData.objects.filter(file=file).delete()
-                            
-                            # Create new file data objects
-                            new_file_data = []
-                            for row_data in file_data_rows:
-                                new_file_data.append(FileData(file=file, data=row_data))
-                    
-                    # Bulk create the new data
-                    created_data = FileData.objects.bulk_create(new_file_data)
-                    
-                    # Update the column order if provided
-                    if column_order:
-                        file.column_order = column_order
-                        logger.info(f"Updated column order for file {file_id}: {column_order}")
-                    
-                    # Update file extras to ensure it's marked as data-driven-ready
-                    file.extras['ddr'] = {
-                        'data-driven-ready': True
-                    }
-                    file.save()
-                    
-                    logger.info(f"Successfully updated both database and file: {file.name}")
-                    
-                except subprocess.CalledProcessError as e:
-                    stderr_output = e.stderr.decode('utf-8') if e.stderr else "No error output"
-                    stdout_output = e.stdout.decode('utf-8') if e.stdout else "No standard output"
-                    logger.error(f"GPG encryption command failed with code {e.returncode}")
-                    logger.error(f"Error output: {stderr_output}")
-                    logger.error(f"Standard output: {stdout_output}")
-                    raise Exception(f"Failed to encrypt file: {stderr_output}")
-                finally:
-                    # Always clean up the temp file
-                    if os.path.exists(temp_path):
-                        try:
-                            os.remove(temp_path)
-                            logger.info(f"Removed temporary file: {temp_path}")
-                        except Exception as cleanup_err:
-                            logger.warning(f"Failed to remove temporary file: {cleanup_err}")
+                    # Create new file data objects
+                    new_file_data = []
+                    for row_data in file_data_rows:
+                        new_file_data.append(FileData(file=file, data=row_data))
+                
+                # Bulk create the new data
+                created_data = FileData.objects.bulk_create(new_file_data)
+                
+                # Update the column order if provided
+                if column_order:
+                    file.column_order = column_order
+                    logger.info(f"Updated column order for file {file_id}: {column_order}")
+                
+                # Update file extras to ensure it's marked as data-driven-ready
+                file.extras['ddr'] = {
+                    'data-driven-ready': True
+                }
+                file.save()
+                
+                logger.info(f"Successfully updated both database and file: {file.name}")
                 
                 # Send a websocket message to indicate the file was updated
                 try:
@@ -994,41 +808,14 @@ def runDataDriven(request, *args, **kwargs):
         }, status=200)
     
     # --- BEGIN VALIDATION --- 
-    missing_features = []
-    for index, row_data_obj in enumerate(file_data):
-        row_content = row_data_obj.data
-        feature_id = row_content.get('feature_id', None)
-        feature_name = row_content.get('feature_name', None)
-
-        if not feature_id and not feature_name:
-            return JsonResponse({
-                'success': False,
-                'error': f'Row {index + 1}: Missing \'feature_id\' or \'feature_name\'.'
-            }, status=200)
-        
-        feature_exists = False
-        try:
-            if feature_id:
-                if Feature.objects.filter(pk=feature_id).exists():
-                    feature_exists = True
-            if not feature_exists and feature_name: # Check name only if ID didn't exist or wasn't provided
-                 if Feature.objects.filter(feature_name=feature_name).exists():
-                     feature_exists = True
-        except Exception as e: # Catch potential errors during lookup (e.g., invalid ID format)
-             logger.warning(f"Error looking up feature in row {index + 1}: {e}")
-             # Treat lookup errors as missing features for safety
-             feature_exists = False 
-
-        if not feature_exists:
-            missing_identifier = feature_id if feature_id else feature_name
-            missing_features.append(f"Row {index + 1} (Feature: '{missing_identifier}')")
-
-    if missing_features:
-        error_message = "File cannot be executed. The following referenced features do not exist: " + ", ".join(missing_features)
-        return JsonResponse({
-            'success': False,
-            'error': error_message
-        }, status=200)
+    # Convert FileData objects to list of dictionaries for validation
+    file_data_list = [row_data_obj.data for row_data_obj in file_data]
+    
+    # Use the new validation utility
+    validation_result = DataValidationUtils.validate_data_driven_requirements(file_data_list, Feature)
+    
+    if not validation_result['success']:
+        return JsonResponse(validation_result, status=200)
     # --- END VALIDATION ---
     
     # --- BEGIN FILE LOCKING ---
