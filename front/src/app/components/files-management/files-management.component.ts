@@ -706,6 +706,17 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       this.log.msg('4', `Looking for saved sheet for file ${fileId}: ${savedSheet || 'none found'}`, 'GetData');
     }
     
+    // Check if a specific sheet was requested via the file object
+    const requestedSheet = (file as any).selectedSheet;
+    if (requestedSheet) {
+      savedSheet = requestedSheet;
+      this.log.msg('4', `Using requested sheet: ${requestedSheet}`, 'GetData');
+    }
+    
+    // Store previous data temporarily for smoother transitions
+    const previousData = this.file_data[fileId]?.file_data || [];
+    const previousTotal = this.file_data[fileId]?.total || 0;
+    
     if (!this.file_data[fileId]) {
       this.file_data[fileId] = { 
         isLoading: true,
@@ -725,6 +736,12 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     } else {
       this.file_data[fileId].isLoading = true;
       this.file_data[fileId].fileId = fileId; // Ensure fileId is set
+      
+      // Keep previous data visible during loading for better UX
+      if (previousData.length > 0) {
+        this.file_data[fileId].file_data = previousData;
+        this.file_data[fileId].total = previousTotal;
+      }
       
       // Make sure we preserve any saved sheet preference
       if (isExcel && savedSheet && (!this.file_data[fileId].sheets || !this.file_data[fileId].sheets.current)) {
@@ -829,13 +846,13 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
               this.log.msg('4', `Column keys for file ${fileId}: ${columnKeys.join(', ')}`, 'GetData');
               
               columnKeys.forEach(key => {
-                // Always use the processed field name as the display header
-                // This shows consistent lowercase_with_underscores format in the UI
-                // The original names are preserved in the backend for file downloads
+                // Use the cleaned header for display, but keep the original field name for data integrity
+                // The column_headers mapping provides cleaned display names
+                const displayHeader = columnHeaders[key] || key;
                 
                 columns.push({
-                  header: key,
-                  field: key,
+                  header: displayHeader,  // Use cleaned header for display
+                  field: key,             // Use original field name for data access
                   sortable: true,
                   cellTemplate: this.dynamicEditableCellTpl,
                   // Store file ID in a class instead of custom property
@@ -983,230 +1000,252 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     this.cdRef.markForCheck();
   }
   
-  saveAllChanges(fileId: number): void {
-    if (!this.isDirty[fileId] || !this.file_data[fileId]) return;
-
-    // Debounce save operations to prevent spam clicking
-    if (this.saveDebounceTimers[fileId]) {
-      clearTimeout(this.saveDebounceTimers[fileId]);
-    }
-    
-    // If already loading, don't start another save operation
-    if (this.file_data[fileId].isLoading) {
-      this.log.msg('3', `Save operation already in progress for file ${fileId}`, 'SaveChanges');
-      return;
-    }
-
-    this.file_data[fileId].isLoading = true;
-    this.cdRef.markForCheck();
-    
-    // Get the file from department data to check file type
-    const file = this.department?.files?.find(f => f.id === fileId);
-    if (!file) {
-      this._snackBar.open('Error: Could not find file information', 'Close', {
-        duration: 5000,
-        panelClass: ['file-management-custom-snackbar']
-      });
-      this.file_data[fileId].isLoading = false;
-      this.cdRef.markForCheck();
-      return;
-    }
-    
-    // Check if this is an Excel file and has a current sheet selected
-    const isExcel = this.isExcelFile(file.name);
-    const currentSheet = isExcel ? this.getCurrentSheet(fileId) : null;
-    
-    // Validate the current sheet
-    if (isExcel) {
-      const sheetNames = this.getSheetNames(fileId);
-      
-      if (currentSheet && sheetNames.includes(currentSheet)) {
-        this.log.msg('4', `Saving changes to Excel file ${fileId}, sheet: ${currentSheet}`, 'SaveChanges');
-            } else if (sheetNames.length > 0) {
-        // If no valid sheet is selected but we have sheets, use the first one
-        const firstSheet = sheetNames[0];
-        this.log.msg('3', `Excel file ${fileId} has invalid or missing sheet selection. Using first sheet: ${firstSheet}`, 'SaveChanges');
-        this.file_data[fileId].sheets.current = firstSheet;
-        localStorage.setItem(`co_excel_sheet_${fileId}`, firstSheet);
-      } else {
-        this.log.msg('2', `Excel file ${fileId} has no sheet names available`, 'SaveChanges');
+  saveAllChanges(fileId: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.isDirty[fileId] || !this.file_data[fileId]) {
+        resolve();
+        return;
       }
-    }
-    
-    // Create request parameters with optional sheet parameter
-    let params: any = {};
-    if (isExcel) {
-      if (currentSheet) {
-        params.sheet = currentSheet;
-        this.log.msg('4', `Adding sheet parameter for Excel file: sheet=${params.sheet}`, 'SaveChanges');
-      } else {
-        this.log.msg('3', `Excel file ${fileId} but no current sheet found, using default sheet`, 'SaveChanges');
-        // If it's an Excel file but no sheet is selected, we might still want to 
-        // send a sheet parameter if we know the available sheets
+
+      // Debounce save operations to prevent spam clicking
+      if (this.saveDebounceTimers[fileId]) {
+        clearTimeout(this.saveDebounceTimers[fileId]);
+      }
+      
+      // If already loading, don't start another save operation
+      if (this.file_data[fileId].isLoading) {
+        this.log.msg('3', `Save operation already in progress for file ${fileId}`, 'SaveChanges');
+        resolve(); // Resolve immediately if already saving
+        return;
+      }
+
+      this.file_data[fileId].isLoading = true;
+      this.cdRef.markForCheck();
+      
+      // Get the file from department data to check file type
+      const file = this.department?.files?.find(f => f.id === fileId);
+      if (!file) {
+        this._snackBar.open('Error: Could not find file information', 'Close', {
+          duration: 5000,
+          panelClass: ['file-management-custom-snackbar']
+        });
+        this.file_data[fileId].isLoading = false;
+        this.cdRef.markForCheck();
+        reject(new Error('Could not find file information'));
+        return;
+      }
+      
+      // Check if this is an Excel file and has a current sheet selected
+      const isExcel = this.isExcelFile(file.name);
+      const currentSheet = isExcel ? this.getCurrentSheet(fileId) : null;
+      
+      // Validate the current sheet
+      if (isExcel) {
         const sheetNames = this.getSheetNames(fileId);
-        if (sheetNames && sheetNames.length > 0) {
-          params.sheet = sheetNames[0]; // Use first sheet as default
+        
+        if (currentSheet && sheetNames.includes(currentSheet)) {
+          this.log.msg('4', `Saving changes to Excel file ${fileId}, sheet: ${currentSheet}`, 'SaveChanges');
+        } else if (sheetNames.length > 0) {
+          // If no valid sheet is selected but we have sheets, use the first one
+          const firstSheet = sheetNames[0];
+          this.log.msg('3', `Excel file ${fileId} has invalid or missing sheet selection. Using first sheet: ${firstSheet}`, 'SaveChanges');
+          this.file_data[fileId].sheets.current = firstSheet;
+          localStorage.setItem(`co_excel_sheet_${fileId}`, firstSheet);
+        } else {
+          this.log.msg('2', `Excel file ${fileId} has no sheet names available`, 'SaveChanges');
         }
       }
-    }
-    
-    // If we only have a subset of data due to pagination, retrieve all data for the current sheet
-    if (this.file_data[fileId].showPagination && this.file_data[fileId].total > this.file_data[fileId].file_data.length) {
       
-      // Create temp params to get all data for this sheet/file
-      const retrieveParams = { ...params };
-      retrieveParams.page = 1;
-      retrieveParams.size = this.file_data[fileId].total; // Request all rows
+      // Create request parameters with optional sheet parameter
+      let params: any = {};
+      if (isExcel) {
+        if (currentSheet) {
+          params.sheet = currentSheet;
+          this.log.msg('4', `Adding sheet parameter for Excel file: sheet=${params.sheet}`, 'SaveChanges');
+        } else {
+          this.log.msg('3', `Excel file ${fileId} but no current sheet found, using default sheet`, 'SaveChanges');
+          // If it's an Excel file but no sheet is selected, we might still want to 
+          // send a sheet parameter if we know the available sheets
+          const sheetNames = this.getSheetNames(fileId);
+          if (sheetNames && sheetNames.length > 0) {
+            params.sheet = sheetNames[0]; // Use first sheet as default
+          }
+        }
+      }
       
-      // Temporarily fetch all data for this sheet
-      this._http.get(`/api/data_driven/file/${fileId}`, { params: retrieveParams })
-        .pipe(
-          finalize(() => {
-            this.file_data[fileId].isLoading = false;
-            this.cdRef.markForCheck();
-          })
-        )
-        .subscribe({
-          next: (resp: any) => {
-            let allData: any[] = [];
-            
-            if (resp) {
-              if (Array.isArray(resp)) {
-                allData = resp;
-              } else if (resp.results && Array.isArray(resp.results)) {
-                allData = resp.results;
-              } else if (resp.data && Array.isArray(resp.data)) {
-                allData = resp.data;
+      // If we only have a subset of data due to pagination, retrieve all data for the current sheet
+      if (this.file_data[fileId].showPagination && this.file_data[fileId].total > this.file_data[fileId].file_data.length) {
+        
+        // Create temp params to get all data for this sheet/file
+        const retrieveParams = { ...params };
+        retrieveParams.page = 1;
+        retrieveParams.size = this.file_data[fileId].total; // Request all rows
+        
+        // Temporarily fetch all data for this sheet
+        this._http.get(`/api/data_driven/file/${fileId}`, { params: retrieveParams })
+          .pipe(
+            finalize(() => {
+              this.file_data[fileId].isLoading = false;
+              this.cdRef.markForCheck();
+            })
+          )
+          .subscribe({
+            next: (resp: any) => {
+              let allData: any[] = [];
+              
+              if (resp) {
+                if (Array.isArray(resp)) {
+                  allData = resp;
+                } else if (resp.results && Array.isArray(resp.results)) {
+                  allData = resp.results;
+                } else if (resp.data && Array.isArray(resp.data)) {
+                  allData = resp.data;
+                }
               }
-            }
-            
-            const allFetchedData = Array.isArray(allData) ? 
-              (allData.length > 0 && allData[0] && allData[0].data ? allData.map((d: any) => d.data) : allData) : 
-              [];
-            
-            // Apply the edits from the current data to the full data set
-            const editedData = this.file_data[fileId].fullDataset || this.file_data[fileId].file_data;
-            const currentPageParams = this.file_data[fileId].params;
-            
-            // If there are no rows to update, just save what we have (unlikely)
-            if (allFetchedData.length === 0 || editedData.length === 0) {
-              this._saveFileData(fileId, editedData, params);
-              return;
-            }
-            
-            // Calculate start index based on current page and page size
-            const pageSize = currentPageParams.size;
-            const pageIndex = currentPageParams.page; 
-            const startIdx = pageIndex * pageSize;
-            
-            this.log.msg('4', `Current page ${pageIndex}, page size ${pageSize}, starting at index ${startIdx}`, 'SaveChanges');
-            
-            // Create a copy of the full dataset to modify
-            const fullDatasetWithEdits = [...allFetchedData];
-            
-            // Apply edits from current view to the full dataset
-            for (let i = 0; i < editedData.length; i++) {
+              
+              const allFetchedData = Array.isArray(allData) ? 
+                (allData.length > 0 && allData[0] && allData[0].data ? allData.map((d: any) => d.data) : allData) : 
+                [];
+              
+              // Apply the edits from the current data to the full data set
+              const editedData = this.file_data[fileId].fullDataset || this.file_data[fileId].file_data;
+              const currentPageParams = this.file_data[fileId].params;
+              
+              // If there are no rows to update, just save what we have (unlikely)
+              if (allFetchedData.length === 0 || editedData.length === 0) {
+                this._saveFileData(fileId, editedData, params)
+                  .then(() => resolve())
+                  .catch((error) => reject(error));
+                return;
+              }
+              
+              // Calculate start index based on current page and page size
+              const pageSize = currentPageParams.size;
+              const pageIndex = currentPageParams.page; 
+              const startIdx = pageIndex * pageSize;
+              
+              this.log.msg('4', `Current page ${pageIndex}, page size ${pageSize}, starting at index ${startIdx}`, 'SaveChanges');
+              
+              // Create a copy of the full dataset to modify
+              const fullDatasetWithEdits = [...allFetchedData];
+              
+              // Apply edits from current view to the full dataset
+              for (let i = 0; i < editedData.length; i++) {
                 const editedRowIndex = startIdx + i;
                 
                 // Only apply if we're within bounds of the full dataset
                 if (editedRowIndex < fullDatasetWithEdits.length) {
-                    const originalRow = fullDatasetWithEdits[editedRowIndex];
-                    const editedRow = editedData[i];
-                    
-                    // Get all keys from both objects to ensure we don't miss any
-                    const allKeys = new Set([
-                        ...Object.keys(originalRow || {}), 
-                        ...Object.keys(editedRow || {})
-                    ]);
-                    
-                    // Apply edited values to the original row
-                    allKeys.forEach(key => {
-                        if (editedRow && key in editedRow) {
-                            // Only update if the edited row has this key
-                            originalRow[key] = editedRow[key];
-                        }
-                    });
-                    
-                    this.log.msg('4', `Applied edits to row ${editedRowIndex}`, 'SaveChanges');
+                  const originalRow = fullDatasetWithEdits[editedRowIndex];
+                  const editedRow = editedData[i];
+                  
+                  // Get all keys from both objects to ensure we don't miss any
+                  const allKeys = new Set([
+                    ...Object.keys(originalRow || {}), 
+                    ...Object.keys(editedRow || {})
+                  ]);
+                  
+                  // Apply edited values to the original row
+                  allKeys.forEach(key => {
+                    if (editedRow && key in editedRow) {
+                      // Only update if the edited row has this key
+                      originalRow[key] = editedRow[key];
+                    }
+                  });
+                  
+                  this.log.msg('4', `Applied edits to row ${editedRowIndex}`, 'SaveChanges');
                 }
+              }
+              
+              // Now save the complete dataset with edits applied
+              this._saveFileData(fileId, fullDatasetWithEdits, params)
+                .then(() => resolve())
+                .catch((error) => reject(error));
+            },
+            error: (error) => {
+              // Fall back to saving just the current data
+              this._saveFileData(fileId, this.file_data[fileId].file_data, params)
+                .then(() => resolve())
+                .catch((saveError) => reject(saveError));
             }
-            
-            // Now save the complete dataset with edits applied
-            this._saveFileData(fileId, fullDatasetWithEdits, params);
-          },
-          error: (error) => {
-            // Fall back to saving just the current data
-            this._saveFileData(fileId, this.file_data[fileId].file_data, params);
-          }
-        });
-    } else {
-      // No pagination or all data already loaded, save as is
-      // If we have a fullDataset (dirty file with client-side pagination), save that instead
-      const dataToSave = this.file_data[fileId].fullDataset || this.file_data[fileId].file_data;
-      this._saveFileData(fileId, dataToSave, params);
-    }
+          });
+      } else {
+        // No pagination or all data already loaded, save as is
+        // If we have a fullDataset (dirty file with client-side pagination), save that instead
+        const dataToSave = this.file_data[fileId].fullDataset || this.file_data[fileId].file_data;
+        this._saveFileData(fileId, dataToSave, params)
+          .then(() => resolve())
+          .catch((error) => reject(error));
+      }
+    });
   }
   
   // Helper method to perform the actual save operation
-  private _saveFileData(fileId: number, data: any[], params: any): void {
-    // Validate input data
-    if (!Array.isArray(data) || data.length === 0) {
-      this.log.msg('2', `Invalid data provided for saving file ${fileId}`, 'SaveData');
-      this._resetFileToConsistentState(fileId, new Error('Invalid data'));
-      return;
-    }
-    
-    // Clone and clean the data to avoid modifying the original
-    const dataToSave = this._cloneAndCleanData(data);
-    
-    // Get the current column order from the file data (excluding special columns)
-    const currentColumns = this.file_data[fileId]?.columns || [];
-    const dataColumns = currentColumns.filter(col => col.field !== 'rowNumber');
-    const columnOrder = dataColumns.map(col => col.header || col.field); // Use headers for column order
-    
-    // Include column order in the request data
-    const requestData = {
-      data: dataToSave,
-      column_order: columnOrder
-    };
-    
-    // Use the API service's updateDataDrivenFile method with the enhanced request data
-    this._api.updateDataDrivenFile(fileId, requestData, params)
-      .subscribe({
-        next: (response) => {
-          this._snackBar.open('File data updated successfully', 'Close', {
-            duration: 3000,
-            panelClass: ['file-management-custom-snackbar']
-          });
-          
-          // Clear dirty state and full dataset since we're refreshing from server
-          this.isDirty[fileId] = false;
-          this._clearFullDataset(fileId);
-          
-          // Find the original file to refresh the data
-          const file = this.department?.files?.find(f => f.id === fileId);
-          if (file) {
-            // Refresh the file data from server to ensure we have the latest state
-            this.getFileData(file);
-          } else {
-            // If we can't find the original file, just mark as not loading
-            this.file_data[fileId].isLoading = false;
-            this.log.msg('2', `Cannot find original file with ID ${fileId} to refresh data after save`, 'SaveData');
-            this.cdRef.markForCheck();
+  private _saveFileData(fileId: number, data: any[], params: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Validate input data
+      if (!Array.isArray(data) || data.length === 0) {
+        this.log.msg('2', `Invalid data provided for saving file ${fileId}`, 'SaveData');
+        this._resetFileToConsistentState(fileId, new Error('Invalid data'));
+        reject(new Error('Invalid data'));
+        return;
+      }
+      
+      // Clone and clean the data to avoid modifying the original
+      const dataToSave = this._cloneAndCleanData(data);
+      
+      // Get the current column order from the file data (excluding special columns)
+      const currentColumns = this.file_data[fileId]?.columns || [];
+      const dataColumns = currentColumns.filter(col => col.field !== 'rowNumber');
+      const columnOrder = dataColumns.map(col => col.header || col.field); // Use headers for column order
+      
+      // Include column order in the request data
+      const requestData = {
+        data: dataToSave,
+        column_order: columnOrder
+      };
+      
+      // Use the API service's updateDataDrivenFile method with the enhanced request data
+      this._api.updateDataDrivenFile(fileId, requestData, params)
+        .subscribe({
+          next: (response) => {
+            this._snackBar.open('File data updated successfully', 'Close', {
+              duration: 3000,
+              panelClass: ['file-management-custom-snackbar']
+            });
+            
+            // Clear dirty state and full dataset since we're refreshing from server
+            this.isDirty[fileId] = false;
+            this._clearFullDataset(fileId);
+            
+            // Find the original file to refresh the data
+            const file = this.department?.files?.find(f => f.id === fileId);
+            if (file) {
+              // Refresh the file data from server to ensure we have the latest state
+              this.getFileData(file);
+            } else {
+              // If we can't find the original file, just mark as not loading
+              this.file_data[fileId].isLoading = false;
+              this.log.msg('2', `Cannot find original file with ID ${fileId} to refresh data after save`, 'SaveData');
+              this.cdRef.markForCheck();
+            }
+            
+            resolve();
+          },
+          error: (error) => {
+            this.log.msg('2', `Error saving file data for file ${fileId}`, 'SaveData', error);
+            
+            // Reset to consistent state on error
+            this._resetFileToConsistentState(fileId, error);
+            
+            this._snackBar.open('Error updating file data. Changes have been reverted.', 'Close', {
+              duration: 5000,
+              panelClass: ['file-management-custom-snackbar']
+            });
+            
+            reject(error);
           }
-        },
-        error: (error) => {
-          this.log.msg('2', `Error saving file data for file ${fileId}`, 'SaveData', error);
-          
-          // Reset to consistent state on error
-          this._resetFileToConsistentState(fileId, error);
-          
-          this._snackBar.open('Error updating file data. Changes have been reverted.', 'Close', {
-            duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
-          });
-        }
-      });
+        });
+    });
   }
   
   cancelAllChanges(fileId: number): void {
@@ -2013,6 +2052,13 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (this.file_data[fileId].sheets.current !== sheetName) {
       this.log.msg('4', `Switching sheet for file ${fileId} from ${this.file_data[fileId].sheets.current} to ${sheetName}`, 'Sheets');
       
+      // Show loading state immediately for better UX
+      this.file_data[fileId].isLoading = true;
+      this.cdRef.detectChanges();
+      
+      // Store current page size to preserve it when switching
+      const currentPageSize = this.file_data[fileId].params?.size || 10;
+      
       // Update the current sheet
       this.file_data[fileId].sheets.current = sheetName;
       
@@ -2020,31 +2066,68 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       localStorage.setItem(`co_excel_sheet_${fileId}`, sheetName);
       this.log.msg('4', `Saved current sheet '${sheetName}' to localStorage for file ${fileId}`, 'Sheets');
       
-      // If there are unsaved changes, warn the user
+      // If there are unsaved changes, show a confirmation dialog
       if (this.isDirty[fileId]) {
-        this._snackBar.open('Warning: You have unsaved changes that will be lost when switching sheets', 'Dismiss', {
-          duration: 5000,
-          panelClass: ['file-management-custom-snackbar']
-        });
-      }
-      
-      // Find the original file to reload data
-      const file = this.department?.files?.find(f => f.id === fileId);
-      if (file) {
-        // Reset pagination to first page when switching sheets
-        if (this.file_data[fileId].params) {
-          this.file_data[fileId].params.page = 0;
-        }
+        const snackBarRef = this._snackBar.open(
+          'You have unsaved changes. Do you want to save them before switching sheets?', 
+          'Save Changes', 
+          {
+            duration: 8000,
+            panelClass: ['file-management-custom-snackbar']
+          }
+        );
         
-        // Reload the file data with the new sheet
-        this.getFileData(file);
+        // Handle user's choice
+        snackBarRef.onAction().subscribe(() => {
+          // Save changes before switching
+          this.saveAllChanges(fileId).then(() => {
+            this.proceedWithSheetSwitch(fileId, sheetName, currentPageSize);
+          }).catch((error) => {
+            this.log.msg('2', `Failed to save changes before sheet switch: ${error}`, 'Sheets');
+            // Still proceed with sheet switch even if save failed
+            this.proceedWithSheetSwitch(fileId, sheetName, currentPageSize);
+          });
+        });
+        
+        // If user dismisses without saving, proceed with sheet switch
+        snackBarRef.afterDismissed().subscribe((dismissedWithAction) => {
+          if (!dismissedWithAction.dismissedByAction) {
+            this.proceedWithSheetSwitch(fileId, sheetName, currentPageSize);
+          }
+        });
       } else {
-        this.log.msg('2', `Cannot find original file with ID ${fileId} to reload sheet data`, 'Sheets');
+        // No unsaved changes, proceed directly
+        this.proceedWithSheetSwitch(fileId, sheetName, currentPageSize);
       }
     } else {
       this.log.msg('4', `Already on sheet '${sheetName}' for file ${fileId}, no need to switch`, 'Sheets');
     }
   }
+  
+  // New helper method to handle the actual sheet switch
+  private proceedWithSheetSwitch(fileId: number, sheetName: string, preservedPageSize: number): void {
+    // Find the original file to reload data
+    const file = this.department?.files?.find(f => f.id === fileId);
+    if (file) {
+      // Preserve pagination settings for better UX
+      if (this.file_data[fileId].params) {
+        this.file_data[fileId].params.page = 0; // Reset to first page
+        this.file_data[fileId].params.size = preservedPageSize; // Preserve page size
+      }
+      
+      // Store the sheet name in the file object for the API call
+      (file as any).selectedSheet = sheetName;
+      
+      // Reload the file data with the new sheet
+      this.getFileData(file);
+    } else {
+      this.log.msg('2', `Cannot find original file with ID ${fileId} to reload sheet data`, 'Sheets');
+      // Remove loading state if we can't proceed
+      this.file_data[fileId].isLoading = false;
+      this.cdRef.detectChanges();
+    }
+  }
+  
 
   // Add helper to check if a file has multiple sheets
   hasMultipleSheets(fileId: number): boolean {
@@ -2067,6 +2150,28 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       delete this.file_data[fileId].error;
       this.cdRef.markForCheck();
     }
+  }
+  
+  // Get dynamic loading message based on context
+  getLoadingMessage(fileId: number): string {
+    if (!this.file_data[fileId]) {
+      return 'Loading file data...';
+    }
+    
+    const fileData = this.file_data[fileId];
+    
+    // Check if we're switching sheets
+    if (fileData.sheets && fileData.sheets.current) {
+      return `Loading sheet "${fileData.sheets.current}"...`;
+    }
+    
+    // Check if we're saving
+    if (this.isDirty[fileId] && fileData.isLoading) {
+      return 'Saving changes...';
+    }
+    
+    // Default message
+    return 'Loading file data...';
   }
 
   // Helper function to convert number to Excel-style column letter (1=A, 26=Z, 27=AA, etc.)
