@@ -566,6 +566,7 @@ interface Config {
   copyright: string;
   license: string;
   featuresView: FeatureViewItems;
+  mobileView: FeatureViewItems;
   disableAnimations: boolean;
   translations: 'en' | 'de' | any;
   changelog: ChangelogItem[];

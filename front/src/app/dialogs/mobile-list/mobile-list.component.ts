@@ -60,6 +60,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
 import { ConfigState } from '@store/config.state';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatRippleModule } from '@angular/material/core';
 import { MaxEmulatorDialogComponent } from '@dialogs/mobile-list/max-emulator-dialog/max-emulator-dialog';
 import { FeaturesState } from '@store/features.state';
 import {
@@ -71,6 +72,8 @@ import {
 import { takeUntil } from 'rxjs/operators';
 import { interval } from 'rxjs';
 import { Departments } from '@store/actions/departments.actions';
+import { Configuration } from '@store/actions/config.actions';
+import { CustomSelectors } from '@others/custom-selectors';
 
 
 /**
@@ -126,6 +129,7 @@ import { Departments } from '@store/actions/departments.actions';
     MatMenuModule,
     MatButtonToggleModule,
     MatBadgeModule,
+    MatRippleModule,
   ],
 })
 export class MobileListComponent implements OnInit, OnDestroy {
@@ -134,6 +138,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
   private updateInterval = 5000; // 5 seconds
   private intervalSubscription: Subscription;
   private containersSubscription: Subscription;
+
+  // View state management
+  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('mobileView.with'))
+  mobileViewWith: 'tiles' | 'list' = 'tiles';
 
   constructor(
     private _dialog: MatDialog,
@@ -185,6 +193,15 @@ export class MobileListComponent implements OnInit, OnDestroy {
     this.departments = this.user.departments;
     this.isDialog = this.data?.department_id ? true : false;
     this.sharedMobileContainers = [];
+
+    // Initialize view from localStorage or default to tiles
+    const savedView = localStorage.getItem('mobileView.with');
+    if (savedView && ['tiles', 'list'].includes(savedView)) {
+      this.mobileViewWith = savedView as 'tiles' | 'list';
+    } else {
+      this.mobileViewWith = 'tiles';
+      localStorage.setItem('mobileView.with', 'tiles');
+    }
 
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
@@ -843,6 +860,19 @@ export class MobileListComponent implements OnInit, OnDestroy {
     }
 
     return `Installed Apps:\n${apkNames.map((name, index) => `${index + 1}. ${name}`).join('\n\n')}`;
+  }
+
+  /**
+   * Changes the type of view of the mobile list (tiles / list)
+   */
+  setView(type: string, view: 'tiles' | 'list') {
+    this.logger.msg('1', 'Changing mobile list view type to...', 'mobile-list', view);
+    this.mobileViewWith = view;
+    localStorage.setItem('mobileView.with', view);
+    
+    return this._store.dispatch([
+      new Configuration.SetProperty(`mobileView.${type}`, view, true),
+    ]);
   }
 
 }
