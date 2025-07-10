@@ -30,6 +30,7 @@ class AuthenticationMiddleware:
         public_routes = [
             '/api/authproviders/',
             '/integrations/v2/execute',
+            '/telegram/',  # allow webhook and helper endpoints to bypass auth
         ]
         public_route_found = len([x for x in public_routes if request.get_full_path().startswith(x)]) > 0
         if public_route_found:
