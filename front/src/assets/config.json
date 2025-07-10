@@ -1,5 +1,5 @@
 {
-  "version": "3.0.70",
+  "version": "3.0.71",
   "stable_version": "3.0.70",
   "language": "en",
   "appTitle": "co.meta",
@@ -237,6 +237,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.71",
+      "date": "2025-07-09",
+      "features": [
+        {
+          "title": "Fix issue file section",
+          "description": "Fixed issue with file section, when user was not able to see the files when it has 1 row and improved UI/UX"
+        }
+      ]
+    }, 
     {
       "version": "3.0.70",
       "date": "2025-07-05",
