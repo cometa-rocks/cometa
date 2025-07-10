@@ -21,6 +21,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from backend.models import Feature_result
 from backend.utility.notification_manager import NotificationManger
+from backend.utility.configurations import ConfigurationManager
 
 logger = getLogger()
 import threading
@@ -117,6 +118,130 @@ def notification_handler(request, feature_result_id):
     #     logger.error(f"Unexpected error in send_telegram_notification_view: {str(e)}")
     #     return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
 
+    
+    
+    
+# ========================= Telegram Webhook =========================
+@csrf_exempt
+def telegram_webhook(request):
+    """
+    Entry-point called by Telegram when a new update is available (webhook).
+    This view performs minimal validation, logs the update and optionally
+    replies to a few basic commands so that we can verify everything works.
+
+    IMPORTANT:  This keeps the implementation lightweight and self-contained
+    (no external dependencies like python-telegram-bot) while still following
+    Telegram best-practices:
+      • Verify the optional secret token header when configured
+      • Always return HTTP 200 as fast as possible (< 1s) so Telegram
+        considers the update delivered
+      • Execute any long-running logic asynchronously if needed (not done
+        here – we keep it minimal)
+    """
+
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid method"}, status=405)
+
+    # Optional: extra security layer – validate secret token header
+    expected_secret = ConfigurationManager.get_configuration("COMETA_TELEGRAM_WEBHOOK_SECRET", "")
+    if expected_secret:
+        received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+        if received_secret != expected_secret:
+            logger.warning("Rejected Telegram webhook call due to invalid secret token")
+            return JsonResponse({"success": False}, status=401)
+
+    # Parse the incoming update JSON
+    try:
+        update = json.loads(request.body.decode("utf-8"))
+    except ValueError:
+        logger.warning("Telegram webhook received invalid JSON payload")
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    logger.debug(f"Telegram webhook update received: {update}")
+
+    # Very small demo logic so we can verify replies quickly
+    # Only react to basic text commands – extend as needed later
+    message = update.get("message") or update.get("edited_message")
+    if message:
+        chat_id = message.get("chat", {}).get("id")
+        text = message.get("text", "").strip()
+        if chat_id and text:
+            bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
+            if bot_token:
+                reply_text = None
+                lower = text.lower()
+                if lower in ["/start", "/help"]:
+                    reply_text = (
+                        "🤖 Hi! I’m *Cometa Bot*.\n\n"
+                        "Currently I can notify you about test runs."
+                    )
+                elif lower == "/ping":
+                    reply_text = "pong 🏓"
+
+                if reply_text:
+                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                    payload = {
+                        "chat_id": chat_id,
+                        "text": reply_text,
+                        "parse_mode": "Markdown",
+                    }
+                    try:
+                        requests.post(url, json=payload, timeout=5)
+                    except Exception as exc:
+                        logger.warning(f"Failed to send Telegram reply: {exc}")
+
+    # Always respond with 200 OK so Telegram marks update as processed
+    return JsonResponse({"success": True})
+
+
+@csrf_exempt
+def set_telegram_webhook(request):
+    """
+    Helper endpoint to register / update the Telegram webhook with the bot API.
+    Call it with ?url=<public_url> (GET) or JSON body {"url": "..."} (POST).
+    The function will automatically include the optional secret token when
+    configured in COMETA_TELEGRAM_WEBHOOK_SECRET.
+    """
+
+    bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
+    if not bot_token:
+        return JsonResponse({"success": False, "error": "Bot token not configured"}, status=500)
+
+    # Determine the target webhook URL
+    webhook_url = None
+    if request.method == "POST":
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+            webhook_url = body.get("url")
+        except Exception:
+            pass
+    if not webhook_url:
+        webhook_url = request.GET.get("url")
+
+    if not webhook_url:
+        # Fallback: derive from current request host (works with ngrok)
+        webhook_url = request.build_absolute_uri("/telegram/webhook/")
+
+    secret_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_WEBHOOK_SECRET", "")
+
+    payload = {"url": webhook_url}
+    if secret_token:
+        payload["secret_token"] = secret_token
+
+    try:
+        response = requests.post(
+            f"https://api.telegram.org/bot{bot_token}/setWebhook",
+            data=payload,
+            timeout=10,
+        )
+        data = response.json()
+        success = data.get("ok", False)
+    except Exception as exc:
+        logger.error(f"Failed to set Telegram webhook: {exc}")
+        return JsonResponse({"success": False, "error": str(exc)})
+
+    return JsonResponse({"success": success, "telegram_response": data})
+    
     
     
     
