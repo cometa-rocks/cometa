@@ -711,7 +711,7 @@ io.on('connection', function(socket){
     if (user.user_id != undefined && user.email != undefined) {
       clients[socket.id] = user
       console.log(`[${user.email} (${user.user_id})] has connected successfully.`)
-      console.log(`[DEBUG] User auth data:`, JSON.stringify(user, null, 2));
+      //console.log(`[DEBUG] User auth data:`, JSON.stringify(user, null, 2));
     } else {
       throw Error("Missing user data. Connection failed.")
     }
