@@ -74,6 +74,7 @@ import { interval } from 'rxjs';
 import { Departments } from '@store/actions/departments.actions';
 import { Configuration } from '@store/actions/config.actions';
 import { CustomSelectors } from '@others/custom-selectors';
+import { MtxGridModule } from '@ng-matero/extensions/grid';
 
 
 /**
@@ -130,6 +131,7 @@ import { CustomSelectors } from '@others/custom-selectors';
     MatButtonToggleModule,
     MatBadgeModule,
     MatRippleModule,
+    MtxGridModule,
   ],
 })
 export class MobileListComponent implements OnInit, OnDestroy {
@@ -141,7 +143,26 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // View state management
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('mobileView.with'))
-  mobileViewWith: 'tiles' | 'list' = 'tiles';
+  mobileViewWith: 'tiles' | 'list';
+
+  // Temporary debug property
+  mobileViewWithLocal: 'tiles' | 'list' = 'list'; // Changed to 'list' for testing
+
+  // Debug getter for template
+  get debugCondition() {
+    const result = this.mobileViewWithLocal === 'list';
+    console.log('Template condition evaluated:', result, 'mobileViewWithLocal:', this.mobileViewWithLocal);
+    return result;
+  }
+
+  // Force update method
+  forceUpdate() {
+    console.log('=== Force update called ===');
+    console.log('Current mobileViewWithLocal:', this.mobileViewWithLocal);
+    this._cdr.markForCheck();
+    this._cdr.detectChanges();
+    console.log('After force update - mobileViewWithLocal:', this.mobileViewWithLocal);
+  }
 
   constructor(
     private _dialog: MatDialog,
@@ -188,20 +209,63 @@ export class MobileListComponent implements OnInit, OnDestroy {
   // Preselected department
   preselectDepartment: number;
 
+  // Table columns configuration for mobile devices
+  mobileTableColumns = [
+    { header: 'Options', field: 'options' },
+    { header: 'Actions', field: 'actions' },
+    { header: 'Mobile Name', field: 'mobile_image_name', sortable: true },
+    { header: 'Mobile Code', field: 'hostname', sortable: true },
+    { header: 'Number installed Apps', field: 'installedApps', sortable: true },
+    { header: 'Shared', field: 'shared', sortable: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Device Name', field: 'deviceName', sortable: true, hide: true },
+    { header: 'Android Version', field: 'android_version', sortable: true, hide: true },
+    { header: 'API Level', field: 'api_level', sortable: true, hide: true },
+    { header: 'Architecture', field: 'architecture', sortable: true, hide: true },
+  ];
+
+  // Mtx-grid configuration
+  multiSelectable = false;
+  rowSelectable = false;
+  hideRowSelectionCheckbox = true;
+  columnHideable = true;
+  columnMovable = true;
+  columnHideableChecked: 'show' | 'hide' = 'show';
+
   ngOnInit(): void {
+    console.log('=== ngOnInit started ===');
+    console.log('Initial mobileViewWithLocal:', this.mobileViewWithLocal);
+    
     this.cleanupSubscriptions();
     this.departments = this.user.departments;
     this.isDialog = this.data?.department_id ? true : false;
     this.sharedMobileContainers = [];
+    
+
 
     // Initialize view from localStorage or default to tiles
     const savedView = localStorage.getItem('mobileView.with');
+    console.log('Saved view from localStorage:', savedView);
+    
     if (savedView && ['tiles', 'list'].includes(savedView)) {
-      this.mobileViewWith = savedView as 'tiles' | 'list';
+      // Use the store to set the view instead of direct assignment
+      this._store.dispatch([
+        new Configuration.SetProperty('mobileView.with', savedView as 'tiles' | 'list', true),
+      ]);
+      this.mobileViewWithLocal = savedView as 'tiles' | 'list';
+      console.log('Set mobileViewWithLocal to saved view:', this.mobileViewWithLocal);
     } else {
-      this.mobileViewWith = 'tiles';
+      // Set default view through store
+      this._store.dispatch([
+        new Configuration.SetProperty('mobileView.with', 'tiles', true),
+      ]);
       localStorage.setItem('mobileView.with', 'tiles');
+      this.mobileViewWithLocal = 'tiles';
+      console.log('Set mobileViewWithLocal to default tiles:', this.mobileViewWithLocal);
     }
+    
+    console.log('After initialization - mobileViewWithLocal:', this.mobileViewWithLocal);
+    console.log('Debug condition should be:', this.mobileViewWithLocal === 'list');
 
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
@@ -244,6 +308,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
       (mobiles: IMobile[]) => {
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
+        // Clear table data cache when mobiles data changes
+        this.clearTableDataCache();
         // department_id is received only when component is opened as dialog
         this.isDialog = this.data?.department_id ? true : false;
 
@@ -291,6 +357,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
                 this.runningMobiles.push(container);
               }
             }
+            // Clear table data cache when containers data changes
+            this.clearTableDataCache();
             this._cdr.detectChanges();
           },
           error => {
@@ -863,16 +931,124 @@ export class MobileListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Clears the table data cache
+   */
+  private clearTableDataCache() {
+    this._mobileTableDataCache = [];
+    this._sharedMobileTableDataCache = [];
+    this._lastMobileTableUpdate = 0;
+    this._lastSharedMobileTableUpdate = 0;
+  }
+
+  /**
    * Changes the type of view of the mobile list (tiles / list)
    */
   setView(type: string, view: 'tiles' | 'list') {
+    console.log('=== setView called ===');
+    console.log('Previous mobileViewWithLocal:', this.mobileViewWithLocal);
+    console.log('New view:', view);
+    
     this.logger.msg('1', 'Changing mobile list view type to...', 'mobile-list', view);
-    this.mobileViewWith = view;
     localStorage.setItem('mobileView.with', view);
+    this.mobileViewWithLocal = view;
+    
+    // Clear cache when view changes
+    this.clearTableDataCache();
+    
+    console.log('After setting mobileViewWithLocal:', this.mobileViewWithLocal);
+    console.log('Condition check:', this.mobileViewWithLocal === 'list');
+    
+    // Force comprehensive change detection
+    setTimeout(() => {
+      console.log('=== setTimeout callback ===');
+      this.forceUpdate();
+    }, 0);
     
     return this._store.dispatch([
       new Configuration.SetProperty(`mobileView.${type}`, view, true),
     ]);
+  }
+
+  // Cache for table data to prevent infinite loops
+  private _mobileTableDataCache: any[] = [];
+  private _lastMobileTableUpdate = 0;
+  private readonly _tableDataCacheTimeout = 90000; // 1 minute cache
+
+  /**
+   * Prepares mobile data for table view with caching
+   */
+  getMobileTableData(): any[] {
+    const now = Date.now();
+    
+    // Return cached data if it's still fresh
+    if (this._mobileTableDataCache.length > 0 && (now - this._lastMobileTableUpdate) < this._tableDataCacheTimeout) {
+      return this._mobileTableDataCache;
+    }
+    
+    // Update cache
+    this._mobileTableDataCache = this.mobiles.map(mobile => {
+      const runningContainer = this.isThisMobileContainerRunning(mobile.mobile_id);
+      const isRunning = runningContainer?.service_status === 'Running';
+      
+      return {
+        ...mobile,
+        deviceName: mobile.mobile_json?.deviceName || 'N/A',
+        android_version: mobile.mobile_json?.android_version || 'N/A',
+        api_level: mobile.mobile_json?.api_level || 'N/A',
+        architecture: mobile.mobile_json?.architecture || 'N/A',
+        status: runningContainer ? runningContainer.service_status : 'Not Started',
+        hostname: runningContainer?.hostname || 'Click Start to see device code',
+        installedApps: (runningContainer?.apk_file && Array.isArray(runningContainer.apk_file)) ? runningContainer.apk_file.length : 0,
+        shared: runningContainer?.shared || false,
+        runningContainer: runningContainer,
+        isRunning: isRunning,
+        isTerminating: runningContainer?.isTerminating || false
+      };
+    });
+    
+    this._lastMobileTableUpdate = now;
+    return this._mobileTableDataCache;
+  }
+
+  // Cache for shared table data to prevent infinite loops
+  private _sharedMobileTableDataCache: any[] = [];
+  private _lastSharedMobileTableUpdate = 0;
+
+  /**
+   * Prepares shared mobile data for table view with caching
+   */
+  getSharedMobileTableData(): any[] {
+    const now = Date.now();
+    
+    // Return cached data if it's still fresh
+    if (this._sharedMobileTableDataCache.length > 0 && (now - this._lastSharedMobileTableUpdate) < this._tableDataCacheTimeout) {
+      return this._sharedMobileTableDataCache;
+    }
+    
+    // Update cache
+    this._sharedMobileTableDataCache = this.sharedMobileContainers.map(container => {
+      const isRunning = container.service_status === 'Running';
+      
+      return {
+        ...container.image,
+        deviceName: container.image?.mobile_json?.deviceName || 'N/A',
+        android_version: container.image?.mobile_json?.android_version || 'N/A',
+        api_level: container.image?.mobile_json?.api_level || 'N/A',
+        architecture: container.image?.mobile_json?.architecture || 'N/A',
+        status: container.service_status,
+        hostname: container.hostname || 'N/A',
+        installedApps: (container.apk_file && Array.isArray(container.apk_file)) ? container.apk_file.length : 0,
+        shared: container.shared || false,
+        runningContainer: container,
+        isRunning: isRunning,
+        isTerminating: container.isTerminating || false,
+        created_by_name: container.created_by_name,
+        isShared: true
+      };
+    });
+    
+    this._lastSharedMobileTableUpdate = now;
+    return this._sharedMobileTableDataCache;
   }
 
 }
