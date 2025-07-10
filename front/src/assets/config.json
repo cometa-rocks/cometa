@@ -28,6 +28,9 @@
     "without": "tiles",
     "folder": "tiles"
   },
+  "mobileView": {
+    "with": "tiles"
+  },
   "internal": {
     "openedMenu": false,
     "showArchived": false
