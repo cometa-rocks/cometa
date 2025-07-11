@@ -614,6 +614,7 @@
 
       <div class="notDialog-landing">
 
+
         <div class="mobile-devices-header">
           <p>
             Found <span class="mobile-results"> {{ mobiles.length }} </span> mobile devices and <span class="mobile-results"> {{ sharedMobileContainers.length }} </span> shared mobile devices.
@@ -624,6 +625,13 @@
             <div class="view-selector">
               <div
                 matRipple
+                matTooltip="Tree view is not available in this modality"
+                [class.selected]="mobileViewWith === 'tree'"
+                [class.disabled]="true"
+                class="tree view disabled-view">
+              </div>
+              <div
+                matRipple
                 (click)="setView('with', 'tiles')"
                 matTooltip="Tiles view"
                 [class.selected]="mobileViewWith === 'tiles'"
@@ -632,7 +640,7 @@
                 matRipple
                 (click)="setView('with', 'list')"
                 matTooltip="Table view"
-                [class.selected]="debugCondition"
+                [class.selected]="mobileViewWith === 'list'"
                 class="list view"></div>
             </div>
           </div>
@@ -669,9 +677,7 @@
         </div>
 
 
-        <div class="dialog-header">
-          <h3 class="not-dialog-title">Mobile Devices</h3>
-        </div>
+
 
         <div class="not-dialog-scrollable-content" *ngIf="selectedDepartment">
           <!-- <h2 mat-dialog-title>Mobile Devices</h2> -->
@@ -1234,22 +1240,27 @@
   <div class="table-actions">
     <button
       *ngIf="row.runningContainer"
+      (click)="noVNCMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [matTooltip]="'mobile_list.inspect_novnc' | translate">
+      <div class="custom-mobile-arrow-icon">
+        <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+        <mat-icon class="arrow-icon">forward</mat-icon>
+      </div>
+    </button>
+
+    
+    <button
+      *ngIf="row.runningContainer"
       (click)="inspectMobile(row.runningContainer, row)"
       mat-icon-button
       class="action-button"
       [disabled]="row.runningContainer.isTerminating"
       [matTooltip]="'mobile_list.inspect_emulator' | translate">
-      <mat-icon>visibility</mat-icon>
+      <mat-icon>developer_mode</mat-icon>
     </button>
     
-    <button
-      *ngIf="row.runningContainer"
-      (click)="noVNCMobile(row.runningContainer, row)"
-      mat-icon-button
-      class="action-button"
-      [matTooltip]="'mobile_list.inspect_novnc' | translate">
-      <mat-icon>screen_share</mat-icon>
-    </button>
     
     <button
       *ngIf="!row.runningContainer"
@@ -1486,7 +1497,7 @@
         [disabled]="row.runningContainer.service_status !== 'Running'"
         [matTooltip]="'mobile_list.inspect_emulator_shared' | translate"
         mat-menu-item>
-        <mat-icon>visibility</mat-icon>
+        <mat-icon>mobile_code</mat-icon>
         <span>Inspect</span>
       </button>
 

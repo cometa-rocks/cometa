@@ -144,6 +144,11 @@ h2, h3{
         opacity: 0.5;
       }
       
+      &.tree:after {
+        background-image: url(^assets/icons/tree-view.svg);
+        background-size: 18px;
+      }
+      
       &.tiles:after {
         background-image: url(^assets/icons/tiles-view.svg);
         background-size: 15px;
@@ -154,9 +159,15 @@ h2, h3{
         background-size: 20px;
       }
       
-      &.table:after {
-        background-image: url(^assets/icons/table-view.svg);
-        background-size: 18px;
+    }
+    
+    .disabled-view {
+      opacity: 0.5;
+      pointer-events: none;
+      cursor: not-allowed;
+      
+      &:after {
+        filter: grayscale(100%);
       }
     }
   }
@@ -668,6 +679,7 @@ mat-dialog-content {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  margin-top: 50px;
 }
 
 html, body {
@@ -695,6 +707,9 @@ mobile-list {
 .not-dialog-title {
   flex-grow: 1;
   margin: 0 0 20px 0;
+  color: $blue;
+  font-size: 24px;
+  font-weight: 500;
 }
 
 .toggle-button {
@@ -1839,6 +1854,7 @@ mat-slide-toggle {
   .table_container {
     overflow: auto;
     width: 100%;
+    margin-top: -20px;
   }
 }
 
@@ -1953,7 +1969,7 @@ mat-slide-toggle {
     .mat-icon {
       width: 30px;
       height: 30px;
-      font-size: 18px;
+      font-size: 22px;
     }
   }
   
@@ -2007,24 +2023,60 @@ mat-slide-toggle {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  height: 38px;
+  height: 30px;
+  margin-left: -8px;
   
-  .action-button {
-    min-width: 32px;
-    width: 32px;
-    height: 32px;
-    
-    mat-icon {
-      font-size: 20px;
-      width: 18px;
-      height: 18px;
+      .action-button {
+      min-width: 32px;
+      width: 32px;
+      height: 32px;
+      
+      mat-icon {
+        font-size: 20px;
+        width: 18px;
+        height: 18px;
+      }
+      
+      // Special styling for start button (play_circle_filled)
+      &.start-button mat-icon {
+        font-size: 24px;
+      }
+      
+      // Custom mobile with arrow icon
+      .custom-mobile-arrow-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 31px;
+        height: 36px;
+        
+        .mobile-icon {
+          font-size: 22px;
+          width: 31px;
+          height: 23px;
+          color: inherit;
+        }
+        
+        .arrow-icon {
+          position: absolute;
+          font-size: 12px;
+          width: 9px;
+          height: 9px;
+          color: inherit;
+          border-radius: 50%;
+          padding: 1px;
+          right: 4px;
+          top: 49%;
+          transform: translateY(-50%);
+          background-color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+        
     }
-    
-    // Special styling for start button (play_circle_filled)
-    &.start-button mat-icon {
-      font-size: 24px;
-    }
-  }
 }
 
 .folderIcon {
@@ -2069,7 +2121,8 @@ mat-slide-toggle {
   justify-content: flex-start;
   gap: 8px;
   height: 100%;
-  
+  margin-left: -4px;
+
   .mobile-icon {
     color: $blue;
     font-size: 20px;
@@ -2177,9 +2230,12 @@ mat-slide-toggle {
   align-items: center;
   justify-content: flex-start;
   height: 100%;
+  margin-left: 3px;
   
   mat-slide-toggle {
     transform: scale(0.8);
+    margin-left: -10px;
+    opacity: 1 !important;
   }
 }
 
@@ -2188,7 +2244,8 @@ mat-slide-toggle {
   align-items: center;
   justify-content: flex-start;
   height: 100%;
-  
+  margin-left: 5px;
+
   button {
     min-width: 32px;
     width: 32px;
