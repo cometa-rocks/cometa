@@ -4,7 +4,7 @@
 
 :host {
   width: 100%;
-  align-items: center;
+  //align-items: center;
   margin-bottom: 10px;
   //padding-left: 15px;
   line-height: 40px;
@@ -202,10 +202,16 @@
 }
 
 .specs {
-  display: none;
+  //display: none;
+  //@include for-tablet-portrait-up {
+  //  display: flex;
+  //}
+
+  display: block;
   @include for-tablet-portrait-up {
-    display: flex;
+    display: flex; // or block based on layout
   }
+
 }
 
 
@@ -273,3 +279,10 @@
     font-size: 15px;
     max-width: 100%;
   }
+
+
+.name, .status, .service_id, .usage, .info {
+  flex: 1 1 100px;
+  min-width: 0;
+}
+
