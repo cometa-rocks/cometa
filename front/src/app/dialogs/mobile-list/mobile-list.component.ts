@@ -542,6 +542,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
     };
     container.service_status = 'Restarting';
 
+    // Limpiar cache de datos de tabla para forzar actualización inmediata
+    this.clearTableDataCache();
+    this._cdr.detectChanges();
 
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
@@ -551,6 +554,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
           container.service_status = 'Running';
           this.snack.open(`Mobile restarted successfully`, 'OK');
           container = response.containerservice;
+          // Limpiar cache y forzar actualización
+          this.clearTableDataCache();
           this._cdr.detectChanges();
         } else {
           console.error(
@@ -558,6 +563,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
           );
           this.snack.open(`Error restarting the mobile container`, 'OK');
           container.service_status = 'Error';
+          this._cdr.detectChanges();
         }
       },
       error => {
@@ -568,6 +574,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
         );
         this.snack.open(`Network error while restarting mobile`, 'OK');
         container.service_status = 'Error';
+        this._cdr.detectChanges();
       }
     );
   }
@@ -577,7 +584,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
     let body = {
       action: 'stop'
     };
-    container.service_status = 'Stopping';
+    container.service_status = 'Pausing';
+
+    // Limpiar cache de datos de tabla para forzar actualización inmediata
+    this.clearTableDataCache();
+    this._cdr.detectChanges();
 
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
@@ -587,6 +598,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
           container.service_status = 'Stopped';
           this.snack.open(`Mobile paused successfully`, 'OK');
           container = response.containerservice;
+          // Limpiar cache y forzar actualización
+          this.clearTableDataCache();
           this._cdr.detectChanges();
         } else {
           console.error(
@@ -595,6 +608,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
           );
           this.snack.open(`Error while stopping the Mobile`, 'OK');
           container.service_status = 'Error';
+          this._cdr.detectChanges();
         }
       },
       error => {
@@ -604,6 +618,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
           error
         );
         container.service_status = 'Error';
+        this._cdr.detectChanges();
       }
     );
   }
@@ -613,7 +628,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this.pauseMobile(container);
     } else if (container.service_status === 'Stopped') {
       this.restartMobile(container);
-    } else if (container.service_status === 'Stopping' || container.service_status === 'Restarting') {
+    } else if (container.service_status === 'Pausing' || container.service_status === 'Restarting') {
       return;
     }
   }
@@ -636,7 +651,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // access or not to novnc or inspect
   stopGoToUrl(container: Container) {
-    if (container.service_status === 'Stopped' || container.service_status === 'Stopping' || container.service_status === 'Restarting') {
+    if (container.service_status === 'Stopped' || container.service_status === 'Pausing' || container.service_status === 'Restarting') {
       return true;
     }
     return false;
@@ -757,6 +772,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
     }
 
     this.containersSubscription = this._api.getContainersList().subscribe((containers: Container[]) => {
+      // Actualizar contenedores compartidos
       const currentSharedContainers = containers.filter(container =>
         container.shared &&
         container.department_id === this.selectedDepartment.id &&
@@ -774,6 +790,30 @@ export class MobileListComponent implements OnInit, OnDestroy {
         }
       });
 
+      // Actualizar contenedores propios (runningMobiles)
+      const currentRunningContainers = containers.filter(container =>
+        container.created_by === this.user.user_id
+      );
+
+      // Actualizar el estado de los contenedores existentes
+      this.runningMobiles.forEach(existingContainer => {
+        const updatedContainer = currentRunningContainers.find(c => c.id === existingContainer.id);
+        if (updatedContainer) {
+          // Actualizar propiedades importantes manteniendo referencias
+          existingContainer.service_status = updatedContainer.service_status;
+          existingContainer.isPaused = updatedContainer.isPaused;
+          existingContainer.shared = updatedContainer.shared;
+          existingContainer.apk_file = updatedContainer.apk_file;
+          existingContainer.hostname = updatedContainer.hostname;
+          // Mantener isTerminating si ya estaba establecido
+          if (!existingContainer.isTerminating) {
+            existingContainer.isTerminating = updatedContainer.isTerminating;
+          }
+        }
+      });
+
+      // Limpiar cache de datos de tabla para forzar actualización
+      this.clearTableDataCache();
       this._cdr.detectChanges();
     });
   }
@@ -972,7 +1012,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
   // Cache for table data to prevent infinite loops
   private _mobileTableDataCache: any[] = [];
   private _lastMobileTableUpdate = 0;
-  private readonly _tableDataCacheTimeout = 90000; // 1 minute cache
+  private readonly _tableDataCacheTimeout = 10000; // 10 seconds cache
 
   /**
    * Prepares mobile data for table view with caching
