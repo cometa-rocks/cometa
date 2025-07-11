@@ -4,41 +4,33 @@
 
 :host {
   width: 100%;
-  //align-items: center;
-  margin-bottom: 10px;
-  //padding-left: 15px;
+  height: 40px;
+  align-items: center;
   line-height: 40px;
-  color: rgba($color: $primary-color, $alpha: 1);
-  display: block;
-  height: 100%;
-    background: transparent;
-    border: 0;
-    outline: 0;
-    border: 2px solid transparent;
-    border-radius: 3px;
-   // padding: 0 15px;
-    box-sizing: border-box;
-    font-size: 16px;
+  box-sizing: border-box;
+  font-size: 16px;
+  overflow-x: auto;
 }
+
+// :host {
+//   display: flex;
+//   width: 100%;
+//   height: 40px;
+//   align-items: center;
+//   margin-bottom: 10px;
+//   padding-left: 15px;
+//   box-sizing: border-box;
+// }
 
 
 
 
 
 .specs {
-  width: 100%;
+  //width: 100%;
   flex: 1;
   display: flex;
-  box-sizing: border-box;
-  height: 100%;
-  background: transparent;
-  border-radius: 3px;
-  font-size: 16px;
-  background: transparent;
-  border: 0;
-  outline: 0;
-  border: 2px solid transparent;
-   
+  text-align: center;
 }
 
 
@@ -51,131 +43,110 @@
   white-space: nowrap; 
   border: 2px solid transparent;
   border-radius: 3px;
-  font-weight: bold;
    span {
-    background: transparent;
-    border: 0;
-    outline: 0;
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+    
   }
   
 }
 
 .name {
   flex: 0 120px;
-  margin-left: 50px;
+  margin-left: 30px;
   text-overflow: ellipsis;
-  //overflow: hidden;
-  white-space: nowrap; 
-  border: 2px solid transparent;
-  border-radius: 3px;
+ //overflow: hidden;
+  white-space: nowrap;        
   input {
     background: transparent;
     border: 0;
     outline: 0;
+    display: inline-block;
+    vertical-align: middle;
+    
   }
   
 }
 
 
+
+
 .service_id {
- flex: 0 120px;
-  margin-left: 50px;
+ flex: 0 150px;
+  margin-left: 30px;
   text-overflow: ellipsis;
-  //overflow: hidden;
-  white-space: nowrap;
-   display: inline-block;
-    background: transparent;
-    border: 0;
-    outline: 0;
-    border: 2px solid transparent;
-    border-radius: 3px;
-    font-weight: bold;
+ // overflow: hidden;
+  white-space: nowrap;  
   span {
     display: inline-block;
     vertical-align: middle;
+    font-weight: bold;
     
   }
 }
 
+
+
 .status {
  flex: 0 120px;
-  margin-left: 50px;
+  margin-left: 30px;
   text-overflow: ellipsis;
   //overflow: hidden;
   white-space: nowrap;
-  display: block; 
-  background: transparent;
-  border: 0;
-  outline: 0;
-  font-weight: bold;
   span {
     display: inline-block;
     vertical-align: middle;
+    font-weight: bold;
    
   }
 }
 
 .usage {
-  flex: 0 150px;
-  margin-left: 50px;
+  flex: 0 120px;
+  margin-left: 30px;
   text-overflow: ellipsis;
   //overflow: hidden;
    white-space: nowrap;
-   display: block;
-   background: transparent;
-   border: 0;
-   outline: 0;
-   font-weight: bold;
    span {
      display: inline-block;
      vertical-align: middle;
+     font-weight: bold;
    }
  }
 
 .info {
   flex: 0 120px;
-  margin-left: 50px;  
+  margin-left: 30px;  
   //overflow: hidden;
-  display: block;
-  background: transparent;
-  border: 0;
-  outline: 0;
-  border: 2px solid transparent;
-  border-radius: 3px;
-  box-sizing: border-box;
-  font-weight: bold;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   span {
     display: inline-block;
     vertical-align: middle;
+    font-weight: bold;
   }
 }
 
 .created_on {
   flex: 0 120px;
-  margin-left: 50px;
+  margin-left: 30px;
   text-overflow: ellipsis;
   //overflow: hidden;
   white-space: nowrap;
-  background: transparent;
-  border: 0;
-  outline: 0;
-  border: 0;
-  outline: 0;
-  border: 2px solid transparent;
-  border-radius: 3px;
-  font-weight: bold;
   span {
     display: inline-block;
     vertical-align: middle; 
+     font-weight: bold;
   }
 }
-
 
 
 .remove {
   flex: 0 0 100px;
   margin-left: 250px;
   padding: 0 10px;
+  //overflow: hidden;
   box-sizing: border-box;
   position: relative;
   cursor: pointer;
@@ -202,26 +173,32 @@
 }
 
 .specs {
-  //display: none;
-  //@include for-tablet-portrait-up {
+  // display: none;
+  // @include for-tablet-portrait-up {
   //  display: flex;
-  //}
+  // }
 
-  display: block;
+  // display: block;
+  // @include for-tablet-portrait-up {
+  //   display: flex; // or block based on layout
+  // }
+
+   display: block;
   @include for-tablet-portrait-up {
-    display: flex; // or block based on layout
+    display: flex;
   }
 
 }
 
 
-.created_on,
 .info,
 .status,
 .usage,
-.name,
-.action,
 .service_id {
+  //  display: block;
+  //  @include for-tablet-portrait-up {
+  //    display: flex; // or block based on layout
+  //  }
   display: none;
   @include for-tablet-portrait-up {
     display: block;
@@ -231,7 +208,6 @@
 .even {
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 5px;
-  //width: 100%;
 }
 
 
@@ -240,14 +216,6 @@
 .checkbox{
   margin-left: 15px;
 }
-
-
-
-//.clipboard-icon {
- // font-size: 14px;
- // color: $dark;
-//  opacity: 0.8;
-//}
 
 
 .icon-container-clipboard {
@@ -280,9 +248,4 @@
     max-width: 100%;
   }
 
-
-.name, .status, .service_id, .usage, .info {
-  flex: 1 1 100px;
-  min-width: 0;
-}
 
