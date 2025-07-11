@@ -677,7 +677,9 @@
         </div>
 
 
-
+        <div class="dialog-header">
+          <h3 class="not-dialog-title">Mobile Devices</h3>
+        </div>
 
         <div class="not-dialog-scrollable-content" *ngIf="selectedDepartment">
           <!-- <h2 mat-dialog-title>Mobile Devices</h2> -->
@@ -1191,7 +1193,7 @@
                     <div class="table_container">
                       <mtx-grid
                         [data]="getSharedMobileTableData()"
-                        [columns]="mobileTableColumns"
+                        [columns]="sharedMobileTableColumns"
                         [showToolbar]="true"
                         [sortOnFront]="true"
                         [sortDisableClear]="true"
@@ -1215,7 +1217,6 @@
                           status: statusTpl,
                           hostname: hostnameTpl,
                           installedApps: installedAppsTpl,
-                          shared: sharedTpl,
                           options: sharedOptionsTpl
                         }"
                         [pageSizeOptions]="[10, 25, 50, 100]">
@@ -1497,7 +1498,10 @@
         [disabled]="row.runningContainer.service_status !== 'Running'"
         [matTooltip]="'mobile_list.inspect_emulator_shared' | translate"
         mat-menu-item>
-        <mat-icon>mobile_code</mat-icon>
+        <div class="custom-mobile-arrow-icon">
+          <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+          <mat-icon class="arrow-icon">forward</mat-icon>
+        </div>
         <span>Inspect</span>
       </button>
 
@@ -1509,7 +1513,7 @@
         [disabled]="row.runningContainer.service_status !== 'Running'"
         [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
         mat-menu-item>
-        <mat-icon>screen_share</mat-icon>
+        <mat-icon>developer_mode</mat-icon>
         <span>noVNC</span>
       </button>
 

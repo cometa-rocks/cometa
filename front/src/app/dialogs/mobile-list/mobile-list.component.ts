@@ -224,6 +224,20 @@ export class MobileListComponent implements OnInit, OnDestroy {
     { header: 'Architecture', field: 'architecture', sortable: true, hide: true },
   ];
 
+  // Column configuration for shared mobile devices (without Shared column)
+  sharedMobileTableColumns = [
+    { header: 'Options', field: 'options' },
+    { header: 'Actions', field: 'actions' },
+    { header: 'Mobile Name', field: 'mobile_image_name', sortable: true },
+    { header: 'Mobile Code', field: 'hostname', sortable: true },
+    { header: 'Number installed Apps', field: 'installedApps', sortable: true },
+    { header: 'Device Name', field: 'deviceName', sortable: true, hide: true },
+    { header: 'Android Version', field: 'android_version', sortable: true, hide: true },
+    { header: 'Architecture', field: 'architecture', sortable: true, hide: true },
+    { header: 'API Level', field: 'api_level', sortable: true },
+    { header: 'Status', field: 'status', sortable: true },
+  ];
+
   // Mtx-grid configuration
   multiSelectable = false;
   rowSelectable = false;
