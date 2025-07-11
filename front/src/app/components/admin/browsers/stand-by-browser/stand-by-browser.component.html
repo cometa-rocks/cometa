@@ -44,9 +44,9 @@
       <div class="service_id" matTooltip="Service_ID" matTooltipPosition="above" (click)="copyToClipboard(stand_by_browser.service_id)">
            <!--<span>{{ stand_by_browser.service_id | slice:0:12 }}</span>-->
 
-            <span class="icon-container-clipboard">
+            <!--<span class="icon-container-clipboard">
               <i class="material-icons clipboard-icon">content_copy</i>
-            </span>
+            </span>-->
             <span class="id-container">
               {{ stand_by_browser.service_id | slice:0:12 }}
             </span>
@@ -63,7 +63,7 @@
       
       
       <!-- Usage -->
-      <div class="status" >
+      <div class="usage" >
         <span matTooltip="Usage" matTooltipPosition="above">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</span>
       </div>
 
