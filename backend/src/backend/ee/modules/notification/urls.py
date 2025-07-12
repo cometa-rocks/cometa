@@ -3,6 +3,7 @@
 # ###
 
 from .views import send_notifications, telegram_webhook, set_telegram_webhook, subscribe_telegram_notifications, unsubscribe_telegram_notifications, list_telegram_subscriptions, link_telegram_chat, generate_auth_token, verify_auth_token
+from .health import health_check_view, liveness_check_view, readiness_check_view
 
 from django.conf.urls import url
 
@@ -32,6 +33,10 @@ def register_notification_urlpatterns(urlpatterns) :
         # Authentication endpoints
         url(r'^generate_auth_token/$', generate_auth_token),
         url(r'^verify_auth_token/$', verify_auth_token),
+        # Health check endpoints
+        url(r'^health/$', health_check_view),
+        url(r'^health/live/$', liveness_check_view),
+        url(r'^health/ready/$', readiness_check_view),
     ]
     return urlpatterns
     

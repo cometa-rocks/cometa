@@ -145,10 +145,18 @@ class TelegramUserLink(models.Model):
     def generate_auth_token(self):
         """Generate a new authentication token"""
         import secrets
-        self.auth_token = secrets.token_urlsafe(32)
+        from django.contrib.auth.hashers import make_password
+        
+        # Generate raw token
+        raw_token = secrets.token_urlsafe(32)
+        
+        # Hash the token before storing
+        self.auth_token = make_password(raw_token)
         self.auth_token_expires = timezone.now() + timezone.timedelta(minutes=5)
         self.save()
-        return self.auth_token
+        
+        # Return the raw token (to be sent to user)
+        return raw_token
     
     def clear_auth_token(self):
         """Clear the authentication token"""

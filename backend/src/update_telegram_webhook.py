@@ -8,8 +8,6 @@ Example: python update_telegram_webhook.py https://81197f68b409.ngrok-free.app
 import sys
 import requests
 import os
-import secrets
-import re
 
 # Get bot token from environment or configuration
 BOT_TOKEN = os.getenv('COMETA_TELEGRAM_BOT_TOKEN')
@@ -21,9 +19,6 @@ if not BOT_TOKEN:
         django.setup()
         from backend.utility.configurations import ConfigurationManager
         BOT_TOKEN = ConfigurationManager.get_configuration('COMETA_TELEGRAM_BOT_TOKEN', None)
-        
-        # Also get the webhook secret
-        WEBHOOK_SECRET = ConfigurationManager.get_configuration('COMETA_TELEGRAM_WEBHOOK_SECRET', None)
     except Exception as e:
         print(f"Error loading bot token: {e}")
         BOT_TOKEN = None
@@ -43,34 +38,6 @@ webhook_url = f"{ngrok_url}/telegram/webhook/"
 
 print(f"Updating Telegram webhook to: {webhook_url}")
 
-# Get webhook secret from Django configuration
-try:
-    WEBHOOK_SECRET = globals().get('WEBHOOK_SECRET') or os.getenv('COMETA_TELEGRAM_WEBHOOK_SECRET')
-except:
-    WEBHOOK_SECRET = os.getenv('COMETA_TELEGRAM_WEBHOOK_SECRET')
-
-if not WEBHOOK_SECRET:
-    print("❌ WARNING: COMETA_TELEGRAM_WEBHOOK_SECRET not configured!")
-    print("   This is a SECURITY RISK in production.")
-    print("   Generate a secure secret: python -c 'import secrets; print(secrets.token_urlsafe(32))'")
-    print("   Then set it in your configuration.")
-    
-    # Offer to generate one for development
-    generate = input("Generate a secure webhook secret for development? (y/N): ")
-    if generate.lower() == 'y':
-        WEBHOOK_SECRET = secrets.token_urlsafe(32)
-        print(f"Generated webhook secret: {WEBHOOK_SECRET}")
-        print("Add this to your configuration: COMETA_TELEGRAM_WEBHOOK_SECRET")
-    else:
-        print("Proceeding without webhook secret (INSECURE)")
-
-# Validate webhook secret format if provided
-if WEBHOOK_SECRET:
-    if not re.match(r'^[A-Za-z0-9_-]{1,256}$', WEBHOOK_SECRET):
-        print("❌ ERROR: Invalid webhook secret format!")
-        print("   Secret must be 1-256 characters using only A-Z, a-z, 0-9, _, -")
-        sys.exit(1)
-
 # Set the webhook
 url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"
 payload = {
@@ -78,11 +45,6 @@ payload = {
     "allowed_updates": ["message", "callback_query"],
     "drop_pending_updates": False
 }
-
-# Add secret token if configured
-if WEBHOOK_SECRET:
-    payload["secret_token"] = WEBHOOK_SECRET
-    print(f"✅ Using webhook secret for enhanced security")
 
 try:
     response = requests.post(url, json=payload)

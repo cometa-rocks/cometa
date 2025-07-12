@@ -65,7 +65,14 @@ def run_test(request):
     department = request.POST['department'] # department where the feature belongs, set in request so we can get the department settings
     logger.debug('Department the feature belongs to: {}'.format(department))
     PARAMETERS = request.POST['parameters'] # job parameters if the job was scheculed using schedule step
-    logger.debug('Job Parameters: {}'.format(PARAMETERS)) 
+    logger.debug('Job Parameters: {}'.format(PARAMETERS))
+    
+    # Get telegram notification data if present
+    telegram_notification = request.POST.get('telegram_notification', '{}')
+    if telegram_notification != '{}':
+        logger.info('Telegram notification data received: {}'.format(telegram_notification))
+    else:
+        logger.debug('No telegram notification data')
     
     # assign environment variables to share data between files and threads
     environment_variables = {
@@ -75,7 +82,8 @@ def run_test(request):
         'VARIABLES': VARIABLES,
         'PARAMETERS': PARAMETERS,
         'department': department,
-        'feature_id': feature_id
+        'feature_id': feature_id,
+        'telegram_notification': telegram_notification
     }
 
     # Loads user data
