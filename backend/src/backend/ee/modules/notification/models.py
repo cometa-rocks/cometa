@@ -63,3 +63,102 @@ class FeatureTelegramOptions(models.Model):
     class Meta:
         ordering = ['feature__feature_name']
         verbose_name_plural = "Feature Telegram Options"
+
+
+class TelegramSubscription(models.Model):
+    """
+    Stores Telegram chat subscriptions for automated notifications
+    Links authenticated users to their Telegram chat IDs with proper access control
+    """
+    id = models.AutoField(primary_key=True)
+    user_id = models.IntegerField(help_text="User ID from session authentication")
+    chat_id = models.CharField(max_length=50, help_text="Telegram chat ID for notifications")
+    feature_id = models.IntegerField(help_text="Feature ID user has access to")
+    department_id = models.IntegerField(help_text="Department ID for access validation")
+    environment_id = models.IntegerField(help_text="Environment ID for access validation")
+    
+    # Subscription settings
+    is_active = models.BooleanField(default=True, help_text="Whether subscription is active")
+    notification_types = models.JSONField(default=list, help_text="Types of notifications to send (e.g., ['on_failure', 'on_success'])")
+    
+    # Metadata
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    updated_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    last_notification_sent = models.DateTimeField(null=True, blank=True, help_text="Last time a notification was sent")
+    
+    def save(self, *args, **kwargs):
+        self.updated_on = timezone.now()
+        return super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Telegram subscription for user {self.user_id} - chat {self.chat_id}"
+    
+    class Meta:
+        ordering = ['-created_on']
+        verbose_name_plural = "Telegram Subscriptions"
+        unique_together = ['user_id', 'chat_id', 'feature_id']
+
+
+class TelegramUserLink(models.Model):
+    """
+    Links Telegram chat IDs to authenticated Cometa users via GitLab OAuth
+    Stores authentication tokens and user information for secure access
+    """
+    id = models.AutoField(primary_key=True)
+    user_id = models.IntegerField(db_index=True, help_text="User ID from OIDCAccount")
+    chat_id = models.CharField(max_length=50, unique=True, help_text="Telegram chat ID")
+    
+    # Telegram user info
+    username = models.CharField(max_length=255, null=True, blank=True, help_text="Telegram username if available")
+    first_name = models.CharField(max_length=255, null=True, blank=True, help_text="Telegram first name")
+    last_name = models.CharField(max_length=255, null=True, blank=True, help_text="Telegram last name")
+    
+    # GitLab OAuth user info
+    gitlab_username = models.CharField(max_length=255, null=True, blank=True, help_text="GitLab username")
+    gitlab_email = models.CharField(max_length=255, null=True, blank=True, help_text="GitLab email")
+    gitlab_name = models.CharField(max_length=255, null=True, blank=True, help_text="GitLab full name")
+    
+    # Authentication tokens
+    auth_token = models.CharField(max_length=255, null=True, blank=True, help_text="Temporary authentication token")
+    auth_token_expires = models.DateTimeField(null=True, blank=True, help_text="Authentication token expiration")
+    
+    # Status and verification
+    is_active = models.BooleanField(default=True, help_text="Whether the link is active")
+    is_verified = models.BooleanField(default=False, help_text="Whether the link has been verified via GitLab OAuth")
+    
+    # Metadata
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    updated_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    last_interaction = models.DateTimeField(null=True, blank=True, help_text="Last time user interacted with bot")
+    last_auth_attempt = models.DateTimeField(null=True, blank=True, help_text="Last authentication attempt")
+    
+    def save(self, *args, **kwargs):
+        self.updated_on = timezone.now()
+        return super().save(*args, **kwargs)
+    
+    def is_auth_token_valid(self):
+        """Check if the authentication token is still valid"""
+        if not self.auth_token or not self.auth_token_expires:
+            return False
+        return timezone.now() < self.auth_token_expires
+    
+    def generate_auth_token(self):
+        """Generate a new authentication token"""
+        import secrets
+        self.auth_token = secrets.token_urlsafe(32)
+        self.auth_token_expires = timezone.now() + timezone.timedelta(minutes=5)
+        self.save()
+        return self.auth_token
+    
+    def clear_auth_token(self):
+        """Clear the authentication token"""
+        self.auth_token = None
+        self.auth_token_expires = None
+        self.save()
+    
+    def __str__(self):
+        return f"User {self.user_id} ({self.gitlab_username or 'unverified'}) -> Chat {self.chat_id}"
+    
+    class Meta:
+        ordering = ['-created_on']
+        verbose_name_plural = "Telegram User Links"

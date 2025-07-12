@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Authentication - Redirect</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .auth-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #3b82f6;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+        p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-secondary {
+            background: #6b7280;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        .loading {
+            display: none;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-icon">🔐</div>
+        <h1>Authentication Required</h1>
+        <p>To link your Telegram account, you need to authenticate with {{ oauth_provider }} first.</p>
+        <p>Click the button below to authenticate with {{ oauth_provider }}:</p>
+        
+        <a href="/" class="btn" onclick="startAuth()">
+            🔗 Authenticate with {{ oauth_provider }}
+        </a>
+        
+        <div class="loading" id="loadingText">
+            <div class="spinner"></div>
+            Redirecting to {{ oauth_provider }}...
+        </div>
+        
+        <br><br>
+        <button class="btn btn-secondary" onclick="window.close()">Cancel</button>
+    </div>
+    
+    <script>
+        function startAuth() {
+            document.getElementById('loadingText').style.display = 'block';
+            // Redirect to the OAuth callback with the appropriate issuer
+            // Include the telegram token in the redirect URL so it survives OAuth
+            var issuer = '{{ oauth_provider|lower }}';
+            // Map provider names to OIDC issuer identifiers
+            if (issuer === 'google') {
+                issuer = 'https://accounts.google.com';
+            } else if (issuer === 'gitlab') {
+                issuer = 'https://git.amvara.de';
+            }
+            var telegramToken = '{{ token }}';
+            // Force HTTPS for ngrok and production environments
+            var protocol = window.location.protocol;
+            if (window.location.hostname.includes('ngrok') || window.location.hostname !== 'localhost') {
+                protocol = 'https:';
+            }
+            var currentHost = protocol + '//' + window.location.host;
+            window.location.href = `${currentHost}/callback?iss=${issuer}&target_link_uri=${currentHost}/telegram/complete/?token=${telegramToken}`;
+        }
+        
+        // Auto-redirect after 3 seconds
+        setTimeout(() => {
+            startAuth();
+        }, 3000);
+    </script>
+</body>
+</html>
