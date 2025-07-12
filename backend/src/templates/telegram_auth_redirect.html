@@ -105,23 +105,14 @@
     <script>
         function startAuth() {
             document.getElementById('loadingText').style.display = 'block';
-            // Redirect to the OAuth callback with the appropriate issuer
-            // Include the telegram token in the redirect URL so it survives OAuth
-            var issuer = '{{ oauth_provider|lower }}';
-            // Map provider names to OIDC issuer identifiers
-            if (issuer === 'google') {
-                issuer = 'https://accounts.google.com';
-            } else if (issuer === 'gitlab') {
-                issuer = 'https://git.amvara.de';
-            }
-            var telegramToken = '{{ token }}';
-            // Force HTTPS for ngrok and production environments
-            var protocol = window.location.protocol;
-            if (window.location.hostname.includes('ngrok') || window.location.hostname !== 'localhost') {
-                protocol = 'https:';
-            }
-            var currentHost = protocol + '//' + window.location.host;
-            window.location.href = `${currentHost}/callback?iss=${issuer}&target_link_uri=${currentHost}/telegram/complete/?token=${telegramToken}`;
+            
+            {% if oauth_mode == 'state_parameter' %}
+            // Development mode: Pass token as URL parameter
+            window.location.href = '/?telegram_token={{ token|escapejs }}';
+            {% else %}
+            // Production mode: Token stored in DB, matched by email/timing
+            window.location.href = '/';
+            {% endif %}
         }
         
         // Auto-redirect after 3 seconds

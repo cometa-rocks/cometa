@@ -30,8 +30,8 @@ class AuthenticationMiddleware:
         public_routes = [
             '/api/authproviders/',
             '/integrations/v2/execute',
-            '/telegram/webhook/',  # allow webhook to bypass auth
-            '/auth/telegram/',  # allow telegram authentication callback to bypass auth
+            '/telegram/webhook/',
+            '/auth/telegram/',
         ]
         public_route_found = len([x for x in public_routes if request.get_full_path().startswith(x)]) > 0
         if public_route_found:
@@ -47,7 +47,7 @@ class AuthenticationMiddleware:
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
-                if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
+                if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)|(.*\.ngrok-free\.app)$', HTTP_HOST):
                     HTTP_HOST = get_config("FRONT_SERVER_HOST", "cometa_front")
 
                 # make a request to cometa_front to get info about the logged in user

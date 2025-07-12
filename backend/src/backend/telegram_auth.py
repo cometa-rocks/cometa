@@ -20,52 +20,8 @@ logger = logging.getLogger(__name__)
 class TelegramAuthenticationHandler:
     """Handle Telegram-specific authentication flow"""
     
-    @staticmethod
-    def create_telegram_session(request, telegram_user_link):
-        """
-        Create a Django session for a Telegram authenticated user
-        This bypasses Apache OAuth and creates the session directly
-        """
-        try:
-            # Get the linked user account
-            if not telegram_user_link.is_verified or telegram_user_link.user_id == 0:
-                logger.error(f"Telegram user link not verified or invalid user_id: {telegram_user_link.chat_id}")
-                return False
-            
-            # Get the OIDCAccount
-            try:
-                user = OIDCAccount.objects.get(user_id=telegram_user_link.user_id)
-            except OIDCAccount.DoesNotExist:
-                logger.error(f"OIDCAccount not found for user_id: {telegram_user_link.user_id}")
-                return False
-            
-            # Update last login
-            user.last_login = timezone.now()
-            user.login_counter = user.login_counter + 1
-            user.save()
-            
-            # Create session token (simulate mod_auth_openidc_session)
-            session_token = secrets.token_urlsafe(32)
-            request.session['session'] = session_token
-            
-            # Serialize and save user to session
-            request.session['user'] = OIDCAccountLoginSerializer(user, many=False).data
-            request.session['user_info'] = {
-                'email': user.email,
-                'name': user.name,
-                'sub': str(user.user_id)
-            }
-            
-            # Mark this as a Telegram session
-            request.session['auth_method'] = 'telegram'
-            request.session['telegram_chat_id'] = telegram_user_link.chat_id
-            
-            logger.info(f"Created Telegram session for user {user.email} (chat_id: {telegram_user_link.chat_id})")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error creating Telegram session: {str(e)}")
-            return False
+    # REMOVED: create_telegram_session method that bypassed OAuth
+    # Sessions must be created through proper OAuth flow only
     
     @staticmethod
     def verify_telegram_token(token):
@@ -73,27 +29,32 @@ class TelegramAuthenticationHandler:
         Verify a Telegram authentication token and return the user link
         """
         try:
-            user_link = TelegramUserLink.objects.filter(auth_token=token).first()
+            from django.contrib.auth.hashers import check_password
+            
+            # Get all links with unexpired tokens
+            potential_links = TelegramUserLink.objects.filter(
+                auth_token__isnull=False,
+                auth_token_expires__gt=timezone.now()
+            )
+            
+            user_link = None
+            for link in potential_links:
+                if check_password(token, link.auth_token):
+                    user_link = link
+                    break
             
             if not user_link:
-                logger.error(f"No user link found for token: {token[:8]}...")
-                # Log all existing tokens for debugging
-                all_links = TelegramUserLink.objects.filter(auth_token__isnull=False).values('chat_id', 'auth_token', 'auth_token_expires')
-                logger.error(f"Existing auth tokens: {[(l['chat_id'], l['auth_token'][:8] if l['auth_token'] else 'None', l['auth_token_expires']) for l in all_links]}")
                 return None
                 
             if not user_link.is_auth_token_valid():
-                logger.error(f"Invalid or expired auth token for chat_id {user_link.chat_id}")
-                logger.error(f"Token expires: {user_link.auth_token_expires}, Now: {timezone.now()}")
+                logger.debug(f"Token expired for chat_id {user_link.chat_id}")
                 return None
             
-            logger.info(f"Token verified successfully for chat_id: {user_link.chat_id}")
+            logger.debug(f"Token verified for chat_id: {user_link.chat_id}")
             return user_link
             
         except Exception as e:
-            logger.error(f"Error verifying Telegram token: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("Error verifying Telegram token")
             return None
     
     @staticmethod

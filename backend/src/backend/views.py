@@ -369,15 +369,23 @@ def telegram_auth_callback(request, token):
         environment = os.getenv('ENVIRONMENT', 'prod')
         oauth_provider = "Google" if environment == 'dev' else "GitLab"
         
-        # Store the token in session for post-OAuth verification
-        request.session['telegram_auth_token'] = token
-        request.session['telegram_chat_id'] = user_link.chat_id
-        request.session.save()
+        # Check OAuth mode configuration
+        from backend.utility.configurations import ConfigurationManager
+        oauth_mode = ConfigurationManager.get_configuration('COMETA_TELEGRAM_OAUTH_MODE', 'standard')
         
-        return render(request, 'telegram_auth_redirect.html', {
+        # Prepare context for template
+        template_context = {
             'oauth_provider': oauth_provider,
-            'token': token
-        })
+            'token': token,
+            'oauth_mode': oauth_mode
+        }
+        
+        # For production mode, store email for later matching
+        if oauth_mode == 'standard' and user_link.gitlab_email:
+            # Store email to help with matching after OAuth
+            template_context['hint_email'] = user_link.gitlab_email
+        
+        return render(request, 'telegram_auth_redirect.html', template_context)
             
     except Exception as e:
         logger.error(f"Error in telegram_auth_callback: {str(e)}")
@@ -392,11 +400,12 @@ def telegram_auth_complete(request):
     Complete the Telegram linking process
     """
     try:
-        # Add a small delay to ensure OAuth session is established
-        import time
-        time.sleep(0.5)
         # Check if user has a telegram auth token in URL parameters
         telegram_token = request.GET.get('token')
+        if not telegram_token:
+            # Try to get it from the query parameter passed through OAuth
+            telegram_token = request.GET.get('telegram_auth_token')
+        
         if not telegram_token:
             return render(request, 'telegram_auth_error.html', {
                 'message': 'No Telegram authentication token found. Please try again from Telegram.'
@@ -1163,10 +1172,10 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         return {'success': False, 'error': 'Provided Feature ID does not exist..'}
 
     if len(feature.browsers) == 0:
-        return JsonResponse({
+        return {
             'success': False,
             'error': 'No browsers selected.'
-        }, status=400)
+        }
 
     # Verify access to submitted browsers
     try:
@@ -1216,10 +1225,10 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         get_feature_browsers = getFeatureBrowsers(feature)
 
     except Exception as err:
-        return JsonResponse({
+        return {
             'success': False,
             'error': str(err)
-        }, status=400)
+        }
 
     # update feature info
     feature.info = fRun
@@ -1313,11 +1322,29 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # user data
     user = request.session['user']
 
+    # Check if this is a telegram execution and include notification info
+    telegram_notification_data = {}
+    cometa_origin = request.META.get('HTTP_COMETA_ORIGIN', '')
+    logger.debug(f"HTTP_COMETA_ORIGIN: {cometa_origin}")
+    
+    if cometa_origin == 'TELEGRAM':
+        telegram_chat_id = request.META.get('HTTP_TELEGRAM_CHAT_ID')
+        logger.info(f"Telegram execution detected! Chat ID: {telegram_chat_id}")
+        if telegram_chat_id:
+            telegram_notification_data = {
+                'telegram_chat_id': telegram_chat_id,
+                'telegram_user_id': user['user_id'],
+                'notify_on_completion': True
+            }
+            logger.info(f"Telegram notification data prepared for feature {feature.feature_id}, chat_id: {telegram_chat_id}")
+    
     datum = {
         'json_path': json_path,
         'feature_run': fRun.run_id,
         'HTTP_PROXY_USER': json.dumps(user),
         'HTTP_X_SERVER': request.META.get("HTTP_X_SERVER", "none"),
+        'HTTP_COMETA_ORIGIN': request.META.get("HTTP_COMETA_ORIGIN", ""),
+        'telegram_notification': json.dumps(telegram_notification_data) if telegram_notification_data else "{}",
         "variables": json.dumps(additional_variables),
         "browsers": json.dumps(executions),
         "feature_id": feature.feature_id,
