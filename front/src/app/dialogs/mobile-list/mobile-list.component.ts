@@ -421,6 +421,12 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanupSubscriptions();
+    
+    // Clear shared status timeout
+    if (this.sharedStatusUpdateTimeout) {
+      clearTimeout(this.sharedStatusUpdateTimeout);
+    }
+    
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -556,9 +562,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
     };
     container.service_status = 'Restarting';
 
-    // Limpiar cache de datos de tabla para forzar actualización inmediata
-    this.clearTableDataCache();
-    this._cdr.detectChanges();
+    // Only clear cache if we're in table view to show immediate status change
+    if (this.mobileViewWithLocal === 'list') {
+      this.clearTableDataCache();
+      this._cdr.detectChanges();
+    }
 
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
@@ -568,9 +576,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
           container.service_status = 'Running';
           this.snack.open(`Mobile restarted successfully`, 'OK');
           container = response.containerservice;
-          // Limpiar cache y forzar actualización
-          this.clearTableDataCache();
-          this._cdr.detectChanges();
+          // Only clear cache if we're in table view
+          if (this.mobileViewWithLocal === 'list') {
+            this.clearTableDataCache();
+            this._cdr.detectChanges();
+          }
         } else {
           console.error(
             `Failed to restart mobile container with ID: ${container.id}. Reason: ${response.message}`
@@ -600,9 +610,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
     };
     container.service_status = 'Pausing';
 
-    // Limpiar cache de datos de tabla para forzar actualización inmediata
-    this.clearTableDataCache();
-    this._cdr.detectChanges();
+    // Only clear cache if we're in table view to show immediate status change
+    if (this.mobileViewWithLocal === 'list') {
+      this.clearTableDataCache();
+      this._cdr.detectChanges();
+    }
 
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
@@ -612,9 +624,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
           container.service_status = 'Stopped';
           this.snack.open(`Mobile paused successfully`, 'OK');
           container = response.containerservice;
-          // Limpiar cache y forzar actualización
-          this.clearTableDataCache();
-          this._cdr.detectChanges();
+          // Only clear cache if we're in table view
+          if (this.mobileViewWithLocal === 'list') {
+            this.clearTableDataCache();
+            this._cdr.detectChanges();
+          }
         } else {
           console.error(
             'An error occurred while stopping the mobile',
@@ -793,6 +807,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
         container.created_by !== this.user.user_id
       );
 
+      // Check if shared containers data has actually changed
+      const sharedContainersChanged = this.hasSharedContainersChanged(currentSharedContainers);
+
       // Asignar los nuevos contenedores compartidos
       this.sharedMobileContainers = currentSharedContainers;
       
@@ -808,6 +825,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
       const currentRunningContainers = containers.filter(container =>
         container.created_by === this.user.user_id
       );
+
+      // Check if running containers data has actually changed
+      const runningContainersChanged = this.hasRunningContainersChanged(currentRunningContainers);
 
       // Actualizar el estado de los contenedores existentes
       this.runningMobiles.forEach(existingContainer => {
@@ -826,10 +846,89 @@ export class MobileListComponent implements OnInit, OnDestroy {
         }
       });
 
-      // Limpiar cache de datos de tabla para forzar actualización
-      this.clearTableDataCache();
-      this._cdr.detectChanges();
+      // Only clear cache and force updates if data has actually changed
+      if (sharedContainersChanged || runningContainersChanged) {
+        this.clearTableDataCache();
+        this._cdr.detectChanges();
+      }
     });
+  }
+
+  /**
+   * Check if shared containers data has changed
+   */
+  private hasSharedContainersChanged(newSharedContainers: Container[]): boolean {
+    if (this.sharedMobileContainers.length !== newSharedContainers.length) {
+      return true;
+    }
+
+    // Create hash of current shared containers
+    const currentHash = this.sharedMobileContainers.map(container => ({
+      id: container.id,
+      status: container.service_status,
+      hostname: container.hostname,
+      isTerminating: container.isTerminating,
+      apk_count: (container.apk_file && Array.isArray(container.apk_file)) ? container.apk_file.length : 0,
+      created_by_name: container.created_by_name
+    }));
+
+    // Create hash of new shared containers
+    const newHash = newSharedContainers.map(container => ({
+      id: container.id,
+      status: container.service_status,
+      hostname: container.hostname,
+      isTerminating: container.isTerminating,
+      apk_count: (container.apk_file && Array.isArray(container.apk_file)) ? container.apk_file.length : 0,
+      created_by_name: container.created_by_name
+    }));
+
+    return JSON.stringify(currentHash) !== JSON.stringify(newHash);
+  }
+
+  /**
+   * Check if running containers data has changed
+   */
+  private hasRunningContainersChanged(newRunningContainers: Container[]): boolean {
+    if (this.runningMobiles.length !== newRunningContainers.length) {
+      return true;
+    }
+
+    // Create hash of current running containers
+    const currentHash = this.runningMobiles.map(container => ({
+      id: container.id,
+      status: container.service_status,
+      hostname: container.hostname,
+      shared: container.shared,
+      isTerminating: container.isTerminating,
+      apk_count: (container.apk_file && Array.isArray(container.apk_file)) ? container.apk_file.length : 0
+    }));
+
+    // Create hash of new running containers
+    const newHash = newRunningContainers.map(container => ({
+      id: container.id,
+      status: container.service_status,
+      hostname: container.hostname,
+      shared: container.shared,
+      isTerminating: container.isTerminating,
+      apk_count: (container.apk_file && Array.isArray(container.apk_file)) ? container.apk_file.length : 0
+    }));
+
+    // Compare hashes to detect real changes
+    const currentHashString = JSON.stringify(currentHash);
+    const newHashString = JSON.stringify(newHash);
+    
+    const hasChanged = currentHashString !== newHashString;
+    
+    // Debug logging for shared status changes
+    if (hasChanged) {
+      const currentShared = currentHash.filter(c => c.shared).length;
+      const newShared = newHash.filter(c => c.shared).length;
+      if (currentShared !== newShared) {
+        console.log(`Shared status changed: ${currentShared} -> ${newShared}`);
+      }
+    }
+    
+    return hasChanged;
   }
 
   onDepartmentChange() {
@@ -921,24 +1020,62 @@ export class MobileListComponent implements OnInit, OnDestroy {
   // # BOTH DIALOG AND NOT DIALOG            #
   // #########################################
 
+  // Add debounce mechanism for shared status updates
+  private sharedStatusUpdateInProgress = false;
+  private sharedStatusUpdateTimeout: any = null;
+
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
+    // Prevent multiple concurrent updates
+    if (this.sharedStatusUpdateInProgress) {
+      console.log('Shared status update already in progress, skipping...');
+      return new Observable(observer => {
+        observer.next(container);
+        observer.complete();
+      });
+    }
+
+    // Clear any pending timeout
+    if (this.sharedStatusUpdateTimeout) {
+      clearTimeout(this.sharedStatusUpdateTimeout);
+    }
+
+    // Set flag to prevent concurrent updates
+    this.sharedStatusUpdateInProgress = true;
+
     let updateData = { shared: isShared.checked };
     return this._api.updateMobile(container.id, updateData).pipe(
       map((response: any) => {
         if (response?.containerservice) {
+          // Only update if the shared status actually changed
+          const previousSharedStatus = container.shared;
           container.shared = response.containerservice.shared;
-          this.snack.open(
-            `Mobile ${isShared.checked ? 'shared' : 'unshared'} with other users in this department`,
-            'OK'
-          );
-          this._cdr.detectChanges();
+          
+          // Only show snack and trigger updates if status actually changed
+          if (previousSharedStatus !== container.shared) {
+            this.snack.open(
+              `Mobile ${isShared.checked ? 'shared' : 'unshared'} with other users in this department`,
+              'OK'
+            );
+            
+            // Only clear cache and force updates if we're in table view
+            if (this.mobileViewWithLocal === 'list') {
+              this.clearTableDataCache();
+              this._cdr.detectChanges();
+            }
+          }
+          
+          // Reset flag after successful update
+          this.sharedStatusUpdateInProgress = false;
           return container;
         } else {
           this.snack.open(response.message, 'OK');
+          this.sharedStatusUpdateInProgress = false;
           throw new Error(response.message);
         }
       }),
       catchError(error => {
+        // Reset flag on error
+        this.sharedStatusUpdateInProgress = false;
         return throwError(error);
       })
     );
@@ -990,8 +1127,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
   private clearTableDataCache() {
     this._mobileTableDataCache = [];
     this._sharedMobileTableDataCache = [];
-    this._lastMobileTableUpdate = 0;
-    this._lastSharedMobileTableUpdate = 0;
+    this._mobileTableDataHash = '';
+    this._sharedMobileTableDataHash = '';
   }
 
   /**
@@ -1006,8 +1143,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
     localStorage.setItem('mobileView.with', view);
     this.mobileViewWithLocal = view;
     
-    // Clear cache when view changes
-    this.clearTableDataCache();
+    // Only clear cache when switching to table view to ensure fresh data
+    if (view === 'list') {
+      this.clearTableDataCache();
+    }
     
     console.log('After setting mobileViewWithLocal:', this.mobileViewWithLocal);
     console.log('Condition check:', this.mobileViewWithLocal === 'list');
@@ -1025,21 +1164,21 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // Cache for table data to prevent infinite loops
   private _mobileTableDataCache: any[] = [];
-  private _lastMobileTableUpdate = 0;
-  private readonly _tableDataCacheTimeout = 10000; // 10 seconds cache
+  private _mobileTableDataHash: string = '';
 
   /**
-   * Prepares mobile data for table view with caching
+   * Prepares mobile data for table view with caching based on data changes
    */
   getMobileTableData(): any[] {
-    const now = Date.now();
+    // Create a hash of current data to detect changes
+    const currentDataHash = this.createMobileDataHash();
     
-    // Return cached data if it's still fresh
-    if (this._mobileTableDataCache.length > 0 && (now - this._lastMobileTableUpdate) < this._tableDataCacheTimeout) {
+    // Return cached data if data hasn't changed
+    if (this._mobileTableDataCache.length > 0 && this._mobileTableDataHash === currentDataHash) {
       return this._mobileTableDataCache;
     }
     
-    // Update cache
+    // Update cache when data has changed
     this._mobileTableDataCache = this.mobiles.map(mobile => {
       const runningContainer = this.isThisMobileContainerRunning(mobile.mobile_id);
       const isRunning = runningContainer?.service_status === 'Running';
@@ -1060,26 +1199,46 @@ export class MobileListComponent implements OnInit, OnDestroy {
       };
     });
     
-    this._lastMobileTableUpdate = now;
+    this._mobileTableDataHash = currentDataHash;
     return this._mobileTableDataCache;
+  }
+
+  /**
+   * Creates a hash of mobile data to detect changes
+   */
+  private createMobileDataHash(): string {
+    const dataToHash = this.mobiles.map(mobile => {
+      const runningContainer = this.isThisMobileContainerRunning(mobile.mobile_id);
+      return {
+        mobile_id: mobile.mobile_id,
+        status: runningContainer?.service_status || 'Not Started',
+        hostname: runningContainer?.hostname || '',
+        shared: runningContainer?.shared || false,
+        isTerminating: runningContainer?.isTerminating || false,
+        apk_count: (runningContainer?.apk_file && Array.isArray(runningContainer.apk_file)) ? runningContainer.apk_file.length : 0
+      };
+    });
+    
+    return JSON.stringify(dataToHash);
   }
 
   // Cache for shared table data to prevent infinite loops
   private _sharedMobileTableDataCache: any[] = [];
-  private _lastSharedMobileTableUpdate = 0;
+  private _sharedMobileTableDataHash: string = '';
 
   /**
-   * Prepares shared mobile data for table view with caching
+   * Prepares shared mobile data for table view with caching based on data changes
    */
   getSharedMobileTableData(): any[] {
-    const now = Date.now();
+    // Create a hash of current shared data to detect changes
+    const currentSharedDataHash = this.createSharedMobileDataHash();
     
-    // Return cached data if it's still fresh
-    if (this._sharedMobileTableDataCache.length > 0 && (now - this._lastSharedMobileTableUpdate) < this._tableDataCacheTimeout) {
+    // Return cached data if data hasn't changed
+    if (this._sharedMobileTableDataCache.length > 0 && this._sharedMobileTableDataHash === currentSharedDataHash) {
       return this._sharedMobileTableDataCache;
     }
     
-    // Update cache
+    // Update cache when data has changed
     this._sharedMobileTableDataCache = this.sharedMobileContainers.map(container => {
       const isRunning = container.service_status === 'Running';
       
@@ -1101,8 +1260,26 @@ export class MobileListComponent implements OnInit, OnDestroy {
       };
     });
     
-    this._lastSharedMobileTableUpdate = now;
+    this._sharedMobileTableDataHash = currentSharedDataHash;
     return this._sharedMobileTableDataCache;
+  }
+
+  /**
+   * Creates a hash of shared mobile data to detect changes
+   */
+  private createSharedMobileDataHash(): string {
+    const dataToHash = this.sharedMobileContainers.map(container => {
+      return {
+        container_id: container.id,
+        status: container.service_status || 'Not Started',
+        hostname: container.hostname || '',
+        isTerminating: container.isTerminating || false,
+        apk_count: (container.apk_file && Array.isArray(container.apk_file)) ? container.apk_file.length : 0,
+        created_by_name: container.created_by_name || ''
+      };
+    });
+    
+    return JSON.stringify(dataToHash);
   }
 
 }

@@ -421,8 +421,8 @@
                               [matBadge]="runningContainer?.apk_file?.length"
                               class="get-app"
                               [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
-                              matTooltipPosition="above">
-                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
+                              matTooltipPosition="above"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)">
                               file_download
                             </mat-icon>
                             <p
