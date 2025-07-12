@@ -68,12 +68,20 @@ class TelegramNotificationManger:
                 logger.warning(f"Telegram notifications globally disabled")
                 return False
             
-            # Check if feature has Telegram notifications enabled
-            feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
-            logger.debug(f"Feature Telegram enabled setting: {feature_telegram_enabled}")
-            if not feature_telegram_enabled:
-                logger.debug(f"Telegram notifications disabled for feature {feature_result.feature_id.feature_id}")
-                return False
+            # Check if there are any active subscriptions for this feature
+            from backend.ee.modules.notification.models import TelegramSubscription
+            active_subscriptions = TelegramSubscription.objects.filter(
+                feature_id=feature_result.feature_id.feature_id,
+                is_active=True
+            )
+            
+            if not active_subscriptions.exists():
+                # Fall back to old method - check if feature has Telegram notifications enabled
+                feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
+                logger.debug(f"No active subscriptions found. Feature Telegram enabled setting: {feature_telegram_enabled}")
+                if not feature_telegram_enabled:
+                    logger.debug(f"Telegram notifications disabled for feature {feature_result.feature_id.feature_id}")
+                    return False
             
             # Get or create telegram options for this feature
             telegram_options, created = FeatureTelegramOptions.objects.get_or_create(
@@ -179,25 +187,45 @@ class TelegramNotificationManger:
                     logger.warning("Global bot token not configured")
                     return False
                 
-                # Get department chat IDs - need to fetch Department object manually since Feature doesn't have FK
-                try:
-                    department = Department.objects.get(department_id=feature_result.feature_id.department_id)
-                    department_settings = department.settings or {}
-                    department_chat_ids = department_settings.get('telegram_chat_ids', '')
-                    logger.debug(f"Department chat IDs: {department_chat_ids}")
-                except Department.DoesNotExist:
-                    logger.warning(f"Department {feature_result.feature_id.department_id} not found")
-                    return False
-                
-                if not department_chat_ids or not department_chat_ids.strip():
-                    logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
-                    return False
-                
-                # Parse chat IDs
-                chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
-                if not chat_ids:
-                    logger.warning("No valid Telegram chat IDs found")
-                    return False
+                # Get chat IDs from subscriptions
+                if active_subscriptions.exists():
+                    # Filter subscriptions based on notification type and result
+                    if feature_result.success:
+                        # For successful tests, only get subscriptions that include 'on_success'
+                        filtered_subscriptions = active_subscriptions.filter(
+                            notification_types__contains='on_success'
+                        )
+                    else:
+                        # For failed tests, only get subscriptions that include 'on_failure'
+                        filtered_subscriptions = active_subscriptions.filter(
+                            notification_types__contains='on_failure'
+                        )
+                    
+                    # Use subscription-based chat IDs
+                    logger.debug("Using subscription-based chat IDs with notification type filtering")
+                    chat_ids = list(filtered_subscriptions.values_list('chat_id', flat=True))
+                    logger.debug(f"Found {len(chat_ids)} subscribed chat IDs after filtering: {chat_ids}")
+                else:
+                    # Fall back to department chat IDs (old method)
+                    logger.debug("No subscriptions found, falling back to department chat IDs")
+                    try:
+                        department = Department.objects.get(department_id=feature_result.feature_id.department_id)
+                        department_settings = department.settings or {}
+                        department_chat_ids = department_settings.get('telegram_chat_ids', '')
+                        logger.debug(f"Department chat IDs: {department_chat_ids}")
+                    except Department.DoesNotExist:
+                        logger.warning(f"Department {feature_result.feature_id.department_id} not found")
+                        return False
+                    
+                    if not department_chat_ids or not department_chat_ids.strip():
+                        logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
+                        return False
+                    
+                    # Parse chat IDs
+                    chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
+                    if not chat_ids:
+                        logger.warning("No valid Telegram chat IDs found")
+                        return False
                 
                 # No thread ID for department-level chats
                 message_thread_id = None
@@ -205,7 +233,14 @@ class TelegramNotificationManger:
             logger.info(f"Found {len(chat_ids)} chat IDs to send notifications to")
             
             # Build message
-            message = self._build_message(feature_result, telegram_options)
+            # For subscription-based notifications, check if all options are False (uncustomized)
+            if active_subscriptions.exists() and self._is_default_telegram_options(telegram_options):
+                # This is a subscription-based notification with default settings
+                # Provide a minimal but informative message
+                logger.debug("Using subscription default message for uncustomized telegram options")
+                message = self._build_subscription_default_message(feature_result)
+            else:
+                message = self._build_message(feature_result, telegram_options)
             logger.debug("Message built successfully")
             
             # Check if message should be sent (could be None if send_on_error is true and test passed)
@@ -309,6 +344,77 @@ class TelegramNotificationManger:
         except Exception as e:
             logger.error(f"Error sending Telegram notification: {str(e)}")
             return False
+    
+    def _is_default_telegram_options(self, telegram_options):
+        """
+        Check if telegram options are using default values (all False)
+        This indicates the user hasn't customized the notification format
+        """
+        return not any([
+            telegram_options.include_department,
+            telegram_options.include_application,
+            telegram_options.include_environment,
+            telegram_options.include_feature_name,
+            telegram_options.include_datetime,
+            telegram_options.include_execution_time,
+            telegram_options.include_browser_timezone,
+            telegram_options.include_browser,
+            telegram_options.include_overall_status,
+            telegram_options.include_step_results,
+            telegram_options.include_pixel_diff,
+            telegram_options.include_feature_url,
+            telegram_options.include_failed_step_details,
+            telegram_options.do_not_use_default_template,
+            telegram_options.custom_message
+        ])
+    
+    def _build_subscription_default_message(self, feature_result):
+        """
+        Build a default message for subscription-based notifications
+        Provides essential information without requiring customization
+        """
+        try:
+            status_emoji = "✅" if feature_result.success else "❌"
+            status_text = "PASSED" if feature_result.success else "FAILED"
+            
+            message_parts = [
+                f"{status_emoji} *Test Execution Complete*",
+                "",
+                f"🧪 *Feature:* {feature_result.feature_name} (ID: {feature_result.feature_id.feature_id})",
+                f"🏢 *Department:* {feature_result.department_name}",
+                f"📱 *Application:* {feature_result.app_name}",
+                f"🌍 *Environment:* {feature_result.environment_name}",
+                "",
+                f"📊 *Results:*",
+                f"• Total Steps: {feature_result.total}",
+                f"• Passed: {feature_result.ok}",
+                f"• Failed: {feature_result.fails}",
+                f"• Skipped: {feature_result.skipped}",
+                "",
+                f"🎯 *Status:* {status_text}",
+            ]
+            
+            # Add failed step details if test failed
+            if not feature_result.success and feature_result.fails > 0:
+                failed_steps = self._get_failed_steps(feature_result.feature_result_id)
+                if failed_steps and len(failed_steps) <= 3:  # Show up to 3 failed steps
+                    message_parts.extend(["", "❌ *Failed Steps:*"])
+                    for i, step in enumerate(failed_steps[:3], 1):
+                        message_parts.append(f"{i}. Step {step['sequence']}: {step['name']}")
+            
+            # Add link to view full results
+            DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+            if DOMAIN:
+                feature_url = f"https://{DOMAIN}/#/{feature_result.department_name}/{feature_result.app_name}/{feature_result.feature_id.feature_id}"
+                message_parts.extend(["", f"🔗 [View Full Results]({feature_url})"])
+            
+            return "\n".join(message_parts)
+            
+        except Exception as e:
+            logger.error(f"Error building subscription default message: {str(e)}")
+            # Fallback to very basic message
+            status_emoji = "✅" if feature_result.success else "❌"
+            return f"{status_emoji} Test Complete: {feature_result.feature_name} - {'PASSED' if feature_result.success else 'FAILED'}"
     
     def _build_message(self, feature_result, telegram_options):
         """
@@ -520,7 +626,7 @@ class TelegramNotificationManger:
             logger.error(f"Error building Telegram message: {str(e)}")
             # Fallback to basic message
             status_emoji = "✅" if feature_result.success else "❌"
-            return f"{status_emoji} <b>Test Execution Complete</b>\n\n🧪 <b>Feature:</b> {feature_result.feature_name}\n🎯 <b>Status:</b> {'PASSED' if feature_result.success else 'FAILED'}"
+            return f"{status_emoji} *Test Execution Complete*\n\n🧪 *Feature:* {feature_result.feature_name}\n🎯 *Status:* {'PASSED' if feature_result.success else 'FAILED'}"
 
     def _get_pdf_report(self):
         """
@@ -793,7 +899,7 @@ class TelegramNotificationManger:
         payload = {
             'chat_id': chat_id,
             'text': message,
-            'parse_mode': 'HTML'
+            'parse_mode': 'Markdown'
         }
         
         # Add message thread ID if provided

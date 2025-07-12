@@ -328,6 +328,205 @@ def CreateOIDCAccount(request):
     return JsonResponse(request.session['user'], status=200)
 
 
+@csrf_exempt
+def telegram_auth_callback(request, token):
+    """
+    Handle Telegram authentication callback
+    This provides two paths:
+    1. If user has existing session -> link Telegram account
+    2. If no session -> redirect to OAuth for authentication
+    """
+    logger.info(f"telegram_auth_callback called with token: {token[:8]}...")  # Only log first 8 chars for security
+    
+    try:
+        from backend.telegram_auth import TelegramAuthenticationHandler
+        
+        # Log request details for debugging
+        logger.info(f"Request method: {request.method}")
+        logger.info(f"Request path: {request.path}")
+        logger.info(f"Session keys: {list(request.session.keys())}")
+        
+        # Verify the token is valid
+        user_link = TelegramAuthenticationHandler.verify_telegram_token(token)
+        if not user_link:
+            logger.error(f"Token verification failed for token: {token[:8]}...")
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Invalid or expired authentication token. Please try again from Telegram.'
+            })
+        
+        # SECURITY: Always require OAuth authentication
+        # This ensures that:
+        # 1. Users can't link someone else's Telegram to their account
+        # 2. Each authentication is verified through OAuth
+        # 3. No sessions are created without proper authentication
+        
+        # Clear any existing session to prevent cross-contamination
+        if request.session.get('user'):
+            logger.info(f"Clearing existing session for Telegram auth (user_id: {request.session['user'].get('user_id')})")
+            request.session.flush()
+        
+        # Always redirect to OAuth provider - no shortcuts
+        environment = os.getenv('ENVIRONMENT', 'prod')
+        oauth_provider = "Google" if environment == 'dev' else "GitLab"
+        
+        # Store the token in session for post-OAuth verification
+        request.session['telegram_auth_token'] = token
+        request.session['telegram_chat_id'] = user_link.chat_id
+        request.session.save()
+        
+        return render(request, 'telegram_auth_redirect.html', {
+            'oauth_provider': oauth_provider,
+            'token': token
+        })
+            
+    except Exception as e:
+        logger.error(f"Error in telegram_auth_callback: {str(e)}")
+        return render(request, 'telegram_auth_error.html', {
+            'message': 'An error occurred during authentication. Please try again.'
+        })
+
+
+def telegram_auth_complete(request):
+    """
+    Handle users who return after OAuth authentication
+    Complete the Telegram linking process
+    """
+    try:
+        # Add a small delay to ensure OAuth session is established
+        import time
+        time.sleep(0.5)
+        # Check if user has a telegram auth token in URL parameters
+        telegram_token = request.GET.get('token')
+        if not telegram_token:
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'No Telegram authentication token found. Please try again from Telegram.'
+            })
+        
+        # SECURITY: Verify the token matches the one stored in session
+        # This prevents token substitution attacks after OAuth
+        session_token = request.session.get('telegram_auth_token')
+        if not session_token or session_token != telegram_token:
+            logger.warning(f"Token mismatch - session: {session_token[:8] if session_token else 'None'}..., URL: {telegram_token[:8]}...")
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Authentication token mismatch. Please try again from Telegram.'
+            })
+        
+        # Verify the token is still valid
+        from backend.telegram_auth import TelegramAuthenticationHandler
+        user_link = TelegramAuthenticationHandler.verify_telegram_token(telegram_token)
+        if not user_link:
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Invalid or expired authentication token. Please try again from Telegram.'
+            })
+        
+        # Verify chat_id also matches
+        session_chat_id = request.session.get('telegram_chat_id')
+        if not session_chat_id or str(session_chat_id) != str(user_link.chat_id):
+            logger.warning(f"Chat ID mismatch - session: {session_chat_id}, token: {user_link.chat_id}")
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Authentication verification failed. Please try again from Telegram.'
+            })
+        
+        # Check if user session exists
+        if not request.session.get('user'):
+            # This should not happen if Apache OAuth worked correctly
+            logger.error("No user session found after OAuth authentication")
+            
+            # Log more details for debugging
+            logger.info(f"Session keys: {list(request.session.keys())}")
+            logger.info(f"User info in session: {request.session.get('user_info', 'None')}")
+            logger.info(f"Cookie mod_auth_openidc_session: {request.COOKIES.get('mod_auth_openidc_session', 'None')[:20]}...")
+            
+            # Check if we have user_info but not user (middleware might not have run yet)
+            if request.session.get('user_info'):
+                logger.info("Found user_info but not user - attempting to create user session")
+                # Try to trigger session creation by accessing a protected endpoint
+                # This is a workaround for the middleware not being triggered properly
+                from backend.middlewares.authentication import AuthenticationMiddleware
+                auth_middleware = AuthenticationMiddleware(lambda r: None)
+                auth_middleware.user_info = request.session.get('user_info')
+                if auth_middleware.createSession(request):
+                    logger.info("Successfully created user session")
+                    # Continue with the flow
+                else:
+                    logger.error("Failed to create user session")
+                    return render(request, 'telegram_auth_error.html', {
+                        'message': 'Failed to create authentication session. Please try again from Telegram.'
+                    })
+            else:
+                return render(request, 'telegram_auth_error.html', {
+                    'message': 'Authentication session not found. Please close this window and try again from Telegram.'
+                })
+        
+        # Import here to avoid circular import
+        from backend.ee.modules.notification.views import complete_telegram_auth
+        
+        # Complete the Telegram authentication
+        success = complete_telegram_auth(request, telegram_token)
+        
+        if success:
+            # Clean up session data to prevent replay attacks
+            if 'telegram_auth_token' in request.session:
+                del request.session['telegram_auth_token']
+            if 'telegram_chat_id' in request.session:
+                del request.session['telegram_chat_id']
+            request.session.save()
+            
+            # Send success notification to Telegram
+            bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
+            if bot_token:
+                try:
+                    environment = os.getenv('ENVIRONMENT', 'prod')
+                    oauth_provider = "Google" if environment == 'dev' else "GitLab"
+                    user_info = request.session.get('user', {})
+                    
+                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                    payload = {
+                        "chat_id": user_link.chat_id,
+                        "text": (
+                            "✅ *Authentication Successful!*\n\n"
+                            f"Your {oauth_provider} account has been linked:\n"
+                            f"*{user_info.get('name', 'User')}* ({user_info.get('email', 'email')})\n\n"
+                            "You can now use `/subscribe` to manage your notifications!"
+                        ),
+                        "parse_mode": "Markdown",
+                    }
+                    requests.post(url, json=payload, timeout=5)
+                except Exception as e:
+                    logger.warning(f"Failed to send Telegram notification: {str(e)}")
+            
+            return render(request, 'telegram_auth_success.html', {
+                'message': 'Authentication successful! You can now close this window and return to Telegram.'
+            })
+        else:
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Authentication failed. Please try again from Telegram.'
+            })
+            
+    except Exception as e:
+        logger.error(f"Error in telegram_auth_complete: {str(e)}")
+        logger.exception(e)  # Full stack trace
+        return render(request, 'telegram_auth_error.html', {
+            'message': 'An error occurred during authentication. Please try again.'
+        })
+
+
+def telegram_auth_success(request):
+    """
+    Success page after Telegram authentication is completed via middleware.
+    """
+    if not request.session.get('telegram_link_success'):
+        return redirect('/')
+    
+    # Clear the flag
+    del request.session['telegram_link_success']
+    request.session.save()
+    
+    return render(request, 'telegram_auth_success.html', {
+        'message': 'Your Telegram account has been successfully linked!'
+    })
+
+
 """ def Screenshot(request, screenshot_name):
     os.chdir('/data/screenshots/')
     # Check for WebP Support

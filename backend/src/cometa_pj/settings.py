@@ -100,6 +100,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'backend.middlewares.authentication.AuthenticationMiddleware',
+    'backend.telegram_oauth_middleware.TelegramOAuthCompletionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -145,7 +146,10 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(os.path.dirname(__file__), '../templates/pdf')],
+        'DIRS': [
+            os.path.join(os.path.dirname(__file__), '../templates/pdf'),
+            os.path.join(os.path.dirname(__file__), '../templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
