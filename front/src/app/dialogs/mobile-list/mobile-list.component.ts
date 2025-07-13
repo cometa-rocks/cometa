@@ -140,6 +140,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
   private updateInterval = 5000; // 5 seconds
   private intervalSubscription: Subscription;
   private containersSubscription: Subscription;
+  
+  // Menu state management to prevent auto-updates from closing open menus
+  private openMenusCount = 0;
+  private menuUpdatePaused = false;
 
   // View state management
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('mobileView.with'))
@@ -336,7 +340,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
           this.departments = departments;
           this.departments.forEach(department => {
             const depData = JSON.parse(JSON.stringify(department));
-            this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
+            this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
           })
         });
 
@@ -361,7 +365,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
                 else{
                   this.departments.forEach(department => {
                     const depData = JSON.parse(JSON.stringify(department));
-                    this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
+                    this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
                   })
                 }
 
@@ -737,7 +741,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
     this.departments.forEach(department => {
       if(department.department_id == this.selectedDepartment.id) {
         const depData = JSON.parse(JSON.stringify(department));
-        this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
+        this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
       }
     })
 
@@ -753,7 +757,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
         .find(dep => dep.department_id === this.selectedDepartment?.id);
 
       let uploadedApksList = (department?.files || [])
-        .filter(file => file.name?.toLowerCase().endsWith('.apk') || file.mime === 'application/vnd.android.package-archive');
+        .filter(file => 
+          (file.name?.toLowerCase().endsWith('.apk') || file.mime === 'application/vnd.android.package-archive') &&
+          !file.is_removed
+        );
 
       // (Opcional) deduplicar por nombre
       // const seen = new Map();
@@ -795,6 +802,12 @@ export class MobileListComponent implements OnInit, OnDestroy {
   }
 
   loadSharedContainers() {
+    // Skip update if menus are open to prevent menu closure
+    if (this.menuUpdatePaused) {
+      this.logger.msg('4', 'Skipping container update - menus are open', 'MenuState');
+      return;
+    }
+
     // Limpiar la lista actual antes de cargar nuevos contenedores
     this.sharedMobileContainers = [];
 
@@ -1108,7 +1121,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
     
     this.departments.forEach(department => {
       const depData = JSON.parse(JSON.stringify(department));
-      const departmentApks = depData.files.filter(file => file.name.endsWith('.apk'));
+      const departmentApks = depData.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
       
       apkFileArray.forEach(apkId => {
         const apk = departmentApks.find(file => file.id === apkId);
@@ -1133,6 +1146,33 @@ export class MobileListComponent implements OnInit, OnDestroy {
     this._sharedMobileTableDataCache = [];
     this._mobileTableDataHash = '';
     this._sharedMobileTableDataHash = '';
+  }
+
+  /**
+   * Called when a menu opens - pauses auto-updates to prevent menu closure
+   */
+  onMenuOpened() {
+    this.openMenusCount++;
+    this.menuUpdatePaused = true;
+    this.logger.msg('4', `Menu opened. Open menus: ${this.openMenusCount}`, 'MenuState');
+  }
+
+  /**
+   * Called when a menu closes - resumes auto-updates if no menus are open
+   */
+  onMenuClosed() {
+    this.openMenusCount = Math.max(0, this.openMenusCount - 1);
+    if (this.openMenusCount === 0) {
+      this.menuUpdatePaused = false;
+      this.logger.msg('4', 'All menus closed. Resuming auto-updates and triggering immediate update', 'MenuState');
+      
+      // Trigger immediate update when all menus are closed
+      setTimeout(() => {
+        this.loadSharedContainers();
+      }, 100); // Small delay to ensure menu is fully closed
+    } else {
+      this.logger.msg('4', `Menu closed. Remaining open menus: ${this.openMenusCount}`, 'MenuState');
+    }
   }
 
   /**
