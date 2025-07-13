@@ -1143,7 +1143,7 @@
 
             </ng-container>
 
-             <!-- Mobile table view -->
+             <!-- Mobile list view -->
              <ng-container *ngIf="mobileViewWithLocal === 'list'">
     
               <!-- Mobile Devices Table -->
@@ -1449,24 +1449,16 @@
 <ng-template #sharedActionsTpl let-row let-index="index" let-col="colDef">
   <div class="table-actions">
     <button
-      *ngIf="row.isRunning"
-      (click)="inspectMobile(row.runningContainer, row)"
-      mat-icon-button
-      class="action-button"
-      [disabled]="row.runningContainer.service_status !== 'Running'"
-      [matTooltip]="'mobile_list.inspect_emulator_shared' | translate">
-      <mat-icon>visibility</mat-icon>
-    </button>
-    
-    <button
-      *ngIf="row.isRunning"
-      (click)="noVNCMobile(row.runningContainer, row)"
-      mat-icon-button
-      class="action-button"
-      [disabled]="row.runningContainer.service_status !== 'Running'"
-      [matTooltip]="'mobile_list.inspect_novnc_shared' | translate">
-      <mat-icon>screen_share</mat-icon>
-    </button>
+    *ngIf="row.runningContainer"
+    (click)="noVNCMobile(row.runningContainer, row)"
+    mat-icon-button
+    class="action-button"
+    [matTooltip]="'mobile_list.inspect_novnc' | translate">
+    <div class="custom-mobile-arrow-icon">
+      <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+      <mat-icon class="arrow-icon">forward</mat-icon>
+    </div>
+  </button>
   </div>
 </ng-template>
 
