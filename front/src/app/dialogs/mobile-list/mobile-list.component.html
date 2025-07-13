@@ -269,7 +269,9 @@
                           matTooltipPosition="after"
                           class="emulatorOptions"
                           mat-icon-button
-                          [matMenuTriggerFor]="emulatorOptions">
+                          [matMenuTriggerFor]="emulatorOptions"
+                          (menuOpened)="onMenuOpened()"
+                          (menuClosed)="onMenuClosed()">
                           <mat-icon>more_vert</mat-icon>
                         </button>
 
@@ -821,7 +823,9 @@
                           matTooltipPosition="after"
                           class="emulatorOptions"
                           mat-icon-button
-                          [matMenuTriggerFor]="emulatorOptions">
+                          [matMenuTriggerFor]="emulatorOptions"
+                          (menuOpened)="onMenuOpened()"
+                          (menuClosed)="onMenuClosed()">
                           <mat-icon>more_vert</mat-icon>
                         </button>
 
@@ -1348,12 +1352,12 @@
 
 <!-- Installed apps column template -->
 <ng-template #installedAppsTpl let-row let-index="index" let-col="colDef">
-  <div class="installed-apps-cell">
+  <div class="installed-apps-cell" 
+  [matTooltip]="hasInstalledApks(row.runningContainer) ? getApkTooltipText(row.runningContainer) : ''"
+  [matTooltipDisabled]="!hasInstalledApks(row.runningContainer)">
     <div
       [matBadge]="row.installedApps"
-      class="apps-badge"
-      [matTooltip]="hasInstalledApks(row.runningContainer) ? getApkTooltipText(row.runningContainer) : ''"
-      [matTooltipDisabled]="!hasInstalledApks(row.runningContainer)">
+      class="apps-badge">
     </div>
   </div>
 </ng-template>
@@ -1379,7 +1383,9 @@
     <button
       [matTooltip]="'mobile_list.emulator_options' | translate"
       mat-icon-button
-      [matMenuTriggerFor]="emulatorOptions">
+      [matMenuTriggerFor]="emulatorOptions"
+      (menuOpened)="onMenuOpened()"
+      (menuClosed)="onMenuClosed()">
       <mat-icon>more_vert</mat-icon>
     </button>
 
@@ -1449,16 +1455,25 @@
 <ng-template #sharedActionsTpl let-row let-index="index" let-col="colDef">
   <div class="table-actions">
     <button
-    *ngIf="row.runningContainer"
-    (click)="noVNCMobile(row.runningContainer, row)"
-    mat-icon-button
-    class="action-button"
-    [matTooltip]="'mobile_list.inspect_novnc' | translate">
-    <div class="custom-mobile-arrow-icon">
-      <mat-icon class="mobile-icon">phone_iphone</mat-icon>
-      <mat-icon class="arrow-icon">forward</mat-icon>
-    </div>
-  </button>
+      *ngIf="row.runningContainer"
+      (click)="noVNCMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [matTooltip]="'mobile_list.inspect_novnc' | translate">
+      <div class="custom-mobile-arrow-icon">
+        <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+        <mat-icon class="arrow-icon">forward</mat-icon>
+      </div>
+    </button>
+
+    <button
+      *ngIf="row.runningContainer"
+      (click)="inspectMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [matTooltip]="'mobile_list.inspect_emulator' | translate">
+      <mat-icon>developer_mode</mat-icon>
+    </button>
   </div>
 </ng-template>
 
@@ -1477,7 +1492,9 @@
     <button
       [matTooltip]="'mobile_list.emulator_options' | translate"
       mat-icon-button
-      [matMenuTriggerFor]="sharedEmulatorOptions">
+      [matMenuTriggerFor]="sharedEmulatorOptions"
+      (menuOpened)="onMenuOpened()"
+      (menuClosed)="onMenuClosed()">
       <mat-icon>more_vert</mat-icon>
     </button>
 
@@ -1490,10 +1507,11 @@
         [disabled]="row.runningContainer.service_status !== 'Running'"
         [matTooltip]="'mobile_list.inspect_emulator_shared' | translate"
         mat-menu-item>
-        <div class="custom-mobile-arrow-icon">
+        <!-- <div class="custom-mobile-arrow-icon">
           <mat-icon class="mobile-icon">phone_iphone</mat-icon>
           <mat-icon class="arrow-icon">forward</mat-icon>
-        </div>
+        </div> -->
+        <mat-icon class="mobile-icon">phone_iphone</mat-icon>
         <span>Inspect</span>
       </button>
 

@@ -679,7 +679,7 @@ mat-dialog-content {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  margin-top: 50px;
+  // margin-top: 50px;
 }
 
 html, body {
@@ -1968,7 +1968,7 @@ mat-slide-toggle {
     }
     .mat-icon {
       width: 30px;
-      height: 30px;
+      height: 31px;
       font-size: 22px;
     }
   }
