@@ -250,6 +250,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
     console.log('=== ngOnInit started ===');
     console.log('Initial mobileViewWithLocal:', this.mobileViewWithLocal);
     
+
+    
     this.cleanupSubscriptions();
     this.departments = this.user.departments;
     this.isDialog = this.data?.department_id ? true : false;
@@ -421,6 +423,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanupSubscriptions();
+    
+
     
     // Clear shared status timeout
     if (this.sharedStatusUpdateTimeout) {

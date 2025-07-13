@@ -2354,6 +2354,23 @@ mat-slide-toggle {
   }
 }
 
+// Disable matBadge animations to prevent visible table updates
+::ng-deep .mat-badge-content {
+  transition: none !important;
+  animation: none !important;
+}
+
+::ng-deep .mat-badge {
+  transition: none !important;
+  animation: none !important;
+}
+
+// Disable any badge-related animations
+::ng-deep [matBadge] {
+  transition: none !important;
+  animation: none !important;
+}
+
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
   background-color: $blue !important;
 }
