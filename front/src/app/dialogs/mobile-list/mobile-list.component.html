@@ -554,7 +554,6 @@
                       <mat-menu #moreInfo="matMenu">
                         <mat-menu-item class="pop-up-info">
 
-
                           <mat-menu-item>
                             <i class="material-icons">info</i>
                             <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
@@ -574,6 +573,7 @@
                             <i class="material-icons">layers</i>
                             <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
                           </mat-menu-item>
+                          
                         </mat-menu-item>
                       </mat-menu>
                     </div>
@@ -706,8 +706,7 @@
                             (click)="inspectMobile(runningContainer, mobile)"
                             mat-raised-button
                             class="start-stop-inpect-buttons"
-                            [disabled]="runningContainer.isTerminating"
-
+                            [disabled]="runningContainer.isTerminating || isInspectingMobile"
                             [matTooltip]="'mobile_list.inspect_emulator' | translate" matTooltipPosition="above">
                             <span class="inspect-text">Inspect</span>
                             <i class="material-icons icon-on-hover">visibility</i>
@@ -1011,7 +1010,7 @@
                 </div>
 
                 <!-- Shared Mobile Devices Section (only in tiles view) -->
-                <ng-container class="shared-mobile-section" *ngIf="sharedMobileContainers.length > 0">
+                <ng-container class="shared-mobile-section">
                   <div class="dialog-header">
                     <h3 class="not-dialog-title">Shared Mobile Devices</h3>
                   </div>
@@ -1160,7 +1159,7 @@
                     [sortOnFront]="true"
                     [sortDisableClear]="true"
                     [sortDisabled]="false"
-                    [pageSize]="25"
+                    [pageSize]="getMobileTableData().length >= 10 ? 25 : getMobileTableData().length"
                     [multiSelectable]="multiSelectable"
                     [rowSelectable]="rowSelectable"
                     [columnHideable]="columnHideable"
@@ -1182,53 +1181,56 @@
                       shared: sharedTpl,
                       options: optionsTpl
                     }"
-                    [pageSizeOptions]="[10, 25, 50, 100]">
+                    [pageSizeOptions]="getMobileTableData().length >= 10 ? [10, 25, 50, 100] : []">
                   </mtx-grid>
                 </div>
               </div>
 
               <!-- Shared Mobile Devices Section for Table View -->
-              <ng-container *ngIf="sharedMobileContainers.length > 0">
-                <div class="shared-mobile-section">
-                  <div class="dialog-header">
-                    <h3 class="not-dialog-title">Shared Mobile Devices</h3>
-                  </div>
-                  <div class="mobile-table-view">
-                    <div class="table_container">
-                      <mtx-grid
-                        [data]="getSharedMobileTableData()"
-                        [columns]="sharedMobileTableColumns"
-                        [showToolbar]="true"
-                        [sortOnFront]="true"
-                        [sortDisableClear]="true"
-                        [sortDisabled]="false"
-                        [pageSize]="25"
-                        [multiSelectable]="multiSelectable"
-                        [rowSelectable]="rowSelectable"
-                        [columnHideable]="columnHideable"
-                        [columnHideableChecked]="columnHideableChecked"
-                        [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
-                        [columnMovable]="columnMovable"
-                        [showColumnMenuHeader]="true"
-                        [columnMenuHeaderText]="'Columns Settings'"
-                        [cellTemplate]="{
-                          actions: sharedActionsTpl,
-                          mobile_image_name: sharedMobileNameTpl,
-                          deviceName: deviceNameTpl,
-                          android_version: androidVersionTpl,
-                          api_level: apiLevelTpl,
-                          architecture: architectureTpl,
-                          status: statusTpl,
-                          hostname: hostnameTpl,
-                          installedApps: installedAppsTpl,
-                          options: sharedOptionsTpl
-                        }"
-                        [pageSizeOptions]="[10, 25, 50, 100]">
-                      </mtx-grid>
-                    </div>
+              <div class="shared-mobile-section">
+                <div class="dialog-header">
+                  <h3 class="not-dialog-title">Shared Mobile Devices</h3>
+                </div>
+                <div class="mobile-table-view" *ngIf="sharedMobileContainers.length > 0">
+                  <div class="table_container">
+                    <mtx-grid
+                      [data]="getSharedMobileTableData()"
+                      [columns]="sharedMobileTableColumns"
+                      [showToolbar]="true"
+                      [sortOnFront]="true"
+                      [sortDisableClear]="true"
+                      [sortDisabled]="false"
+                      [pageSize]="getSharedMobileTableData().length >= 10 ? 25 : getSharedMobileTableData().length"
+                      [multiSelectable]="multiSelectable"
+                      [rowSelectable]="rowSelectable"
+                      [columnHideable]="columnHideable"
+                      [columnHideableChecked]="columnHideableChecked"
+                      [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+                      [columnMovable]="columnMovable"
+                      [showColumnMenuHeader]="true"
+                      [columnMenuHeaderText]="'Columns Settings'"
+                      [cellTemplate]="{
+                        actions: sharedActionsTpl,
+                        mobile_image_name: sharedMobileNameTpl,
+                        deviceName: deviceNameTpl,
+                        android_version: androidVersionTpl,
+                        api_level: apiLevelTpl,
+                        architecture: architectureTpl,
+                        status: statusTpl,
+                        hostname: hostnameTpl,
+                        installedApps: installedAppsTpl,
+                        options: sharedOptionsTpl
+                      }"
+                      [pageSizeOptions]="getSharedMobileTableData().length >= 10 ? [10, 25, 50, 100] : []">
+                    </mtx-grid>
                   </div>
                 </div>
-              </ng-container>
+                <p *ngIf="sharedMobileContainers.length == 0" class="nonMobileSharedList">
+                  There are no shared mobiles available for you. You can ask your
+                  teammates to share their mobile emulators so you can collaborate on
+                  the same machine.
+                </p>
+              </div>
             </ng-container>
 
           </div>
@@ -1248,6 +1250,7 @@
       (click)="noVNCMobile(row.runningContainer, row)"
       mat-icon-button
       class="action-button"
+      [disabled]="isNoVNCMobile"
       [matTooltip]="'mobile_list.inspect_novnc' | translate">
       <div class="custom-mobile-arrow-icon">
         <mat-icon class="mobile-icon">phone_iphone</mat-icon>
@@ -1261,7 +1264,7 @@
       (click)="inspectMobile(row.runningContainer, row)"
       mat-icon-button
       class="action-button"
-      [disabled]="row.runningContainer.isTerminating"
+      [disabled]="row.runningContainer.isTerminating || isInspectingMobile"
       [matTooltip]="'mobile_list.inspect_emulator' | translate">
       <mat-icon>developer_mode</mat-icon>
     </button>
@@ -1273,7 +1276,7 @@
       mat-icon-button
       color="primary"
       class="action-button start-button"
-      [disabled]="!selectedDepartment || !selectedDepartment.id"
+      [disabled]="!selectedDepartment || !selectedDepartment.id || isStartingMobile"
       [matTooltip]="'mobile_list.start_emulator' | translate">
       <mat-icon>play_circle_filled</mat-icon>
     </button>
@@ -1285,8 +1288,18 @@
       color="warn"
       class="action-button"
       [disabled]="row.runningContainer?.isTerminating"
+      [ngClass]="{ 'spinner-active': row.runningContainer?.isTerminating }"
       [matTooltip]="'mobile_list.close_emulator' | translate">
-      <mat-icon>close</mat-icon>
+      <ng-container *ngIf="!row.runningContainer?.isTerminating; else showSpinner">
+        <mat-icon>close</mat-icon>
+      </ng-container>
+      <ng-template #showSpinner>
+        <mat-spinner
+          class="spinner"
+          color="accent"
+          diameter="16">
+        </mat-spinner>
+      </ng-template>
     </button>
   </div>
 </ng-template>
