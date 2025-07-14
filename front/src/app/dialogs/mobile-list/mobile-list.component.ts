@@ -166,7 +166,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
   departmentChecked: { [key: string]: boolean } = {};
   buttonEnabledState = false;
   selectionsDisabled: boolean = false;
-  selectedDepartment: { id: number, name: string } = {
+  selectedDepartment: { id: number | null, name: string } = {
     id: null,
     name: '',
   };
@@ -235,6 +235,17 @@ export class MobileListComponent implements OnInit, OnDestroy {
           map(departments => JSON.parse(JSON.stringify(departments)))
         ).subscribe(departments => {
           this.departments = departments;
+          
+          // If we don't have a selected department yet, try to get the preselected one
+          if (!this.selectedDepartment.id && !this.isDialog) {
+            const preselectedDept = this.getPreselectedDepartment();
+            if (preselectedDept) {
+              this.selectedDepartment = preselectedDept;
+              // Trigger change detection to update the UI
+              this._cdr.detectChanges();
+            }
+          }
+          
           this.departments.forEach(department => {
             const depData = JSON.parse(JSON.stringify(department));
             this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
@@ -266,7 +277,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
                   })
                 }
 
-                if (container.department_id === this.selectedDepartment.id) {
+                if (this.selectedDepartment && this.selectedDepartment.id && container.department_id === this.selectedDepartment.id) {
                   this.sharedMobileContainers.push(container);
                 }
 
@@ -296,7 +307,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
     );
 
     if(!this.isDialog){
-      this.selectedDepartment = this.getPreselectedDepartment();
+      const preselectedDept = this.getPreselectedDepartment();
+      if (preselectedDept) {
+        this.selectedDepartment = preselectedDept;
+      }
     }
 
     // Configurar la actualización periódica de la lista
@@ -350,7 +364,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
       let body = {
         image: mobile_id,
         service_type: 'Emulator',
-        department_id: this.data.department_id || this.selectedDepartment?.id,
+        department_id: this.data.department_id || this.selectedDepartment?.id || null,
         shared: mobile.isShared === true ? true : false,
         selected_apk_file_id: mobile.selectedAPKFileID,
       };
@@ -560,6 +574,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
   // Check the running containers filtered by deprtament
   isThisMobileContainerRunning(mobile_id): Container | null {
     // this.mobiles.filter(m => m.department_id === this.selectedDepartment?.id);
+    if (!this.selectedDepartment || !this.selectedDepartment.id) {
+      return null;
+    }
+    
     for (let container of this.runningMobiles) {
       if (container.image == mobile_id && container.department_id == this.selectedDepartment.id) {
         return container;
@@ -601,6 +619,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Save the selected department to localStorage
+    localStorage.setItem('co_last_dpt', this.selectedDepartment.name);
+    FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
+
     this.apkFiles = [];
     this.departments.forEach(department => {
       if(department.department_id == this.selectedDepartment.id) {
@@ -611,6 +633,12 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
     this.departmentChecked[this.selectedDepartment.id] = true;
     this.selectionsDisabled = true;
+    
+    // Load shared containers for the newly selected department
+    this.loadSharedContainers();
+    
+    // Trigger change detection to update the UI
+    this._cdr.detectChanges();
   }
 
   openModifyEmulatorDialog(mobile: IMobile, runningContainer: Container) {
@@ -669,6 +697,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
     // Cancelar la suscripción anterior si existe
     if (this.containersSubscription) {
       this.containersSubscription.unsubscribe();
+    }
+
+    // Only load shared containers if we have a selected department
+    if (!this.selectedDepartment || !this.selectedDepartment.id) {
+      return;
     }
 
     this.containersSubscription = this._api.getContainersList().subscribe((containers: Container[]) => {
