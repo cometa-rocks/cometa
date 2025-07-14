@@ -1603,7 +1603,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepsForm.controls.forEach(control => {
       control.get('screenshot')?.setValue(checked);
       if (!checked) {
-        // control.get('compare')?.setValue(false);
+        // If screenshot is unchecked, disable compare and set it to false
+        control.get('compare')?.setValue(false);
       }
     });
     this._cdr.detectChanges();
