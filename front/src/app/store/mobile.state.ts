@@ -53,14 +53,13 @@ export class MobileState {
     ctx: StateContext<MobileStateModel>,
     action: MobileWebSockets.ContainerSharedUpdate
   ) {
-    console.log('[MOBILE STATE] ContainerSharedUpdate action received:', action);
     const state = ctx.getState();
     const { container_id, shared } = action;
 
-    console.log('[MOBILE STATE] Current containers:', state.containers);
+
     const existingContainer = state.containers[container_id];
     if (existingContainer) {
-      console.log('[MOBILE STATE] Updating existing container:', container_id, 'shared:', shared);
+
       ctx.patchState({
         containers: {
           ...state.containers,
@@ -71,9 +70,9 @@ export class MobileState {
         },
         lastUpdate: Date.now()
       });
-      console.log('[MOBILE STATE] Container updated successfully');
+
     } else {
-      console.log('[MOBILE STATE] Container not found in state, creating new entry:', container_id);
+
       ctx.patchState({
         containers: {
           ...state.containers,
@@ -179,7 +178,7 @@ export class MobileState {
   initializeMobileWebSocket(ctx: StateContext<MobileStateModel>) {
     // This action can be used to initialize WebSocket connection
     // The actual WebSocket setup will be handled in the component
-    console.log('Mobile WebSocket initialization requested');
+
   }
 
   @Action(MobileWebSockets.CleanupMobileWebSocket)

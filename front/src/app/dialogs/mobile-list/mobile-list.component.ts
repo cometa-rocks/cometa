@@ -162,17 +162,13 @@ export class MobileListComponent implements OnInit, OnDestroy {
   // Debug getter for template
   get debugCondition() {
     const result = this.mobileViewWithLocal === 'list';
-    console.log('Template condition evaluated:', result, 'mobileViewWithLocal:', this.mobileViewWithLocal);
     return result;
   }
 
   // Force update method
   forceUpdate() {
-    console.log('=== Force update called ===');
-    console.log('Current mobileViewWithLocal:', this.mobileViewWithLocal);
     this._cdr.markForCheck();
     this._cdr.detectChanges();
-    console.log('After force update - mobileViewWithLocal:', this.mobileViewWithLocal);
   }
 
   constructor(
@@ -258,11 +254,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
   columnHideableChecked: 'show' | 'hide' = 'show';
 
   ngOnInit(): void {
-    console.log('=== ngOnInit started ===');
-    console.log('Initial mobileViewWithLocal:', this.mobileViewWithLocal);
-    
 
-    
     this.cleanupSubscriptions();
     this.cleanupMobileState();
     this.departments = this.user.departments;
@@ -273,7 +265,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
     // Initialize view from localStorage or default to tiles
     const savedView = localStorage.getItem('mobileView.with');
-    console.log('Saved view from localStorage:', savedView);
+
     
     if (savedView && ['tiles', 'list'].includes(savedView)) {
       // Use the store to set the view instead of direct assignment
@@ -281,7 +273,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
         new Configuration.SetProperty('mobileView.with', savedView as 'tiles' | 'list', true),
       ]);
       this.mobileViewWithLocal = savedView as 'tiles' | 'list';
-      console.log('Set mobileViewWithLocal to saved view:', this.mobileViewWithLocal);
+
     } else {
       // Set default view through store
       this._store.dispatch([
@@ -289,11 +281,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
       ]);
       localStorage.setItem('mobileView.with', 'tiles');
       this.mobileViewWithLocal = 'tiles';
-      console.log('Set mobileViewWithLocal to default tiles:', this.mobileViewWithLocal);
+
     }
     
-    console.log('After initialization - mobileViewWithLocal:', this.mobileViewWithLocal);
-    console.log('Debug condition should be:', this.mobileViewWithLocal === 'list');
+
 
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
@@ -466,7 +457,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
   startMobile(mobile_id): void {
     // Prevent double click
     if (this.isStartingMobile) {
-      console.log('Mobile start already in progress, ignoring click');
       return;
     }
 
@@ -489,7 +479,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
       // Check if there's already a container for this mobile and clean it up
       const existingContainer = this.runningMobiles.find(c => c.image === mobile_id);
       if (existingContainer) {
-        console.log('Found existing container for mobile, cleaning up before starting new one');
+
         this.runningMobiles = this.runningMobiles.filter(c => c.id !== existingContainer.id);
       }
       
@@ -565,7 +555,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
   terminateMobile(container: Container): void {
     // Prevent double click
     if (this.isTerminatingMobile) {
-      console.log('Mobile termination already in progress, ignoring click');
       return;
     }
 
@@ -804,7 +793,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
   inspectMobile(container: Container, mobile: IMobile): void {
     // Prevent double click
     if (this.isInspectingMobile) {
-      console.log('Mobile inspection already in progress, ignoring click');
       return;
     }
 
@@ -829,7 +817,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
   noVNCMobile(container: Container): void {
     // Prevent double click
     if (this.isNoVNCMobile) {
-      console.log('noVNC connection already in progress, ignoring click');
       return;
     }
 
@@ -1120,7 +1107,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
       const currentShared = currentHash.filter(c => c.shared).length;
       const newShared = newHash.filter(c => c.shared).length;
       if (currentShared !== newShared) {
-        console.log(`Shared status changed: ${currentShared} -> ${newShared}`);
       }
     }
     
@@ -1223,7 +1209,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     // Prevent multiple concurrent updates
     if (this.sharedStatusUpdateInProgress) {
-      console.log('Shared status update already in progress, skipping...');
+
       return new Observable(observer => {
         observer.next(container);
         observer.complete();
@@ -1360,9 +1346,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
    * Changes the type of view of the mobile list (tiles / list)
    */
   setView(type: string, view: 'tiles' | 'list') {
-    console.log('=== setView called ===');
-    console.log('Previous mobileViewWithLocal:', this.mobileViewWithLocal);
-    console.log('New view:', view);
+
     
     this.logger.msg('1', 'Changing mobile list view type to...', 'mobile-list', view);
     localStorage.setItem('mobileView.with', view);
@@ -1373,12 +1357,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this.clearTableDataCache();
     }
     
-    console.log('After setting mobileViewWithLocal:', this.mobileViewWithLocal);
-    console.log('Condition check:', this.mobileViewWithLocal === 'list');
+
     
     // Force comprehensive change detection
     setTimeout(() => {
-      console.log('=== setTimeout callback ===');
+
       this.forceUpdate();
     }, 0);
     

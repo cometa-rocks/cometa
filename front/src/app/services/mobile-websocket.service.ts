@@ -101,7 +101,6 @@ export class MobileWebSocketService {
    */
   onConnection() {
     this.connectionStatus$.next(true);
-    console.log('[MOBILE WEBSOCKET] Connected to server');
     
     // Clear previous subscription to user changes if found
     this.clearUserSubscription();
@@ -118,7 +117,6 @@ export class MobileWebSocketService {
    */
   onDisconnection() {
     this.connectionStatus$.next(false);
-    console.log('[MOBILE WEBSOCKET] Disconnected from server');
     this.clearUserSubscription();
   }
 
