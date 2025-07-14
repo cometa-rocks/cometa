@@ -137,7 +137,7 @@ import { MtxGridModule } from '@ng-matero/extensions/grid';
 export class MobileListComponent implements OnInit, OnDestroy {
   featureForm: UntypedFormGroup;
   private destroy$ = new Subject<void>();
-  private updateInterval = 5000; // 5 seconds
+  private updateInterval = 2000; // 2 seconds - reduced from 5 seconds for faster updates
   private intervalSubscription: Subscription;
   private containersSubscription: Subscription;
   
@@ -628,10 +628,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
                 // Clear cache after successful termination
                 this.clearTableDataCache();
                 
-                // Force refresh of container list to ensure clean state
-                setTimeout(() => {
-                  this.loadSharedContainers();
-                }, 1000);
+                // Force immediate refresh of container list to ensure clean state
+                this.loadSharedContainers();
                 
               } else {
                 console.error('An error occurred while stopping the mobile', response.message);
@@ -1045,11 +1043,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
         }
       });
 
-      // Only clear cache and force updates if data has actually changed
-      if (sharedContainersChanged || runningContainersChanged) {
-        this.clearTableDataCache();
-        this._cdr.detectChanges();
-      }
+      // Always clear cache and force updates for shared containers to ensure immediate visibility
+      // This is especially important when shared containers are terminated by other users
+      this.clearTableDataCache();
+      this._cdr.detectChanges();
     });
   }
 
@@ -1256,11 +1253,13 @@ export class MobileListComponent implements OnInit, OnDestroy {
               'OK'
             );
             
-            // Only clear cache and force updates if we're in table view
-            if (this.mobileViewWithLocal === 'list') {
-              this.clearTableDataCache();
-              this._cdr.detectChanges();
-            }
+            // Always clear cache and force updates for shared status changes
+            // This ensures immediate visibility in both tiles and list views
+            this.clearTableDataCache();
+            this._cdr.detectChanges();
+            
+            // Force immediate update of shared containers
+            this.loadSharedContainers();
           }
           
           // Reset flag after successful update

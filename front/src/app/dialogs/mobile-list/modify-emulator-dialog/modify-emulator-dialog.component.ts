@@ -401,17 +401,32 @@ export class ModifyEmulatorDialogComponent {
 
   importClipboard(androidVersion: string) {
     navigator.clipboard.writeText(androidVersion).then(() => {
-    this.isIconActive[androidVersion] = true;
-    this._cdr.detectChanges();
-    setTimeout(() => {
-      this.isIconActive[androidVersion] = false;
-      this._cdr.detectChanges();
-    }, 400);
-    this.snack.open('Text copied to clipboard', 'Close');
-    }).catch(err => {
-      console.error('Error copying: ', err);
-      this.snack.open('Error copying text', 'Close');
+      this.isIconActive[androidVersion] = true;
+      setTimeout(() => {
+        this.isIconActive[androidVersion] = false;
+        this._cdr.detectChanges();
+      }, 3000);
     });
+  }
+
+  openNoVNC(): void {
+    if (this.data.runningContainer && this.data.runningContainer.service_id) {
+      // Check if container is in a valid state for noVNC
+      if (this.data.runningContainer.service_status === 'Stopped' || 
+          this.data.runningContainer.service_status === 'Pausing' || 
+          this.data.runningContainer.service_status === 'Restarting') {
+        this.snack.open('Mobile device is not ready for noVNC connection', 'OK', { duration: 3000 });
+        return;
+      }
+      
+      // Use the same URL format as the main component
+      const complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${this.data.runningContainer.service_id}`;
+      window.open(complete_url, '_blank');
+      
+      this.snack.open('Opening noVNC in a new tab...', 'OK', { duration: 2000 });
+    } else {
+      this.snack.open('Mobile device not available for noVNC', 'OK', { duration: 3000 });
+    }
   }
 
   /**
