@@ -2138,6 +2138,16 @@ mat-slide-toggle {
     color: $high-dark;
   }
   
+  .copy-button {
+    min-width: 24px;
+    width: 24px;
+    
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+    }
+  }
+  
   .shared-badge {
     background: #ff9800;
     color: white;
