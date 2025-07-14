@@ -1309,6 +1309,13 @@
   <div class="mobile-name-cell">
     <i class="material-icons mobile-icon">phone_android</i>
     <span>{{ row.mobile_image_name }}</span>
+    <button
+      (click)="importClipboard(row.mobile_image_name)"
+      mat-icon-button
+      class="copy-button"
+      [matTooltip]="'Copy to clipboard'">
+      <mat-icon>content_copy</mat-icon>
+    </button>
   </div>
 </ng-template>
 
@@ -1495,6 +1502,13 @@
   <div class="mobile-name-cell">
     <i class="material-icons mobile-icon">phone_android</i>
     <span>{{ row.mobile_image_name }}</span>
+    <button
+      (click)="importClipboard(row.mobile_image_name)"
+      mat-icon-button
+      class="copy-button"
+      [matTooltip]="'Copy to clipboard'">
+      <mat-icon>content_copy</mat-icon>
+    </button>
     <span class="shared-badge">Shared</span>
   </div>
 </ng-template>
