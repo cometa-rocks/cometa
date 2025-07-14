@@ -146,6 +146,9 @@ export class ModifyEmulatorDialogComponent {
       this.installedApks = [];
     }
     
+    // Clear any previously selected APKs
+    this.selectedApks = [];
+    
     // Log for debugging
     this.logger.msg("1", "Installed APKs loaded:", "modify-emulator", {
       count: this.installedApks.length,
@@ -181,9 +184,9 @@ export class ModifyEmulatorDialogComponent {
 
   isApkSelected(apk: any): boolean {
     // Check if APK is selected for installation
-    const isSelected = this.selectedApks.some(selected => selected.name === apk.name);
+    const isSelected = this.selectedApks.some(selected => selected.id === apk.id);
     // Check if APK is already installed
-    const isInstalled = this.installedApks.some(installed => installed.name === apk.name);
+    const isInstalled = this.installedApks.some(installed => installed.id === apk.id);
     
     return isSelected || isInstalled;
   }
@@ -303,13 +306,35 @@ export class ModifyEmulatorDialogComponent {
           this._cdr.detectChanges();
           return response;
         } else {
-          this.snack.open(response.message, 'OK');
-          throw new Error(response.message);
+          // Check if the error is due to APK already being installed
+          const errorMessage = response.message || 'Unknown error occurred';
+          if (errorMessage.toLowerCase().includes('already installed') || 
+              errorMessage.toLowerCase().includes('already exists')) {
+            this.snack.open(`APK is already installed in the mobile`, 'OK');
+            // Still return success since the APK is already there
+            return response;
+          } else {
+            this.snack.open(errorMessage, 'OK');
+            throw new Error(errorMessage);
+          }
         }
       }),
       catchError(error => {
         console.error('An error occurred while installing APK', error);
-        this.snack.open('Failed to install APK', 'OK');
+        
+        // Check if it's a network error or server error
+        let errorMessage = 'Failed to install APK';
+        if (error.status === 0) {
+          errorMessage = 'Network error: Unable to connect to server';
+        } else if (error.status >= 500) {
+          errorMessage = 'Server error: Please try again later';
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snack.open(errorMessage, 'OK');
         return throwError(() => error);
       })
     );

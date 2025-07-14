@@ -895,8 +895,12 @@ mobile-list {
   }
 }
 
-.nonMobileShared {
+.nonMobileShared, .nonMobileSharedList {
   color: $primary-color;
+}
+
+.nonMobileSharedList {
+  padding-left: 10px;
 }
 
 .license-info-container-not-dialog {
@@ -1850,6 +1854,7 @@ mat-slide-toggle {
 // Mobile table view styles - using l1-feature-list styles
 .mobile-table-view {
   margin: 20px 0;
+  padding: 0 0 0 10px;
   
   .table_container {
     overflow: auto;
@@ -1968,7 +1973,7 @@ mat-slide-toggle {
     }
     .mat-icon {
       width: 30px;
-      height: 31px;
+      height: 31.5px;
       font-size: 22px;
     }
   }
@@ -2052,7 +2057,7 @@ mat-slide-toggle {
         height: 36px;
         
         .mobile-icon {
-          font-size: 22px;
+          font-size: 21px;
           width: 31px;
           height: 23px;
           color: inherit;

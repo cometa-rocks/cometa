@@ -145,6 +145,13 @@ export class MobileListComponent implements OnInit, OnDestroy {
   private openMenusCount = 0;
   private menuUpdatePaused = false;
 
+  // Double click prevention properties
+  private isStartingMobile = false;
+  private isTerminatingMobile = false;
+  private isInspectingMobile = false;
+  private isNoVNCMobile = false;
+  private clickTimeout = 2000; // 2 seconds timeout
+
   // View state management
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('mobileView.with'))
   mobileViewWith: 'tiles' | 'list';
@@ -257,6 +264,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
     
     this.cleanupSubscriptions();
+    this.cleanupMobileState();
     this.departments = this.user.departments;
     this.isDialog = this.data?.department_id ? true : false;
     this.sharedMobileContainers = [];
@@ -289,15 +297,12 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
-        this.preselectDepartment = this.user.settings?.preselectDepartment;
-        let selected = this.departments.find(department => department.department_id === this.preselectDepartment);
-
-        if (!selected && this.departments.length > 0) {
-          selected = this.departments[0];
-        }
-
-        if (selected) {
-          this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
+        // Use getPreselectedDepartment to get the department from localStorage or user settings
+        const preselectedDept = this.getPreselectedDepartment();
+        if (preselectedDept) {
+          this.selectedDepartment = preselectedDept;
+          // Trigger department selection to load APK files and set up the department
+          this.onDepartmentSelect(null);
           this._cdr.detectChanges();
         }
       }
@@ -400,10 +405,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
       }
     );
 
-    if(!this.isDialog){
-      this.selectedDepartment = this.getPreselectedDepartment();
-    }
-
     // Configurar la actualización periódica de la lista
     this.intervalSubscription = interval(this.updateInterval)
       .pipe(takeUntil(this.destroy$))
@@ -423,6 +424,17 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this.containersSubscription.unsubscribe();
     }
     this.sharedMobileContainers = [];
+  }
+
+  private cleanupMobileState() {
+    // Clean up mobile state to prevent stale data
+    this.runningMobiles = [];
+    this.sharedMobileContainers = [];
+    this.selectedApps = {};
+    this.isIconActive = {};
+    this.showDetails = {};
+    this.sharedDetails = {};
+    this.clearTableDataCache();
   }
 
   ngOnDestroy(): void {
@@ -452,21 +464,45 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // This method starts the mobile container
   startMobile(mobile_id): void {
+    // Prevent double click
+    if (this.isStartingMobile) {
+      console.log('Mobile start already in progress, ignoring click');
+      return;
+    }
+
+    this.isStartingMobile = true;
+    
+    // Reset the flag after timeout
+    setTimeout(() => {
+      this.isStartingMobile = false;
+    }, this.clickTimeout);
 
     let serviceStatusCount = this.runningMobiles.filter(container => container.service_status === 'Running').length;
 
     if (serviceStatusCount >= 3) {
       this.openMaxEmulatorDialog();
+      this.isStartingMobile = false; // Reset flag immediately for max emulator dialog
     }
     else{
       const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
+      
+      // Check if there's already a container for this mobile and clean it up
+      const existingContainer = this.runningMobiles.find(c => c.image === mobile_id);
+      if (existingContainer) {
+        console.log('Found existing container for mobile, cleaning up before starting new one');
+        this.runningMobiles = this.runningMobiles.filter(c => c.id !== existingContainer.id);
+      }
+      
       let body = {
         image: mobile_id,
         service_type: 'Emulator',
         department_id: this.data.department_id || this.selectedDepartment?.id,
         shared: mobile.isShared === true ? true : false,
-        selected_apk_file_id: mobile.selectedAPKFileID,
+        selected_apk_file_id: null, // Always start with null to avoid conflicts
       };
+
+      // Clear any cached data before starting new container
+      this.clearTableDataCache();
 
       // Call the API service on component initialization
       this._api.startMobile(body).subscribe(
@@ -477,25 +513,69 @@ export class MobileListComponent implements OnInit, OnDestroy {
           // Add the container to the runningMobiles list
           this.runningMobiles.push(container);
 
+          // Clear any cached data after adding new container
+          this.clearTableDataCache();
+
           // Show success snackbar
           this.snack.open('Mobile started successfully', 'OK');
 
           // Trigger change detection
           this._cdr.detectChanges();
+          
+          // Reset the flag after successful start
+          this.isStartingMobile = false;
         },
         error => {
           // Handle any errors
           console.error('An error occurred while starting the mobile', error);
 
+          // Check if it's a specific error and provide better feedback
+          let errorMessage = 'Error while starting the mobile';
+          if (error.status === 500) {
+            errorMessage = 'Server error: Please try again in a moment';
+          } else if (error.status === 0) {
+            errorMessage = 'Network error: Unable to connect to server';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          }
+          
           // Show error snackbar
-          this.snack.open('Error while starting the mobile', 'OK');
+          this.snack.open(errorMessage, 'OK');
+          
+          // Clear cache on error as well
+          this.clearTableDataCache();
+          this._cdr.detectChanges();
+          
+          // Reset the flag after error
+          this.isStartingMobile = false;
         }
       );
     }
   }
 
+  // Check if container is in a valid state for operations
+  private isContainerInValidState(container: Container): boolean {
+    return container && 
+           container.service_status !== 'Stopping' && 
+           container.service_status !== 'Restarting' &&
+           !container.isTerminating;
+  }
+
   // This method stops the mobile container using ID
   terminateMobile(container: Container): void {
+    // Prevent double click
+    if (this.isTerminatingMobile) {
+      console.log('Mobile termination already in progress, ignoring click');
+      return;
+    }
+
+    this.isTerminatingMobile = true;
+    
+    // Reset the flag after timeout
+    setTimeout(() => {
+      this.isTerminatingMobile = false;
+    }, this.clickTimeout);
+
     this._dialog
       .open(AreYouSureDialog, {
         data: {
@@ -518,19 +598,25 @@ export class MobileListComponent implements OnInit, OnDestroy {
           }
 
           this._cdr.detectChanges();
+          
+          // First, stop the container
           this._api.terminateMobile(container.id).subscribe(
             (response: any) => {
               if (response.success) {
                 this.snack.open(`Mobile stopped successfully`, 'OK');
+                
+                // Complete cleanup of the container from local state
                 this.runningMobiles = this.runningMobiles.filter(
                   runningContainer => runningContainer.id !== container.id
                 );
 
+                // Reset mobile APK selection
                 const mobile = this.mobiles.find(m => m.mobile_id === container.image);
                 if (mobile) {
                   mobile.selectedAPKFileID = null;
                 }
 
+                // Clean up selected apps
                 this.selectedApps[container.service_id] = null;
 
                 // Remove from localStorage if stopped successfully
@@ -538,6 +624,15 @@ export class MobileListComponent implements OnInit, OnDestroy {
                 localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
 
                 container.service_status = 'Stopped';
+                
+                // Clear cache after successful termination
+                this.clearTableDataCache();
+                
+                // Force refresh of container list to ensure clean state
+                setTimeout(() => {
+                  this.loadSharedContainers();
+                }, 1000);
+                
               } else {
                 console.error('An error occurred while stopping the mobile', response.message);
                 this.snack.open(`Error while stopping the Mobile`, 'OK');
@@ -545,6 +640,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
               }
               container.isTerminating = false;
               this._cdr.detectChanges();
+              
+              // Reset the flag after termination process
+              this.isTerminatingMobile = false;
             },
             error => {
               container.isTerminating = false;
@@ -555,10 +653,19 @@ export class MobileListComponent implements OnInit, OnDestroy {
               localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
 
               container.service_status = 'Error';
+              
+              // Clear cache on error as well
+              this.clearTableDataCache();
+              this._cdr.detectChanges();
+              
+              // Reset the flag after error
+              this.isTerminatingMobile = false;
             }
           );
         } else {
           container.isTerminating = false;
+          // Reset the flag if user cancels
+          this.isTerminatingMobile = false;
         }
       });
   }
@@ -584,6 +691,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
           container.service_status = 'Running';
           this.snack.open(`Mobile restarted successfully`, 'OK');
           container = response.containerservice;
+          
+          // Refresh container data to get updated APK information
+          this.refreshContainerData(container.id);
+          
           // Only clear cache if we're in table view
           if (this.mobileViewWithLocal === 'list') {
             this.clearTableDataCache();
@@ -607,6 +718,28 @@ export class MobileListComponent implements OnInit, OnDestroy {
         this.snack.open(`Network error while restarting mobile`, 'OK');
         container.service_status = 'Error';
         this._cdr.detectChanges();
+      }
+    );
+  }
+
+  // Refresh container data to get updated APK information
+  private refreshContainerData(containerId: number): void {
+    this._api.getContainersList().subscribe(
+      (containers: Container[]) => {
+        const updatedContainer = containers.find(c => c.id === containerId);
+        if (updatedContainer) {
+          // Update the container in runningMobiles
+          const existingContainer = this.runningMobiles.find(c => c.id === containerId);
+          if (existingContainer) {
+            existingContainer.apk_file = updatedContainer.apk_file;
+            existingContainer.service_status = updatedContainer.service_status;
+            existingContainer.hostname = updatedContainer.hostname;
+            this._cdr.detectChanges();
+          }
+        }
+      },
+      error => {
+        console.error('Error refreshing container data:', error);
       }
     );
   }
@@ -671,7 +804,24 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
 
   inspectMobile(container: Container, mobile: IMobile): void {
-    if (this.stopGoToUrl(container)) return;
+    // Prevent double click
+    if (this.isInspectingMobile) {
+      console.log('Mobile inspection already in progress, ignoring click');
+      return;
+    }
+
+    this.isInspectingMobile = true;
+    
+    // Reset the flag after timeout
+    setTimeout(() => {
+      this.isInspectingMobile = false;
+    }, this.clickTimeout);
+
+    if (this.stopGoToUrl(container)) {
+      this.isInspectingMobile = false;
+      return;
+    }
+    
     let host = window.location.hostname;
     let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities));
     let complete_url = `/mobile/inspector?host=${host}&port=443&path=/emulator/${container.id}/&ssl=true&autoStart=true&capabilities=${capabilities}`;
@@ -679,8 +829,25 @@ export class MobileListComponent implements OnInit, OnDestroy {
   }
 
   noVNCMobile(container: Container): void {
+    // Prevent double click
+    if (this.isNoVNCMobile) {
+      console.log('noVNC connection already in progress, ignoring click');
+      return;
+    }
+
+    this.isNoVNCMobile = true;
+    
+    // Reset the flag after timeout
+    setTimeout(() => {
+      this.isNoVNCMobile = false;
+    }, this.clickTimeout);
+
     // FIXME this connection needs to be fixed, to improve security over emulators
-    if (this.stopGoToUrl(container)) return;
+    if (this.stopGoToUrl(container)) {
+      this.isNoVNCMobile = false;
+      return;
+    }
+    
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
     window.open(complete_url, '_blank');
   }
@@ -697,8 +864,11 @@ export class MobileListComponent implements OnInit, OnDestroy {
   isThisMobileContainerRunning(mobile_id): Container | null {
     // this.mobiles.filter(m => m.department_id === this.selectedDepartment?.id);
     for (let container of this.runningMobiles) {
-      if (container.image == mobile_id && container.department_id == this.selectedDepartment.id) {
-        return container;
+      if (container.image == mobile_id && container.department_id == this.selectedDepartment?.id) {
+        // Additional check to ensure container is actually running
+        if (container.service_status === 'Running' || container.service_status === 'Stopped') {
+          return container;
+        }
       }
     }
     return null;
@@ -737,6 +907,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Save the selected department to localStorage for persistence
+    localStorage.setItem('co_last_dpt', this.selectedDepartment.name);
+    FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
+
     this.apkFiles = [];
     this.departments.forEach(department => {
       if(department.department_id == this.selectedDepartment.id) {
@@ -747,6 +921,14 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
     this.departmentChecked[this.selectedDepartment.id] = true;
     this.selectionsDisabled = true;
+
+    // Immediately clear shared containers and force UI update
+    this.sharedMobileContainers = [];
+    this.clearTableDataCache();
+    this._cdr.detectChanges();
+
+    // Then load shared containers for the new department
+    this.loadSharedContainers();
   }
 
   openModifyEmulatorDialog(mobile: IMobile, runningContainer: Container) {
