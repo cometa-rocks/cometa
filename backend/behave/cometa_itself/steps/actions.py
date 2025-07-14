@@ -3091,37 +3091,6 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     else:
         raise CustomError("Lists do not match, please check the attachment.")
 
-# This step compares two values to ensure they are identical. If they are not the same, an error will be raised, indicating the mismatch
-# Example: Assert "hello" to be same as "hello"
-@step(u'Assert "{value_one}" to be same as "{value_two}"')
-@done(u'Assert "{value_one}" to be same as "{value_two}"')
-def assert_imp(context, value_one, value_two):
-    assert_failed_error = f"{value_one} does not match {value_two}"
-    assert_failed_error = logger.mask_values(assert_failed_error)
-    addStepVariableToContext(context,                             
-                            {
-                                "value_one":value_one,
-                                "value_two":value_two,
-                            }, 
-                            save_to_step_report=True)
-    
-    assert value_one == value_two, assert_failed_error
-
-# This step checks if one string contains another. If the second string is not found within the first string, an error will be raised
-# Example: Assert "The quick brown fox" to contain "quick"'
-@step(u'Assert "{value_one}" to contain "{value_two}"')
-@done(u'Assert "{value_one}" to contain "{value_two}"')
-def assert_imp(context, value_one, value_two):
-    assert_failed_error = f"{value_one} does not contain {value_two}"
-    assert_failed_error = logger.mask_values(assert_failed_error)
-    addStepVariableToContext(context,{
-                                    "value_one":value_one,
-                                    "value_two":value_two,
-                                    }, 
-                            save_to_step_report=True)
-
-    assert value_two in value_one, assert_failed_error
-
 # This step initiates a loop that runs a specific number of times, starting from a given index
 # Example: Loop "3" times starting at "1" and do'
 @step(u'Loop "{x}" times starting at "{index}" and do')
