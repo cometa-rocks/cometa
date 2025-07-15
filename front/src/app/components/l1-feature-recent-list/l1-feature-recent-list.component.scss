@@ -26,6 +26,13 @@
     0 3px 1px -2px $table-low-shadow,
     0 2px 2px 0 $table-medium-shadow,
     0 1px 5px 0 $table-high-shadow;
+  
+  // Force header alignment with maximum specificity
+  thead th,
+  thead tr th {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
   thead tr {
     height: 55px;
     z-index: 10;
@@ -35,11 +42,15 @@
       font-weight: bold;
       color: $column-header-dark;
       z-index: 4 !important;
+      text-align: center !important;
+      vertical-align: middle;
+      padding-left: 25px;
       &:not(:first-child):not(:last-child):hover {
         background-color: $high-black-opaque;
       }
       &.name {
         border-right: none !important;
+        text-align: left !important;
       }
       mat-icon {
         display: none;
@@ -71,6 +82,9 @@
     font-weight: bold;
     color: $dark;
     text-align: center;
+    vertical-align: middle;
+    padding: 8px 5px;
+    
     &.name {
       text-align: left;
       border-right: none !important;
@@ -89,6 +103,8 @@
 
     .time {
       color: $text-pink;
+      font-weight: 500;
+      text-align: center;
     }
   }
   th,
@@ -101,6 +117,9 @@
   th:first-of-type,
   td:first-of-type {
     padding-left: 5px;
+    text-align: center !important;
+    width: 60px;
+    min-width: 60px;
     &.running {
       width: 40px;
       &.disabled {
@@ -117,6 +136,84 @@
   th:last-of-type,
   td:last-of-type {
     padding-right: 5px;
+  }
+  
+  // Specific column alignments for headers and cells
+  th:nth-child(2), td:nth-child(2) { // Run column
+    text-align: center !important;
+    width: 50px;
+    min-width: 50px;
+  }
+  
+  th:nth-child(3), td:nth-child(3) { // Last run column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  th:nth-child(4), td:nth-child(4) { // Name column
+    text-align: left !important;
+    min-width: 200px;
+  }
+  
+  th:nth-child(5), td:nth-child(5) { // Status column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(6), td:nth-child(6) { // Duration column
+    text-align: center !important;
+    width: 80px;
+    min-width: 80px;
+  }
+  
+  th:nth-child(7), td:nth-child(7) { // Steps column
+    text-align: center !important;
+    width: 60px;
+    min-width: 60px;
+  }
+  
+  th:nth-child(8), td:nth-child(8) { // Modified on column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  th:nth-child(9), td:nth-child(9) { // ID column
+    text-align: center !important;
+    width: 80px;
+    min-width: 80px;
+  }
+  
+  th:nth-child(10), td:nth-child(10) { // Department column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  th:nth-child(11), td:nth-child(11) { // Application column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(12), td:nth-child(12) { // Environment column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(13), td:nth-child(13) { // Browsers column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(14), td:nth-child(14) { // Schedule column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
   }
 }
 
@@ -143,11 +240,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   .mat-icon {
-    margin-right: 5px;
+    margin-right: 0;
   }
   &::ng-deep .mat-progress-spinner {
-    margin-right: 10px;
+    margin-right: 5px;
   }
   &.success {
     color: $good;
@@ -158,10 +256,14 @@
   &.failed {
     color: $remove;
   }
+  &.canceled {
+    color: $remove;
+  }
   span {
     display: inline-block;
-    width: 60px;
-    text-align: left;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 500;
   }
 }
 
@@ -196,6 +298,14 @@
 
 :host::ng-deep .mat-mdc-menu-trigger {
   height: 43px;
+}
+
+// Improve options button alignment
+:host ::ng-deep .mtx-grid table td:first-of-type button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 :host::ng-deep .mat-form-field-flex {
