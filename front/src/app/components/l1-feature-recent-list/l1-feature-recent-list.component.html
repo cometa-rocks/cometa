@@ -16,9 +16,7 @@ Author: dph000
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
               <mat-select
-                [(ngModel)]="selected_department"
-                (selectionChange) = onDepartmentChange()
-                [disabled]="table.mode === 'edit'"
+                (selectionChange)="onDepartmentChange()"
                 formControlName="department_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">

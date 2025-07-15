@@ -15,7 +15,9 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
@@ -124,7 +126,7 @@ import { FeaturesState } from '@store/features.state';
     SortByPipe  
   ],
 })
-export class L1FeatureRecentListComponent {
+export class L1FeatureRecentListComponent implements OnChanges {
   
   featureForm: UntypedFormGroup;
 
@@ -180,6 +182,7 @@ export class L1FeatureRecentListComponent {
    * The format is due to mtx-grid. To see more go to https://ng-matero.github.io/extensions/components/data-grid/overview
    */
   columns = [
+    { header: 'Options', field: 'reference' },
     { header: 'Run', field: 'type' },
     { header: 'Last run', field: 'date', sortable: true, sort: 'desc' },  
     {
@@ -199,7 +202,6 @@ export class L1FeatureRecentListComponent {
     { header: 'Environment', field: 'environment', sortable: true },
     { header: 'Browsers', field: 'browsers', sortable: true },
     { header: 'Schedule', field: 'schedule', sortable: true },
-    { header: 'Options', field: 'reference' },
   ];
   // Mtx-grid row selection checkbox options
   multiSelectable = true;
@@ -222,6 +224,19 @@ export class L1FeatureRecentListComponent {
 
   inputFocus: boolean = false;
 
+  /**
+   * Method to update the disabled state of the department form control
+   */
+  updateDepartmentControlState() {
+    const departmentControl = this.featureForm.get('department_name');
+    if (departmentControl) {
+      if (this.data$?.mode === 'edit') {
+        departmentControl.disable();
+      } else {
+        departmentControl.enable();
+      }
+    }
+  }
 
   /**
    * Global functions
@@ -249,8 +264,17 @@ export class L1FeatureRecentListComponent {
       // get the preselected department from localStorage, userpreferences or first of list
       this.log.msg('l1-feature-recent.component.ts','Initializing selected_department as the preselected department','','')
       this.selected_department = this.getPreselectedDepartment();
+      // Set the form control value to sync with selected_department
+      this.featureForm.patchValue({ department_name: this.selected_department });
     } 
+    
     this.toggleList('recent') 
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data$'] && this.data$) {
+      this.updateDepartmentControlState();
+    }
   }
 
   // Checks whether the clicked row is a feature or a folder and opens it
@@ -451,6 +475,8 @@ export class L1FeatureRecentListComponent {
   }
 
   onDepartmentChange() {
+    // Get the selected value from the form control
+    this.selected_department = this.featureForm.get('department_name')?.value;
     this._sharedActions.setSelectedDepartment(this.selected_department);
     //When switching options in the dropdown, we update the UI and call FutureState to sort by the new option.
     if(this.selected_department == this.showAllDepartments){
