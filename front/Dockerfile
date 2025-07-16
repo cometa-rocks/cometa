@@ -30,8 +30,8 @@ RUN ls -la /app/appium-inspector/dist-browser/
 RUN ls -la /app/appium-inspector/dist-browser/locales/
 RUN ls
 
-# Stage 2: Serve the application with Nginx
-FROM httpd:2.4.48
+# Stage 2: Serve the application with Apache
+FROM httpd:2.4.64
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 
@@ -70,7 +70,13 @@ COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/d
 COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/dist-browser/index.html /usr/local/apache2/htdocs/mobile/inspector/index.html
 
 RUN apt-get update
-RUN apt-get install -y apache2 libapache2-mod-auth-openidc libcjose0 libjansson4 libcurl4 zlib1g libssl1.1
+# Install Apache and most dependencies
+RUN apt-get install -y apache2 libapache2-mod-auth-openidc libcjose0 libjansson4 libcurl4 zlib1g
+# Install libssl1.1 from Debian 11 for mod_auth_openidc compatibility
+RUN apt-get install -y wget && \
+    wget -q http://deb.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1w-0+deb11u1_amd64.deb && \
+    rm -f libssl1.1_1.1.1w-0+deb11u1_amd64.deb
 RUN apt-get install -y libapache2-mod-security2 curl vim iputils-ping telnet
 
 # Set permissions and ownership for Apache logs
