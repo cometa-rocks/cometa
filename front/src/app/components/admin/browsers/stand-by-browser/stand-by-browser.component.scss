@@ -13,20 +13,12 @@
 }
 
 
-
-
-
-
-
 .specs {
   //width: 100%;
   flex: 1;
   display: flex;
   text-align: center;
 }
-
-
-
 
 
 .id {
@@ -39,9 +31,7 @@
     display: inline-block;
     vertical-align: middle;
     font-weight: bold;
-    
   }
-  
 }
 
 .name {
@@ -57,14 +47,8 @@
     display: inline-block;
     vertical-align: middle;
     
-  }
-  
+  } 
 }
-
-
-
-
-
 
 
 .service_id {
@@ -80,11 +64,6 @@
   }
 }
 
-
-
-
-
-
 .status {
   flex: 0 120px;
   margin-left: 30px;
@@ -99,7 +78,6 @@
 }
 
 
-
  .usage {
   flex: 0 120px;
   margin-left: 30px;
@@ -112,8 +90,6 @@
     font-weight: bold;
   }
 }
-
-
 
 
 .info {
@@ -142,8 +118,6 @@
     font-weight: bold;
   }
 }
-
-
 
 .remove {
   flex: 0 0 100px;

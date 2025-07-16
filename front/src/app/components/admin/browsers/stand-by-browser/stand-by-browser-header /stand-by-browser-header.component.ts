@@ -139,6 +139,4 @@ export class StandByBrowserHeaderComponent{
     this.deleteMultiple.emit(selectedIds);
     this.toExport.next([]);
   }
-
-
 }
