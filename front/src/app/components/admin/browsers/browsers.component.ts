@@ -5,7 +5,6 @@ import { BrowsersState } from '@store/browsers.state';
 import { Observable } from 'rxjs';
 import { BrowserComponent } from './browser/browser.component';
 import { StandByBrowserComponent } from './stand-by-browser/stand-by-browser.component';
-
 import { NgFor, AsyncPipe, NgIf } from '@angular/common';
 import { ApiService } from '@services/api.service';
 import { map } from 'rxjs/operators';
@@ -19,7 +18,7 @@ import { map } from 'rxjs/operators';
   styleUrls: ['./browsers.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent,AsyncPipe],
+  imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent, AsyncPipe],
 })
 export class BrowsersComponent  implements OnInit {
   @Select(BrowsersState.getBrowserJsons) browsers$: Observable<
@@ -40,15 +39,11 @@ export class BrowsersComponent  implements OnInit {
   ngOnInit() {
     this._api.getContainerServices().subscribe((res: ContainerServiceResponse) => {
       if (res.success) {
-        this.stand_by_browsers = res.containerservices;
-        
+        this.stand_by_browsers = res.containerservices;        
       }
       this.isLoading = false;
       this._cdr.detectChanges();
-      
     });
-
-
   }
 
   removeStandByBrowser(id: number) {
@@ -57,7 +52,6 @@ export class BrowsersComponent  implements OnInit {
   }
 
   
-
   addStandByBrowser(browserContainer: Container) {
     this.stand_by_browsers.push(browserContainer);
     this._cdr.detectChanges();
@@ -68,8 +62,4 @@ export class BrowsersComponent  implements OnInit {
     const running = this.stand_by_browsers?.filter(b => b.service_status?.toLowerCase() === 'running') || [];
     return running;
   }
-
-
-
-
 }
