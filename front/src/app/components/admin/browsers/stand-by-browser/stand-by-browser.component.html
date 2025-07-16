@@ -8,8 +8,7 @@
 
 
     
-<!-- Data Rows -->
-     
+<!-- Data Rows -->     
 <div *ngFor="let stand_by_browser of stand_by_browsers; let i = index; trackBy: trackByFn" [ngClass]="{ 'even': i % 2 === 1 }">
   <div class="specs"> 
       
@@ -34,23 +33,19 @@
           spellcheck="false"
           autocomplete="off"
           (focus)="onInputFocus()"
-          (blur)="onInputBlur()" matTooltip="Name" matTooltipPosition="above"/>
-        
+          (blur)="onInputBlur()" matTooltip="Name" matTooltipPosition="above"/> 
       </div>
    
     
         
       <!-- Service ID -->
       <div class="service_id" matTooltip="Service_ID" matTooltipPosition="above" (click)="copyToClipboard(stand_by_browser.service_id)">
-           <!--<span>{{ stand_by_browser.service_id | slice:0:12 }}</span>-->
-
             <!--<span class="icon-container-clipboard">
               <i class="material-icons clipboard-icon">content_copy</i>
             </span>-->
             <span class="id-container">
               {{ stand_by_browser.service_id | slice:0:12 }}
             </span>
-          
       </div>
 
       
@@ -86,8 +81,6 @@
       <div (click)="removeBrowserContainer(stand_by_browser.id)"
            class="remove "></div>
     </div>
-
-
   </div>
 
            
