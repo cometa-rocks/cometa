@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 class TelegramAuthenticationHandler:
     """Handle Telegram-specific authentication flow"""
     
-    # REMOVED: create_telegram_session method that bypassed OAuth
     # Sessions must be created through proper OAuth flow only
     
     @staticmethod
@@ -70,15 +69,22 @@ class TelegramAuthenticationHandler:
                 return False
             
             user_id = user_info.get('user_id')
+            logger.info(f"Attempting to link Telegram chat {chat_id} to user {user_id}")
             
-            # Check if link already exists
+            # First check if there's an unverified link for this chat_id
             existing_link = TelegramUserLink.objects.filter(
-                user_id=user_id,
                 chat_id=str(chat_id)
             ).first()
+            logger.info(f"Found existing link: {existing_link} (user_id={existing_link.user_id if existing_link else 'None'})")
             
             if existing_link:
-                # Update existing link
+                # Check if it's already linked to a different user
+                if existing_link.user_id > 0 and existing_link.user_id != user_id:
+                    logger.error(f"Chat ID {chat_id} is already linked to user {existing_link.user_id}")
+                    return False
+                
+                # Update the existing link with the user information
+                existing_link.user_id = user_id
                 existing_link.is_verified = True
                 existing_link.is_active = True
                 existing_link.gitlab_email = user_info.get('email')
@@ -96,6 +102,19 @@ class TelegramAuthenticationHandler:
                     gitlab_name=user_info.get('name'),
                     gitlab_username=user_info.get('name')
                 )
+            
+            # Reactivate user's subscriptions from previous sessions
+            try:
+                from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+                reactivated_count = TelegramSubscriptionManager.reactivate_user_subscriptions(
+                    user_id=user_id,
+                    chat_id=str(chat_id)
+                )
+                if reactivated_count > 0:
+                    logger.info(f"Reactivated {reactivated_count} subscriptions for user {user_id}")
+            except Exception as e:
+                logger.error(f"Error reactivating subscriptions: {str(e)}")
+                # Don't fail the authentication if subscription reactivation fails
             
             logger.info(f"Successfully linked Telegram chat {chat_id} to user {user_id}")
             return True

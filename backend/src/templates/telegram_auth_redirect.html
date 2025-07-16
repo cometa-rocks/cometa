@@ -3,122 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Authentication - Redirect</title>
+    <title>Co.Meta - Telegram Authentication</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        @font-face {
+            font-family: 'CorpoS';
+            src: url('/static/assets/c063003t.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'CorpoSDem';
+            src: url('/static/assets/c063004t.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        
+        * {
+            font-family: 'CorpoS', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body {
+            background-color: #f0f0f0;
+            color: rgba(0, 0, 0, 0.7);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        
+        .redirect-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
             padding: 40px;
             text-align: center;
-            max-width: 400px;
-            width: 90%;
         }
-        .auth-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            color: #3b82f6;
+        
+        .logo-container {
+            margin-bottom: 30px;
         }
-        h1 {
-            color: #1f2937;
-            margin-bottom: 16px;
-            font-size: 24px;
+        
+        .logo-text {
+            font-size: 36px;
+            font-weight: normal;
+            color: #1a1a1a;
+            font-family: 'CorpoSDem', 'CorpoS', sans-serif;
         }
-        p {
-            color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 24px;
+        
+        .co {
+            color: #1a1a1a;
         }
-        .btn {
-            background: #3b82f6;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
+        
+        .dot {
+            color: #e5b355;
         }
-        .btn:hover {
-            background: #2563eb;
+        
+        .meta {
+            color: #1a1a1a;
         }
-        .btn-secondary {
-            background: #6b7280;
+        
+        .loading-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            position: relative;
         }
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-        .loading {
-            display: none;
-            color: #6b7280;
-            font-style: italic;
-        }
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
+        
+        .spinner-large {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(21, 101, 192, 0.2);
+            border-top-color: #1565c0;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-right: 10px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
         }
+        
+        .spinner-small {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(229, 179, 85, 0.2);
+            border-top-color: #e5b355;
+            border-radius: 50%;
+            animation: spin-reverse 0.8s linear infinite;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        @keyframes spin-reverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        h1 {
+            color: #1a1a1a;
+            font-size: 24px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            font-family: 'CorpoSDem', 'CorpoS', sans-serif;
+        }
+        
+        .redirect-message {
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        
+        .auth-info {
+            background-color: rgba(21, 101, 192, 0.05);
+            border: 1px solid rgba(21, 101, 192, 0.1);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .auth-info h2 {
+            color: #1565c0;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .auth-steps {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+            margin: 0 auto;
+            max-width: 350px;
+        }
+        
+        .auth-steps li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 12px;
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .auth-steps li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: rgba(21, 101, 192, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-steps li.active:before {
+            background-color: #1565c0;
+            content: "→";
+            color: white;
+            font-weight: bold;
+            line-height: 20px;
+            text-align: center;
+        }
+        
+        .auth-steps li.completed:before {
+            background-color: #32ba7c;
+            content: "✓";
+            color: white;
+            font-weight: bold;
+            line-height: 20px;
+            text-align: center;
+        }
+        
+        .manual-redirect {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .manual-redirect a {
+            color: #1565c0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .manual-redirect a:hover {
+            text-decoration: underline;
+        }
+        
+        .countdown {
+            margin-top: 10px;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.5);
+        }
+        
+        @media (max-width: 600px) {
+            .redirect-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .redirect-message {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="auth-icon">🔐</div>
-        <h1>Authentication Required</h1>
-        <p>To link your Telegram account, you need to authenticate with {{ oauth_provider }} first.</p>
-        <p>Click the button below to authenticate with {{ oauth_provider }}:</p>
-        
-        <a href="/" class="btn" onclick="startAuth()">
-            🔗 Authenticate with {{ oauth_provider }}
-        </a>
-        
-        <div class="loading" id="loadingText">
-            <div class="spinner"></div>
-            Redirecting to {{ oauth_provider }}...
+    <div class="redirect-container">
+        <div class="logo-container">
+            <div class="logo-text">
+                <span class="co">co</span><span class="dot">.</span><span class="meta">meta</span>
+            </div>
         </div>
         
-        <br><br>
-        <button class="btn btn-secondary" onclick="window.close()">Cancel</button>
+        <div class="loading-icon">
+            <div class="spinner-large"></div>
+            <div class="spinner-small"></div>
+        </div>
+        
+        <h1>Connecting Your Telegram Account</h1>
+        
+        <p class="redirect-message">
+            We're redirecting you to {{ oauth_provider }} to authenticate your Co.Meta account. 
+            This ensures secure access to your test notifications.
+        </p>
+        
+        <div class="auth-info">
+            <h2>Authentication Steps</h2>
+            <ol class="auth-steps">
+                <li class="completed">Telegram verification complete</li>
+                <li class="active">Redirecting to {{ oauth_provider }} login</li>
+                <li>Authenticate with your Co.Meta account</li>
+                <li>Link accounts and start receiving notifications</li>
+            </ol>
+        </div>
+        
+        <p class="manual-redirect">
+            Not redirected automatically? 
+            <a href="#" id="manualRedirect">Click here to continue</a>
+        </p>
+        
+        <p class="countdown">
+            Redirecting in <span id="countdown">3</span> seconds...
+        </p>
     </div>
     
     <script>
-        function startAuth() {
-            document.getElementById('loadingText').style.display = 'block';
-            
-            {% if oauth_mode == 'state_parameter' %}
-            // Development mode: Pass token as URL parameter
-            window.location.href = '/?telegram_token={{ token|escapejs }}';
-            {% else %}
-            // Production mode: Token stored in DB, matched by email/timing
-            window.location.href = '/';
-            {% endif %}
-        }
+        // OAuth configuration
+        const token = '{{ token }}';
         
-        // Auto-redirect after 3 seconds
+        // Always use state parameter mode to preserve token through OAuth
+        // This passes the token via target_link_uri which Apache mod_auth_openidc preserves
+        const authUrl = `/?target_link_uri=${encodeURIComponent('/telegram/complete/?token=' + token)}`;
+        
+        // Manual redirect link
+        document.getElementById('manualRedirect').href = authUrl;
+        
+        // Countdown timer
+        let countdown = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                countdownElement.textContent = '0';
+                // Redirect to authentication
+                window.location.href = authUrl;
+            }
+        }, 1000);
+        
+        // Immediate redirect for better UX (after page renders)
         setTimeout(() => {
-            startAuth();
-        }, 3000);
+            window.location.href = authUrl;
+        }, 1500);
     </script>
 </body>
 </html>

@@ -341,9 +341,14 @@ def telegram_webhook(request):
                 try:
                     # Get user link
                     user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                    logger.info(f"Department selection - Chat ID: {chat_id}, User ID: {user_link.user_id}, Department: {department_id}")
                     
-                    # Get features in this department
-                    department_features = get_department_features(user_link.user_id, department_id)
+                    # Get unsubscribed features using manager
+                    from .managers import TelegramSubscriptionManager
+                    department_features = TelegramSubscriptionManager.get_user_unsubscribed_features(
+                        user_link.user_id, department_id
+                    )
+                    logger.info(f"Found {len(department_features)} unsubscribed features for user {user_link.user_id}")
                     
                     if department_features:
                         # Get department name
@@ -358,10 +363,12 @@ def telegram_webhook(request):
                         
                         # Create inline keyboard buttons for features
                         keyboard = []
-                        for feature in department_features[:10]:  # Limit to 10 features per page
+                        logger.info(f"Creating buttons for {len(department_features)} features")
+                        for feature in department_features:  # Show all features
                             button_text = f"{feature['feature_id']} - {feature['feature_name']}"
                             callback_data = f"sub_feature_{feature['feature_id']}"
                             keyboard.append([{"text": button_text, "callback_data": callback_data}])
+                            logger.debug(f"Added button: {button_text}")
                         
                         # Add navigation buttons
                         keyboard.append([
@@ -404,8 +411,14 @@ def telegram_webhook(request):
                 }
                 if 'reply_markup' in locals():
                     payload["reply_markup"] = reply_markup
+                    logger.info(f"Sending message with {len(reply_markup.get('inline_keyboard', [])) - 1} feature buttons + navigation")
+                
                 try:
-                    requests.post(url, json=payload, timeout=5)
+                    response = requests.post(url, json=payload, timeout=5)
+                    if not response.ok:
+                        logger.error(f"Telegram API error: {response.status_code} - {response.text}")
+                    else:
+                        logger.info("Successfully sent department features message")
                 except Exception as exc:
                     logger.warning(f"Failed to send Telegram reply: {exc}")
                     
@@ -797,8 +810,8 @@ def telegram_webhook(request):
                                 domain = get_telegram_auth_domain(environment)
                                 auth_url = f"https://{domain}/auth/telegram/{token}/"
                                 
-                                # Get environment to determine OAuth provider name
-                                oauth_provider = "Google" if environment == 'dev' else "GitLab"
+                                # Always use GitLab OAuth
+                                oauth_provider = "GitLab"
                                 
                                 # For development, provide the actual link since localhost might not render
                                 if environment == 'dev':
@@ -1007,13 +1020,10 @@ def telegram_webhook(request):
                                 except OIDCAccount.DoesNotExist:
                                     pass
                                 
-                                # Keep subscriptions linked to the user account
-                                # They will remain available when the user logs back in
-                                subscription_count = TelegramSubscription.objects.filter(
-                                    user_id=user_link.user_id,
-                                    chat_id=str(chat_id)
-                                ).count()
-                                logger.info(f"User {user_name} (chat_id: {chat_id}) logged out with {subscription_count} subscriptions preserved")
+                                # Deactivate all subscriptions for this user
+                                from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+                                deactivated_count = TelegramSubscriptionManager.deactivate_user_subscriptions(user_link.user_id)
+                                logger.info(f"User {user_name} (chat_id: {chat_id}) logged out, deactivated {deactivated_count} subscriptions")
                                 
                                 # Delete the link
                                 user_link.delete()
@@ -1575,37 +1585,6 @@ def list_telegram_subscriptions(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
-def get_telegram_subscriptions_for_feature(feature_result):
-    """
-    Helper function to get active subscriptions for a feature result
-    Used by notification system to send automated notifications
-    """
-    try:
-        feature_id = feature_result.feature.feature_id
-        subscriptions = TelegramSubscription.objects.filter(
-            feature_id=feature_id,
-            is_active=True
-        )
-        
-        chat_ids = []
-        for subscription in subscriptions:
-            # Check if notification type matches result status
-            if feature_result.result_status == 'Success' and 'on_success' in subscription.notification_types:
-                chat_ids.append(subscription.chat_id)
-            elif feature_result.result_status != 'Success' and 'on_failure' in subscription.notification_types:
-                chat_ids.append(subscription.chat_id)
-                
-            # Update last notification sent timestamp
-            subscription.last_notification_sent = datetime.now()
-            subscription.save()
-        
-        return list(set(chat_ids))  # Remove duplicates
-        
-    except Exception as e:
-        logger.error(f"Error in get_telegram_subscriptions_for_feature: {str(e)}")
-        return []
-
-
 # ========================= Telegram GitLab OAuth Authentication =========================
 def generate_auth_token(request):
     """
@@ -1804,7 +1783,7 @@ def get_user_accessible_departments(user_id):
         # Single optimized query to get departments with user roles
         accessible_departments = Department.objects.filter(
             department_id__in=Account_role.objects.filter(
-                user=user_id
+                user_id=user_id
             ).values_list('department_id', flat=True)
         ).values('department_id', 'department_name')
         
@@ -1823,13 +1802,17 @@ def get_department_features(user_id, department_id):
         # Verify user has access to this department with optimized check
         from backend.models import Account_role
         
+        logger.info(f"Checking access for user {user_id} to department {department_id}")
         has_access = Account_role.objects.filter(
-            user=user_id,
+            user_id=user_id,
             department_id=department_id
         ).exists()
         
         if not has_access:
             logger.warning(f"User {user_id} does not have access to department {department_id}")
+            # Let's check what departments this user DOES have access to
+            user_depts = Account_role.objects.filter(user_id=user_id).values_list('department_id', flat=True)
+            logger.info(f"User {user_id} has access to departments: {list(user_depts)}")
             return []
         
         # Get all features from this department with optimized query
@@ -1878,11 +1861,11 @@ def complete_telegram_auth(request, token):
         
         if not user_link:
             logger.error(f"No user link found for token: {token}")
-            return False
+            return False, 0
             
         if not user_link.is_auth_token_valid():
             logger.error(f"Invalid or expired auth token: {token}")
-            return False
+            return False, 0
         
         logger.info(f"Found valid user link for chat_id: {user_link.chat_id}")
         
@@ -1891,14 +1874,14 @@ def complete_telegram_auth(request, token):
         if not user_info:
             logger.error("No user info in session for Telegram auth completion")
             logger.info(f"Session contents: {list(request.session.keys())}")
-            return False
+            return False, 0
         
         # Validate user_id exists and is valid
         user_id = user_info.get('user_id')
         if not user_id or user_id == 0:
             logger.error(f"Invalid user_id in session: {user_id}")
             logger.info(f"User info contents: {user_info}")
-            return False
+            return False, 0
         
         # Update user link with OAuth provider info
         user_link.user_id = user_id
@@ -1909,13 +1892,26 @@ def complete_telegram_auth(request, token):
         user_link.clear_auth_token()  # Clear the temporary token
         user_link.save()
         
+        # Reactivate user's subscriptions
+        reactivated_count = 0
+        try:
+            from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+            reactivated_count = TelegramSubscriptionManager.reactivate_user_subscriptions(
+                user_id=user_id,
+                chat_id=user_link.chat_id
+            )
+            if reactivated_count > 0:
+                logger.info(f"Reactivated {reactivated_count} subscriptions for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error reactivating subscriptions: {str(e)}")
+        
         logger.info(f"Telegram auth completed for user {user_link.user_id}, chat {user_link.chat_id}")
-        return True
+        return True, reactivated_count
         
     except Exception as e:
         logger.error(f"Error completing Telegram auth: {str(e)}")
         logger.exception(e)
-        return False
+        return False, 0
 
 
 def _cleanup_expired_tokens():

@@ -255,6 +255,18 @@ class AuthenticationMiddleware:
         return True
     
     def logout(self, request):
+        # Get user ID before deleting session
+        user_data = request.session.get('user', {})
+        user_id = user_data.get('user_id')
+        
+        # Clean up Telegram subscriptions
+        if user_id:
+            try:
+                from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+                TelegramSubscriptionManager.deactivate_user_subscriptions(user_id)
+            except Exception as e:
+                logger.warning(f"Error cleaning up Telegram data on logout: {str(e)}")
+        
         # delete the user from the session
         del request.session['user']
 
