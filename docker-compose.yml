@@ -165,7 +165,7 @@ services:
     working_dir: /code/front
     privileged: true
     ports:
-      - "80:80"
+      - "<outside_port>:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     healthcheck:

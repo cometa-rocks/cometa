@@ -48,10 +48,6 @@ export class BrowsersComponent  implements OnInit {
       
     });
 
-    this.browsers$.subscribe(browsers => {
-        console.log('Browser object:', browsers[0]);
-        
-    });
 
   }
 
@@ -64,15 +60,12 @@ export class BrowsersComponent  implements OnInit {
 
   addStandByBrowser(browserContainer: Container) {
     this.stand_by_browsers.push(browserContainer);
-    console.log(this.stand_by_browsers);
     this._cdr.detectChanges();
   }
 
   
   get runningBrowsers(): Container[] {
-    console.log('All browsers in stand_by_browsers:', this.stand_by_browsers);
     const running = this.stand_by_browsers?.filter(b => b.service_status?.toLowerCase() === 'running') || [];
-    console.log('Filtered running browsers:', running);
     return running;
   }
 
