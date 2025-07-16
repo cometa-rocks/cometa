@@ -70,9 +70,33 @@ class TelegramNotificationManger:
             
             # Check if there are any subscriptions for this feature
             from backend.ee.modules.notification.models import TelegramSubscription
+            from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+            
+            # Get active subscriptions and validate them
             subscriptions = TelegramSubscription.objects.filter(
-                feature_id=feature_result.feature_id.feature_id
+                feature_id=feature_result.feature_id.feature_id,
+                is_active=True
             )
+            
+            logger.info(f"Found {subscriptions.count()} active subscriptions for feature {feature_result.feature_id.feature_id}")
+            
+            # Validate each subscription before sending
+            valid_subscriptions = []
+            for subscription in subscriptions:
+                if TelegramSubscriptionManager.validate_subscription(
+                    subscription.user_id, 
+                    subscription.feature_id
+                ):
+                    valid_subscriptions.append(subscription)
+                    logger.debug(f"Subscription {subscription.id} is valid for user {subscription.user_id}")
+                else:
+                    # Deactivate invalid subscription
+                    subscription.is_active = False
+                    subscription.save()
+                    logger.info(f"Deactivated invalid subscription {subscription.id}")
+            
+            subscriptions = valid_subscriptions
+            logger.info(f"After validation: {len(subscriptions)} valid subscriptions")
             
             # Check if this was executed from Telegram by looking for telegram notification data
             is_telegram_execution = False
@@ -95,7 +119,7 @@ class TelegramNotificationManger:
                         is_telegram_execution = True
                         logger.info(f"Found telegram execution for feature {feature_result.feature_id.feature_id}, user {telegram_user_id}, chat_id: {telegram_chat_id}")
             
-            if not subscriptions.exists() and not is_telegram_execution:
+            if not subscriptions and not is_telegram_execution:
                 # Fall back to old method - check if feature has Telegram notifications enabled
                 feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
                 logger.debug(f"No subscriptions found. Feature Telegram enabled setting: {feature_telegram_enabled}")
@@ -212,22 +236,24 @@ class TelegramNotificationManger:
                     # For telegram executions, always send to the chat that initiated it
                     logger.info(f"Using Telegram execution chat_id: {telegram_chat_id}")
                     chat_ids = [telegram_chat_id]
-                elif subscriptions.exists():
+                elif subscriptions:
                     # Filter subscriptions based on notification type and result
                     if feature_result.success:
                         # For successful tests, only get subscriptions that include 'on_success'
-                        filtered_subscriptions = subscriptions.filter(
-                            notification_types__contains='on_success'
-                        )
+                        filtered_subscriptions = [
+                            sub for sub in subscriptions 
+                            if 'on_success' in sub.notification_types
+                        ]
                     else:
                         # For failed tests, only get subscriptions that include 'on_failure'
-                        filtered_subscriptions = subscriptions.filter(
-                            notification_types__contains='on_failure'
-                        )
+                        filtered_subscriptions = [
+                            sub for sub in subscriptions 
+                            if 'on_failure' in sub.notification_types
+                        ]
                     
                     # Use subscription-based chat IDs
                     logger.debug("Using subscription-based chat IDs with notification type filtering")
-                    chat_ids = list(filtered_subscriptions.values_list('chat_id', flat=True))
+                    chat_ids = [sub.chat_id for sub in filtered_subscriptions]
                     logger.debug(f"Found {len(chat_ids)} subscribed chat IDs after filtering: {chat_ids}")
                 else:
                     # Fall back to department chat IDs (old method)
@@ -261,7 +287,7 @@ class TelegramNotificationManger:
                 # For telegram executions, provide a simple completion message
                 logger.debug("Building message for Telegram execution")
                 message = self._build_telegram_execution_message(feature_result)
-            elif subscriptions.exists() and self._is_default_telegram_options(telegram_options):
+            elif subscriptions and self._is_default_telegram_options(telegram_options):
                 # This is a subscription-based notification with default settings
                 # Provide a minimal but informative message
                 logger.debug("Using subscription default message for uncustomized telegram options")

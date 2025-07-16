@@ -63,7 +63,7 @@ def get_telegram_auth_domain(environment='prod'):
             return current_ngrok
             
         # Fallback to static ngrok domain if configured
-        return 'cometa-dev.ngrok-free.app'
+        return 'cometa-dev.ngrok.dev'
     else:
         # Production: use configured domain
         return ConfigurationManager.get_configuration('COMETA_DOMAIN', 'prod.cometa.rocks')

@@ -211,6 +211,7 @@ services:
       - SOCKET_SERVER_PORT=3001
       - NOVNC_SERVER_URL=novnc
       - NOVNC_SERVER_PORT=80
+      - COMETA_USE_NGROK=false
     networks:
       - testing
     restart: always

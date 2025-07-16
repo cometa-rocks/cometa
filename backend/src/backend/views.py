@@ -123,7 +123,7 @@ def AddOIDCAccount(name, email):
 def UserRelatedDepartments(user_email, type="id"):
     account = OIDCAccount.objects.filter(email=user_email)
     user_id = account[0].user_id
-    DepartmentsRelated = Account_role.objects.all().filter(user=user_id)
+    DepartmentsRelated = Account_role.objects.all().filter(user_id=user_id)
     departmentsList = []
     for d in DepartmentsRelated:
         departmentsList.append(
@@ -325,6 +325,12 @@ def GetStepResultsData(request, *args, **kwargs):
 
 @csrf_exempt
 def CreateOIDCAccount(request):
+    # Check if there's a target_link_uri parameter for Telegram OAuth completion
+    target_link_uri = request.GET.get('target_link_uri')
+    if target_link_uri and '/telegram/complete/' in target_link_uri:
+        logger.info(f"Redirecting to Telegram completion: {target_link_uri}")
+        return redirect(target_link_uri)
+    
     return JsonResponse(request.session['user'], status=200)
 
 
@@ -339,7 +345,7 @@ def telegram_auth_callback(request, token):
     logger.info(f"telegram_auth_callback called with token: {token[:8]}...")  # Only log first 8 chars for security
     
     try:
-        from backend.telegram_auth import TelegramAuthenticationHandler
+        from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
         
         # Log request details for debugging
         logger.info(f"Request method: {request.method}")
@@ -354,36 +360,80 @@ def telegram_auth_callback(request, token):
                 'message': 'Invalid or expired authentication token. Please try again from Telegram.'
             })
         
-        # SECURITY: Always require OAuth authentication
-        # This ensures that:
-        # 1. Users can't link someone else's Telegram to their account
-        # 2. Each authentication is verified through OAuth
-        # 3. No sessions are created without proper authentication
-        
-        # Clear any existing session to prevent cross-contamination
+        # Check if user is already authenticated
         if request.session.get('user'):
-            logger.info(f"Clearing existing session for Telegram auth (user_id: {request.session['user'].get('user_id')})")
-            request.session.flush()
+            # User is already authenticated, complete the linking directly
+            user_id = request.session['user'].get('user_id')
+            logger.info(f"User already authenticated (user_id: {user_id}), completing Telegram linking")
+            
+            # Complete the linking
+            from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
+            success = TelegramAuthenticationHandler.complete_telegram_linking(request, user_link.chat_id)
+            
+            if success:
+                # Send success notification to Telegram
+                from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+                try:
+                    # Reactivate any previous subscriptions
+                    reactivated_count = TelegramSubscriptionManager.reactivate_user_subscriptions(
+                        user_id=user_id,
+                        chat_id=user_link.chat_id
+                    )
+                    
+                    # Clear the auth token
+                    user_link.auth_token = None
+                    user_link.auth_token_expires = None
+                    user_link.save()
+                    
+                    # Send notification to Telegram
+                    from backend.utility.configurations import ConfigurationManager
+                    import requests
+                    bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
+                    if bot_token:
+                        message = (
+                            f"✅ *Authentication Successful!*\n\n"
+                            f"Your Telegram account has been successfully linked to Cometa.\n\n"
+                            f"*Account Details:*\n"
+                            f"👤 Name: {request.session['user'].get('name', 'User')}\n"
+                            f"📧 Email: {request.session['user'].get('email', '')}\n\n"
+                        )
+                        if reactivated_count > 0:
+                            message += f"🔄 *Restored {reactivated_count} subscription{'s' if reactivated_count > 1 else ''}* from your previous session!\n\n"
+                        message += (
+                            f"You can now receive test execution notifications!\n"
+                            f"Use `/subscribe` to select which features to monitor."
+                        )
+                        
+                        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                        payload = {
+                            "chat_id": user_link.chat_id,
+                            "text": message,
+                            "parse_mode": "Markdown"
+                        }
+                        requests.post(url, json=payload, timeout=10)
+                except Exception as e:
+                    logger.error(f"Error during Telegram linking completion: {str(e)}")
+                
+                return render(request, 'telegram_oauth_complete.html', {
+                    'bot_username': ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_USERNAME", "CometaBot")
+                })
+            else:
+                return render(request, 'telegram_auth_error.html', {
+                    'error_code': 'LINKING_FAILED',
+                    'error_message': 'Failed to link your Telegram account. Please try again.'
+                })
+        
+        # User is not authenticated, redirect to OAuth
+        # SECURITY: Always require OAuth authentication for new sessions
         
         # Always redirect to OAuth provider - no shortcuts
-        environment = os.getenv('ENVIRONMENT', 'prod')
-        oauth_provider = "Google" if environment == 'dev' else "GitLab"
-        
-        # Check OAuth mode configuration
-        from backend.utility.configurations import ConfigurationManager
-        oauth_mode = ConfigurationManager.get_configuration('COMETA_TELEGRAM_OAUTH_MODE', 'standard')
+        oauth_provider = "GitLab"
         
         # Prepare context for template
         template_context = {
             'oauth_provider': oauth_provider,
-            'token': token,
-            'oauth_mode': oauth_mode
+            'token': token
         }
-        
-        # For production mode, store email for later matching
-        if oauth_mode == 'standard' and user_link.gitlab_email:
-            # Store email to help with matching after OAuth
-            template_context['hint_email'] = user_link.gitlab_email
         
         return render(request, 'telegram_auth_redirect.html', template_context)
             
@@ -411,30 +461,19 @@ def telegram_auth_complete(request):
                 'message': 'No Telegram authentication token found. Please try again from Telegram.'
             })
         
-        # SECURITY: Verify the token matches the one stored in session
-        # This prevents token substitution attacks after OAuth
-        session_token = request.session.get('telegram_auth_token')
-        if not session_token or session_token != telegram_token:
-            logger.warning(f"Token mismatch - session: {session_token[:8] if session_token else 'None'}..., URL: {telegram_token[:8]}...")
-            return render(request, 'telegram_auth_error.html', {
-                'message': 'Authentication token mismatch. Please try again from Telegram.'
-            })
+        # SECURITY: Token verification is done through database lookup only
+        # We don't store tokens in sessions to avoid session-based vulnerabilities
         
         # Verify the token is still valid
-        from backend.telegram_auth import TelegramAuthenticationHandler
+        from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
         user_link = TelegramAuthenticationHandler.verify_telegram_token(telegram_token)
         if not user_link:
             return render(request, 'telegram_auth_error.html', {
                 'message': 'Invalid or expired authentication token. Please try again from Telegram.'
             })
         
-        # Verify chat_id also matches
-        session_chat_id = request.session.get('telegram_chat_id')
-        if not session_chat_id or str(session_chat_id) != str(user_link.chat_id):
-            logger.warning(f"Chat ID mismatch - session: {session_chat_id}, token: {user_link.chat_id}")
-            return render(request, 'telegram_auth_error.html', {
-                'message': 'Authentication verification failed. Please try again from Telegram.'
-            })
+        # Chat ID is verified through the token lookup in database
+        # No need for session-based verification
         
         # Check if user session exists
         if not request.session.get('user'):
@@ -471,33 +510,39 @@ def telegram_auth_complete(request):
         from backend.ee.modules.notification.views import complete_telegram_auth
         
         # Complete the Telegram authentication
-        success = complete_telegram_auth(request, telegram_token)
+        result = complete_telegram_auth(request, telegram_token)
+        if isinstance(result, tuple):
+            success, reactivated_count = result
+        else:
+            # Backward compatibility if function returns just boolean
+            success = result
+            reactivated_count = 0
         
         if success:
-            # Clean up session data to prevent replay attacks
-            if 'telegram_auth_token' in request.session:
-                del request.session['telegram_auth_token']
-            if 'telegram_chat_id' in request.session:
-                del request.session['telegram_chat_id']
-            request.session.save()
+            # No session cleanup needed since we don't store tokens in session anymore
             
             # Send success notification to Telegram
             bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
             if bot_token:
                 try:
-                    environment = os.getenv('ENVIRONMENT', 'prod')
-                    oauth_provider = "Google" if environment == 'dev' else "GitLab"
+                    oauth_provider = "GitLab"
                     user_info = request.session.get('user', {})
+                    
+                    message = (
+                        "✅ *Authentication Successful!*\n\n"
+                        f"Your {oauth_provider} account has been linked:\n"
+                        f"*{user_info.get('name', 'User')}* ({user_info.get('email', 'email')})\n\n"
+                    )
+                    
+                    if reactivated_count > 0:
+                        message += f"🔄 *Restored {reactivated_count} subscription{'s' if reactivated_count > 1 else ''}* from your previous session!\n\n"
+                    
+                    message += "You can now use `/subscribe` to manage your notifications!"
                     
                     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                     payload = {
                         "chat_id": user_link.chat_id,
-                        "text": (
-                            "✅ *Authentication Successful!*\n\n"
-                            f"Your {oauth_provider} account has been linked:\n"
-                            f"*{user_info.get('name', 'User')}* ({user_info.get('email', 'email')})\n\n"
-                            "You can now use `/subscribe` to manage your notifications!"
-                        ),
+                        "text": message,
                         "parse_mode": "Markdown",
                     }
                     requests.post(url, json=payload, timeout=5)
@@ -2106,7 +2151,7 @@ class AccountViewset(viewsets.ModelViewSet):
                                          'error': 'You do not have permissions to set higher role than your current role.'},
                                         status=403)
             if 'departments' in data and not kwargs['usersOwn']:
-                Account_role.objects.filter(user=user_id).delete()
+                Account_role.objects.filter(user_id=user_id).delete()
                 for department in data['departments']:
                     department = Department.objects.filter(department_id=department)[0]
                     Account_role.objects.create(
