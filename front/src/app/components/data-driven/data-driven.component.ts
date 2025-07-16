@@ -138,9 +138,22 @@ export class DataDrivenComponent implements OnInit {
     const { preselectDepartment, preselectApplication, preselectEnvironment } =
       this.user.settings;
 
-    const department: Department =
-      this.departments$.find(d => d.department_id == preselectDepartment) ||
-      this.departments$[0];
+    // Get current route to determine department context
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    
+    // Prioritize current department context over user preselected department
+    let department: Department;
+    if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
+      // Use current department context
+      department = this.departments$.find(d => d.department_id === currentRoute[0].folder_id);
+    }
+    
+    // Fallback to user preselected department if no current context
+    if (!department) {
+      department = this.departments$.find(d => d.department_id == preselectDepartment) ||
+        this.departments$[0];
+    }
+    
     const application: Application =
       this.applications$.find(a => a.app_id == preselectApplication) ||
       this.applications$[0];
