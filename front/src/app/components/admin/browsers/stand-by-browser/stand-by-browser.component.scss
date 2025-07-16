@@ -12,15 +12,7 @@
   overflow-x: auto;
 }
 
-// :host {
-//   display: flex;
-//   width: 100%;
-//   height: 40px;
-//   align-items: center;
-//   margin-bottom: 10px;
-//   padding-left: 15px;
-//   box-sizing: border-box;
-// }
+
 
 
 
@@ -69,49 +61,11 @@
   
 }
 
-// .name {
-//   flex: 0 300px;
-//   padding: 0 10px;
-//   box-sizing: border-box;
-//   text-overflow: ellipsis;
-//   overflow: hidden;
-//   white-space: nowrap;
-//   input {
-//     display: block;
-//     width: 100%;
-//     height: 100%;
-//     background: transparent;
-//     border: 0;
-//     outline: 0;
-//     line-height: 40px;
-//     border-radius: 3px;
-//     padding: 0 15px;
-//     box-sizing: border-box;
-//     // transition: border-color .2s ease-in-out;
-//     &:not(:disabled) {
-//       border-color: rgba(0, 0, 0, 0.3);
-//     }
-//     font-size: 16px;
-//     color: rgba($color: $primary-color, $alpha: 1);
-//   }
-// }
 
 
 
 
-// .service_id {
-//  flex: 0 150px;
-//   margin-left: 30px;
-//   text-overflow: ellipsis;
-//  // overflow: hidden;
-//   white-space: nowrap;  
-//   span {
-//     display: inline-block;
-//     vertical-align: middle;
-//     font-weight: bold;
-    
-//   }
-// }
+
 
 .service_id {
   flex: 0 120px;
@@ -129,19 +83,7 @@
 
 
 
-// .status {
-//  flex: 0 120px;
-//   margin-left: 30px;
-//   text-overflow: ellipsis;
-//   //overflow: hidden;
-//   white-space: nowrap;
-//   span {
-//     display: inline-block;
-//     vertical-align: middle;
-//     font-weight: bold;
-   
-//   }
-// }
+
 
 .status {
   flex: 0 120px;
@@ -156,18 +98,7 @@
   }
 }
 
-// .usage {
-//   flex: 0 120px;
-//   margin-left: 30px;
-//   text-overflow: ellipsis;
-//   //overflow: hidden;
-//    white-space: nowrap;
-//    span {
-//      display: inline-block;
-//      vertical-align: middle;
-//      font-weight: bold;
-//    }
-//  }
+
 
  .usage {
   flex: 0 120px;
@@ -183,18 +114,7 @@
 }
 
 
-// .info {
-//   flex: 0 120px;
-//   margin-left: 30px;  
-//   //overflow: hidden;
-//   white-space: nowrap;
-//   text-overflow: ellipsis;
-//   span {
-//     display: inline-block;
-//     vertical-align: middle;
-//     font-weight: bold;
-//   }
-// }
+
 
 .info {
   flex: 0 120px;
@@ -209,19 +129,6 @@
   }
 }
 
-
-// .created_on {
-//   flex: 0 120px;
-//   margin-left: 30px;
-//   text-overflow: ellipsis;
-//   //overflow: hidden;
-//   white-space: nowrap;
-//   span {
-//     display: inline-block;
-//     vertical-align: middle; 
-//      font-weight: bold;
-//   }
-// }
 
 .created_on {
   flex: 0 120px;

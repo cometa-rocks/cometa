@@ -1,12 +1,5 @@
  <h2>Manage browsers</h2>
 
- 
-<!--
-<browser
-  [browser]="browser"
-  *ngFor="let browser of browsers$ | async; trackBy: trackByFn"
-  (browserAdded)="addStandByBrowser($event)"
-  ></browser> -->
 <browser
   *ngFor="let browser of browsers$ | async; trackBy: trackByFn"
   [browser]="browser"
@@ -25,20 +18,7 @@
     ></stand-by-browser> 
   </ng-container>
 
-<!--
-  <ng-container *ngIf="stand_by_browsers?.some(b => b.service_status === 'running')">
-  <stand-by-browser
-    [stand_by_browsers]="stand_by_browsers"
-    (showHeader)="showHeaderStandByBrowser($event)">
-  </stand-by-browser>
-</ng-container> -->
 
-<!--
-<stand-by-browser
-  *ngIf="isAnyBrowserRunning"
-  [stand_by_browsers]="stand_by_browsers"
-  (showHeader)="showHeaderStandByBrowser($event)">
-</stand-by-browser> -->
 
 
   
