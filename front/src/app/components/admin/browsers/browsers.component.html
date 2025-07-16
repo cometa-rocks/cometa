@@ -6,17 +6,16 @@
   (browserAdded)="addStandByBrowser($event)">
 </browser>
 
-  <br>
-  <br>
-  <br>
-
+<br>
+<br>
+<br>
   
-  <ng-container *ngIf="runningBrowsers.length > 0">
-    <stand-by-browser
-      [stand_by_browsers]="runningBrowsers" 
-      (browserRemoved)="removeStandByBrowser($event)"
-    ></stand-by-browser> 
-  </ng-container>
+<ng-container *ngIf="runningBrowsers.length > 0">
+  <stand-by-browser
+    [stand_by_browsers]="runningBrowsers" 
+    (browserRemoved)="removeStandByBrowser($event)"
+  ></stand-by-browser> 
+</ng-container>
 
 
 
