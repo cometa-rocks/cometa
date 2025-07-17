@@ -20,8 +20,8 @@ RUN ls -la /app/appium-inspector/dist-browser/
 RUN ls -la /app/appium-inspector/dist-browser/locales/
 RUN ls
 
-# Stage 2: Serve the application with Nginx
-FROM httpd:2.4.48
+# Stage 2: Serve the application with Apache
+FROM httpd:2.4.64
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 
@@ -36,7 +36,14 @@ RUN apt-get update
 RUN apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget
 RUN apt-get install -y autoconf automake libtool
 RUN apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
-RUN apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
+# libpcre3-dev is replaced by libpcre2-dev in Debian 12
+RUN apt-get install -y libpcre2-dev zlib1g-dev
+# Install libcjose with error handling
+RUN apt-get install -y libcjose0 libcjose-dev || echo "Warning: libcjose packages not found in standard repos"
+# Install libssl1.1 from Debian 11 for mod_auth_openidc compatibility
+RUN wget -q http://deb.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1w-0+deb11u1_amd64.deb && \
+    rm -f libssl1.1_1.1.1w-0+deb11u1_amd64.deb
 RUN apt-get install -y libapache2-mod-security2
 
 # Create necessary directories and set ownership/permissions

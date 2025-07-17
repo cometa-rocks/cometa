@@ -1166,6 +1166,7 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+  checked?: boolean;
 }
 
 interface ContainerServiceResponse {

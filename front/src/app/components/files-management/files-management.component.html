@@ -139,10 +139,10 @@
 
 <ng-template #expansionTpl let-row>
   <div class="expansion-content">
-    <!-- Loading Spinner -->
+    <!-- Loading Spinner with dynamic message -->
     <app-loading-spinner 
       [isVisible]="file_data[row.id]?.isLoading"
-      [message]="file_data[row.id]?.isLoading ? 'Loading file data...' : 'Processing...'"
+      [message]="getLoadingMessage(row.id)"
       [paddingTop]="20"
       [paddingBottom]="20"
     ></app-loading-spinner>
@@ -196,12 +196,14 @@
         </button>
       </div>
       
-      <div class="sheet-tabs-container">
-        <ng-container *ngFor="let sheetName of getSheetNames(row.id)">
+      <div class="sheet-tabs-container" (keydown)="onSheetTabKeydown($event, row.id)">
+        <ng-container *ngFor="let sheetName of getSheetNames(row.id); let i = index">
           <button 
             mat-button 
             class="sheet-tab" 
             [class.active]="getCurrentSheet(row.id) === sheetName"
+            [attr.tabindex]="getCurrentSheet(row.id) === sheetName ? '0' : '-1'"
+            [attr.data-sheet-index]="i"
             (click)="switchSheet(row.id, sheetName)">
             {{ sheetName }}
           </button>

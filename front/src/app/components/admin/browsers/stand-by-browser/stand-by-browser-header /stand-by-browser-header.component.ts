@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
-import { BrowserComboTextPipe } from '../../../../pipes/browser-combo-text.pipe';
-import { StandByBrowserComboTextPipe } from '../../../../pipes/stand-by-browser-combo-text.pipe';
-import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
+import { BrowserComboTextPipe } from '../../../../../pipes/browser-combo-text.pipe';
+import { StandByBrowserComboTextPipe } from '../../../../../pipes/stand-by-browser-combo-text.pipe';
+import { DisableAutocompleteDirective } from '../../../../../directives/disable-autocomplete.directive';
 import { InputFocusService } from '@services/inputFocus.service';
 import { map } from 'rxjs/operators';
 import { ApiService } from '@services/api.service';
@@ -12,7 +12,6 @@ import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Applications } from '@store/actions/applications.actions';
 import { JsonPipe } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -25,17 +24,17 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
-import { StandByBrowserHeaderComponent } from './stand-by-browser-header /stand-by-browser-header.component';
+import { Browsers } from '@store/actions/browsers.actions';
+import { MatIconModule } from '@angular/material/icon';
 
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { SlicePipe } from '@angular/common';
 
 
 @Component({
-  selector: 'stand-by-browser',
-  templateUrl: './stand-by-browser.component.html',
-  styleUrls: ['./stand-by-browser.component.scss'],
+  selector: 'stand-by-browser-header',
+  templateUrl: './stand-by-browser-header.component.html',
+  styleUrls: ['./stand-by-browser-header.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
@@ -44,7 +43,6 @@ import { SlicePipe } from '@angular/common';
     StandByBrowserComboTextPipe,
     ReactiveFormsModule,
     DisableAutocompleteDirective,
-    StandByBrowserHeaderComponent,
     FormsModule,
     MatIconModule,
     NgIf,
@@ -55,22 +53,24 @@ import { SlicePipe } from '@angular/common';
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     FirstLetterUppercasePipe,
-    MatLegacyTooltipModule,
     JsonPipe, 
     MatLegacyCheckboxModule,
-    MatLegacyButtonModule,
-    SlicePipe,
+    MatLegacyButtonModule
   ],
 })
-export class StandByBrowserComponent{
+export class StandByBrowserHeaderComponent{
+
   @Input() stand_by_browsers:  Container[];  
-  // @Input() header_stand_by_browsers:  Container[];  
+  toExport = new BehaviorSubject<number[]>([]);
   @Output() checkboxChange = new EventEmitter<boolean>();
-   selectedBrowserIds: number[] = [];
-  inputFocus: boolean = false;
-  @Output() browserRemoved = new EventEmitter<number>();
-  
-  isLoading = true;
+  @Input() header_stand_by_browsers: Container[] = [];
+ 
+  @Output() deleteMultiple = new EventEmitter<number[]>();
+
+  // Emits selected IDs to parent for selection only (not deletion)
+ @Output() selectionChanged = new EventEmitter<number[]>();
+
+
 
   constructor(
     private inputFocusService: InputFocusService,
@@ -82,15 +82,7 @@ export class StandByBrowserComponent{
     private _cdr: ChangeDetectorRef,
   ) {}
 
-  checked$: Observable<boolean>;
-
-
-  trackByFn(index: number, item: Container) {
-    return item.id;
-  }
-
-  ngOnInit() {
-  }
+  
   
   // Check if focused on input or textarea
   onInputFocus() {
@@ -102,45 +94,49 @@ export class StandByBrowserComponent{
   }
 
 
-  removeBrowserContainer(id: number) {
-    this._api.deleteContainerServices(id).subscribe(
-      (res:any)=> {
-        if (res.success) {
-          this.browserRemoved.emit(id);
-          this._snack.open('Browser stopped successfully!', 'OK');
-        }
-      },
-      err => this._snack.open('An error ocurred', 'OK')
-    );
+  ngOnInit() {
+   this.header_stand_by_browsers = this.stand_by_browsers ?? []; // fallback to empty
   }
 
 
-  copyToClipboard(text: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this._snackBar.open('ID copied to clipboard!', 'OK', { duration: 2000 });
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
-    });
-  }
+  selectAll() {
+    if (!this.header_stand_by_browsers || this.header_stand_by_browsers.length === 0) {
+      this._snackBar.open('No browsers available to select.', 'OK', { duration: 3000 });
+      return;
+    }
 
-  deleteAllBrowsers(ids: number[]) {
-    ids.forEach(id => this.removeBrowserContainer(id));
-    this.selectedBrowserIds = []; // clear selection
-  }
+    const allSelected = this.toExport.getValue().length === this.header_stand_by_browsers.length;
 
-  onBrowserSelectionChanged(ids: number[]) {
-    this.selectedBrowserIds = ids;
-    this._cdr.detectChanges(); //  force checkbox state to reflect changes
-  }
-
-  onCheckboxToggle(id: number, checked: boolean) {
-    if (checked && !this.selectedBrowserIds.includes(id)) {
-      this.selectedBrowserIds.push(id);
-    } else if (!checked) {
-      this.selectedBrowserIds = this.selectedBrowserIds.filter(bid => bid !== id);
+    if (!allSelected) {
+      //  Select all browser IDs
+      const selectedIds = this.header_stand_by_browsers.map(f => f.id);
+      this.toExport.next(selectedIds);
+      this.selectionChanged.emit(selectedIds); //  Just mark selected
+    } else {
+      //  Deselect all
+      this.toExport.next([]);
+      this.selectionChanged.emit([]); //  Deselect all
     }
   }
 
 
+  deleteAll() {
+    const selectedIds = this.toExport.getValue();
 
+    if (selectedIds.length === 0) {
+      this._snackBar.open('Please select all browsers first.', 'OK', { duration: 3000 });
+      return;
+    }
+
+    
+
+    if (selectedIds.length === 0) {
+      this._snackBar.open('Please select browsers before deleting.', 'OK', { duration: 3000 });
+      return;
+    }
+
+    //  Emit selected IDs to parent to trigger deletion
+    this.deleteMultiple.emit(selectedIds);
+    this.toExport.next([]);
+  }
 }
