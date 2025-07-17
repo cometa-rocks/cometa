@@ -1636,12 +1636,12 @@ def step_impl(context, function):
         context.browser.set_script_timeout(30)
         error = str(err).split("(Session info:")[0]
         raise CustomError(error)
-ddddd
+
 # Run a JavaScript function in the current browser context
-# Example: On element "//button[@id='login']" run Javascript function "document.body.style.backgroundColor = 'lightblue';"
-@step(u'Run Javascript function "{function}" on "{selector}"')  
-@done(u'Run Javascript function "{function}" on "{selector}"')
-def step_impl(context, function, selector):
+# Example: On element "//button[@id='login']" run javascript function "document.body.style.backgroundColor = 'lightblue';"
+@step(u'On element "{selector}" run javascript function "{function}"')  
+@done(u'On element "{selector}" run javascript function "{function}"')
+def step_impl(context, selector, function):
     if context.browser.capabilities.get('browserName', None) != 'firefox':
         _ = context.browser.get_log('browser') # clear browser logs
     js_function = context.text
