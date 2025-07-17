@@ -1636,6 +1636,35 @@ def step_impl(context, function):
         context.browser.set_script_timeout(30)
         error = str(err).split("(Session info:")[0]
         raise CustomError(error)
+ddddd
+# Run a JavaScript function in the current browser context
+# Example: On element "//button[@id='login']" run Javascript function "document.body.style.backgroundColor = 'lightblue';"
+@step(u'Run Javascript function "{function}" on "{selector}"')  
+@done(u'Run Javascript function "{function}" on "{selector}"')
+def step_impl(context, function, selector):
+    if context.browser.capabilities.get('browserName', None) != 'firefox':
+        _ = context.browser.get_log('browser') # clear browser logs
+    js_function = context.text
+    step_timeout = context.step_data['timeout']
+    context.browser.set_script_timeout(step_timeout)
+    try:
+
+        send_step_details(context, 'Looking for selector')
+        elem = waitSelector(context, "xpath", selector)
+        if not click_on_element(elem[0]):
+            raise CustomError("Unable to click on element with select %s" % selector)
+
+        result = context.browser.execute_script("""
+%s
+        """ % js_function , elem[0])
+
+        addParameter(context, "js_return", result)
+        context.browser.set_script_timeout(30)
+    except Exception as err:
+        addParameter(context, "js_return", "")
+        context.browser.set_script_timeout(30)
+        error = str(err).split("(Session info:")[0]
+        raise CustomError(error)
 
 # Click on element using an XPath Selector
 # Example: click on element with xpath "//button[@id='login']"
@@ -3023,7 +3052,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
 
         # print sorted element list and sorted variable list
         for i in range(0, len(values_sorted) if len(values_sorted) >= len(element_values_sorted) else len(element_values_sorted)):
-            # get value for values_eq
+            # get value for values
             try:
                 val = values_sorted[i]
             except:
