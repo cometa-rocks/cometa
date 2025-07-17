@@ -1637,6 +1637,35 @@ def step_impl(context, function):
         error = str(err).split("(Session info:")[0]
         raise CustomError(error)
 
+# Run a JavaScript function in the current browser context
+# Example: On element "//button[@id='login']" run javascript function "document.body.style.backgroundColor = 'lightblue';"
+@step(u'On element "{selector}" run javascript function "{function}"')  
+@done(u'On element "{selector}" run javascript function "{function}"')
+def step_impl(context, selector, function):
+    if context.browser.capabilities.get('browserName', None) != 'firefox':
+        _ = context.browser.get_log('browser') # clear browser logs
+    js_function = context.text
+    step_timeout = context.step_data['timeout']
+    context.browser.set_script_timeout(step_timeout)
+    try:
+
+        send_step_details(context, 'Looking for selector')
+        elem = waitSelector(context, "xpath", selector)
+        if not click_on_element(elem[0]):
+            raise CustomError("Unable to click on element with select %s" % selector)
+
+        result = context.browser.execute_script("""
+%s
+        """ % js_function , elem[0])
+
+        addParameter(context, "js_return", result)
+        context.browser.set_script_timeout(30)
+    except Exception as err:
+        addParameter(context, "js_return", "")
+        context.browser.set_script_timeout(30)
+        error = str(err).split("(Session info:")[0]
+        raise CustomError(error)
+
 # Click on element using an XPath Selector
 # Example: click on element with xpath "//button[@id='login']"
 @step(u'click on element with xpath "{xpath}"')
@@ -3023,7 +3052,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
 
         # print sorted element list and sorted variable list
         for i in range(0, len(values_sorted) if len(values_sorted) >= len(element_values_sorted) else len(element_values_sorted)):
-            # get value for values_eq
+            # get value for values
             try:
                 val = values_sorted[i]
             except:
@@ -3090,37 +3119,6 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
         return True
     else:
         raise CustomError("Lists do not match, please check the attachment.")
-
-# This step compares two values to ensure they are identical. If they are not the same, an error will be raised, indicating the mismatch
-# Example: Assert "hello" to be same as "hello"
-@step(u'Assert "{value_one}" to be same as "{value_two}"')
-@done(u'Assert "{value_one}" to be same as "{value_two}"')
-def assert_imp(context, value_one, value_two):
-    assert_failed_error = f"{value_one} does not match {value_two}"
-    assert_failed_error = logger.mask_values(assert_failed_error)
-    addStepVariableToContext(context,                             
-                            {
-                                "value_one":value_one,
-                                "value_two":value_two,
-                            }, 
-                            save_to_step_report=True)
-    
-    assert value_one == value_two, assert_failed_error
-
-# This step checks if one string contains another. If the second string is not found within the first string, an error will be raised
-# Example: Assert "The quick brown fox" to contain "quick"'
-@step(u'Assert "{value_one}" to contain "{value_two}"')
-@done(u'Assert "{value_one}" to contain "{value_two}"')
-def assert_imp(context, value_one, value_two):
-    assert_failed_error = f"{value_one} does not contain {value_two}"
-    assert_failed_error = logger.mask_values(assert_failed_error)
-    addStepVariableToContext(context,{
-                                    "value_one":value_one,
-                                    "value_two":value_two,
-                                    }, 
-                            save_to_step_report=True)
-
-    assert value_two in value_one, assert_failed_error
 
 # This step initiates a loop that runs a specific number of times, starting from a given index
 # Example: Loop "3" times starting at "1" and do'

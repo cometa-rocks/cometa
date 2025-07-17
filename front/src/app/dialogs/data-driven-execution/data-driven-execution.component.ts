@@ -277,13 +277,23 @@ export class DataDrivenExecution implements OnInit {
   preSelectedOrDefaultOptions() {
     const { preselectDepartment } = this.user.settings;
 
+    // Get current route to determine department context
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    
     this.departments$.subscribe(deps => {
-      this.department =
-        deps.find(
-          d =>
-            d.department_id ==
-            (this.department_id ? this.department_id : preselectDepartment)
-        ) || deps[0];
+      let departmentId = this.department_id;
+      
+      // If no department_id is set, check for current department context
+      if (!departmentId && currentRoute.length > 0 && currentRoute[0].type === 'department') {
+        departmentId = currentRoute[0].folder_id;
+      }
+      
+      // Fallback to user preselected department if no current context
+      if (!departmentId) {
+        departmentId = preselectDepartment;
+      }
+      
+      this.department = deps.find(d => d.department_id == departmentId) || deps[0];
       this.department_id = this.department.department_id;
       this.generateFileData();
     });
