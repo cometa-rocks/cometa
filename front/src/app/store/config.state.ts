@@ -110,6 +110,18 @@ export class ConfigState {
         localStorage.removeItem('featuresView.without');
       }
     }
+    // Configuration to change the mobile view
+    const mobileViewWith = localStorage.getItem('mobileView.with');
+    if (mobileViewWith !== null) {
+      if (['tiles', 'list'].includes(mobileViewWith)) {
+        if (!configFile.mobileView) {
+          configFile.mobileView = { with: 'tiles' };
+        }
+        configFile.mobileView.with = mobileViewWith;
+      } else {
+        localStorage.removeItem('mobileView.with');
+      }
+    }
     return this._api.getServerInfo().pipe(
       tap(server => {
         configFile.serverInfo = server;

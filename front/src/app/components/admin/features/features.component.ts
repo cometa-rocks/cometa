@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, EventEmitter,Output } from '@angular/core';
 import { FeaturesState } from '@store/features.state';
 import { UserState } from '@store/user.state';
 import { ApiService } from '@services/api.service';
@@ -45,6 +45,9 @@ export class FeaturesComponent implements OnInit {
     private _actionsService: SharedActionsService,
     private _store: Store
   ) {}
+
+
+  
 
   trackByFn(index, item: Feature) {
     return item.feature_id;

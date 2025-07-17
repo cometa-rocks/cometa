@@ -214,7 +214,9 @@
                 class="select-step checkbox-blue"
                 aria-label="Select step"
                 (click)="onSelectCheckboxClick($event, i)"
-                (change)="onSelectStepChange($event, i)"></mat-checkbox>
+                (change)="onSelectStepChange($event, i)"
+                [matTooltip]="'step_editor.select_step_tooltip' | translate"
+                matTooltipPosition="above"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">
@@ -363,7 +365,6 @@
                 [matTooltip]="'continue_on_failure.tooltip' | translate"
                 [matTooltipDisabled]="!disabled"
                 color="primary"
-                [disabled]="disabled"
                 formControlName="continue_on_failure"
                 >Continue on failure</mat-checkbox
               >
