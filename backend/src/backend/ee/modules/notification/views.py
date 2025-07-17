@@ -1340,65 +1340,6 @@ def telegram_webhook(request):
     return JsonResponse({"success": True})
 
 
-@require_permissions("edit_feature")
-def set_telegram_webhook(request):
-    """
-    Helper endpoint to register / update the Telegram webhook with the bot API.
-    Call it with ?url=<public_url> (GET) or JSON body {"url": "..."} (POST).
-    
-    SECURITY: Requires COMETA_TELEGRAM_WEBHOOK_SECRET to be configured.
-    The secret token must be 1-256 characters using only A-Z, a-z, 0-9, _, -.
-    This token will be sent by Telegram in X-Telegram-Bot-Api-Secret-Token header.
-    """
-
-    bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
-    if not bot_token:
-        return JsonResponse({"success": False, "error": "Bot token not configured"}, status=500)
-
-    # Determine the target webhook URL
-    webhook_url = None
-    if request.method == "POST":
-        try:
-            body = json.loads(request.body.decode("utf-8"))
-            webhook_url = body.get("webhook_url") or body.get("url")
-        except Exception:
-            pass
-    if not webhook_url:
-        webhook_url = request.GET.get("webhook_url") or request.GET.get("url")
-
-    if not webhook_url:
-        # Fallback: derive from current request host (works with ngrok)
-        webhook_url = request.build_absolute_uri("/telegram/webhook/")
-
-    secret_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_WEBHOOK_SECRET", "")
-    
-    # Validate secret token is configured (MANDATORY for security)
-    if not secret_token:
-        logger.error("Cannot set webhook: COMETA_TELEGRAM_WEBHOOK_SECRET not configured")
-        return JsonResponse({"success": False, "error": "Webhook secret token must be configured for security"}, status=500)
-    
-    # Validate secret token format
-    if not re.match(r'^[A-Za-z0-9_-]{1,256}$', secret_token):
-        logger.error("Invalid webhook secret format in configuration")
-        return JsonResponse({"success": False, "error": "Webhook secret must be 1-256 characters using only A-Z, a-z, 0-9, _, -"}, status=500)
-
-    payload = {"url": webhook_url, "secret_token": secret_token}
-    
-    logger.info(f"Setting Telegram webhook to: {webhook_url}")
-
-    try:
-        response = requests.post(
-            f"https://api.telegram.org/bot{bot_token}/setWebhook",
-            json=payload,
-            timeout=10,
-        )
-        data = response.json()
-        success = data.get("ok", False)
-    except Exception as exc:
-        logger.error(f"Failed to set Telegram webhook: {exc}")
-        return JsonResponse({"success": False, "error": str(exc)})
-
-    return JsonResponse({"success": success, "telegram_response": data})
 
 
 # ========================= Telegram Subscription Management =========================
