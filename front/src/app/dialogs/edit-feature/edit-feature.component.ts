@@ -1732,6 +1732,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   /**
    * Select user specified selections if any.
+   * Prioritizes current department context over user preselected department.
    */
   preSelectedOptions() {
     const {
@@ -1741,12 +1742,31 @@ export class EditFeature implements OnInit, OnDestroy {
       recordVideo,
     } = this.user.settings;
 
-    // Set form values directly instead of using selected_* variables
-    this.departments$.find(d => {
-      if (d.department_id == preselectDepartment) {
-        this.featureForm.get('department_name').setValue(d.department_name, { emitEvent: false });
+    // Get current route to determine department context
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    
+    // Only set department from user preferences if no current department context is available
+    // This ensures the current department context takes priority
+    if (!this.selected_department) {
+      // Check if we have a current department context from the route
+      if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
+        // Use current department context
+        const currentDepartment = this.departments$.find(d => d.department_id === currentRoute[0].folder_id);
+        if (currentDepartment) {
+          this.selected_department = currentDepartment.department_name;
+        }
       }
-    });
+      
+      // Fallback to user preselected department if no current context
+      if (!this.selected_department) {
+        this.departments$.find(d => {
+          if (d.department_id == preselectDepartment)
+            this.selected_department = d.department_name;
+        });
+      }
+    }
+
+    // Set application and environment from user preferences (these don't have context priority)
     this.applications$.find(a => {
       if (a.app_id == preselectApplication) {
         this.featureForm.get('app_name').setValue(a.app_name, { emitEvent: false });
