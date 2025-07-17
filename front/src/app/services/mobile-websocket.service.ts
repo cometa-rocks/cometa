@@ -7,11 +7,10 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { skip } from 'rxjs/operators';
-import { DataDriven } from '@store/actions/datadriven.actions';
 import { MobileWebSockets } from '@store/actions/mobile.actions';
 
 @Injectable()
-export class SocketService {
+export class MobileWebSocketService {
   /** Whether or not to log websockets into Console */
   @SelectSnapshot(CustomSelectors.GetConfigProperty('logWebsockets'))
   logWebsockets!: boolean;
@@ -55,64 +54,46 @@ export class SocketService {
    * @param {any} data
    */
   onMessageReceived(data: any) {
-    if (this.logWebsockets) console.log('[WEBSOCKET] Raw message received:', data);
+    if (this.logWebsockets) console.log('[MOBILE WEBSOCKET] Raw message received:', data);
     
-    // Handle specific WebSocket message types that need conversion to NGXS actions
-    const action = this.convertWebSocketMessageToAction(data);
+    // Handle mobile-specific WebSocket message types
+    const action = this.convertMobileWebSocketMessageToAction(data);
     
-    this._store.dispatch(action);
+    if (action) {
+      this._store.dispatch(action);
+    }
   }
 
   /**
-   * Converts WebSocket messages to proper NGXS actions
+   * Converts mobile WebSocket messages to proper NGXS actions
    * @param {any} data Raw WebSocket message data
-   * @returns Action object for NGXS store
+   * @returns Action object for NGXS store or null if not a mobile message
    */
-  private convertWebSocketMessageToAction(data: any): any {
-    // Handle DataDriven StatusUpdate messages
-    if (data.type === '[WebSockets] DataDrivenStatusUpdate') {
-      return new DataDriven.StatusUpdate(
-        data.run_id,
-        data.running,
-        data.status,
-        data.total,
-        data.ok,
-        data.fails,
-        data.skipped,
-        data.execution_time,
-        data.pixel_diff
-      );
+  private convertMobileWebSocketMessageToAction(data: any): any {
+    // Handle mobile WebSocket message types
+    switch (data.type) {
+      case '[MobileWebSockets] Container Status Update':
+        return new MobileWebSockets.ContainerStatusUpdate(data.containerUpdate);
+      
+      case '[MobileWebSockets] Container Shared Update':
+        return new MobileWebSockets.ContainerSharedUpdate(data.container_id, data.shared);
+      
+      case '[MobileWebSockets] Container Started':
+        return new MobileWebSockets.ContainerStarted(data.container_id, data.hostname);
+      
+      case '[MobileWebSockets] Container Stopped':
+        return new MobileWebSockets.ContainerStopped(data.container_id);
+      
+      case '[MobileWebSockets] Container Terminated':
+        return new MobileWebSockets.ContainerTerminated(data.container_id);
+      
+      case '[MobileWebSockets] Container APK Update':
+        return new MobileWebSockets.ContainerApkUpdate(data.container_id, data.apk_file);
+      
+      default:
+        // Not a mobile message, return null
+        return null;
     }
-    
-    // Handle Mobile WebSocket messages
-    if (data.type && data.type.startsWith('[MobileWebSockets]')) {
-      switch (data.type) {
-        case '[MobileWebSockets] Container Status Update':
-          return new MobileWebSockets.ContainerStatusUpdate(data.containerUpdate);
-        
-        case '[MobileWebSockets] Container Shared Update':
-          return new MobileWebSockets.ContainerSharedUpdate(data.container_id, data.shared);
-        
-        case '[MobileWebSockets] Container Started':
-          return new MobileWebSockets.ContainerStarted(data.container_id, data.hostname);
-        
-        case '[MobileWebSockets] Container Stopped':
-          return new MobileWebSockets.ContainerStopped(data.container_id);
-        
-        case '[MobileWebSockets] Container Terminated':
-          return new MobileWebSockets.ContainerTerminated(data.container_id);
-        
-        case '[MobileWebSockets] Container APK Update':
-          return new MobileWebSockets.ContainerApkUpdate(data.container_id, data.apk_file);
-        
-        default:
-          return data;
-      }
-    }
-    
-    // For all other message types, return the data as-is
-    // This maintains backward compatibility with existing WebSocket actions
-    return data;
   }
 
   /**
@@ -120,6 +101,7 @@ export class SocketService {
    */
   onConnection() {
     this.connectionStatus$.next(true);
+    
     // Clear previous subscription to user changes if found
     this.clearUserSubscription();
     this.userSubscription = this.user$
@@ -152,6 +134,29 @@ export class SocketService {
   updateUserSocket(user: UserInfo) {
     if (user && this.socket && this.socket.connected) {
       this.socket.emit('updateUser', user);
+    }
+  }
+
+  /**
+   * Initialize mobile WebSocket connection
+   */
+  initializeMobileWebSocket() {
+    this._store.dispatch(new MobileWebSockets.InitializeMobileWebSocket());
+  }
+
+  /**
+   * Cleanup mobile WebSocket connection
+   */
+  cleanupMobileWebSocket() {
+    this._store.dispatch(new MobileWebSockets.CleanupMobileWebSocket());
+  }
+
+  /**
+   * Disconnect from WebSocket server
+   */
+  disconnect() {
+    if (this.socket) {
+      this.socket.disconnect();
     }
   }
 }
