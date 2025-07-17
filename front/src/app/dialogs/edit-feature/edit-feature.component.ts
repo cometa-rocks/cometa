@@ -190,6 +190,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   steps$: Observable<FeatureStep[]>;
 
+  selected_department!: string;
   // next runs an array of next executions
   nextRuns = [];
   // parse error
