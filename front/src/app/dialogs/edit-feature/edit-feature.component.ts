@@ -96,6 +96,7 @@ import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
+import { MatDividerModule } from '@angular/material/divider';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
@@ -121,6 +122,7 @@ import { User } from '@store/actions/user.actions';
     NgIf,
     MatLegacyDialogModule,
     MatExpansionModule,
+    MatDividerModule,
     MatLegacyFormFieldModule,
     MatLegacySelectModule,
     NgFor,
@@ -570,12 +572,41 @@ export class EditFeature implements OnInit, OnDestroy {
     
     // Add reactive behavior for notification controls
     this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
-      if (!sendNotificationEnabled) {
+      if (sendNotificationEnabled) {
+        // When send_notification is enabled, automatically check both child options
+        this.featureForm.get('send_mail').setValue(true, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(true, { emitEvent: false });
+      } else {
         // When send_notification is disabled, also disable child options
         this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
         this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
       }
     });
+
+    // Add reactive behavior for child notification controls
+    // When both child options are unchecked, also uncheck the parent
+    const sendMailControl = this.featureForm.get('send_mail');
+    const sendTelegramControl = this.featureForm.get('send_telegram_notification');
+    
+    // Subscribe to both child controls
+    sendMailControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+    
+    sendTelegramControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+  }
+
+  // Update parent notification state based on child checkboxes
+  private updateParentNotificationState(): void {
+    const sendMailValue = this.featureForm.get('send_mail').value;
+    const sendTelegramValue = this.featureForm.get('send_telegram_notification').value;
+    
+    // If both child options are unchecked, uncheck the parent
+    if (!sendMailValue && !sendTelegramValue) {
+      this.featureForm.get('send_notification').setValue(false, { emitEvent: false });
+    }
   }
 
   // Save the state of the expansion panel - Now generic for all features
