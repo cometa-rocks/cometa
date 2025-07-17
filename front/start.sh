@@ -200,11 +200,25 @@ function install_openidc(){
 	# install some oidc feature before starting httpd service
 	cd /tmp
 	apt-get update
+	# Install essential tools
 	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget procps
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
-	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev 
+	# libpcre3-dev is replaced by libpcre2-dev in Debian 12
+	apt-get install -y libpcre2-dev zlib1g-dev
+	# Install libcjose from available packages
+	apt-get install -y libcjose0 libcjose-dev || {
+		echo "Warning: libcjose packages not found in standard repos"
+	}
 	apt-get install -y libapache2-mod-security2
+	
+	# Install libssl1.1 for mod_auth_openidc compatibility
+	# mod_auth_openidc.so is compiled against OpenSSL 1.1, but Debian 12 has OpenSSL 3.0
+	echo "Installing libssl1.1 for mod_auth_openidc compatibility..."
+	wget -q http://deb.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+	dpkg -i libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+	rm -f libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+	
 	cd -
 }
 

@@ -515,6 +515,97 @@ app.post('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
   res.status(200).json({ success: true, sentCount: totalSent });
 })
 
+/* WS Endpoint: Mobile container status update */
+app.post('/mobile/container/status', (req, res) => {
+  const containerId = req.body.container_id;
+  const containerUpdate = req.body.containerUpdate;
+  const userId = req.body.user_id;
+  const departmentId = req.body.department_id;
+
+  console.log('Received mobile container status update:', containerId, 'User:', userId, 'Department:', departmentId);
+  
+  const payload = {
+    type: '[MobileWebSockets] Container Status Update',
+    containerUpdate: containerUpdate
+  };
+
+  let totalSent = 0;
+  
+  // Send to specific user if user_id is provided
+  if (userId) {
+    const userIdNum = parseInt(userId, 10);
+    for (const [clientId, client] of Object.entries(clients)) {
+      if (client && client.user_id === userIdNum) {
+        io.to(clientId).emit('message', payload);
+        totalSent++;
+      }
+    }
+    
+    // Fallback to department-based if no user clients found
+    if (totalSent === 0 && departmentId) {
+      for (const [clientId, client] of Object.entries(clients)) {
+        if (client && client.departments && client.departments.some(dept => dept.department_id === departmentId)) {
+          io.to(clientId).emit('message', payload);
+          totalSent++;
+        }
+      }
+    }
+  } else {
+    // Broadcast to all clients
+    io.emit('message', payload);
+    totalSent = Object.keys(clients).length;
+  }
+
+  console.log(`Emitted mobile container status update to ${totalSent} clients:`, payload);
+  res.status(200).json({ success: true, sentCount: totalSent });
+})
+
+/* WS Endpoint: Mobile container shared status update */
+app.post('/mobile/container/shared', (req, res) => {
+  const containerId = req.body.container_id;
+  const shared = req.body.shared;
+  const userId = req.body.user_id;
+  const departmentId = req.body.department_id;
+
+  console.log('Received mobile container shared update:', containerId, 'Shared:', shared, 'User:', userId, 'Department:', departmentId);
+  
+  const payload = {
+    type: '[MobileWebSockets] Container Shared Update',
+    container_id: containerId,
+    shared: shared
+  };
+
+  let totalSent = 0;
+  
+  // Send to specific user if user_id is provided
+  if (userId) {
+    const userIdNum = parseInt(userId, 10);
+    for (const [clientId, client] of Object.entries(clients)) {
+      if (client && client.user_id === userIdNum) {
+        io.to(clientId).emit('message', payload);
+        totalSent++;
+      }
+    }
+    
+    // Fallback to department-based if no user clients found
+    if (totalSent === 0 && departmentId) {
+      for (const [clientId, client] of Object.entries(clients)) {
+        if (client && client.departments && client.departments.some(dept => dept.department_id === departmentId)) {
+          io.to(clientId).emit('message', payload);
+          totalSent++;
+        }
+      }
+    }
+  } else {
+    // Broadcast to all clients
+    io.emit('message', payload);
+    totalSent = Object.keys(clients).length;
+  }
+
+  console.log(`Emitted mobile container shared update to ${totalSent} clients:`, payload);
+  res.status(200).json({ success: true, sentCount: totalSent });
+})
+
 /* WS Endpoint: Reload actions in front */
 app.post('/updatedObjects/actions', (req, res) => {
   /* Params not required */
@@ -711,7 +802,7 @@ io.on('connection', function(socket){
     if (user.user_id != undefined && user.email != undefined) {
       clients[socket.id] = user
       console.log(`[${user.email} (${user.user_id})] has connected successfully.`)
-      console.log(`[DEBUG] User auth data:`, JSON.stringify(user, null, 2));
+      //console.log(`[DEBUG] User auth data:`, JSON.stringify(user, null, 2));
     } else {
       throw Error("Missing user data. Connection failed.")
     }

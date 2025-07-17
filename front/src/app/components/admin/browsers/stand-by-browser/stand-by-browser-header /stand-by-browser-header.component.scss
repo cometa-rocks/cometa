@@ -1,0 +1,44 @@
+h2 {
+  margin: 50px 0 40px;
+  font-size: 12pt;
+  text-transform: uppercase;
+}
+
+
+::ng-deep .mat-icon {
+  font-size: 21px !important;
+  margin-right: 5px;
+}
+
+
+:host {
+  display: block;
+  margin-bottom: 50px;
+}
+
+.select-all {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  
+}
+
+.delete-all {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  
+}
+
+.header-container {
+  position: sticky;
+  top: -45px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  background-color: #e5b355;
+  padding: 0 25px 0 25px;
+  height: 80px;
+}
+

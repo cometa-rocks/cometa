@@ -566,6 +566,7 @@ interface Config {
   copyright: string;
   license: string;
   featuresView: FeatureViewItems;
+  mobileView: FeatureViewItems;
   disableAnimations: boolean;
   translations: 'en' | 'de' | any;
   changelog: ChangelogItem[];
@@ -1166,6 +1167,7 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+  checked?: boolean;
 }
 
 interface ContainerServiceResponse {
