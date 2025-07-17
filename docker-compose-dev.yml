@@ -176,7 +176,7 @@ services:
       - testing
 
   apache:
-    image: "httpd:2.4.48"
+    image: "httpd:2.4.64"
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_front
@@ -214,7 +214,6 @@ services:
       - COMETA_USE_NGROK=false
     networks:
       - testing
-    restart: always
 
   redis:
     image: redis:7.2.0-alpine
