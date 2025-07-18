@@ -121,6 +121,8 @@ export class L1FeatureItemListComponent implements OnInit {
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
+
+
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
     );
@@ -455,16 +457,16 @@ export class L1FeatureItemListComponent implements OnInit {
   getEmailTooltip(): string {
     let tooltip = 'Email notifications enabled. Recipients: ';
     
-    if (this.item.email_address && this.item.email_address.length > 0) {
-      tooltip += this.item.email_address.join(', ');
+    if (this.item.reference?.email_address && this.item.reference.email_address.length > 0) {
+      tooltip += this.item.reference.email_address.join(', ');
     }
     
-    if (this.item.email_cc_address && this.item.email_cc_address.length > 0) {
-      tooltip += ` (CC: ${this.item.email_cc_address.join(', ')})`;
+    if (this.item.reference?.email_cc_address && this.item.reference.email_cc_address.length > 0) {
+      tooltip += ` (CC: ${this.item.reference.email_cc_address.join(', ')})`;
     }
     
-    if (this.item.email_bcc_address && this.item.email_bcc_address.length > 0) {
-      tooltip += ` (BCC: ${this.item.email_bcc_address.join(', ')})`;
+    if (this.item.reference?.email_bcc_address && this.item.reference.email_bcc_address.length > 0) {
+      tooltip += ` (BCC: ${this.item.reference.email_bcc_address.join(', ')})`;
     }
     
     return tooltip;
@@ -476,8 +478,8 @@ export class L1FeatureItemListComponent implements OnInit {
   getTelegramTooltip(): string {
     let tooltip = 'Telegram notifications enabled';
     
-    if (this.item.telegram_options?.override_chat_ids) {
-      tooltip += `. Custom chat IDs: ${this.item.telegram_options.override_chat_ids}`;
+    if (this.item.reference?.telegram_options?.override_chat_ids) {
+      tooltip += `. Custom chat IDs: ${this.item.reference.telegram_options.override_chat_ids}`;
     } else {
       tooltip += '. Using department settings';
     }

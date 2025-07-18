@@ -500,39 +500,30 @@ input {
   }
 }
 
+// Notification icons container
+.notification-icons-container {
+  display: flex;
+  position: absolute;
+  left: 19px; // Same position as star
+  bottom: 9px;
+  gap: 8px; // Space between icons
+  align-items: center;
+  
+  // When star is present, move to the right
+  &.with-star {
+    left: 47px; // Position after star (19px + 18px star width + 10px gap)
+  }
+}
+
 // Notification icons
 .notification-icon {
   display: flex;
-  position: absolute;
-  left: 45px; // Position next to star icon
-  bottom: 13px;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
   transition: all 0.2s ease;
   cursor: help;
-
-  &.email-notification {
-    background-color: rgba(76, 175, 80, 0.1);
-    border: 1px solid rgba(76, 175, 80, 0.3);
-    
-    &:hover {
-      background-color: rgba(76, 175, 80, 0.2);
-      border-color: rgba(76, 175, 80, 0.5);
-    }
-  }
-
-  &.telegram-notification {
-    background-color: rgba(33, 150, 243, 0.1);
-    border: 1px solid rgba(33, 150, 243, 0.3);
-    
-    &:hover {
-      background-color: rgba(33, 150, 243, 0.2);
-      border-color: rgba(33, 150, 243, 0.5);
-    }
-  }
 
   .notification-icon-material {
     font-size: 14px;
@@ -545,11 +536,6 @@ input {
   &:hover .notification-icon-material {
     color: #333;
   }
-}
-
-// Adjust position for multiple notification icons
-.notification-icon + .notification-icon {
-  left: 70px; // Second icon position
 }
 
 .feature-id {
