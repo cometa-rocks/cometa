@@ -500,6 +500,58 @@ input {
   }
 }
 
+// Notification icons
+.notification-icon {
+  display: flex;
+  position: absolute;
+  left: 45px; // Position next to star icon
+  bottom: 13px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  cursor: help;
+
+  &.email-notification {
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    
+    &:hover {
+      background-color: rgba(76, 175, 80, 0.2);
+      border-color: rgba(76, 175, 80, 0.5);
+    }
+  }
+
+  &.telegram-notification {
+    background-color: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    
+    &:hover {
+      background-color: rgba(33, 150, 243, 0.2);
+      border-color: rgba(33, 150, 243, 0.5);
+    }
+  }
+
+  .notification-icon-material {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    color: #666;
+  }
+
+  &:hover .notification-icon-material {
+    color: #333;
+  }
+}
+
+// Adjust position for multiple notification icons
+.notification-icon + .notification-icon {
+  left: 70px; // Second icon position
+}
+
 .feature-id {
   position: absolute;
   font-weight: bold;
