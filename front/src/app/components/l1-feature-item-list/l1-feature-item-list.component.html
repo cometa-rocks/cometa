@@ -161,6 +161,27 @@ Author: dph000
         </div>
       </ng-container>
 
+      <!-- Notification icons -->
+      <ng-container *ngIf="item.send_notification">
+        <!-- Email notification icon -->
+        <div
+          *ngIf="item.send_mail && item.email_address && item.email_address.length > 0"
+          class="notification-icon email-notification"
+          [matTooltip]="getEmailTooltip()"
+          matTooltipPosition="above">
+          <mat-icon class="notification-icon-material">email</mat-icon>
+        </div>
+        
+        <!-- Telegram notification icon -->
+        <div
+          *ngIf="item.send_telegram_notification"
+          class="notification-icon telegram-notification"
+          [matTooltip]="getTelegramTooltip()"
+          matTooltipPosition="above">
+          <mat-icon class="notification-icon-material">chat</mat-icon>
+        </div>
+      </ng-container>
+
       <!-- Feature ID -->
       <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
         <ng-container>

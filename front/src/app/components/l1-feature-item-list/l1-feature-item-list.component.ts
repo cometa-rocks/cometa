@@ -449,5 +449,41 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
+  /**
+   * Get email notification tooltip text
+   */
+  getEmailTooltip(): string {
+    let tooltip = 'Email notifications enabled. Recipients: ';
+    
+    if (this.item.email_address && this.item.email_address.length > 0) {
+      tooltip += this.item.email_address.join(', ');
+    }
+    
+    if (this.item.email_cc_address && this.item.email_cc_address.length > 0) {
+      tooltip += ` (CC: ${this.item.email_cc_address.join(', ')})`;
+    }
+    
+    if (this.item.email_bcc_address && this.item.email_bcc_address.length > 0) {
+      tooltip += ` (BCC: ${this.item.email_bcc_address.join(', ')})`;
+    }
+    
+    return tooltip;
+  }
+
+  /**
+   * Get Telegram notification tooltip text
+   */
+  getTelegramTooltip(): string {
+    let tooltip = 'Telegram notifications enabled';
+    
+    if (this.item.telegram_options?.override_chat_ids) {
+      tooltip += `. Custom chat IDs: ${this.item.telegram_options.override_chat_ids}`;
+    } else {
+      tooltip += '. Using department settings';
+    }
+    
+    return tooltip;
+  }
+
 }
 
