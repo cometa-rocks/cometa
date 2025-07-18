@@ -35,8 +35,6 @@
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
               <mat-select
-                [(ngModel)]="selected_department"
-                [disabled]="data.mode === 'edit'"
                 formControlName="department_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -50,7 +48,6 @@
             <mat-form-field appearance="fill" class="edit-app">
               <mat-label>Application</mat-label>
               <mat-select
-                [(ngModel)]="selected_application"
                 formControlName="app_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -64,7 +61,6 @@
             <mat-form-field appearance="fill" class="edit-env">
               <mat-label>Environment</mat-label>
               <mat-select
-                [(ngModel)]="selected_environment"
                 formControlName="environment_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -100,7 +96,7 @@
             </mat-form-field>
           </div>
           <div
-            *ngIf="selected_department === 'Default' && departments$.length > 1"
+            *ngIf="featureForm.get('department_name').value === 'Default' && departments$.length > 1"
             class="department-warning">
             <mat-icon>info</mat-icon>
             <span
@@ -828,7 +824,6 @@
                   <mat-label>Minute</mat-label>
                   <input
                     matInput
-                    [disabled]="!featureForm.value.run_now"
                     formControlName="minute"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -845,7 +840,6 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.run_now"
                     formControlName="hour"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -861,7 +855,6 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.run_now"
                     formControlName="day_month"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -878,7 +871,6 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.run_now"
                     formControlName="month"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -895,7 +887,6 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.run_now"
                     formControlName="day_week"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -948,7 +939,7 @@
         <button
           type="button"
           color="warn"
-          [disabled]="saving"
+          [disabled]="getButtonsDisabledState()"
           mat-stroked-button
           (click)="handleCancel()">
           CANCEL
@@ -956,7 +947,7 @@
         <button
           type="button"
           color="primary"
-          [disabled]="saving"
+          [disabled]="getButtonsDisabledState()"
           mat-stroked-button
           class="submit"
           (click)="editOrCreate()">
