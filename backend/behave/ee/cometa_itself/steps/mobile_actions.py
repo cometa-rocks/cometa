@@ -726,7 +726,7 @@ def close_mobile_application(context, app_package):
 # Uninstalls the specified app from the device.
 # Example: Uninstall app "com.example.apk" with "Do not fail"
 @step('On mobile uninstall app "(?P<app_package>.+?)"(?: with "(?P<option>.*?)")?')
-@done('On mobile uninstall app "{app_package}" with "{option}" from mobile')
+@done('On mobile uninstall app "{app_package}" with "{option}"')
 def uninstall_app_from_device(context, app_package, option):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
