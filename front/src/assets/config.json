@@ -245,7 +245,7 @@
       "date": "2025-07-18",
       "features": [
         {
-          "title": "Mobile list improvements - #6594",
+          "title": "File uploading status - #6594",
           "description": "Upgraded 'Status' label in file section to show current status of the file when uploading."
         }
       ]
