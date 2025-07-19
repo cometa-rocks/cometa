@@ -328,13 +328,67 @@ def CreateOIDCAccount(request):
     # Check if there's a target_link_uri parameter for Telegram OAuth completion
     target_link_uri = request.GET.get('target_link_uri')
     if target_link_uri and '/telegram/complete/' in target_link_uri:
-        logger.info(f"Redirecting to Telegram completion: {target_link_uri}")
-        return redirect(target_link_uri)
+        logger.info(f"Processing Telegram OAuth completion")
+        
+        # Check if this is an AJAX request (from Angular app)
+        is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest' or \
+                  request.META.get('HTTP_ACCEPT', '').startswith('application/json')
+        
+        if is_ajax:
+            # For AJAX requests, return a special JSON response that tells frontend to redirect
+            logger.info("AJAX request detected, returning JSON with redirect instruction")
+            return JsonResponse({
+                'success': False,  # Required by interceptor
+                'type': 'redirect',  # Tells interceptor this is a redirect
+                'url': target_link_uri  # Where to redirect
+            }, status=200)
+        else:
+            # For regular browser requests, do a normal redirect
+            logger.info("Regular request detected, performing HTTP redirect")
+            return redirect(target_link_uri)
     
-    return JsonResponse(request.session['user'], status=200)
+    # For normal AJAX requests, return user JSON
+    user_data = request.session.get('user')
+    if not user_data:
+        logger.warning("No user data in session for CreateOIDCAccount")
+        return JsonResponse({'error': 'No user session found'}, status=401)
+    
+    return JsonResponse(user_data, status=200)
 
 
 @csrf_exempt
+def _send_telegram_auth_success_notification(chat_id, user_info, reactivated_count=0):
+    """Helper function to send Telegram authentication success notification"""
+    try:
+        bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
+        if not bot_token:
+            return
+            
+        message = (
+            f"✅ *Authentication Successful!*\n\n"
+            f"Your Telegram account has been successfully linked to Cometa.\n\n"
+            f"*Account Details:*\n"
+            f"👤 Name: {user_info.get('name', 'User')}\n"
+            f"📧 Email: {user_info.get('email', '')}\n\n"
+        )
+        if reactivated_count > 0:
+            message += f"🔄 *Restored {reactivated_count} subscription{'s' if reactivated_count > 1 else ''}* from your previous session!\n\n"
+        message += (
+            f"You can now receive test execution notifications!\n"
+            f"Use `/subscribe` to select which features to monitor."
+        )
+        
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown"
+        }
+        requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        logger.error(f"Failed to send Telegram notification: {str(e)}")
+
+
 def telegram_auth_callback(request, token):
     """
     Handle Telegram authentication callback
@@ -360,11 +414,41 @@ def telegram_auth_callback(request, token):
                 'message': 'Invalid or expired authentication token. Please try again from Telegram.'
             })
         
-        # Check if user is already authenticated
-        if request.session.get('user'):
-            # User is already authenticated, complete the linking directly
+        # Check if user has valid OAuth session via mod_auth_openidc
+        has_valid_oauth_cookie = request.COOKIES.get('mod_auth_openidc_session')
+        
+        if request.session.get('user') and has_valid_oauth_cookie:
+            # User has both Django session AND OAuth cookie - validate it's current
             user_id = request.session['user'].get('user_id')
-            logger.info(f"User already authenticated (user_id: {user_id}), completing Telegram linking")
+            
+            # Verify the OAuth session is still valid by checking user_info
+            # The middleware will have already validated this if the cookie is valid
+            if not request.session.get('user_info'):
+                logger.warning(f"User has session but no user_info - OAuth session likely expired")
+                request.session.flush()
+                oauth_provider = "GitLab"
+                template_context = {
+                    'oauth_provider': oauth_provider,
+                    'token': token
+                }
+                return render(request, 'telegram_auth_redirect.html', template_context)
+            
+            # This ensures they went through proper GitLab OAuth
+            from backend.models import OIDCAccount
+            try:
+                oidc_account = OIDCAccount.objects.get(user_id=user_id)
+                logger.info(f"User authenticated via valid OAuth session (user_id: {user_id}), completing Telegram linking")
+            except OIDCAccount.DoesNotExist:
+                logger.warning(f"Session exists but no OIDCAccount for user_id {user_id} - forcing re-authentication")
+                # Clear invalid session
+                request.session.flush()
+                # Force OAuth authentication
+                oauth_provider = "GitLab"
+                template_context = {
+                    'oauth_provider': oauth_provider,
+                    'token': token
+                }
+                return render(request, 'telegram_auth_redirect.html', template_context)
             
             # Complete the linking
             from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
@@ -380,37 +464,12 @@ def telegram_auth_callback(request, token):
                         chat_id=user_link.chat_id
                     )
                     
-                    # Clear the auth token
-                    user_link.auth_token = None
-                    user_link.auth_token_expires = None
-                    user_link.save()
-                    
                     # Send notification to Telegram
-                    from backend.utility.configurations import ConfigurationManager
-                    import requests
-                    bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
-                    if bot_token:
-                        message = (
-                            f"✅ *Authentication Successful!*\n\n"
-                            f"Your Telegram account has been successfully linked to Cometa.\n\n"
-                            f"*Account Details:*\n"
-                            f"👤 Name: {request.session['user'].get('name', 'User')}\n"
-                            f"📧 Email: {request.session['user'].get('email', '')}\n\n"
-                        )
-                        if reactivated_count > 0:
-                            message += f"🔄 *Restored {reactivated_count} subscription{'s' if reactivated_count > 1 else ''}* from your previous session!\n\n"
-                        message += (
-                            f"You can now receive test execution notifications!\n"
-                            f"Use `/subscribe` to select which features to monitor."
-                        )
-                        
-                        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                        payload = {
-                            "chat_id": user_link.chat_id,
-                            "text": message,
-                            "parse_mode": "Markdown"
-                        }
-                        requests.post(url, json=payload, timeout=10)
+                    _send_telegram_auth_success_notification(
+                        user_link.chat_id, 
+                        request.session['user'], 
+                        reactivated_count
+                    )
                 except Exception as e:
                     logger.error(f"Error during Telegram linking completion: {str(e)}")
                 
@@ -506,6 +565,25 @@ def telegram_auth_complete(request):
                     'message': 'Authentication session not found. Please close this window and try again from Telegram.'
                 })
         
+        # Validate the session has a valid OAuth user
+        user_data = request.session.get('user', {})
+        user_id = user_data.get('user_id')
+        if user_id:
+            from backend.models import OIDCAccount
+            try:
+                OIDCAccount.objects.get(user_id=user_id)
+                logger.info(f"OAuth validation successful for user_id {user_id}")
+            except OIDCAccount.DoesNotExist:
+                logger.error(f"Session exists but no OIDCAccount for user_id {user_id}")
+                return render(request, 'telegram_auth_error.html', {
+                    'message': 'Invalid authentication session. Please close this window and try again from Telegram.'
+                })
+        else:
+            logger.error("No user_id in session")
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Invalid session data. Please close this window and try again from Telegram.'
+            })
+        
         # Import here to avoid circular import
         from backend.ee.modules.notification.views import complete_telegram_auth
         
@@ -522,35 +600,17 @@ def telegram_auth_complete(request):
             # No session cleanup needed since we don't store tokens in session anymore
             
             # Send success notification to Telegram
-            bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
-            if bot_token:
-                try:
-                    oauth_provider = "GitLab"
-                    user_info = request.session.get('user', {})
-                    
-                    message = (
-                        "✅ *Authentication Successful!*\n\n"
-                        f"Your {oauth_provider} account has been linked:\n"
-                        f"*{user_info.get('name', 'User')}* ({user_info.get('email', 'email')})\n\n"
-                    )
-                    
-                    if reactivated_count > 0:
-                        message += f"🔄 *Restored {reactivated_count} subscription{'s' if reactivated_count > 1 else ''}* from your previous session!\n\n"
-                    
-                    message += "You can now use `/subscribe` to manage your notifications!"
-                    
-                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    payload = {
-                        "chat_id": user_link.chat_id,
-                        "text": message,
-                        "parse_mode": "Markdown",
-                    }
-                    requests.post(url, json=payload, timeout=5)
-                except Exception as e:
-                    logger.warning(f"Failed to send Telegram notification: {str(e)}")
+            _send_telegram_auth_success_notification(
+                user_link.chat_id,
+                request.session.get('user', {}),
+                reactivated_count
+            )
             
             return render(request, 'telegram_auth_success.html', {
-                'message': 'Authentication successful! You can now close this window and return to Telegram.'
+                'message': 'Authentication successful! You can now close this window and return to Telegram.',
+                'user_name': request.session.get('user', {}).get('name', 'User'),
+                'user_email': request.session.get('user', {}).get('email', ''),
+                'reactivated_count': reactivated_count
             })
         else:
             return render(request, 'telegram_auth_error.html', {
@@ -567,17 +627,13 @@ def telegram_auth_complete(request):
 
 def telegram_auth_success(request):
     """
-    Success page after Telegram authentication is completed via middleware.
+    Success page after Telegram authentication is completed.
     """
-    if not request.session.get('telegram_link_success'):
-        return redirect('/')
-    
-    # Clear the flag
-    del request.session['telegram_link_success']
-    request.session.save()
-    
     return render(request, 'telegram_auth_success.html', {
-        'message': 'Your Telegram account has been successfully linked!'
+        'message': 'Your Telegram account has been successfully linked!',
+        'user_name': request.session.get('user', {}).get('name', 'User'),
+        'user_email': request.session.get('user', {}).get('email', ''),
+        'reactivated_count': 0
     })
 
 

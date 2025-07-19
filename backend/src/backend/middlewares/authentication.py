@@ -110,7 +110,10 @@ class AuthenticationMiddleware:
 
     def createSession(self, request): # create the object user inside request sessions
         REMOTE_USER = self.user_info.get('email', None)
-
+        
+        # Track session creation time for OAuth validation
+        request.session['session_created_at'] = timezone.now().isoformat()
+        
         # if REMOTE_USER is none check if HTTP_HOST is "cometa.local" and REMOTE_ADDR startswith 172
         if REMOTE_USER == None:
             HTTP_HOST = request.META.get('HTTP_HOST', '')
