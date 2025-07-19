@@ -426,8 +426,12 @@ def telegram_webhook(request):
                 # Handle feature subscription button click
                 feature_id = data.replace("sub_feature_", "")
                 try:
-                    # Get user link
-                    user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                    # Use centralized OAuth validation
+                    from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                    user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                        chat_id=str(chat_id),
+                        require_verified=True
+                    )
                     
                     # Use atomic transaction for subscription creation
                     with transaction.atomic():
@@ -466,7 +470,8 @@ def telegram_webhook(request):
                     user_link.last_interaction = datetime.now()
                     user_link.save()
                     
-                except TelegramUserLink.DoesNotExist:
+                except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                    logger.info(f"Authentication failed for feature subscription: {str(e)}")
                     reply_text = (
                         "*Account Not Linked*\n\n"
                         "Your Telegram account is not linked to a Cometa user.\n"
@@ -498,7 +503,12 @@ def telegram_webhook(request):
             elif data == "back_to_departments":
                 # Handle back to departments navigation
                 try:
-                    user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                    # Use centralized OAuth validation
+                    from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                    user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                        chat_id=str(chat_id),
+                        require_verified=True
+                    )
                     accessible_departments = get_user_accessible_departments(user_link.user_id)
                     
                     if accessible_departments:
@@ -525,7 +535,8 @@ def telegram_webhook(request):
                             "You don't have access to any departments."
                         )
                         
-                except TelegramUserLink.DoesNotExist:
+                except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                    logger.info(f"Authentication failed for back_to_departments: {str(e)}")
                     reply_text = (
                         "*Account Not Linked*\n\n"
                         "Your Telegram account is not linked to a Cometa user.\n"
@@ -567,8 +578,12 @@ def telegram_webhook(request):
                 # Handle feature unsubscription button click
                 feature_id = data.replace("unsub_feature_", "")
                 try:
-                    # Get user link
-                    user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                    # Use centralized OAuth validation
+                    from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                    user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                        chat_id=str(chat_id),
+                        require_verified=True
+                    )
                     
                     # Get subscription
                     subscription = TelegramSubscription.objects.get(
@@ -592,7 +607,8 @@ def telegram_webhook(request):
                         f"Use `/subscribe` to re-enable notifications for this feature."
                     )
                     
-                except TelegramUserLink.DoesNotExist:
+                except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                    logger.info(f"Authentication failed for feature unsubscription: {str(e)}")
                     reply_text = (
                         "*Account Not Linked*\n\n"
                         "Your Telegram account is not linked to a Cometa user.\n"
@@ -843,7 +859,13 @@ def telegram_webhook(request):
                 elif lower == "/subscribe":
                     # Get user's accessible departments and show as buttons
                     try:
-                        user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                        # Use centralized OAuth validation
+                        from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                        user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                            chat_id=str(chat_id),
+                            require_verified=True
+                        )
+                        
                         accessible_departments = get_user_accessible_departments(user_link.user_id)
                         
                         if accessible_departments:
@@ -874,7 +896,8 @@ def telegram_webhook(request):
                                 "3. Try `/subscribe` again\n\n"
                                 f"Your Chat ID: `{chat_id}`"
                             )
-                    except TelegramUserLink.DoesNotExist:
+                    except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                        logger.info(f"Authentication failed for /subscribe: {str(e)}")
                         reply_text = (
                             "*Account Not Linked*\n\n"
                             "You need to authenticate with GitLab first.\n\n"
@@ -884,11 +907,15 @@ def telegram_webhook(request):
                             "3. Use `/subscribe` to manage notifications\n\n"
                             f"Your Chat ID: `{chat_id}`"
                         )
-
                 elif lower == "/unsubscribe":
                     # Handle unsubscribe command - show user's active subscriptions
                     try:
-                        user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                        # Use centralized OAuth validation
+                        from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                        user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                            chat_id=str(chat_id),
+                            require_verified=True
+                        )
                         
                         # Get user's active subscriptions
                         subscriptions = TelegramSubscription.objects.filter(
@@ -926,7 +953,8 @@ def telegram_webhook(request):
                                 "Use `/subscribe` to subscribe to feature notifications."
                             )
                             
-                    except TelegramUserLink.DoesNotExist:
+                    except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                        logger.info(f"Authentication failed for /unsubscribe: {str(e)}")
                         reply_text = (
                             "*Account Not Linked*\n\n"
                             "You need to authenticate first.\n"
@@ -941,7 +969,12 @@ def telegram_webhook(request):
                 elif lower == "/subscriptions":
                     # Handle list subscriptions command
                     try:
-                        user_link = TelegramUserLink.objects.get(chat_id=str(chat_id), is_active=True, is_verified=True)
+                        # Use centralized OAuth validation
+                        from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                        user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                            chat_id=str(chat_id),
+                            require_verified=True
+                        )
                         
                         # Get user's active subscriptions with optimized query
                         logger.info(f"Fetching subscriptions for user_id: {user_link.user_id}, chat_id: {chat_id}")
@@ -995,7 +1028,8 @@ def telegram_webhook(request):
                                 "Use `/subscribe` to subscribe to feature notifications."
                             )
                             
-                    except TelegramUserLink.DoesNotExist:
+                    except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                        logger.info(f"Authentication failed for /subscriptions: {str(e)}")
                         reply_text = (
                             "*Account Not Linked*\n\n"
                             "You need to authenticate first.\n"
@@ -1004,21 +1038,23 @@ def telegram_webhook(request):
                 elif lower == "/logout":
                     # Handle logout command
                     try:
+                        # Use centralized OAuth validation
+                        from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                        user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
+                            chat_id=str(chat_id),
+                            require_verified=True
+                        )
+                        
                         with transaction.atomic():
+                            # Re-fetch with lock for update
                             user_link = TelegramUserLink.objects.select_for_update().get(
                                 chat_id=str(chat_id),
                                 is_active=True,
                                 is_verified=True
                             )
                             if user_link.user_id > 0:
-                                # Get user details before deletion
-                                from backend.models import OIDCAccount
-                                user_name = "User"
-                                try:
-                                    user = OIDCAccount.objects.get(user_id=user_link.user_id)
-                                    user_name = user.name
-                                except OIDCAccount.DoesNotExist:
-                                    pass
+                                # Use the validated oidc_account
+                                user_name = oidc_account.name if oidc_account else "User"
                                 
                                 # Deactivate all subscriptions for this user
                                 from backend.ee.modules.notification.managers import TelegramSubscriptionManager
@@ -1048,7 +1084,7 @@ def telegram_webhook(request):
                                     "You are not currently logged in.\n"
                                     "Use `/auth` to connect your account."
                                 )
-                    except TelegramUserLink.DoesNotExist:
+                    except (AuthenticationError, TelegramUserLink.DoesNotExist):
                         reply_text = (
                             "*Not Logged In*\n\n"
                             "You are not currently logged in.\n"
@@ -1057,237 +1093,220 @@ def telegram_webhook(request):
                 elif lower.startswith("/run"):
                     # Handle feature execution command: /run <feature_id>
                     try:
-                        # Authenticate user first
-                        user_link = TelegramUserLink.objects.get(
+                        # Use centralized OAuth validation
+                        from .telegram_auth import TelegramAuthenticationHandler, AuthenticationError
+                        user_link, oidc_account = TelegramAuthenticationHandler.validate_telegram_user(
                             chat_id=str(chat_id),
-                            is_active=True,
-                            is_verified=True
+                            require_verified=True
                         )
                         
-                        if user_link.user_id <= 0:
+                        # Parse feature ID from command
+                        command_parts = lower.split()
+                        if len(command_parts) != 2:
                             reply_text = (
-                                "❌ *Authentication Required*\n\n"
-                                "You need to complete authentication first.\n"
-                                "Use `/auth` to link your account."
+                                "❌ *Invalid Syntax*\n\n"
+                                "Usage: `/run <feature_id>`\n\n"
+                                "Example: `/run 123`\n"
+                                "Use `/subscriptions` to see your available features."
                             )
                         else:
-                            # Parse feature ID from command
-                            command_parts = lower.split()
-                            if len(command_parts) != 2:
-                                reply_text = (
-                                    "❌ *Invalid Syntax*\n\n"
-                                    "Usage: `/run <feature_id>`\n\n"
-                                    "Example: `/run 123`\n"
-                                    "Use `/subscriptions` to see your available features."
-                                )
-                            else:
-                                try:
-                                    feature_id = safe_int_conversion(command_parts[1], "feature_id", min_value=1)
-                                    
-                                    # Rate limiting check
-                                    from django.core.cache import cache
-                                    cache_key = f"run_command_rate_limit_{user_link.user_id}_{chat_id}"
-                                    last_run = cache.get(cache_key)
-                                    if last_run:
-                                        reply_text = (
-                                            "⏳ *Rate Limited*\n\n"
-                                            "Please wait 30 seconds between feature executions.\n"
-                                            "This prevents system overload and ensures fair usage."
-                                        )
-                                    else:
-                                        # Validate feature exists and user has access
-                                        with transaction.atomic():
-                                            try:
-                                                feature = Feature.objects.select_for_update().get(
-                                                    feature_id=feature_id
+                            try:
+                                feature_id = safe_int_conversion(command_parts[1], "feature_id", min_value=1)
+                                
+                                # Rate limiting check
+                                from django.core.cache import cache
+                                cache_key = f"run_command_rate_limit_{user_link.user_id}_{chat_id}"
+                                last_run = cache.get(cache_key)
+                                if last_run:
+                                    reply_text = (
+                                        "⏳ *Rate Limited*\n\n"
+                                        "Please wait 30 seconds between feature executions.\n"
+                                        "This prevents system overload and ensures fair usage."
+                                    )
+                                else:
+                                    # Validate feature exists and user has access
+                                    with transaction.atomic():
+                                        try:
+                                            feature = Feature.objects.select_for_update().get(
+                                                feature_id=feature_id
+                                            )
+                                            
+                                            # Check if user has access to feature's department
+                                            user_departments = get_user_accessible_departments(user_link.user_id)
+                                            user_dept_ids = [dept['department_id'] for dept in user_departments]
+                                            
+                                            if feature.department_id not in user_dept_ids:
+                                                reply_text = (
+                                                    "🚫 *Access Denied*\n\n"
+                                                    f"You don't have access to feature ID {feature_id}.\n"
+                                                    f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
+                                                    f"*Department:* {escape_telegram_markdown(feature.department_name)}\n\n"
+                                                    "Contact your administrator for access."
                                                 )
+                                            else:
+                                                # Check if feature is already running using the same API that frontend uses
+                                                try:
+                                                    from backend.utility.config_handler import get_cometa_socket_url
+                                                    socket_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/{feature_id}', timeout=5)
+                                                    running_check = socket_response.json().get('running', False) if socket_response.status_code == 200 else False
+                                                except Exception as e:
+                                                    logger.warning(f"Failed to check feature running status via socket: {e}")
+                                                    # Fallback to database check
+                                                    running_check = Feature_result.objects.filter(
+                                                        feature_id=feature,
+                                                        running=True
+                                                    ).exists()
                                                 
-                                                # Check if user has access to feature's department
-                                                user_departments = get_user_accessible_departments(user_link.user_id)
-                                                user_dept_ids = [dept['department_id'] for dept in user_departments]
-                                                
-                                                if feature.department_id not in user_dept_ids:
+                                                if running_check:
                                                     reply_text = (
-                                                        "🚫 *Access Denied*\n\n"
-                                                        f"You don't have access to feature ID {feature_id}.\n"
-                                                        f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
-                                                        f"*Department:* {escape_telegram_markdown(feature.department_name)}\n\n"
-                                                        "Contact your administrator for access."
+                                                        "⚠️ *Feature Already Running*\n\n"
+                                                        f"Feature ID {feature_id} is currently executing.\n"
+                                                        f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n\n"
+                                                        "Please wait for it to complete before running again."
                                                     )
                                                 else:
-                                                    # Check if feature is already running using the same API that frontend uses
-                                                    try:
-                                                        from backend.utility.config_handler import get_cometa_socket_url
-                                                        socket_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/{feature_id}', timeout=5)
-                                                        running_check = socket_response.json().get('running', False) if socket_response.status_code == 200 else False
-                                                    except Exception as e:
-                                                        logger.warning(f"Failed to check feature running status via socket: {e}")
-                                                        # Fallback to database check
-                                                        running_check = Feature_result.objects.filter(
-                                                            feature_id=feature,
-                                                            running=True
-                                                        ).exists()
-                                                    
-                                                    if running_check:
-                                                        reply_text = (
-                                                            "⚠️ *Feature Already Running*\n\n"
-                                                            f"Feature ID {feature_id} is currently executing.\n"
-                                                            f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n\n"
-                                                            "Please wait for it to complete before running again."
-                                                        )
-                                                    else:
-                                                            # Start feature execution
-                                                            try:
-                                                                # Set rate limit (30 seconds)
-                                                                cache.set(cache_key, timezone.now(), 30)
-                                                                
-                                                                # Note: We don't create Feature_result here because runFeature creates its own
-                                                                # The telegram notification info will be passed through runFeature
-                                                                
-                                                                # Get user details for audit
-                                                                from backend.models import OIDCAccount
+                                                        # Start feature execution
+                                                        try:
+                                                            # Set rate limit (30 seconds)
+                                                            cache.set(cache_key, timezone.now(), 30)
+                                                            
+                                                            # Note: We don't create Feature_result here because runFeature creates its own
+                                                            # The telegram notification info will be passed through runFeature
+                                                            
+                                                            # Get user details for audit (already validated)
+                                                            user_name = oidc_account.name
+                                                            user_email = oidc_account.email
+                                                            
+                                                            # Log execution attempt
+                                                            logger.info(
+                                                                f"Feature execution started via Telegram: "
+                                                                f"feature_id={feature_id}, "
+                                                                f"user={user_name} ({user_email}), "
+                                                                f"chat_id={chat_id}"
+                                                            )
+                                                            
+                                                            # Send immediate acknowledgment
+                                                            # Check if user has subscription to this feature
+                                                            has_subscription = TelegramSubscription.objects.filter(
+                                                                user_id=user_link.user_id,
+                                                                feature_id=feature_id
+                                                            ).exists()
+                                                            
+                                                            notification_info = (
+                                                                "📬 You'll receive a notification when it completes." 
+                                                                if has_subscription 
+                                                                else "💡 Subscribe to this feature to get completion notifications."
+                                                            )
+                                                            
+                                                            reply_text = (
+                                                                "🚀 *Test Execution Started*\n\n"
+                                                                f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
+                                                                f"*ID:* {feature_id}\n"
+                                                                f"*Department:* {escape_telegram_markdown(feature.department_name)}\n"
+                                                                f"*Started:* {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+                                                                f"⏳ Tests are now running...\n"
+                                                                f"{notification_info}"
+                                                            )
+                                                            
+                                                            # Start execution in background thread
+                                                            def execute_feature():
                                                                 try:
-                                                                    user = OIDCAccount.objects.get(user_id=user_link.user_id)
-                                                                    user_name = user.name
-                                                                    user_email = user.email
-                                                                except OIDCAccount.DoesNotExist:
-                                                                    user_name = f"User {user_link.user_id}"
-                                                                    user_email = "unknown"
-                                                                
-                                                                # Log execution attempt
-                                                                logger.info(
-                                                                    f"Feature execution started via Telegram: "
-                                                                    f"feature_id={feature_id}, "
-                                                                    f"user={user_name} ({user_email}), "
-                                                                    f"chat_id={chat_id}"
-                                                                )
-                                                                
-                                                                # Send immediate acknowledgment
-                                                                # Check if user has subscription to this feature
-                                                                has_subscription = TelegramSubscription.objects.filter(
-                                                                    user_id=user_link.user_id,
-                                                                    feature_id=feature_id
-                                                                ).exists()
-                                                                
-                                                                notification_info = (
-                                                                    "📬 You'll receive a notification when it completes." 
-                                                                    if has_subscription 
-                                                                    else "💡 Subscribe to this feature to get completion notifications."
-                                                                )
-                                                                
-                                                                reply_text = (
-                                                                    "🚀 *Test Execution Started*\n\n"
-                                                                    f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
-                                                                    f"*ID:* {feature_id}\n"
-                                                                    f"*Department:* {escape_telegram_markdown(feature.department_name)}\n"
-                                                                    f"*Started:* {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
-                                                                    f"⏳ Tests are now running...\n"
-                                                                    f"{notification_info}"
-                                                                )
-                                                                
-                                                                # Start execution in background thread
-                                                                def execute_feature():
-                                                                    try:
-                                                                        # Get user info to create proper mock request
-                                                                        from backend.models import OIDCAccount
-                                                                        from backend.serializers import OIDCAccountLoginSerializer
-                                                                        
-                                                                        try:
-                                                                            user_account = OIDCAccount.objects.get(user_id=user_link.user_id)
-                                                                            user_data = OIDCAccountLoginSerializer(user_account, many=False).data
-                                                                        except OIDCAccount.DoesNotExist:
-                                                                            logger.error(f"User account not found for user_id: {user_link.user_id}")
-                                                                            raise Exception("User account not found")
-                                                                        
-                                                                        # Create a mock request object for runFeature with complete user session
-                                                                        class MockRequest:
-                                                                            def __init__(self, user_data, telegram_chat_id):
-                                                                                self.session = {'user': user_data}
-                                                                                self.META = {
-                                                                                    'HTTP_X_SERVER': 'telegram-bot',
-                                                                                    'HTTP_COMETA_ORIGIN': 'TELEGRAM',
-                                                                                    'HTTP_TELEGRAM_CHAT_ID': str(telegram_chat_id)
-                                                                                }
-                                                                        
-                                                                        mock_request = MockRequest(user_data, chat_id)
-                                                                        
-                                                                        # Execute the feature using existing runFeature function
-                                                                        # This just starts the execution and returns immediately
-                                                                        result = runFeature(
-                                                                            request=mock_request,
-                                                                            feature_id=feature_id
-                                                                        )
-                                                                        
-                                                                        # Check if execution started successfully
-                                                                        if not result.get('success', False) if isinstance(result, dict) else True:
-                                                                            # Only send error if we couldn't start the execution
-                                                                            error_text = (
-                                                                                "❌ *Failed to Start Execution*\n\n"
-                                                                                f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
-                                                                                f"*ID:* {feature_id}\n\n"
-                                                                                "Could not start the test execution. Please try again."
-                                                                            )
-                                                                            error_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                                                                            requests.post(error_url, json={
-                                                                                "chat_id": chat_id,
-                                                                                "text": error_text,
-                                                                                "parse_mode": "Markdown",
-                                                                            }, timeout=10)
-                                                                        
-                                                                        # DO NOT send completion notification here!
-                                                                        # The feature is still running. 
-                                                                        # Users with subscriptions will get notified when it actually completes.
-                                                                        
-                                                                    except Exception as e:
-                                                                        logger.error(f"Feature execution failed: {str(e)}", exc_info=True)
-                                                                        
-                                                                        # Send error notification
+                                                                    # Get user info to create proper mock request
+                                                                    from backend.serializers import OIDCAccountLoginSerializer
+                                                                    
+                                                                    # Use the already validated oidc_account
+                                                                    user_data = OIDCAccountLoginSerializer(oidc_account, many=False).data
+                                                                    
+                                                                    # Create a mock request object for runFeature with complete user session
+                                                                    class MockRequest:
+                                                                        def __init__(self, user_data, telegram_chat_id):
+                                                                            self.session = {'user': user_data}
+                                                                            self.META = {
+                                                                                'HTTP_X_SERVER': 'telegram-bot',
+                                                                                'HTTP_COMETA_ORIGIN': 'TELEGRAM',
+                                                                                'HTTP_TELEGRAM_CHAT_ID': str(telegram_chat_id)
+                                                                            }
+                                                                    
+                                                                    mock_request = MockRequest(user_data, chat_id)
+                                                                    
+                                                                    # Execute the feature using existing runFeature function
+                                                                    # This just starts the execution and returns immediately
+                                                                    result = runFeature(
+                                                                        request=mock_request,
+                                                                        feature_id=feature_id
+                                                                    )
+                                                                    
+                                                                    # Check if execution started successfully
+                                                                    if not result.get('success', False) if isinstance(result, dict) else True:
+                                                                        # Only send error if we couldn't start the execution
                                                                         error_text = (
-                                                                            "❌ *Execution Error*\n\n"
+                                                                            "❌ *Failed to Start Execution*\n\n"
                                                                             f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
-                                                                            f"*ID:* {feature_id}\n"
-                                                                            f"*Error:* {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
-                                                                            "An error occurred during execution. "
-                                                                            "Please contact your administrator."
+                                                                            f"*ID:* {feature_id}\n\n"
+                                                                            "Could not start the test execution. Please try again."
                                                                         )
-                                                                        
                                                                         error_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                                                                        error_payload = {
+                                                                        requests.post(error_url, json={
                                                                             "chat_id": chat_id,
                                                                             "text": error_text,
                                                                             "parse_mode": "Markdown",
-                                                                        }
-                                                                        requests.post(error_url, json=error_payload, timeout=10)
-                                                                
-                                                                # Start execution thread
-                                                                execution_thread = threading.Thread(target=execute_feature)
-                                                                execution_thread.daemon = True
-                                                                execution_thread.start()
-                                                                
-                                                            except Exception as e:
-                                                                logger.error(f"Failed to start feature execution: {str(e)}", exc_info=True)
-                                                                reply_text = (
-                                                                    "❌ *Execution Failed*\n\n"
-                                                                    "Failed to start feature execution.\n"
-                                                                    "Please try again or contact your administrator."
-                                                                )
-                                                
-                                            except Feature.DoesNotExist:
-                                                reply_text = (
-                                                    "❌ *Feature Not Found*\n\n"
-                                                    f"Feature ID {feature_id} does not exist.\n\n"
-                                                    "Use `/subscriptions` to see your available features."
-                                                )
-                                                
-                                except (ValueError, ValidationError):
-                                    reply_text = (
-                                        "❌ *Invalid Feature ID*\n\n"
-                                        "Feature ID must be a positive number.\n\n"
-                                        "Example: `/run 123`\n"
-                                        "Use `/subscriptions` to see your available features."
-                                    )
+                                                                        }, timeout=10)
+                                                                    
+                                                                    # DO NOT send completion notification here!
+                                                                    # The feature is still running. 
+                                                                    # Users with subscriptions will get notified when it actually completes.
+                                                                    
+                                                                except Exception as e:
+                                                                    logger.error(f"Feature execution failed: {str(e)}", exc_info=True)
+                                                                    
+                                                                    # Send error notification
+                                                                    error_text = (
+                                                                        "❌ *Execution Error*\n\n"
+                                                                        f"*Feature:* {escape_telegram_markdown(feature.feature_name)}\n"
+                                                                        f"*ID:* {feature_id}\n"
+                                                                        f"*Error:* {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+                                                                        "An error occurred during execution. "
+                                                                        "Please contact your administrator."
+                                                                    )
+                                                                    
+                                                                    error_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                                                                    error_payload = {
+                                                                        "chat_id": chat_id,
+                                                                        "text": error_text,
+                                                                        "parse_mode": "Markdown",
+                                                                    }
+                                                                    requests.post(error_url, json=error_payload, timeout=10)
+                                                            
+                                                            # Start execution thread
+                                                            execution_thread = threading.Thread(target=execute_feature)
+                                                            execution_thread.daemon = True
+                                                            execution_thread.start()
+                                                            
+                                                        except Exception as e:
+                                                            logger.error(f"Failed to start feature execution: {str(e)}", exc_info=True)
+                                                            reply_text = (
+                                                                "❌ *Execution Failed*\n\n"
+                                                                "Failed to start feature execution.\n"
+                                                                "Please try again or contact your administrator."
+                                                            )
+                                            
+                                        except Feature.DoesNotExist:
+                                            reply_text = (
+                                                "❌ *Feature Not Found*\n\n"
+                                                f"Feature ID {feature_id} does not exist.\n\n"
+                                                "Use `/subscriptions` to see your available features."
+                                            )
+                                            
+                            except (ValueError, ValidationError):
+                                reply_text = (
+                                    "❌ *Invalid Feature ID*\n\n"
+                                    "Feature ID must be a positive number.\n\n"
+                                    "Example: `/run 123`\n"
+                                    "Use `/subscriptions` to see your available features."
+                                )
                                     
-                    except TelegramUserLink.DoesNotExist:
+                    except (AuthenticationError, TelegramUserLink.DoesNotExist) as e:
+                        logger.info(f"Authentication failed for /run: {str(e)}")
                         reply_text = (
                             "❌ *Account Not Linked*\n\n"
                             "You need to authenticate first.\n"
@@ -1687,7 +1706,7 @@ def link_telegram_chat(request):
                 'first_name': first_name,
                 'last_name': last_name,
                 'is_active': True,
-                'is_verified': True
+                'is_verified': False
             }
         )
         
@@ -1698,7 +1717,6 @@ def link_telegram_chat(request):
             user_link.first_name = first_name
             user_link.last_name = last_name
             user_link.is_active = True
-            user_link.is_verified = True
             user_link.save()
         
         return JsonResponse({
@@ -1785,55 +1803,47 @@ def complete_telegram_auth(request, token):
     try:
         logger.info(f"Starting Telegram auth completion for token: {token}")
         
-        # Verify the token (check hashed tokens)
-        from django.contrib.auth.hashers import check_password
-        
-        # Get all links with unexpired tokens
-        potential_links = TelegramUserLink.objects.filter(
-            auth_token__isnull=False,
-            auth_token_expires__gt=timezone.now()
-        )
-        
-        user_link = None
-        for link in potential_links:
-            if check_password(token, link.auth_token):
-                user_link = link
-                break
-        
-        if not user_link:
-            logger.error(f"No user link found for token: {token}")
-            return False, 0
+        # Use atomic transaction to prevent race conditions
+        with transaction.atomic():
+            # Use the centralized token verification
+            from .telegram_auth import TelegramAuthenticationHandler
+            user_link = TelegramAuthenticationHandler.verify_telegram_token(token)
             
-        if not user_link.is_auth_token_valid():
-            logger.error(f"Invalid or expired auth token: {token}")
-            return False, 0
+            if not user_link:
+                logger.error(f"No valid user link found for token: {token}")
+                return False, 0
+            
+            logger.info(f"Found valid user link for chat_id: {user_link.chat_id}")
+            
+            # Get user info from session
+            user_info = request.session.get('user')
+            if not user_info:
+                logger.error("No user info in session for Telegram auth completion")
+                logger.info(f"Session contents: {list(request.session.keys())}")
+                return False, 0
+            
+            # Validate user_id exists and is valid
+            user_id = user_info.get('user_id')
+            if not user_id or user_id == 0:
+                logger.error(f"Invalid user_id in session: {user_id}")
+                logger.info(f"User info contents: {user_info}")
+                return False, 0
+            
+            # Lock the row for update to prevent concurrent modifications
+            user_link = TelegramUserLink.objects.select_for_update().get(id=user_link.id)
+            
+            # Update user link with OAuth provider info
+            user_link.user_id = user_id
+            user_link.gitlab_username = user_info.get('name')  # OAuth username
+            user_link.gitlab_email = user_info.get('email')
+            user_link.gitlab_name = user_info.get('name')
+            user_link.is_verified = True
+            user_link.clear_auth_token()  # Clear the temporary token
+            user_link.save()
+            
+            logger.info(f"Updated user link: user_id={user_link.user_id}, is_verified={user_link.is_verified}")
         
-        logger.info(f"Found valid user link for chat_id: {user_link.chat_id}")
-        
-        # Get user info from session
-        user_info = request.session.get('user')
-        if not user_info:
-            logger.error("No user info in session for Telegram auth completion")
-            logger.info(f"Session contents: {list(request.session.keys())}")
-            return False, 0
-        
-        # Validate user_id exists and is valid
-        user_id = user_info.get('user_id')
-        if not user_id or user_id == 0:
-            logger.error(f"Invalid user_id in session: {user_id}")
-            logger.info(f"User info contents: {user_info}")
-            return False, 0
-        
-        # Update user link with OAuth provider info
-        user_link.user_id = user_id
-        user_link.gitlab_username = user_info.get('name')  # OAuth username
-        user_link.gitlab_email = user_info.get('email')
-        user_link.gitlab_name = user_info.get('name')
-        user_link.is_verified = True
-        user_link.clear_auth_token()  # Clear the temporary token
-        user_link.save()
-        
-        # Reactivate user's subscriptions
+        # Reactivate user's subscriptions (outside transaction for performance)
         reactivated_count = 0
         try:
             from backend.ee.modules.notification.managers import TelegramSubscriptionManager
