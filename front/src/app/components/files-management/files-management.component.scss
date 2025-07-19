@@ -625,7 +625,7 @@
   // Blue color for schedule icons with the has-schedule-icon class (higher specificity)
   button[ng-reflect-message*="Schedule"] .mat-icon.has-schedule-icon,
   button[ng-reflect-message*="schedule"] .mat-icon.has-schedule-icon {
-    color: #1976d2 !important; // Primary blue
+    color: $blue !important; // Primary blue
   }
 
   // Uploading status styling
@@ -633,7 +633,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #1976d2; // Primary blue to indicate active process
+    color: $blue; // Primary blue to indicate active process
     font-weight: 500;
     
     .status-spinner {
@@ -649,7 +649,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #1976d2; // Primary blue to indicate active process
+    color: $blue; // Primary blue to indicate active process
     font-weight: 500;
     
     .status-spinner {
@@ -665,7 +665,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #1976d2; // Primary blue to indicate active process
+    color: $blue; // Primary blue to indicate active process
     font-weight: 500;
     
     .status-spinner {
