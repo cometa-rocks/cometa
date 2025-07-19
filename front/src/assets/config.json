@@ -1,6 +1,6 @@
 {
-  "version": "3.0.73",
-  "stable_version": "3.0.70",
+  "version": "3.0.75",
+  "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -27,6 +27,9 @@
     "with": "tiles",
     "without": "tiles",
     "folder": "tiles"
+  },
+  "mobileView": {
+    "with": "tiles"
   },
   "internal": {
     "openedMenu": false,
@@ -238,12 +241,32 @@
   ],
   "changelog": [
     {
-      "version": "3.0.73",
+      "version": "3.0.75",
+      "date": "2025-07-14",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6559",
+          "description": "Add list view to mobile list, add noVNC button to mobile list, add spinner to mobile list, add warning message to mobile list, etc"
+        }
+      ]
+    },
+    {
+      "version": "3.0.74",
       "date": "2025-07-08",
       "features": [
         {
           "title": "Fixed issue with preselected department in user settings,mobile, DDT and Data Driven Execution dialogs - #6462",
           "description": "Fixed issue with preselected department in user settings, mobile, DDT and Data Driven Execution dialogs"
+        }
+      ]
+    },
+    {
+      "version": "3.0.73",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Pop-up conflict resolution, deprecated use of ngModel",
+          "description": "Fixed the conflict resolution pop-up when closing the edit feature dialog. Deprecated the use of ngModel in the edit feature dialog."
         }
       ]
     },

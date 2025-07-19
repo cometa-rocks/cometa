@@ -101,7 +101,7 @@ def takeScreenshot(device_driver):
             logger.error(f"Unable to take screenshot ...{(str(err))}")
             return None
 #
-# some usefull functions
+# some useful functions
 #
 # def takeScreenshot(device_driver, screenshots_step_path):
     # pass
@@ -753,7 +753,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
     excluded = ["Close the browser"]
     
     start_time = time.time()  # Add timing start
-    logger.debug("Starting execution of saveToDatabase")
+    logger.debug("Starting execution of take_screenshot_and_process")
     
     # Exclude banned steps
     if step_name in excluded:
@@ -785,7 +785,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
         if final_screenshot_file is None:
             return
         
-        logger.debug(f"Started the screenshot prcessing step thread for step {context.counters['index']}")
+        logger.debug(f"Started the screenshot processing step thread for step {context.counters['index']}")
         _async_process_screen_shot(
                   step_execution_sequence, 
                   feature_result_id,

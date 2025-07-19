@@ -445,6 +445,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.insertDefaultStep();
     }
 
+    // Update the disabled state of continue_on_failure checkbox based on department and user settings
+    this.updateContinueOnFailureState();
   }
 
   /**
@@ -1975,4 +1977,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.lastCompareCheckedIndex = index;
   }
 
+  /**
+   * Update the disabled state of continue_on_failure checkbox based on department and user settings
+   */
+  private updateContinueOnFailureState() {
+    // Get the continue_on_failure control from the form
+    const continueOnFailureControl = this.stepsForm.at(0)?.get('continue_on_failure');
+    if (!continueOnFailureControl) return;
+
+    // Check if department settings or user settings force disable the checkbox
+    // If continue_on_failure is false in settings, it means the checkbox should be disabled (forced)
+    const departmentForcedDisabled = this._editFeature?.department?.settings?.continue_on_failure === false;
+    const userForcedDisabled = this.user?.settings?.continue_on_failure === false;
+    const isForcedDisabled = departmentForcedDisabled || userForcedDisabled;
+    
+    if (isForcedDisabled) {
+      continueOnFailureControl.disable();
+    } else {
+      continueOnFailureControl.enable();
+    }
+  }
 }

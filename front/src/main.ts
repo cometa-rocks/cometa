@@ -45,6 +45,7 @@ import { BrowserstackState } from '@store/browserstack.state';
 import { EnvironmentsState } from '@store/environments.state';
 import { ApplicationsState } from '@store/applications.state';
 import { FeaturesState } from '@store/features.state';
+import { MobileState } from '@store/mobile.state';
 import { NgxsModule } from '@ngxs/store';
 import { NgxsFormPluginModule } from '@ngxs/form-plugin';
 import { SharedModule } from '@modules/shared.module';
@@ -148,6 +149,7 @@ bootstrapApplication(CometaComponent, {
           LoadingsState,
           IntegrationsState,
           SearchState,
+          MobileState,
           // Deprecated States or no longer used
           // ScreenshotsState,
           // RunsState,
