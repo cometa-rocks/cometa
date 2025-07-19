@@ -50,7 +50,7 @@
 
       
 
-      <!-- Statu-->
+      <!-- Status-->
       <div class="status" >
         <span matTooltip="Status" matTooltipPosition="above">{{ stand_by_browser.service_status }}</span>
       </div>
@@ -63,7 +63,11 @@
       </div>
 
       <!-- Labels -->
-      <div class="info" matTooltip="Information" matTooltipPosition="above">
+      <div class="info" 
+        [ngClass]="{ 'has-value': hasValue(stand_by_browser.labels) }" 
+        matTooltip="Information" 
+        matTooltipPosition="above"
+      >
         <pre>{{ stand_by_browser.labels | json }}</pre>
       </div>
 
