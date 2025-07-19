@@ -627,6 +627,60 @@
   button[ng-reflect-message*="schedule"] .mat-icon.has-schedule-icon {
     color: #1976d2 !important; // Primary blue
   }
+
+  // Uploading status styling
+  .status-uploading {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #1976d2; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Scanning status styling
+  .status-scanning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #1976d2; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Encrypting status styling
+  .status-encrypting {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #1976d2; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Spinner animation
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 }
 
 

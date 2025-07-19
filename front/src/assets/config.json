@@ -1,5 +1,5 @@
 {
-  "version": "3.0.75",
+  "version": "3.0.77",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.77",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6594",
+          "description": "Upgraded 'Status' label in file section to show current status of the file when uploading."
+        }
+      ]
+    },
     {
       "version": "3.0.75",
       "date": "2025-07-14",
