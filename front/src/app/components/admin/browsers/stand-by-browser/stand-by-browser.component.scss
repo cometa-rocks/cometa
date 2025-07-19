@@ -14,19 +14,24 @@
 
 
 .specs {
-  //width: 100%;
   flex: 1;
   display: flex;
-  text-align: center;
 }
+
+
+.checkbox{
+  margin-left: 15px;
+  width: 3%;
+}
+
 
 
 .id {
   text-overflow: ellipsis;
-  //overflow: hidden;
   white-space: nowrap; 
   border: 2px solid transparent;
   border-radius: 3px;
+  width: 5%;
    span {
     display: inline-block;
     vertical-align: middle;
@@ -35,10 +40,8 @@
 }
 
 .name {
-  flex: 0 120px;
-  margin-left: 30px;
+  width: 10%;
   text-overflow: ellipsis;
- //overflow: hidden;
   white-space: nowrap;        
   input {
     background: transparent;
@@ -52,10 +55,8 @@
 
 
 .service_id {
-  flex: 0 120px;
-  margin-left: 30px;
+  width: 12%;
   text-overflow: ellipsis;
-  overflow: hidden;
   white-space: nowrap;
   span {
     display: inline-block;
@@ -65,8 +66,7 @@
 }
 
 .status {
-  flex: 0 120px;
-  margin-left: 30px;
+  width: 10%;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -79,11 +79,11 @@
 
 
  .usage {
-  flex: 0 120px;
-  margin-left: 30px;
+  width: 10%;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+   text-align: center;
   span {
     display: inline-block;
     vertical-align: middle;
@@ -93,24 +93,26 @@
 
 
 .info {
-  flex: 0 120px;
-  margin-left: 30px;
+  width: 20%;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  span {
+}
+
+.info span {
     display: inline-block;
     vertical-align: middle;
     font-weight: bold;
-  }
 }
 
+/* Only apply line-height when labels have value */
+.info.has-value {
+  line-height: 20px;
+}
 
 .created_on {
-  flex: 0 120px;
-  margin-left: 30px;
+  width: 10%;
   text-overflow: ellipsis;
-  //overflow: hidden;
   white-space: nowrap;
   span {
     display: inline-block;
@@ -120,10 +122,9 @@
 }
 
 .remove {
-  flex: 0 0 100px;
-  margin-left: 250px;
-  padding: 0 10px;
-  //overflow: hidden;
+  width: 10%;
+  //margin-left: 200px;
+  padding: 0 5px;
   box-sizing: border-box;
   position: relative;
   cursor: pointer;
@@ -151,6 +152,12 @@
 
 
 
+
+
+
+
+
+
 .specs {
    display: block;
   @include for-tablet-portrait-up {
@@ -175,12 +182,6 @@
   border-radius: 5px;
 }
 
-
-
-
-.checkbox{
-  margin-left: 15px;
-}
 
 
 .icon-container-clipboard {
