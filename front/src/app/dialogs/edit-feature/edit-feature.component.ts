@@ -1057,15 +1057,69 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Open variables popup, only if a environment is selected (see HTML)
   openStartEmulatorScreen() {
+    // Check if form values are properly set
+    const departmentName = this.featureForm.get('department_name').value;
+    const environmentName = this.featureForm.get('environment_name').value;
+    
+    if (!departmentName || !environmentName) {
+      this._snackBar.open('Please select both department and environment first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department is available
+    if (!this.department) {
+      this._snackBar.open('Please select a department first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department has files property
+    if (!this.department.files) {
+      this._snackBar.open('No files available for this department', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
-    const departmentId = this.departments$.find(
-      dep =>
-        dep.department_name === this.featureForm.get('department_name').value
-    ).department_id;
+    
+    // Check if departments array is available
+    if (!this.departments$ || this.departments$.length === 0) {
+      this._snackBar.open('No departments available', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Find department ID from departments array
+    const selectedDepartment = this.departments$.find(
+      dep => dep.department_name === this.featureForm.get('department_name').value
+    );
+    
+    if (!selectedDepartment) {
+      this._snackBar.open('Department not found', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     this._dialog
       .open(MobileListComponent, {
         data: {
-          department_id: departmentId,
+          department_id: selectedDepartment.department_id,
           uploadedAPKsList: uploadedAPKsList
         },
         panelClass: 'mobile-emulator-panel',
@@ -1579,6 +1633,19 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get('app_name').setValue(featureInfo.app_name, { emitEvent: false });
       this.featureForm.get('department_name').setValue(featureInfo.department_name, { emitEvent: false });
       this.featureForm.get('environment_name').setValue(featureInfo.environment_name, { emitEvent: false });
+      
+      // Force initialize department object after setting form value
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === featureInfo.department_name
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
       this.feature.next(featureInfo);
       // Assign observable of department settings
       this.departmentSettings$ = this._store.select(
@@ -1801,17 +1868,60 @@ export class EditFeature implements OnInit, OnDestroy {
       }
     }
 
+    // Set the department form value if we have a selected department
+    let departmentToSet = null;
+    if (this.selected_department) {
+      departmentToSet = this.selected_department;
+      this.featureForm.get('department_name').setValue(this.selected_department, { emitEvent: false });
+    } else {
+      // Fallback: set default department if none is selected
+      const route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+      const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0]?.department_name;
+      if (defaultDepartment) {
+        departmentToSet = defaultDepartment;
+        this.featureForm.get('department_name').setValue(defaultDepartment, { emitEvent: false });
+      }
+    }
+    
+    // Force initialize department object after setting form value
+    if (departmentToSet) {
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === departmentToSet
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
+    }
+
     // Set application and environment from user preferences (these don't have context priority)
+    let appSet = false;
+    let envSet = false;
+    
     this.applications$.find(a => {
       if (a.app_id == preselectApplication) {
         this.featureForm.get('app_name').setValue(a.app_name, { emitEvent: false });
+        appSet = true;
       }
     });
     this.environments$.find(e => {
       if (e.environment_id == preselectEnvironment) {
         this.featureForm.get('environment_name').setValue(e.environment_name, { emitEvent: false });
+        envSet = true;
       }
     });
+    
+    // Fallback: set default application and environment if none is selected
+    if (!appSet && this.applications$ && this.applications$.length > 0) {
+      this.featureForm.get('app_name').setValue(this.applications$[0].app_name, { emitEvent: false });
+    }
+    if (!envSet && this.environments$ && this.environments$.length > 0) {
+      this.featureForm.get('environment_name').setValue(this.environments$[0].environment_name, { emitEvent: false });
+    }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
       // ... add addition properties here.

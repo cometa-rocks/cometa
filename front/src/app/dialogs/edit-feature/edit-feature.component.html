@@ -235,14 +235,14 @@
                 </div>
               </ng-container>
               
-              <ng-container>
+              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
                 <div class="button-container">
-                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
                     <div class="button-container">
                       <button
                         type="button"
                         color="primary"
-                        [disabled]="disableVariables"
+                        [disabled]="disableMobile"
                         (click)="openStartEmulatorScreen()"
                         mat-stroked-button
                         class="start-mobile-btn"
