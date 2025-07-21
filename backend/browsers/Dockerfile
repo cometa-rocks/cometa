@@ -7,7 +7,7 @@ USER root
 RUN apt-get update && \
     apt-get install -y \
     xvfb \
-    ffmpeg && \
+    ffmpeg \
     xterm && \
     apt-get clean 
 # Create a directory for recordings
