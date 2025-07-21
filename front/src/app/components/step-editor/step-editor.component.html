@@ -253,10 +253,7 @@
               *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
-              (click)="
-                stepVariableData['currentStepIndex'] === i
-                  ? (stepVariableData.currentStepIndex = i)
-                  : (stepVariableData.currentStepIndex = null)"
+              (click)="onStepTextareaClick($event, i)"
               (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
               (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
               (keydown.enter)="onTextareaEnter($event, i)"
@@ -272,6 +269,17 @@
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
+            <!-- Mobile name dropdown -->
+            <div
+              *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
+              class="mobile-dropdown"
+              [ngStyle]="{ position: 'absolute', top: mobileDropdownPosition.top + 'px', left: mobileDropdownPosition.left + 'px', zIndex: 1000, background: 'white', border: '1px solid #ccc', borderRadius: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }">
+              <div style="padding: 8px; font-weight: bold;">Select running mobile</div>
+              <div *ngIf="runningMobiles.length === 0" style="padding: 8px; color: #888;">No running mobiles</div>
+              <div *ngFor="let mobile of runningMobiles" (click)="selectMobileName(mobile.image?.mobile_image_name || mobile.hostname)" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;" [ngStyle]="{ borderBottom: '1px solid #eee' }">
+                {{ mobile.image?.mobile_image_name || mobile.hostname }}
+              </div>
+            </div>
             <mat-list
               class="var_name_autoComplete"
               [ngStyle]="{
