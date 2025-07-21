@@ -179,6 +179,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   private lastCompareCheckedIndex: number | null = null;
   private lastSelectCheckedIndex: number | null = null;
 
+  runningMobiles: any[] = []; // Should be Container[], but using any to avoid import issues
+  showMobileDropdown: boolean = false;
+  mobileDropdownPosition: { top: number; left: number } = { top: 0, left: 0 };
+  mobileDropdownStepIndex: number | null = null;
+  mobileDropdownReplaceIndex: number | null = null;
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -447,6 +453,77 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // Update the disabled state of continue_on_failure checkbox based on department and user settings
     this.updateContinueOnFailureState();
+    this.fetchRunningMobiles();
+  }
+
+  /**
+   * Fetch the list of running mobile containers and store them in runningMobiles.
+   */
+  fetchRunningMobiles() {
+    this._api.getContainersList().subscribe((containers: any[]) => { // Changed type to any[] to avoid import issues
+      this.runningMobiles = containers.filter(c => c.service_status === 'Running');
+      this._cdr.detectChanges();
+    });
+  }
+
+  /**
+   * Detects if the cursor is inside a {mobile_name} placeholder and shows the dropdown.
+   * @param event Focus or click event from the textarea
+   * @param index Step index
+   */
+  onStepTextareaClick(event: MouseEvent, index: number) {
+    const textarea = event.target as HTMLTextAreaElement;
+    const value = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    // Regex to find all {mobile_name} occurrences
+    const regex = /\{mobile_name\}/g;
+    let match;
+    let found = false;
+    while ((match = regex.exec(value)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (cursorPos >= start && cursorPos <= end) {
+        // Cursor is inside {mobile_name}
+        found = true;
+        this.showMobileDropdown = true;
+        this.mobileDropdownStepIndex = index;
+        this.mobileDropdownReplaceIndex = start;
+        // Calculate dropdown position (approximate, below textarea)
+        const rect = textarea.getBoundingClientRect();
+        this.mobileDropdownPosition = {
+          top: rect.top + window.scrollY + 30,
+          left: rect.left + window.scrollX + 10
+        };
+        this._cdr.detectChanges();
+        break;
+      }
+    }
+    if (!found) {
+      this.showMobileDropdown = false;
+      this.mobileDropdownStepIndex = null;
+      this.mobileDropdownReplaceIndex = null;
+      this._cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Handles selection of a mobile from the dropdown, replacing {mobile_name} with the selected name.
+   * @param mobileName The selected mobile name
+   */
+  selectMobileName(mobileName: string) {
+    if (this.mobileDropdownStepIndex === null || this.mobileDropdownReplaceIndex === null) return;
+    const stepFormGroup = this.stepsForm.at(this.mobileDropdownStepIndex) as FormGroup;
+    const contentControl = stepFormGroup.get('step_content');
+    const value = contentControl?.value || '';
+    // Replace the first {mobile_name} occurrence after the tracked index
+    const before = value.substring(0, this.mobileDropdownReplaceIndex);
+    const after = value.substring(this.mobileDropdownReplaceIndex + '{mobile_name}'.length);
+    const newValue = before + mobileName + after;
+    contentControl?.setValue(newValue);
+    this.showMobileDropdown = false;
+    this.mobileDropdownStepIndex = null;
+    this.mobileDropdownReplaceIndex = null;
+    this._cdr.detectChanges();
   }
 
   /**
@@ -868,10 +945,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
 
     // Get the corresponding textarea and select the first parameter
-    const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
+    const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+    const input = textareas && textareas[index] as HTMLInputElement;
     const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
     const match = parameterRegex.exec(step);
-    if (match) {
+    if (input && match) {
       this._ngZone.runOutsideAngular(() =>
         input.setSelectionRange(match.index, match.index + match[0].length)
       );
@@ -1737,6 +1815,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (hasExplicitNewline || isVisuallyWrapped) {
       this.renderer.addClass(textarea, 'allow-resize');
     }
+  }
+
+  /**
+   * Automatically grows the textarea height to fit its content.
+   * @param event The input event from the textarea.
+   */
+  autoGrowTextarea(event: Event) {
+    const textarea = event.target as HTMLTextAreaElement;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   }
 
   /**
