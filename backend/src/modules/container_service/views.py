@@ -11,6 +11,7 @@ from backend.ee.modules.mobile.models import Mobile
 
 # Django Imports
 from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import ValidationError
 from .models import ContainerService
 from .serializers import ContainerServiceSerializer
 from backend.utility.response_manager import ResponseManager
@@ -149,6 +150,10 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                 logger.error(f"Failed to send WebSocket notification for container update: {str(e)}")
             
             return self.response_manager.updated_response(updated_data)
+        except ValidationError as e:
+            # Return the specific validation error message
+            error_message = str(e.messages[0]) if hasattr(e, 'messages') and e.messages else str(e)
+            return JsonResponse({"success": False, "message": error_message}, status=200)
         except Exception as e:
             traceback.print_exc()
             return self.response_manager.can_not_be_updated_response(kwargs["pk"])

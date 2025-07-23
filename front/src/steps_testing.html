@@ -76,6 +76,36 @@
       section {
         margin-bottom: 50px;
       }
+      /* Dynamic forms styles */
+      .card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .form-row input {
+        flex: 1;
+      }
+      #add_form_btn {
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        border-radius: 50%;
+        background: #4caf50;
+        color: #fff;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
     </style>
   </head>
   <body>
@@ -329,6 +359,22 @@
         <tbody id="table-body"></tbody>
       </table>
     </section>
+    <section id="dynamic_forms">
+      <h2>Dynamic Forms</h2>
+      <button id="add_form_btn" title="Add new form">+</button>
+      <div id="forms_container">
+        <div class="card form-card">
+          <div class="form-row">
+            <input type="text" placeholder="First Name" name="first_name" />
+            <input type="text" placeholder="Last Name" name="last_name" />
+          </div>
+          <div class="form-row">
+            <input type="email" placeholder="Email" name="email" />
+            <input type="tel" placeholder="Phone" name="phone" />
+          </div>
+        </div>
+      </div>
+    </section>
   </body>
   <script>
     var clickables = document.querySelectorAll('.click');
@@ -497,6 +543,22 @@
       }
       dynamicSizeToggle = !dynamicSizeToggle;
     }, 2000);
+
+    /* -------------------- Dynamic Forms -------------------- */
+    (function () {
+      const addBtn = document.getElementById('add_form_btn');
+      const formsContainer = document.getElementById('forms_container');
+      if (addBtn && formsContainer) {
+        addBtn.addEventListener('click', function () {
+          const template = document.querySelector('.form-card');
+          if (!template) return;
+          const clone = template.cloneNode(true);
+          clone.querySelectorAll('input').forEach((inp) => (inp.value = ''));
+          formsContainer.appendChild(clone);
+          clone.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+    })();
 
   </script>
 </html>
