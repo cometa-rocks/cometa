@@ -431,6 +431,9 @@ def done(*_args, **_kwargs):
                         logger.debug(f"args[0].text {args[0].text}")
                         found_vars.extend(found_vars_in_text)
                     # logger.debug(f"Found variables for {parameter_value} value {found_vars}")
+                    # Replace variables which are present in between of values provided in the step parameter
+                    # i.e. if value is [@resource-id="undefined.item_$year-$month"]
+                    # then $year and $month will be replaced with the value of the variable
                     for raw_var in found_vars:
                         # logger.debug(f"Iterating for {raw_var}")
                         if raw_var.startswith('%'):
@@ -442,9 +445,9 @@ def done(*_args, **_kwargs):
                             # Clean $VAR and ${VAR}
                             variable_name = raw_var.strip('${}$')
 
-                        # Find the variable in the env_variables list
+                        # # Find the variable in the env_variables list
                         # logger.debug(f"Trying to find value for variable {variable_name}")
-                        # logger.debug(f"env_variables {variable_name}")
+                        # logger.debug(f"env_variables {env_variables}")
                         index = [
                             i for i, _ in enumerate(env_variables)
                             if _["variable_name"] == variable_name
@@ -478,7 +481,13 @@ def done(*_args, **_kwargs):
                             safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
                             kwargs[parameter] = re.sub(pattern, lambda m: safe_value, parameter_value)
 
-                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                        # logger.debug(f"parameter_value {parameter_value}")
+                        parameter_value = parameter_value.replace(("$%s" % variable_name), returnDecrypted(env_var["variable_value"]))
+                        # logger.debug(f"parameter_value {parameter_value} after replace")
+
+                    # Assign back parameter_value value to kwargs[parameter] which will be passed in the step parameter
+                    kwargs[parameter] = parameter_value
+                    # logger.debug(f"kwargs[parameter] {kwargs[parameter]}")
                     # replace job parameters
                     for (
                         parameter_key
