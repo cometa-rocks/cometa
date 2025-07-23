@@ -251,6 +251,20 @@
       ]
     },
     {
+      "version": "3.0.76",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "Enhance APK installation messages - #6580",
+          "description": "Enhanced APK installation messages to provide more detailed information about the installation process."
+        },
+        {
+          "title": "Snackbar visual improvement - #6580",
+          "description": "Fixed issue snackbar displayed behind the edit mobile dialog."
+        }
+      ]
+    },
+    {
       "version": "3.0.75",
       "date": "2025-07-14",
       "features": [
