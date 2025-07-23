@@ -658,7 +658,8 @@ interface UploadedFile {
     | 'Encrypting'
     | 'DataDriven'
     | 'Done'
-    | 'Error';
+    | 'Error'
+    | 'Uploading';
 }
 
 interface Uploader {

@@ -66,7 +66,7 @@
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
     <div
-      (click)="addEmpty(item)"
+      (click)="addEmpty(item, true)"
       [matTooltip]="'step-definition.insert-new-above' | translate" matTooltipPosition="right">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
@@ -74,7 +74,7 @@
   </ng-template>
   <ng-template contextMenuItem let-item>
     <div
-      (click)="addEmpty(item + 1)"
+      (click)="addEmpty(item + 1, true)"
       [matTooltip]="'step-definition.insert-new-below' | translate" matTooltipPosition="right">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
@@ -466,26 +466,6 @@
             <mat-icon color="warn">delete</mat-icon>Delete
           </button>
         </mat-menu>
-        <div class="autocomplete-container">
-          <div class="autocomplete-wrapper">
-            <mat-autocomplete
-              #stepHelp="matAutocomplete"
-              (opened)="onAutocompleteOpened(i)"
-              (optionSelected)="selectFirstVariable($event, i)"
-              (optionActivated)="onOptionActivated($event, i)"
-              (closed)="closeAutocomplete(i)">
-              
-              <ng-container *ngFor="let group of filteredGroupedActions$ | async">
-                <mat-optgroup [label]="group.name">
-                  <mat-option *ngFor="let action of group.actions" [value]="action.action_name">
-                    {{ action.action_name }}
-                  </mat-option>
-                </mat-optgroup>
-              </ng-container>
-
-            </mat-autocomplete>
-          </div>
-        </div>
       </div>
       <div *ngIf="!showHideStepDocumentation">
         <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
@@ -642,7 +622,7 @@
     <mat-menu #addStep="matMenu" yPosition="below">
       <button 
         type="button"
-        (click)="addEmpty()" mat-menu-item>
+        (click)="addEmpty(-1, false)" mat-menu-item>
         <mat-icon>chat_bubble</mat-icon>Empty
       </button>
       <button 
@@ -653,3 +633,21 @@
     </mat-menu>
   </div>
 </div>
+
+<!-- Single shared autocomplete instance outside the loop -->
+<mat-autocomplete
+  #stepHelp="matAutocomplete"
+  (opened)="onAutocompleteOpened(currentFocusedStepIndex)"
+  (optionSelected)="selectFirstVariable($event, currentFocusedStepIndex)"
+  (optionActivated)="onOptionActivated($event, currentFocusedStepIndex)"
+  (closed)="closeAutocomplete(currentFocusedStepIndex)">
+  
+  <ng-container *ngFor="let group of filteredGroupedActions$ | async">
+    <mat-optgroup [label]="group.name">
+      <mat-option *ngFor="let action of group.actions" [value]="action.action_name">
+        {{ action.action_name }}
+      </mat-option>
+    </mat-optgroup>
+  </ng-container>
+
+</mat-autocomplete>
