@@ -307,3 +307,9 @@ h2, h3 {
   overflow: visible !important;
   max-width: none !important;
 }
+
+// High z-index snackbar
+::ng-deep .high-z-index-snackbar {
+  z-index: 10000 !important;
+}
+
