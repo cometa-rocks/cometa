@@ -15,7 +15,8 @@ import {
   EventEmitter,
   HostListener,
   ViewContainerRef,
-  ComponentFactoryResolver
+  ComponentFactoryResolver,
+  AfterViewChecked
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -101,6 +102,9 @@ import { ApiTestingComponent } from '@components/api-testing/api-testing.compone
 import { TruncateApiBodyPipe } from '../../pipes/truncate-api-body.pipe';
 import { MatBadgeModule } from '@angular/material/badge';
 
+// Remove any local interface definitions - use global ones from interfaces.d.ts
+// The interfaces Department and UploadedFile are already defined globally
+
 interface StepState {
   showLinkIcon: boolean;
   featureId: number | null;
@@ -142,7 +146,7 @@ interface StepState {
     MatBadgeModule,
   ],
 })
-export class StepEditorComponent extends SubSinkAdapter implements OnInit {
+export class StepEditorComponent extends SubSinkAdapter implements OnInit, AfterViewChecked {
   stepsForm: UntypedFormArray;
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
@@ -184,6 +188,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   mobileDropdownPosition: { top: number; left: number } = { top: 0, left: 0 };
   mobileDropdownStepIndex: number | null = null;
   mobileDropdownReplaceIndex: number | null = null;
+
+  // Controls whether the step autocomplete should be disabled (e.g., when editing mobile name)
+  disableStepAutocomplete: boolean = false;
+
+  // Holds the pixel width of the quoted content for the mobile dropdown
+  mobileDropdownWidth: number = 180;
+
+  // Tracks whether the dropdown is for mobile_name or mobile_code
+  mobileDropdownType: 'name' | 'code' | 'package' | 'activity' = 'name';
+
+  // Example list of app activities (replace with real data source as needed)
+  appActivities: string[] = [
+    'com.example.app1.MainActivity',
+    'com.example.app1.SettingsActivity',
+    'com.example.app2.LauncherActivity'
+  ];
+
+  @ViewChild('dropdownRef') dropdownRef!: ElementRef<HTMLDivElement>;
+  @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
+  dropdownActiveIndex: number = 0;
 
   constructor(
     private _dialog: MatDialog,
@@ -458,72 +482,292 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   /**
    * Fetch the list of running mobile containers and store them in runningMobiles.
+   * Debug log added to show the result.
    */
   fetchRunningMobiles() {
     this._api.getContainersList().subscribe((containers: any[]) => { // Changed type to any[] to avoid import issues
       this.runningMobiles = containers.filter(c => c.service_status === 'Running');
+      // Debug: Log the runningMobiles array
+      console.log('[DEBUG] fetchRunningMobiles - runningMobiles:', this.runningMobiles);
       this._cdr.detectChanges();
     });
   }
 
   /**
-   * Detects if the cursor is inside a {mobile_name} placeholder and shows the dropdown.
-   * @param event Focus or click event from the textarea
-   * @param index Step index
+   * Show the mobile dropdown ONLY if the cursor is inside quotes and the quoted text is a valid placeholder.
+   * This ensures the dropdown is not shown unless the user clicks exactly inside the quotes.
+   * Placeholders allowed: {mobile_name}, {mobile_code}, {app_package}, {app_activity}, or any running mobile image_name.
    */
   onStepTextareaClick(event: MouseEvent, index: number) {
     const textarea = event.target as HTMLTextAreaElement;
     const value = textarea.value;
-    const cursorPos = textarea.selectionStart;
-    // Regex to find all {mobile_name} occurrences
-    const regex = /\{mobile_name\}/g;
+    let cursorPos = textarea.selectionStart;
+
+    // Regex to find all quoted substrings
+    const regex = /"([^"]*)"/g;
     let match;
     let found = false;
+    // Loop through all quoted substrings to find the one where the cursor is inside
     while ((match = regex.exec(value)) !== null) {
-      const start = match.index;
-      const end = start + match[0].length;
+      const start = match.index + 1; // after first quote
+      const end = start + match[1].length;
       if (cursorPos >= start && cursorPos <= end) {
-        // Cursor is inside {mobile_name}
-        found = true;
-        this.showMobileDropdown = true;
-        this.mobileDropdownStepIndex = index;
-        this.mobileDropdownReplaceIndex = start;
-        // Calculate dropdown position (approximate, below textarea)
-        const rect = textarea.getBoundingClientRect();
-        this.mobileDropdownPosition = {
-          top: rect.top + window.scrollY + 30,
-          left: rect.left + window.scrollX + 10
-        };
-        this._cdr.detectChanges();
-        break;
+        // Cursor is inside these quotes
+        const insideText = match[1];
+        const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+        const stepAction = stepFormGroup.get('step_action')?.value || '';
+        // Find all quoted substrings to determine parameter position using exec loop
+        const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
+        const quoteRegex = /"([^"]*)"/g;
+        let quoteMatch;
+        while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+          allMatches.push({
+            index: quoteMatch.index,
+            text: quoteMatch[1],
+            start: quoteMatch.index + 1,
+            end: quoteMatch.index + 1 + quoteMatch[1].length
+          });
+        }
+        let paramIndex = -1;
+        for (let mi = 0; mi < allMatches.length; mi++) {
+          const m = allMatches[mi];
+          if (cursorPos >= m.start && cursorPos <= m.end) {
+            paramIndex = mi;
+            break;
+          }
+        }
+        // Allow dropdown if:
+        // 1. The text matches the placeholder (as antes)
+        // 2. The text is empty and the action expects this parameter (for user help)
+        let allowEmptyDropdown = false;
+        if (insideText === '' && stepAction) {
+          // For 'On mobile start app' type actions, show APK for first param, Activity for second
+          if (/on mobile start app/i.test(stepAction) || /on mobile start app/i.test(value)) {
+            if (paramIndex === 0) {
+              this.mobileDropdownType = 'package';
+              allowEmptyDropdown = true;
+            } else if (paramIndex === 1) {
+              this.mobileDropdownType = 'activity';
+              allowEmptyDropdown = true;
+            }
+          } else {
+            // Fallback heuristics for other actions
+            if (
+              stepAction.toLowerCase().includes('app_package') ||
+              value.toLowerCase().includes('{app_package}')
+            ) {
+              this.mobileDropdownType = 'package';
+              allowEmptyDropdown = true;
+            } else if (
+              stepAction.toLowerCase().includes('app_activity') ||
+              value.toLowerCase().includes('{app_activity}')
+            ) {
+              this.mobileDropdownType = 'activity';
+              allowEmptyDropdown = true;
+            } else if (
+              stepAction.toLowerCase().includes('mobile_code') ||
+              value.toLowerCase().includes('{mobile_code}')
+            ) {
+              this.mobileDropdownType = 'code';
+              allowEmptyDropdown = true;
+            } else if (
+              stepAction.toLowerCase().includes('mobile_name') ||
+              value.toLowerCase().includes('{mobile_name}')
+            ) {
+              this.mobileDropdownType = 'name';
+              allowEmptyDropdown = true;
+            }
+          }
+        }
+        if (
+          insideText === '{mobile_name}' ||
+          insideText === '{mobile_code}' ||
+          insideText === '{app_package}' ||
+          insideText === '{app_activity}' ||
+          this.runningMobiles.some(m => m.image_name === insideText) ||
+          allowEmptyDropdown
+        ) {
+          // Set dropdown type if not already set by allowEmptyDropdown
+          if (!allowEmptyDropdown) {
+            if (insideText === '{mobile_code}') {
+              this.mobileDropdownType = 'code';
+            } else if (insideText === '{app_package}') {
+              this.mobileDropdownType = 'package';
+            } else if (insideText === '{app_activity}') {
+              this.mobileDropdownType = 'activity';
+            } else {
+              this.mobileDropdownType = 'name';
+            }
+          }
+          // Always refresh the list of running mobiles before showing the dropdown
+          this.fetchRunningMobiles();
+
+          this.showMobileDropdown = true;
+          this.mobileDropdownStepIndex = index;
+          this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
+
+          // Always recalculate the dropdown position and width every time it is shown
+          setTimeout(() => {
+            const coords = this.getCaretCoordinates(textarea, start);
+            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+            // Add offset: -120px to top, 18px to left for better dropdown positioning
+            // This ensures the dropdown appears above and slightly to the right of the quote
+            const left = textarea.offsetLeft + coords.left + 18;
+            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+            const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
+            this.mobileDropdownWidth = dropdownWidth;
+            this._cdr.detectChanges();
+            dropdownEl.style.left = `${left}px`;
+            dropdownEl.style.top = `${top}px`;
+            dropdownEl.style.minWidth = `${dropdownWidth}px`;
+          }, 0);
+
+          this.disableStepAutocomplete = true; // Disable autocomplete when editing mobile name/code/package/activity
+          this.dropdownActiveIndex = 0;
+          found = true;
+          break; // Stop after finding the correct match
+        }
       }
     }
+    // If not found, always hide the dropdown and reset related state
     if (!found) {
       this.showMobileDropdown = false;
       this.mobileDropdownStepIndex = null;
       this.mobileDropdownReplaceIndex = null;
+      this.disableStepAutocomplete = false; // Enable autocomplete otherwise
       this._cdr.detectChanges();
     }
   }
 
   /**
-   * Handles selection of a mobile from the dropdown, replacing {mobile_name} with the selected name.
-   * @param mobileName The selected mobile name
+   * Measures the pixel width of a text string using a hidden span with the same font as the textarea.
+   */
+  measureTextWidth(text: string, textarea: HTMLTextAreaElement): number {
+    const span = document.createElement('span');
+    span.style.visibility = 'hidden';
+    span.style.position = 'absolute';
+    span.style.whiteSpace = 'pre';
+    span.style.font = getComputedStyle(textarea).font;
+    span.textContent = text || ' '; // fallback to space if empty
+    document.body.appendChild(span);
+    const width = span.offsetWidth + 32; // add some padding for dropdown arrow
+    document.body.removeChild(span);
+    return width;
+  }
+
+  /**
+   * Helper to get the pixel coordinates of a caret position in a textarea.
+   * Uses a hidden div to mirror the textarea content and measure the caret.
+   */
+  getCaretCoordinates(textarea: HTMLTextAreaElement, position: number) {
+    // Create a mirror div
+    const div = document.createElement('div');
+    const style = getComputedStyle(textarea);
+    for (const prop of [
+      'boxSizing', 'width', 'height', 'overflowX', 'overflowY', 'borderTopWidth',
+      'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'paddingTop',
+      'paddingRight', 'paddingBottom', 'paddingLeft', 'fontStyle', 'fontVariant',
+      'fontWeight', 'fontStretch', 'fontSize', 'fontSizeAdjust', 'lineHeight',
+      'fontFamily', 'textAlign', 'textTransform', 'textIndent', 'textDecoration',
+      'letterSpacing', 'wordSpacing', 'tabSize', 'MozTabSize']) {
+      // @ts-ignore
+      div.style[prop] = style[prop];
+    }
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+    div.style.top = textarea.offsetTop + 'px';
+    div.style.left = textarea.offsetLeft + 'px';
+    div.style.zIndex = '10000';
+    div.textContent = textarea.value.substring(0, position);
+    // Create a span for the caret
+    const span = document.createElement('span');
+    span.textContent = textarea.value.substring(position) || '.';
+    div.appendChild(span);
+    document.body.appendChild(div);
+    const top = span.offsetTop;
+    const left = span.offsetLeft;
+    document.body.removeChild(div);
+    return { top, left };
+  }
+
+  /**
+   * When a mobile is selected, replace the quoted string (including quotes) where the cursor was
+   * with the new mobile name in quotes. If not found, fallback to replacing the first {mobile_name}.
    */
   selectMobileName(mobileName: string) {
-    if (this.mobileDropdownStepIndex === null || this.mobileDropdownReplaceIndex === null) return;
+    if (this.mobileDropdownStepIndex === null) return;
     const stepFormGroup = this.stepsForm.at(this.mobileDropdownStepIndex) as FormGroup;
     const contentControl = stepFormGroup.get('step_content');
     const value = contentControl?.value || '';
-    // Replace the first {mobile_name} occurrence after the tracked index
-    const before = value.substring(0, this.mobileDropdownReplaceIndex);
-    const after = value.substring(this.mobileDropdownReplaceIndex + '{mobile_name}'.length);
-    const newValue = before + mobileName + after;
+
+    // Regex to find the quoted string where the cursor was
+    const regex = /"([^"]*)"/g;
+    let match;
+    let newValue = value;
+    let replaced = false;
+    // Find the quoted string that contains the cursor
+    while ((match = regex.exec(value)) !== null) {
+      const start = match.index;
+      const end = regex.lastIndex;
+      if (
+        this.mobileDropdownReplaceIndex !== null &&
+        this.mobileDropdownReplaceIndex >= start &&
+        this.mobileDropdownReplaceIndex <= end
+      ) {
+        // Replace the quoted string (including quotes) with the new mobile name in quotes
+        newValue = value.substring(0, start) + `"${mobileName}"` + value.substring(end);
+        replaced = true;
+        break;
+      }
+    }
+    // Fallback: if not found, just replace the first {mobile_name} (legacy)
+    if (!replaced) {
+      newValue = value.replace('{mobile_name}', mobileName);
+    }
     contentControl?.setValue(newValue);
     this.showMobileDropdown = false;
     this.mobileDropdownStepIndex = null;
     this.mobileDropdownReplaceIndex = null;
     this._cdr.detectChanges();
+  }
+
+  /**
+   * Handles selection from the <select> dropdown for mobile names.
+   */
+  onMobileDropdownSelect(mobileName: string) {
+    if (mobileName) {
+      this.selectMobileName(mobileName);
+      // After selection, refocus the textarea and place the cursor inside the next placeholder if present
+      setTimeout(() => {
+        // Find the current textarea for the step
+        const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+        if (this.mobileDropdownStepIndex !== null && textareas[this.mobileDropdownStepIndex]) {
+          const textarea = textareas[this.mobileDropdownStepIndex] as HTMLTextAreaElement;
+          textarea.focus();
+          // Try to place the cursor inside the next quoted placeholder
+          const value = textarea.value;
+          const regex = /"([^"]*\{(mobile_name|mobile_code|app_package|app_activity)\}[^"]*)"/g;
+          let match;
+          let found = false;
+          while ((match = regex.exec(value)) !== null) {
+            const start = match.index + 1;
+            const end = start + match[1].length;
+            // If the placeholder is still present, place the cursor inside it
+            if (match[1].includes('{mobile_name}') || match[1].includes('{mobile_code}') || match[1].includes('{app_package}') || match[1].includes('{app_activity}')) {
+              textarea.setSelectionRange(start, end);
+              found = true;
+              break;
+            }
+          }
+          // If not found, place the cursor at the end
+          if (!found) {
+            textarea.setSelectionRange(value.length, value.length);
+          }
+        }
+      }, 0);
+    }
   }
 
   /**
@@ -643,13 +887,165 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     } else {
       this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     }
+    
+    // Check if the step contains mobile placeholders and auto-open dropdown for the first one
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea) {
+      const value = textarea.value;
+      // Find all quoted substrings to check for placeholders
+      const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
+      const quoteRegex = /"([^"]*)"/g;
+      let quoteMatch;
+      while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+        allMatches.push({
+          index: quoteMatch.index,
+          text: quoteMatch[1],
+          start: quoteMatch.index + 1,
+          end: quoteMatch.index + 1 + quoteMatch[1].length
+        });
+      }
+      
+      // Find the first placeholder and open dropdown
+      for (let mi = 0; mi < allMatches.length; mi++) {
+        const m = allMatches[mi];
+        if (m.text.includes('{mobile_name}') || m.text.includes('{mobile_code}') || 
+            m.text.includes('{app_package}') || m.text.includes('{app_activity}')) {
+          
+          // Set dropdown type based on placeholder
+          if (m.text.includes('{mobile_code}')) {
+            this.mobileDropdownType = 'code';
+          } else if (m.text.includes('{app_package}')) {
+            this.mobileDropdownType = 'package';
+          } else if (m.text.includes('{app_activity}')) {
+            this.mobileDropdownType = 'activity';
+          } else {
+            this.mobileDropdownType = 'name';
+          }
+          
+          // Always refresh the list of running mobiles before showing the dropdown
+          this.fetchRunningMobiles();
+          
+          this.showMobileDropdown = true;
+          this.mobileDropdownStepIndex = index;
+          this.mobileDropdownReplaceIndex = m.start - 1;
+          
+          // Position the dropdown
+          setTimeout(() => {
+            const coords = this.getCaretCoordinates(textarea, m.start);
+            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+            const left = textarea.offsetLeft + coords.left + 18;
+            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+            const dropdownWidth = Math.max(this.measureTextWidth(m.text, textarea), 120);
+            this.mobileDropdownWidth = dropdownWidth;
+            this._cdr.detectChanges();
+            dropdownEl.style.left = `${left}px`;
+            dropdownEl.style.top = `${top}px`;
+            dropdownEl.style.minWidth = `${dropdownWidth}px`;
+          }, 0);
+          
+          this.disableStepAutocomplete = true;
+          this.dropdownActiveIndex = 0;
+          break; // Only open dropdown for the first placeholder found
+        }
+      }
+    }
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
-  onTextareaTab(i: number) {
+  onTextareaTab(event: KeyboardEvent, i: number) {
     if (this.stepVariableData.currentStepIndex === i) {
       this.stepVariableData.currentStepIndex = null;
     }
+    
+    // Get the current textarea and its content
+    const textarea = event.target as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const value = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    
+    // Find all quoted substrings to determine if cursor is inside quotes
+    const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
+    const quoteRegex = /"([^"]*)"/g;
+    let quoteMatch;
+    while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+      allMatches.push({
+        index: quoteMatch.index,
+        text: quoteMatch[1],
+        start: quoteMatch.index + 1,
+        end: quoteMatch.index + 1 + quoteMatch[1].length
+      });
+    }
+    
+    // Check if cursor is inside any quoted substring
+    let currentQuoteIndex = -1;
+    for (let mi = 0; mi < allMatches.length; mi++) {
+      const m = allMatches[mi];
+      if (cursorPos >= m.start && cursorPos <= m.end) {
+        currentQuoteIndex = mi;
+        break;
+      }
+    }
+    
+    // If cursor is inside quotes, move to the next pair of quotes in a loop
+    if (currentQuoteIndex >= 0) {
+      let nextQuoteIndex: number;
+      // If we're at the last quote, loop back to the first one
+      if (currentQuoteIndex >= allMatches.length - 1) {
+        nextQuoteIndex = 0;
+      } else {
+        nextQuoteIndex = currentQuoteIndex + 1;
+      }
+      
+      const nextQuote = allMatches[nextQuoteIndex];
+      // Position cursor at the beginning of the next quoted content and select all content inside
+      textarea.setSelectionRange(nextQuote.start, nextQuote.end);
+      
+      // Check if the next quote contains a placeholder and open corresponding dropdown
+      if (nextQuote.text.includes('{mobile_name}') || nextQuote.text.includes('{mobile_code}') || 
+          nextQuote.text.includes('{app_package}') || nextQuote.text.includes('{app_activity}')) {
+        
+        // Set dropdown type based on placeholder
+        if (nextQuote.text.includes('{mobile_code}')) {
+          this.mobileDropdownType = 'code';
+        } else if (nextQuote.text.includes('{app_package}')) {
+          this.mobileDropdownType = 'package';
+        } else if (nextQuote.text.includes('{app_activity}')) {
+          this.mobileDropdownType = 'activity';
+        } else {
+          this.mobileDropdownType = 'name';
+        }
+        
+        // Always refresh the list of running mobiles before showing the dropdown
+        this.fetchRunningMobiles();
+        
+        this.showMobileDropdown = true;
+        this.mobileDropdownStepIndex = i;
+        this.mobileDropdownReplaceIndex = nextQuote.start - 1;
+        
+        // Position the dropdown
+        setTimeout(() => {
+          const coords = this.getCaretCoordinates(textarea, nextQuote.start);
+          const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+          const left = textarea.offsetLeft + coords.left + 18;
+          const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+          const dropdownWidth = Math.max(this.measureTextWidth(nextQuote.text, textarea), 120);
+          this.mobileDropdownWidth = dropdownWidth;
+          this._cdr.detectChanges();
+          dropdownEl.style.left = `${left}px`;
+          dropdownEl.style.top = `${top}px`;
+          dropdownEl.style.minWidth = `${dropdownWidth}px`;
+        }, 0);
+        
+        this.disableStepAutocomplete = true;
+        this.dropdownActiveIndex = 0;
+      }
+      
+      event.preventDefault(); // Prevent default tab behavior
+      return;
+    }
+    
+    // If no more quotes or cursor is not in quotes, allow normal tab behavior
   }
 
   // inserts variable into step when clicked
@@ -2085,5 +2481,79 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     } else {
       continueOnFailureControl.enable();
     }
+  }
+
+  /**
+   * Returns the list of .apk file names for the current department (not removed).
+   * Used for the app_package dropdown.
+   */
+  get appPackages(): string[] {
+    return (this.department?.files as UploadedFile[])
+      ?.filter(file => file.name.endsWith('.apk') && !file.is_removed)
+      ?.map(file => file.name) || [];
+  }
+
+  // Focus the dropdown when it appears
+  ngAfterViewChecked() {
+    if (this.showMobileDropdown && this.dropdownRef) {
+      this.dropdownRef.nativeElement.focus();
+      // Scroll the active option into view
+      const options = this.dropdownOptionRefs?.toArray();
+      if (options && options[this.dropdownActiveIndex]) {
+        options[this.dropdownActiveIndex].nativeElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }
+
+  // Handle keyboard navigation in the custom dropdown
+  onDropdownKeydown(event: KeyboardEvent) {
+    let optionsLength = 0;
+    if (this.mobileDropdownType === 'activity') {
+      optionsLength = this.appActivities.length;
+    } else if (this.mobileDropdownType === 'package') {
+      optionsLength = this.appPackages.length;
+    } else {
+      optionsLength = this.runningMobiles.length;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
+      this._cdr.detectChanges();
+      setTimeout(() => {
+        const options = this.dropdownOptionRefs?.toArray();
+        if (options && options[this.dropdownActiveIndex]) {
+          options[this.dropdownActiveIndex].nativeElement.scrollIntoView({ block: 'nearest' });
+        }
+      }, 0);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
+      this._cdr.detectChanges();
+      setTimeout(() => {
+        const options = this.dropdownOptionRefs?.toArray();
+        if (options && options[this.dropdownActiveIndex]) {
+          options[this.dropdownActiveIndex].nativeElement.scrollIntoView({ block: 'nearest' });
+        }
+      }, 0);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (optionsLength > 0) {
+        if (this.mobileDropdownType === 'activity') {
+          this.onMobileDropdownSelect(this.appActivities[this.dropdownActiveIndex]);
+        } else if (this.mobileDropdownType === 'package') {
+          this.onMobileDropdownSelect(this.appPackages[this.dropdownActiveIndex]);
+        } else {
+          const mobile = this.runningMobiles[this.dropdownActiveIndex];
+          this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);
+        }
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation(); // Prevent dialog close
+      this.showMobileDropdown = false;
+      this.dropdownActiveIndex = 0;
+      this._cdr.detectChanges();
+    }
+    this._cdr.detectChanges();
   }
 }
