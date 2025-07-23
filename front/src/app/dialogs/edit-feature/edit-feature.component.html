@@ -105,108 +105,162 @@
             >
           </div>
           <div class="depends">
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
-                Depends on other feature
-              </mat-checkbox>
-              <div class="hover-box">(D)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
-              <div class="hover-box">(H)</div>
-            </div>
-            <div class="checkbox-container notification-parent" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <div class="main-checkbox-wrapper">
-                <mat-checkbox color="primary" formControlName="send_notification" [matTooltip]="'Enable notifications (email and/or Telegram) when test finishes'" matTooltipPosition="above">Send notification on finish</mat-checkbox>
-                <div class="hover-box">(M)</div>
-              </div>
-              
-              <!-- Notification sub-options -->
-              <div class="notification-sub-options" *ngIf="featureForm.value.send_notification">
-                <div class="checkbox-container sub-checkbox">
-                  <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
-                    Email
+            <!-- Checkboxes Section - Four Columns with Headers -->
+            <div class="checkboxes-section">
+              <!-- Basic Options Column -->
+              <div class="checkbox-column">
+                <div class="column-header">
+                  <mat-icon class="header-icon">settings</mat-icon>
+                  <span class="header-title">Basic Options</span>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">link</mat-icon>
+                    Depends on other feature
                   </mat-checkbox>
+                  <div class="hover-box">(D)</div>
                 </div>
-                <div class="checkbox-container sub-checkbox">
-                  <mat-checkbox color="primary" formControlName="send_telegram_notification" [matTooltip]="'Send test results via Telegram notification'" matTooltipPosition="above">Telegram</mat-checkbox>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">help</mat-icon>
+                    {{ 'need_help.ask_for' | translate }}
+                  </mat-checkbox>
+                  <div class="hover-box">(H)</div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                    <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
+                      <mat-icon class="checkbox-icon">error_outline</mat-icon>
+                      Continue on failure
+                    </mat-checkbox>
+                    <div class="hover-box">(F)</div>
+                  </ng-container>
                 </div>
               </div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
-                Record video
-              </mat-checkbox>
-              <div class="hover-box">(R)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox
-                color="primary"
-                *ngIf="!featureForm.value.depends_on_others"
-                formControlName="network_logging"
-                [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
-                Network Logging
-              </mat-checkbox>
-              <div class="hover-box">(N)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox
-                color="primary"
-                *ngIf="!featureForm.value.depends_on_others"
-                formControlName="generate_dataset"
-                [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
-                Generate Dataset
-              </mat-checkbox>
-              <div class="hover-box">(G)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
-                <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" formControlName="continue_on_failure">
-                  Continue on failure
-                </mat-checkbox>
-                <div class="hover-box">(F)</div>
-              </ng-container>
-            </div>
-            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
-              <div class="checkbox-container move-right">
-                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <button
-                    type="button"
+
+              <!-- Recording Options Column -->
+              <div class="checkbox-column">
+                <div class="column-header">
+                  <mat-icon class="header-icon">videocam</mat-icon>
+                  <span class="header-title">Recording Options</span>
+                </div>
+                <div class="checkbox-container notification-parent" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <div class="main-checkbox-wrapper">
+                    <mat-checkbox color="primary" formControlName="send_notification" [matTooltip]="'Enable notifications (email and/or Telegram) when test finishes'" matTooltipPosition="above">
+                      <mat-icon class="checkbox-icon">notifications</mat-icon>
+                      Send notification on finish
+                    </mat-checkbox>
+                    <div class="hover-box">(M)</div>
+                  </div>
+                  
+                  <!-- Notification sub-options -->
+                  <div class="notification-sub-options" *ngIf="featureForm.value.send_notification">
+                    <div class="checkbox-container sub-checkbox">
+                      <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
+                        <mat-icon class="checkbox-icon">email</mat-icon>
+                        Email
+                      </mat-checkbox>
+                    </div>
+                    <div class="checkbox-container sub-checkbox">
+                      <mat-checkbox color="primary" formControlName="send_telegram_notification" [matTooltip]="'Send test results via Telegram notification'" matTooltipPosition="above">
+                        <mat-icon class="checkbox-icon">chat</mat-icon>
+                        Telegram
+                      </mat-checkbox>
+                    </div>
+                  </div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">videocam</mat-icon>
+                    Record video
+                  </mat-checkbox>
+                  <div class="hover-box">(R)</div>
+                </div>
+              </div>
+
+              <!-- Advanced Options Column -->
+              <div class="checkbox-column">
+                <div class="column-header">
+                  <mat-icon class="header-icon">build</mat-icon>
+                  <span class="header-title">Advanced Options</span>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox
                     color="primary"
-                    [disabled]="disableVariables"
-                    (click)="editVariables()"
-                    mat-stroked-button
-                    [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
-                    Edit Variables
-                  </button>
-                </span>
-                <div class="hover-box-Vshortcut">(V)</div>
+                    *ngIf="!featureForm.value.depends_on_others"
+                    formControlName="network_logging"
+                    [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">network_check</mat-icon>
+                    Network Logging
+                  </mat-checkbox>
+                  <div class="hover-box">(N)</div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox
+                    color="primary"
+                    *ngIf="!featureForm.value.depends_on_others"
+                    formControlName="generate_dataset"
+                    [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">storage</mat-icon>
+                    Generate Dataset
+                  </mat-checkbox>
+                  <div class="hover-box">(G)</div>
+                </div>
               </div>
-            </ng-container>
-            <ng-container>
-              <div class="checkbox-container move-right">
-                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <div class="button-container">
+            </div>
+
+            <!-- Divider -->
+            <mat-divider vertical class="section-divider"></mat-divider>
+
+            <!-- Buttons Section - Single Column -->
+            <div class="buttons-section">
+              <div class="column-header">
+                <mat-icon class="header-icon">play_arrow</mat-icon>
+                <span class="header-title">Actions</span>
+              </div>
+              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+                <div class="button-container">
+                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
                     <button
                       type="button"
                       color="primary"
                       [disabled]="disableVariables"
-                      (click)="openStartEmulatorScreen()"
+                      (click)="editVariables()"
                       mat-stroked-button
-                      [matTooltip]="'mobile_list.emulator_mobile' | translate"
-                      matTooltipPosition="above">
-                      Start Mobile
+                      [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
+                      Edit Variables
                     </button>
-                    <mat-icon
-                      class="memberShip"
-                      [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
-                      card_membership
-                    </mat-icon>
-                  </div>
-                </span>
-                <div class="hover-box-Vshortcut">(S)</div>
-              </div>
-            </ng-container>
+                  </span>
+                  <div class="hover-box-Vshortcut">(V)</div>
+                </div>
+              </ng-container>
+              
+              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
+                <div class="button-container">
+                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
+                    <div class="button-container">
+                      <button
+                        type="button"
+                        color="primary"
+                        [disabled]="disableMobile"
+                        (click)="openStartEmulatorScreen()"
+                        mat-stroked-button
+                        class="start-mobile-btn"
+                        [matTooltip]="'mobile_list.emulator_mobile' | translate"
+                        matTooltipPosition="above">
+                        Start Mobile
+                      </button>
+                      <mat-icon
+                        class="memberShip"
+                        [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
+                        card_membership
+                      </mat-icon>
+                    </div>
+                  </span>
+                  <div class="hover-box-Vshortcut">(S)</div>
+                </div>
+              </ng-container>
+            </div>
           </div>
         </ng-template>
       </mat-expansion-panel>
