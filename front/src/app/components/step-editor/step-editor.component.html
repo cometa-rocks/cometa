@@ -240,23 +240,24 @@
             class="step_content"
             tabindex="0"
             (focusout)="onStepFocusOut($event)"
-            (keydown.esc)="onStepEscape($event)"
-            (keydown.Tab)="onTextareaTab(i)">
+            (keydown.esc)="onStepEscape($event)">
             <div 
                 *ngIf="isApiCallStep(i) && !isEditingApiCall(i)"
                 class="collapsed-api-call"
                 (click)="expandApiCall(i)">
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
+            <!-- Textarea with autocomplete enabled -->
             <textarea
+              *ngIf="!disableStepAutocomplete"
               #stepTextarea
-              *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
-              (click)="onStepTextareaClick($event, i)"
+              (click)="onStepTextareaClick($event, i, 0)"
               (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
               (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
               (keydown.enter)="onTextareaEnter($event, i)"
+              (keydown.Tab)="onTextareaTab($event, i)"
               (keydown.control.arrowup)="insertStep($event, i)"
               (keydown.control.arrowdown)="insertStep($event, i)"
               (keydown.alt.control.arrowup)="copyStep($event, i)"
@@ -269,16 +270,70 @@
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
-            <!-- Mobile name dropdown -->
-            <div
-              *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
-              class="mobile-dropdown"
-              [ngStyle]="{ position: 'absolute', top: mobileDropdownPosition.top + 'px', left: mobileDropdownPosition.left + 'px', zIndex: 1000, background: 'white', border: '1px solid #ccc', borderRadius: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }">
-              <div style="padding: 8px; font-weight: bold;">Select running mobile</div>
-              <div *ngIf="runningMobiles.length === 0" style="padding: 8px; color: #888;">No running mobiles</div>
-              <div *ngFor="let mobile of runningMobiles" (click)="selectMobileName(mobile.image?.mobile_image_name || mobile.hostname)" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;" [ngStyle]="{ borderBottom: '1px solid #eee' }">
-                {{ mobile.image?.mobile_image_name || mobile.hostname }}
-              </div>
+
+            <!-- Textarea with autocomplete disabled -->
+            <textarea
+              *ngIf="disableStepAutocomplete"
+              #stepTextarea
+              (input)="onStepChange($event, i); autoGrowTextarea($event)"
+              (blur)="fixStep($event, i)"
+              (click)="onStepTextareaClick($event, i, 0)"
+              (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
+              (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+              (keydown.enter)="onTextareaEnter($event, i)"
+              (keydown.Tab)="onTextareaTab($event, i)"
+              (keydown.control.arrowup)="insertStep($event, i)"
+              (keydown.control.arrowdown)="insertStep($event, i)"
+              (keydown.alt.control.arrowup)="copyStep($event, i)"
+              (keydown.alt.control.arrowdown)="copyStep($event, i)"
+              class="code"
+              spellcheck="false"
+              autocomplete="off"
+              formControlName="step_content"
+              placeholder="Step Code"
+              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
+            </textarea>
+            <!-- Absolutely positioned custom dropdown: shows Activities if type is 'activity', APKs if 'package', otherwise mobiles -->
+            <div *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
+                 #dropdownRef
+                 stopPropagation
+                 class="mobile-inline-dropdown custom-dropdown"
+                 tabindex="0"
+                 (keydown)="onDropdownKeydown($event)">
+              <ul class="dropdown-list">
+                <li class="dropdown-placeholder" disabled>
+                  {{ mobileDropdownType === 'activity' ? 'Select an Activity' : (mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile') }}
+                </li>
+                <ng-container *ngIf="mobileDropdownType === 'activity'; else packageOrMobileOptions">
+                  <li *ngFor="let activity of appActivities; let idx = index"
+                      #dropdownOptionRef
+                      class="dropdown-option"
+                      [class.active]="dropdownActiveIndex === idx"
+                      (click)="onMobileDropdownSelect(activity)">
+                    {{ activity }}
+                  </li>
+                </ng-container>
+                <ng-template #packageOrMobileOptions>
+                  <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
+                    <li *ngFor="let apk of appPackages; let idx = index"
+                        #dropdownOptionRef
+                        class="dropdown-option"
+                        [class.active]="dropdownActiveIndex === idx"
+                        (click)="onMobileDropdownSelect(apk)">
+                      {{ apk }}
+                    </li>
+                  </ng-container>
+                  <ng-template #mobileOptions>
+                    <li *ngFor="let mobile of runningMobiles; let idx = index"
+                        #dropdownOptionRef
+                        class="dropdown-option"
+                        [class.active]="dropdownActiveIndex === idx"
+                        (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
+                      {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
+                    </li>
+                  </ng-template>
+                </ng-template>
+              </ul>
             </div>
             <mat-list
               class="var_name_autoComplete"
