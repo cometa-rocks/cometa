@@ -378,6 +378,55 @@ class DockerServiceManager:
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
 
+        # Check if emulator is ready
+        try:
+            exit_code, output = container.exec_run("adb devices")
+            if exit_code != 0:
+                return False, "Unable to check emulator status. Please ensure ADB is available."
+            
+            # Parse the output properly
+            lines = output.decode('utf-8').strip().split('\n')
+            if len(lines) < 2:  # Should have header + at least one device
+                return False, "No emulator device found. Please wait for the emulator to start."
+            
+            # Check the specific device status (skip header line)
+            device_found = False
+            for line in lines[1:]:
+                if line.strip():  # Skip empty lines
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        device_found = True
+                        device_status = parts[1].strip()
+                        if device_status == 'offline':
+                            logger.info(f"APK installation skipped - Emulator device offline")
+                            return False, "Emulator is still starting up. Please wait a moment and try again."
+                        elif device_status != 'device':
+                            logger.info(f"APK installation skipped - Emulator in unexpected state: {device_status}")
+                            return False, f"Emulator is in unexpected state: {device_status}. Please restart the emulator."
+            
+            if not device_found:
+                logger.info(f"APK installation skipped - No emulator device detected")
+                return False, "No emulator device detected. Please ensure the emulator is running."
+            
+            # Check if system is fully booted
+            exit_code, output = container.exec_run("adb shell getprop sys.boot_completed")
+            if exit_code != 0 or output.strip() != b"1":
+                logger.info(f"APK installation skipped - Android system still booting")
+                return False, "Android system is still booting. Please wait a moment and try again."
+            
+            # Check if package service is available
+            exit_code, output = container.exec_run("adb shell pm list packages -3")
+            if exit_code != 0:
+                if b"Can't find service: package" in output:
+                    logger.info(f"APK installation skipped - Package service not ready")
+                    return False, "Android package service is not ready yet. Please wait a moment and try again."
+                else:
+                    logger.warning(f"APK installation skipped - Package service error: {output.decode('utf-8').strip()}")
+                    return False, f"Error checking package service: {output.decode('utf-8').strip()}"
+                
+        except Exception as e:
+            return False, f"Error checking emulator status: {str(e)}"
+
         command = f"adb install \"/tmp/{apk_file_name}\""
 
         # Run the tar extraction command in the container
