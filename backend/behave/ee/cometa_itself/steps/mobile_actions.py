@@ -725,7 +725,7 @@ def close_mobile_application(context, app_package):
 
 # Uninstalls the specified app from the device.
 # Example: Uninstall app "com.example.apk" with "Do not fail"
-@step('On mobile uninstall app "{app_package}"(?: with "{option}")?')
+@step('On mobile uninstall app "{app_package}" with "{option}"')
 @done('On mobile uninstall app "{app_package}" with "{option}"')
 def uninstall_app_from_device(context, app_package, option):
     context.STEP_TYPE = "MOBILE"
@@ -1292,10 +1292,6 @@ def assert_if_element_present(context, selector):
     )
 
     
-
-
-use_step_matcher("parse")
-
 # Check if a specific element is visible on the screen.  
 # Example: Check if element "//android.widget.Button[@text='Submit']" is visible
 @step('On mobile validate if "{selector}" is present and save result in "{variable}"')
@@ -1317,7 +1313,7 @@ def check_if_element_present(context, selector, variable):
         logger.debug(f"Exception while checking presence of '{selector}': {e}")
     
     # Save the result to the variable
-    addTestRuntimeVariable(context, variable, str(result))
+    addTestRuntimeVariable(context, variable, str(result), save_to_step_report=True)
     send_step_details(context, f"Presence validation result for '{selector}' saved to variable '{variable}': {result}")
     
 
@@ -1337,6 +1333,9 @@ def check_if_element_visible(context, selector, variable):
         element = waitSelector(
             context=context, selector_type="xpath", selector=selector
         )
+            # waitSelector method might also return the list of webelement
+        if not isinstance(element, WebElement):
+            element = element[0]
         result = element.is_displayed()  # If element is returned, it's present
         send_step_details(context, f"Selector '{selector}' is present: {result}")
     except Exception as e:
@@ -1344,6 +1343,6 @@ def check_if_element_visible(context, selector, variable):
         logger.debug(f"Exception while checking presence of '{selector}': {e}")
     
     # Save the result to the variable
-    addTestRuntimeVariable(context, variable, str(result))
+    addTestRuntimeVariable(context, variable, str(result), save_to_step_report=True)
     send_step_details(context, f"Visibility validation result for '{selector}' saved to variable '{variable}': {result}")
     
