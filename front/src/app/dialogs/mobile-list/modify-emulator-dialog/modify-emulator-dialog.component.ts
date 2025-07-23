@@ -238,7 +238,6 @@ export class ModifyEmulatorDialogComponent {
               },
               error: (error) => {
                 console.error('Error installing APKs:', error);
-                this.snack.open("Error installing one or more APKs", "OK");
                 this.isSaving = false;
                 this._cdr.detectChanges();
               }
@@ -276,7 +275,6 @@ export class ModifyEmulatorDialogComponent {
           },
           error: (error) => {
             console.error('Error installing APKs:', error);
-            this.snack.open("Error installing one or more APKs", "OK");
             this.isSaving = false;
             this._cdr.detectChanges();
           }
@@ -334,7 +332,9 @@ export class ModifyEmulatorDialogComponent {
           errorMessage = error.message;
         }
         
-        this.snack.open(errorMessage, 'OK');
+        this.snack.open(errorMessage, 'OK', {
+          panelClass: 'high-z-index-snackbar'
+        });
         return throwError(() => error);
       })
     );
