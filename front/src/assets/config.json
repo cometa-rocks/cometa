@@ -242,8 +242,12 @@
   "changelog": [
     {
       "version": "3.0.78",
-      "date": "2025-07-20",
+      "date": "2025-07-22",
       "features": [
+        {
+          "title": "Step editor improvements - #6608",
+          "description": "Fixed issue on step editor preventing step list from being displayed when adding a new step above."
+        },
         {
           "title": "Improvements to Recent Component and Feature Editing",
           "description": "Changes made to the Recent component and Feature view. It now displays whether the feature sends notifications and if it is connected to Telegram. Checkboxes and buttons are now better organized in the Edit Feature section."
