@@ -247,6 +247,34 @@
         {
           "title": "Step editor improvements - #6608",
           "description": "Fixed issue on step editor preventing step list from being displayed when adding a new step above."
+        },
+        {
+          "title": "Improvements to Recent Component and Feature Editing",
+          "description": "Changes made to the Recent component and Feature view. It now displays whether the feature sends notifications and if it is connected to Telegram. Checkboxes and buttons are now better organized in the Edit Feature section."
+        }
+      ]
+    },
+    {
+      "version": "3.0.77",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "File uploading status - #6594",
+          "description": "Upgraded 'Status' label in file section to show current status of the file when uploading."
+        }
+      ]
+    },
+    {
+      "version": "3.0.76",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "Enhance APK installation messages - #6580",
+          "description": "Enhanced APK installation messages to provide more detailed information about the installation process."
+        },
+        {
+          "title": "Snackbar visual improvement - #6580",
+          "description": "Fixed issue snackbar displayed behind the edit mobile dialog."
         }
       ]
     },
