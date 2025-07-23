@@ -477,8 +477,11 @@ def done(*_args, **_kwargs):
                             # Then use lambda to avoid re.sub interpreting escape sequences
                             safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
                             kwargs[parameter] = re.sub(pattern, lambda m: safe_value, parameter_value)
+                        parameter_value = parameter_value.replace(("$%s" % variable_name), returnDecrypted(env_var["variable_value"]))
 
-                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                    # Assign back parameter_value value to kwargs[parameter] which will be passed in the step parameter
+                    kwargs[parameter] = parameter_value
+                            
                     # replace job parameters
                     for (
                         parameter_key

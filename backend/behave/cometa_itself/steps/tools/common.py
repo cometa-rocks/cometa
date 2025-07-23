@@ -472,29 +472,34 @@ def click_element_by_css(context, selector):
     # 1. Wait for the element to be displayed using EC.visibility_of
     elapsed = time.time() - start_time
     remaining_time = max(0.5, step_timeout - elapsed)
+    logger.debug(f"Waiting for element to be displayed, remaining time {remaining_time}")
     try:
         wait_displayed = WebDriverWait(context.browser, remaining_time)
         wait_displayed.until(EC.visibility_of(element))
     except TimeoutException:
         raise CometaTimeoutException(f"Element with css selector '{selector}' was not displayed after {remaining_time:.1f} seconds")
 
-    # 2. Recalculate remaining time
     error = None
     while remaining_time > 0:
-        elapsed = time.time() - start_time
-        remaining_time = max(0.5, step_timeout - elapsed)
         try:
-            wait_clickable = WebDriverWait(context.browser, remaining_time)
-            wait_clickable.until(EC.element_to_be_clickable(element))
-            logger.debug(f"Clicking element {element}")
+            WebDriverWait(context.browser, max(0.5, remaining_time)).until(EC.element_to_be_clickable(element))
+            logger.debug(f"Clicking element '{selector}', remaining time {remaining_time:.1f}s")
             element.click()
-            break
-        except Exception as e :
+            return  # success
+        except ElementClickInterceptedException as e:
+            logger.debug(f"Click intercepted on '{selector}', retrying...")
             error = e
-    if error:
-        logger.exception(f"Error: {error}")
-        raise error
+            time.sleep(0.5)
+        except Exception as e:
+            logger.debug(f"Unhandled exception when clicking '{selector}'")
+            error = e
+            break
 
+        elapsed = time.time() - start_time
+        remaining_time = step_timeout - elapsed
+
+    # Raise the last encountered error if retries fail
+    raise error if error else Exception(f"Failed to click element '{selector}' after {step_timeout}s")
 
 def click_element(context, element):
     if element.is_displayed():
