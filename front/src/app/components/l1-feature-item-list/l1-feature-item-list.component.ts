@@ -121,6 +121,8 @@ export class L1FeatureItemListComponent implements OnInit {
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
+
+
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
     );
@@ -447,6 +449,42 @@ export class L1FeatureItemListComponent implements OnInit {
         { duration: 2000 }
       );
     });
+  }
+
+  /**
+   * Get email notification tooltip text
+   */
+  getEmailTooltip(): string {
+    let tooltip = 'Email notifications enabled. Recipients: ';
+    
+    if (this.item.reference?.email_address && this.item.reference.email_address.length > 0) {
+      tooltip += this.item.reference.email_address.join(', ');
+    }
+    
+    if (this.item.reference?.email_cc_address && this.item.reference.email_cc_address.length > 0) {
+      tooltip += ` (CC: ${this.item.reference.email_cc_address.join(', ')})`;
+    }
+    
+    if (this.item.reference?.email_bcc_address && this.item.reference.email_bcc_address.length > 0) {
+      tooltip += ` (BCC: ${this.item.reference.email_bcc_address.join(', ')})`;
+    }
+    
+    return tooltip;
+  }
+
+  /**
+   * Get Telegram notification tooltip text
+   */
+  getTelegramTooltip(): string {
+    let tooltip = 'Telegram notifications enabled';
+    
+    if (this.item.reference?.telegram_options?.override_chat_ids) {
+      tooltip += `. Custom chat IDs: ${this.item.reference.telegram_options.override_chat_ids}`;
+    } else {
+      tooltip += '. Using department settings';
+    }
+    
+    return tooltip;
   }
 
 }
