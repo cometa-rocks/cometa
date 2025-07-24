@@ -2129,22 +2129,22 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const currentStepContent = this.stepsForm.at(i)?.get('step_content')?.value || '';
     
     if(event.key == 'ArrowDown'){
-        this.addEmpty(i+1, true); // Open autocomplete
-        // Focus the newly created step immediately
+        this.addEmpty(i+1, true); 
         this.focusStep(i+1);
     }
     else if (event.key == 'ArrowUp'){
-        this.addEmpty(i, true); // Open autocomplete
-        // Focus the newly created step immediately
+        this.addEmpty(i, true); 
         this.focusStep(i);
     }
     
-    // Ensure the original step content is preserved after insertion
-    setTimeout(() => {
-      if (this.stepsForm.at(i) && this.stepsForm.at(i).get('step_content')?.value !== currentStepContent) {
-        this.stepsForm.at(i).get('step_content')?.setValue(currentStepContent);
-      }
-    }, 150);
+    // If we inserted below (ArrowDown), the original content might be overridden; restore it.
+    if (event.key === 'ArrowDown') {
+      setTimeout(() => {
+        if (this.stepsForm.at(i) && this.stepsForm.at(i).get('step_content')?.value !== currentStepContent) {
+          this.stepsForm.at(i).get('step_content')?.setValue(currentStepContent);
+        }
+      }, 150);
+    }
   }
 
   copyStep(event: KeyboardEvent, i: number){
