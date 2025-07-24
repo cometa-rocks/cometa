@@ -293,7 +293,7 @@
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
-            <!-- Absolutely positioned custom dropdown: shows Activities if type is 'activity', APKs if 'package', otherwise mobiles -->
+            <!-- Absolutely positioned custom dropdown: shows APKs if type is 'package', otherwise mobiles -->
             <div *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
                  #dropdownRef
                  stopPropagation
@@ -302,18 +302,9 @@
                  (keydown)="onDropdownKeydown($event)">
               <ul class="dropdown-list">
                 <li class="dropdown-placeholder" disabled>
-                  {{ mobileDropdownType === 'activity' ? 'Select an Activity' : (mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile') }}
+                  {{ mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile' }}
                 </li>
-                <ng-container *ngIf="mobileDropdownType === 'activity'; else packageOrMobileOptions">
-                  <li *ngFor="let activity of appActivities; let idx = index"
-                      #dropdownOptionRef
-                      class="dropdown-option"
-                      [class.active]="dropdownActiveIndex === idx"
-                      (click)="onMobileDropdownSelect(activity)">
-                    {{ activity }}
-                  </li>
-                </ng-container>
-                <ng-template #packageOrMobileOptions>
+                <ng-container *ngIf="true; else mobileOptions">
                   <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
                     <li *ngFor="let apk of appPackages; let idx = index"
                         #dropdownOptionRef
@@ -332,7 +323,7 @@
                       {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
                     </li>
                   </ng-template>
-                </ng-template>
+                </ng-container>
               </ul>
             </div>
             <mat-list
