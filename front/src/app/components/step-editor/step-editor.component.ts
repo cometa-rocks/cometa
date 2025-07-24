@@ -2685,8 +2685,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    */
   get appPackages(): string[] {
     return (this.department?.files as UploadedFile[])
-      ?.filter(file => file.name.endsWith('.apk') && !file.is_removed)
-      ?.map(file => file.name) || [];
+      ?.filter(file => file.name.toLowerCase().endsWith('.apk') && !file.is_removed)
+      ?.map(file => file.name.replace(/\.apk$/i, '')) || [];
   }
 
   // Focus the dropdown when it appears
