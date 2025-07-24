@@ -508,6 +508,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const value = textarea.value;
     let cursorPos = textarea.selectionStart;
 
+    // Reset dropdown state – will reopen only if a valid placeholder is found
+    this.showMobileDropdown = false;
+    this.mobileDropdownStepIndex = null;
+    this.mobileDropdownReplaceIndex = null;
+    this.disableStepAutocomplete = false;
+
     // Regex to find all quoted substrings
     const regex = /"([^"]*)"/g;
     let match;
@@ -544,51 +550,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         // Allow dropdown if:
         // 1. The text matches the placeholder (as antes)
         // 2. The text is empty and the action expects this parameter (for user help)
-        let allowEmptyDropdown = false;
         // NUEVA LÓGICA: Si la acción es 'On mobile start app', muestra el dropdown según el parámetro
-        if (stepAction && /on mobile start app/i.test(stepAction)) {
-          if (paramIndex === 0) {
-            this.mobileDropdownType = 'package';
-            allowEmptyDropdown = true;
-          }
-        } else if (insideText === '' && stepAction) {
-          // Fallback heuristics para otros casos
-          if (
-            stepAction.toLowerCase().includes('app_package') ||
-            value.toLowerCase().includes('{app_package}')
-          ) {
-            this.mobileDropdownType = 'package';
-            allowEmptyDropdown = true;
-          } else if (
-            stepAction.toLowerCase().includes('mobile_code') ||
-            value.toLowerCase().includes('{mobile_code}')
-          ) {
-            this.mobileDropdownType = 'code';
-            allowEmptyDropdown = true;
-          } else if (
-            stepAction.toLowerCase().includes('mobile_name') ||
-            value.toLowerCase().includes('{mobile_name}')
-          ) {
-            this.mobileDropdownType = 'name';
-            allowEmptyDropdown = true;
-          }
+        if (stepAction && /on mobile start app/i.test(stepAction) && paramIndex === 0) {
+          this.mobileDropdownType = 'package';
         }
         if (
           insideText === '{mobile_name}' ||
           insideText === '{mobile_code}' ||
           insideText === '{app_package}' ||
-          this.runningMobiles.some(m => m.image_name === insideText) ||
-          allowEmptyDropdown
+          this.runningMobiles.some(m => m.image_name === insideText)
         ) {
           // Set dropdown type if not already set by allowEmptyDropdown
-          if (!allowEmptyDropdown) {
-            if (insideText === '{mobile_code}') {
-              this.mobileDropdownType = 'code';
-            } else if (insideText === '{app_package}') {
-              this.mobileDropdownType = 'package';
-            } else {
-              this.mobileDropdownType = 'name';
-            }
+          if (insideText === '{mobile_code}') {
+            this.mobileDropdownType = 'code';
+          } else if (insideText === '{app_package}') {
+            this.mobileDropdownType = 'package';
+          } else {
+            this.mobileDropdownType = 'name';
           }
           // Always refresh the list of running mobiles before showing the dropdown
           this.fetchRunningMobiles();
@@ -883,9 +861,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this._cdr.detectChanges();
     }
     
-    // Skip mobile dropdown logic for newly inserted empty steps
+    // Get step content
     const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    
+    // Reset autocomplete filtering for empty steps to show all actions
     if (!stepContent.trim()) {
+      this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
       return;
     }
     
@@ -1551,6 +1532,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const actualIndex = index ?? this.currentFocusedStepIndex;
     if (actualIndex !== null) {
       this.stepVisible[actualIndex] = true;
+      
+      // Reset autocomplete filtering to show all actions for empty steps
+      const stepContent = this.stepsForm.at(actualIndex)?.get('step_content')?.value || '';
+      if (!stepContent.trim()) {
+        this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+      }
     }
     this.isAutocompleteOpened = true;
 
@@ -1742,6 +1729,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
       if (currentFocusedTextarea === textarea) {
         console.log('Opening autocomplete for textarea at index:', stepIndex);
+        
+        // Reset autocomplete filtering to show all actions for new steps
+        const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
+        if (!stepContent.trim()) {
+          this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+        }
+        
         const trigger = this.autocompleteTriggers?.first;
         if (trigger && !trigger.panelOpen) {
           trigger.openPanel();
