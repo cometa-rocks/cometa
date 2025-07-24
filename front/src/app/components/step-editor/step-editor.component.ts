@@ -876,8 +876,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   
 
   onTextareaFocus(event: FocusEvent, index: number): void {
+    // Validate index is within bounds
+    if (index < 0 || index >= this.stepsForm.length) {
+      console.warn('Invalid step index in onTextareaFocus:', index);
+      return;
+    }
+    
+    // Ignore focus events during autocomplete selection to prevent interference
+    if (this.isAutocompleteSelectionInProgress) {
+      console.log('Ignoring focus event during autocomplete selection, index:', index);
+      return;
+    }
+    
     // Set the current focused step index for the shared autocomplete
     this.currentFocusedStepIndex = index;
+    console.log('onTextareaFocus - Setting currentFocusedStepIndex to:', index);
     
     // Inform parent of focus
     this.sendTextareaFocusToParent(true, index);
@@ -885,6 +898,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
       this._cdr.detectChanges();
+    }
+    
+    // Skip mobile dropdown logic for newly inserted empty steps
+    const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    if (!stepContent.trim()) {
+      return;
     }
     
     // Re-filter action suggestions based on this step's current content
@@ -1303,7 +1322,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
-    const targetIndex = this.currentFocusedStepIndex ?? index;
+    // Use the most reliable index - prioritize currentFocusedStepIndex but validate it
+    let targetIndex = this.currentFocusedStepIndex ?? index;
+    
+    // Debug logging
+    console.log('selectFirstVariable - currentFocusedStepIndex:', this.currentFocusedStepIndex, 'index:', index, 'targetIndex:', targetIndex);
+    
+    // Validate that the target index is within bounds
+    if (targetIndex < 0 || targetIndex >= this.stepsForm.length) {
+      console.warn('Target index out of bounds, using fallback index:', targetIndex, '->', index);
+      targetIndex = index;
+    }
+    
+    // Find the actually focused textarea and use its index
+    const textareas = this.stepTextareas?.toArray();
+    let actuallyFocusedIndex = -1;
+    
+    if (textareas) {
+      for (let i = 0; i < textareas.length; i++) {
+        if (document.activeElement === textareas[i].nativeElement) {
+          actuallyFocusedIndex = i;
+          break;
+        }
+      }
+    }
+    
+    // If we found a focused textarea, use its index instead
+    if (actuallyFocusedIndex !== -1) {
+      console.log('Found actually focused textarea at index:', actuallyFocusedIndex, 'using this instead of:', targetIndex);
+      targetIndex = actuallyFocusedIndex;
+    } else {
+      console.warn('No focused textarea found, using targetIndex:', targetIndex);
+    }
+    
+    // Set a flag to prevent focus events from interfering during autocomplete selection
+    this.isAutocompleteSelectionInProgress = true;
     
     // Get the selected value
     const step = event.option.value;
@@ -1369,6 +1422,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         targetTextarea.focus();
         targetTextarea.setSelectionRange(match.index, match.index + match[0].length);
       }
+      
+      // Reset the flag after autocomplete selection is complete
+      setTimeout(() => {
+        this.isAutocompleteSelectionInProgress = false;
+        console.log('Autocomplete selection completed, flag reset');
+      }, 100);
     });
   }
 
@@ -1507,6 +1566,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   isAutocompleteOpened: boolean = false;
+  isAutocompleteSelectionInProgress: boolean = false;
 
   onAutocompleteOpened(index?: number) {
     const actualIndex = index ?? this.currentFocusedStepIndex;
@@ -1680,12 +1740,42 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.stepVariableData.currentStepIndex = null;
     }
 
+    // Close mobile dropdown if open
+    if (this.showMobileDropdown) {
+      this.showMobileDropdown = false;
+      this.mobileDropdownStepIndex = null;
+      this.mobileDropdownReplaceIndex = null;
+      this.disableStepAutocomplete = false;
+    }
+
     // Reset focused step
     this.currentFocusedStepIndex = null;
     this.isAutocompleteOpened = false;
+    this.isAutocompleteSelectionInProgress = false;
+    
+    // Force change detection
+    this._cdr.detectChanges();
+  }
+
+  private openAutocompleteForTextarea(textarea: HTMLTextAreaElement, stepIndex: number): void {
+    setTimeout(() => {
+      // Double-check that the correct textarea is still focused
+      const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
+      if (currentFocusedTextarea === textarea) {
+        console.log('Opening autocomplete for textarea at index:', stepIndex);
+        const trigger = this.autocompleteTriggers?.first;
+        if (trigger && !trigger.panelOpen) {
+          trigger.openPanel();
+        }
+      } else {
+        console.warn('Focus changed, not opening autocomplete');
+      }
+    }, 150); // Increased delay to ensure focus is stable
   }
 
   addEmpty(index: number = -1, openAutocomplete: boolean = false) {
+    console.log('addEmpty called with index:', index, 'openAutocomplete:', openAutocomplete);
+    
     const template = this._fb.group({
       enabled: [true],
       screenshot: [false],
@@ -1708,27 +1798,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._cdr.detectChanges();
     
     const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
-    this.currentFocusedStepIndex = stepIndex;
+    console.log('addEmpty - stepIndex calculated:', stepIndex, 'total steps:', this.stepsForm.length);
     
-    // Focus and open autocomplete
-    requestAnimationFrame(() => {
-      const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
-      const textarea = textareas[stepIndex] as HTMLTextAreaElement;
-      if (textarea) {
-        textarea.focus();
-        
-        // Open autocomplete if requested
-        if (openAutocomplete) {
-          // Use the autocomplete trigger directly
-          requestAnimationFrame(() => {
-            const trigger = this.autocompleteTriggers?.first;
-            if (trigger && !trigger.panelOpen) {
-              trigger.openPanel();
-            }
-          });
+    // Focus and open autocomplete with proper timing
+    setTimeout(() => {
+      // Use ViewChildren to get the correct textarea reference
+      const textareas = this.stepTextareas?.toArray();
+      if (textareas && textareas[stepIndex]) {
+        const textarea = textareas[stepIndex].nativeElement as HTMLTextAreaElement;
+        if (textarea) {
+          // Set the current focused step index right before focusing
+          this.currentFocusedStepIndex = stepIndex;
+          console.log('addEmpty - Setting currentFocusedStepIndex to:', stepIndex, 'in ViewChildren path');
+          textarea.focus();
+          
+          // Open autocomplete if requested
+          if (openAutocomplete) {
+            this.openAutocompleteForTextarea(textarea, stepIndex);
+          }
+        }
+      } else {
+        // Fallback to DOM query if ViewChildren is not available
+        const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+        const textarea = textareas[stepIndex] as HTMLTextAreaElement;
+        if (textarea) {
+          // Set the current focused step index right before focusing
+          this.currentFocusedStepIndex = stepIndex;
+          console.log('addEmpty - Setting currentFocusedStepIndex to:', stepIndex, 'in fallback path');
+          textarea.focus();
+          
+          // Open autocomplete if requested
+          if (openAutocomplete) {
+            this.openAutocompleteForTextarea(textarea, stepIndex);
+          }
         }
       }
-    });
+      
+      // Force change detection to ensure UI updates
+      this._cdr.detectChanges();
+    }, 100); // Increased delay to ensure DOM is fully updated
   }
 
   copyItem(index: number, position: string) {
@@ -1807,8 +1915,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
 
     const control = this.stepsForm.controls[event.previousIndex];
+    const value = control.getRawValue();
+    const newFormGroup = this._fb.group({
+      enabled: value.enabled,
+      screenshot: value.screenshot,
+      step_keyword: value.step_keyword,
+      compare: value.screenshot ? value.compare : false,
+      step_content: [value.step_content, CustomValidators.StepAction.bind(this)],
+      step_action: value.step_action || '',
+      step_type: value.step_type,
+      continue_on_failure: value.continue_on_failure,
+      timeout: value.timeout || this.department?.settings?.step_timeout || 60,
+      selected: value.selected
+    });
     this.stepsForm.removeAt(event.previousIndex);
-    this.stepsForm.insert(event.currentIndex, control);
+    this.stepsForm.insert(event.currentIndex, newFormGroup);
 
     this._cdr.detectChanges();
   }
@@ -2024,12 +2145,22 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Close any open panels before inserting
     this.closeAssistPanels();
     
+    // Store current step content to prevent modification
+    const currentStepContent = this.stepsForm.at(i)?.get('step_content')?.value || '';
+    
     if(event.key == 'ArrowDown'){
         this.addEmpty(i+1, true); // Open autocomplete
     }
     else if (event.key == 'ArrowUp'){
         this.addEmpty(i, true); // Open autocomplete
     }
+    
+    // Ensure the original step content is preserved after insertion
+    setTimeout(() => {
+      if (this.stepsForm.at(i) && this.stepsForm.at(i).get('step_content')?.value !== currentStepContent) {
+        this.stepsForm.at(i).get('step_content')?.setValue(currentStepContent);
+      }
+    }, 150);
   }
 
   copyStep(event: KeyboardEvent, i: number){
