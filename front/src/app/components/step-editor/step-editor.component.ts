@@ -550,51 +550,76 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         // Allow dropdown if:
         // 1. The text matches the placeholder (as antes)
         // 2. The text is empty and the action expects this parameter (for user help)
-        // NUEVA LÓGICA: Si la acción es 'On mobile start app', muestra el dropdown según el parámetro
+        // 3. The action is 'On mobile start app' and we're on the first parameter (app package)
+        let shouldShowDropdown = false;
+        
         if (stepAction && /on mobile start app/i.test(stepAction) && paramIndex === 0) {
           this.mobileDropdownType = 'package';
+          shouldShowDropdown = true;
         }
+        
         if (
           insideText === '{mobile_name}' ||
           insideText === '{mobile_code}' ||
           insideText === '{app_package}' ||
-          this.runningMobiles.some(m => m.image_name === insideText)
+          this.runningMobiles.some(m => m.image_name === insideText) ||
+          this.runningMobiles.some(m => m.hostname === insideText) ||
+          this.appPackages.includes(insideText)
         ) {
-          // Set dropdown type if not already set by allowEmptyDropdown
+          shouldShowDropdown = true;
+          // Determine dropdown type based on the content
           if (insideText === '{mobile_code}') {
             this.mobileDropdownType = 'code';
           } else if (insideText === '{app_package}') {
             this.mobileDropdownType = 'package';
-          } else {
+          } else if (insideText === '{mobile_name}') {
             this.mobileDropdownType = 'name';
+          } else {
+            // For existing values, determine type based on what matches
+            const matchingMobile = this.runningMobiles.find(m => m.hostname === insideText);
+            if (matchingMobile) {
+              this.mobileDropdownType = 'code';
+            } else {
+              // Check if it's an app package
+              if (this.appPackages.includes(insideText)) {
+                this.mobileDropdownType = 'package';
+              } else {
+                // Default to name for image_name matches
+                this.mobileDropdownType = 'name';
+              }
+            }
           }
-          // Always refresh the list of running mobiles before showing the dropdown
-          this.fetchRunningMobiles();
+          
+          // Show dropdown if conditions are met
+          if (shouldShowDropdown) {
+            // Always refresh the list of running mobiles before showing the dropdown
+            this.fetchRunningMobiles();
 
-          this.showMobileDropdown = true;
-          this.mobileDropdownStepIndex = index;
-          this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
+            this.showMobileDropdown = true;
+            this.mobileDropdownStepIndex = index;
+            this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
 
-          // Always recalculate the dropdown position and width every time it is shown
-          setTimeout(() => {
-            const coords = this.getCaretCoordinates(textarea, start);
-            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-            // Add offset: -120px to top, 18px to left for better dropdown positioning
-            // This ensures the dropdown appears above and slightly to the right of the quote
-            const left = textarea.offsetLeft + coords.left + 18;
-            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-            const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
-            this.mobileDropdownWidth = dropdownWidth;
-            this._cdr.detectChanges();
-            dropdownEl.style.left = `${left}px`;
-            dropdownEl.style.top = `${top}px`;
-            dropdownEl.style.minWidth = `${dropdownWidth}px`;
-          }, 0);
+            // Always recalculate the dropdown position and width every time it is shown
+            setTimeout(() => {
+              const coords = this.getCaretCoordinates(textarea, start);
+              const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+              // Add offset: -120px to top, 18px to left for better dropdown positioning
+              // This ensures the dropdown appears above and slightly to the right of the quote
+              const left = textarea.offsetLeft + coords.left + 18;
+              const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+              const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
+              this.mobileDropdownWidth = dropdownWidth;
+              this._cdr.detectChanges();
+              dropdownEl.style.left = `${left}px`;
+              dropdownEl.style.top = `${top}px`;
+              dropdownEl.style.minWidth = `${dropdownWidth}px`;
+            }, 0);
 
-          this.disableStepAutocomplete = true; // Disable autocomplete when editing mobile name/code/package/activity
-          this.dropdownActiveIndex = 0;
-          found = true;
-          break; // Stop after finding the correct match
+            this.disableStepAutocomplete = true; // Disable autocomplete when editing mobile name/code/package/activity
+            this.dropdownActiveIndex = 0;
+            found = true;
+            break; // Stop after finding the correct match
+          }
         }
       }
     }
@@ -691,9 +716,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         break;
       }
     }
-    // Fallback: if not found, just replace the first {mobile_name} (legacy)
+    // Fallback: if not found, replace the appropriate placeholder based on dropdown type
     if (!replaced) {
-      newValue = value.replace('{mobile_name}', mobileName);
+      if (this.mobileDropdownType === 'code') {
+        newValue = value.replace('{mobile_code}', mobileName);
+      } else if (this.mobileDropdownType === 'package') {
+        newValue = value.replace('{app_package}', mobileName);
+      } else {
+        newValue = value.replace('{mobile_name}', mobileName);
+      }
     }
     contentControl?.setValue(newValue);
     this.showMobileDropdown = false;
