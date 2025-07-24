@@ -2122,7 +2122,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     this.lastInsertTime = currentTime;
     
-    // Close any open panels before inserting
+    // Blur current textarea and close any open autocomplete panel before inserting
+    const activeEl = document.activeElement as HTMLElement;
+    if (activeEl && typeof activeEl.blur === 'function') {
+      activeEl.blur();
+    }
+    this.autocompleteTriggers?.forEach(t => { if (t.panelOpen) t.closePanel(); });
+    
+    // Close any other assistive panels before inserting
     this.closeAssistPanels();
     
     // Store current step content to prevent modification
