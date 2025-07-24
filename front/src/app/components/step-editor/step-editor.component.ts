@@ -206,14 +206,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   mobileDropdownWidth: number = 180;
 
   // Tracks whether the dropdown is for mobile_name or mobile_code
-  mobileDropdownType: 'name' | 'code' | 'package' | 'activity' = 'name';
+  mobileDropdownType: 'name' | 'code' | 'package' = 'name';
 
-  // Example list of app activities (replace with real data source as needed)
-  appActivities: string[] = [
-    'com.example.app1.MainActivity',
-    'com.example.app1.SettingsActivity',
-    'com.example.app2.LauncherActivity'
-  ];
+  // Removed static appActivities list – activities dropdown no longer used
 
   @ViewChild('dropdownRef') dropdownRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
@@ -555,9 +550,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           if (paramIndex === 0) {
             this.mobileDropdownType = 'package';
             allowEmptyDropdown = true;
-          } else if (paramIndex === 1) {
-            this.mobileDropdownType = 'activity';
-            allowEmptyDropdown = true;
           }
         } else if (insideText === '' && stepAction) {
           // Fallback heuristics para otros casos
@@ -566,12 +558,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
             value.toLowerCase().includes('{app_package}')
           ) {
             this.mobileDropdownType = 'package';
-            allowEmptyDropdown = true;
-          } else if (
-            stepAction.toLowerCase().includes('app_activity') ||
-            value.toLowerCase().includes('{app_activity}')
-          ) {
-            this.mobileDropdownType = 'activity';
             allowEmptyDropdown = true;
           } else if (
             stepAction.toLowerCase().includes('mobile_code') ||
@@ -591,7 +577,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           insideText === '{mobile_name}' ||
           insideText === '{mobile_code}' ||
           insideText === '{app_package}' ||
-          insideText === '{app_activity}' ||
           this.runningMobiles.some(m => m.image_name === insideText) ||
           allowEmptyDropdown
         ) {
@@ -601,8 +586,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
               this.mobileDropdownType = 'code';
             } else if (insideText === '{app_package}') {
               this.mobileDropdownType = 'package';
-            } else if (insideText === '{app_activity}') {
-              this.mobileDropdownType = 'activity';
             } else {
               this.mobileDropdownType = 'name';
             }
@@ -756,14 +739,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           textarea.focus();
           // Try to place the cursor inside the next quoted placeholder
           const value = textarea.value;
-          const regex = /"([^"]*\{(mobile_name|mobile_code|app_package|app_activity)\}[^"]*)"/g;
+          const regex = /"([^"]*\{(mobile_name|mobile_code|app_package)\}[^"]*)"/g;
           let match;
           let found = false;
           while ((match = regex.exec(value)) !== null) {
             const start = match.index + 1;
             const end = start + match[1].length;
             // If the placeholder is still present, place the cursor inside it
-            if (match[1].includes('{mobile_name}') || match[1].includes('{mobile_code}') || match[1].includes('{app_package}') || match[1].includes('{app_activity}')) {
+            if (match[1].includes('{mobile_name}') || match[1].includes('{mobile_code}') || match[1].includes('{app_package}')) {
               textarea.setSelectionRange(start, end);
               found = true;
               break;
@@ -939,15 +922,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       for (let mi = 0; mi < allMatches.length; mi++) {
         const m = allMatches[mi];
         if (m.text.includes('{mobile_name}') || m.text.includes('{mobile_code}') || 
-            m.text.includes('{app_package}') || m.text.includes('{app_activity}')) {
+            m.text.includes('{app_package}')) {
           
           // Set dropdown type based on placeholder
           if (m.text.includes('{mobile_code}')) {
             this.mobileDropdownType = 'code';
           } else if (m.text.includes('{app_package}')) {
             this.mobileDropdownType = 'package';
-          } else if (m.text.includes('{app_activity}')) {
-            this.mobileDropdownType = 'activity';
           } else {
             this.mobileDropdownType = 'name';
           }
@@ -1035,16 +1016,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       
       // Check if the next quote contains a placeholder and open corresponding dropdown
       if (nextQuote.text.includes('{mobile_name}') || nextQuote.text.includes('{mobile_code}') || 
-          nextQuote.text.includes('{app_package}') || nextQuote.text.includes('{app_activity}')) {
+          nextQuote.text.includes('{app_package}')) {
         
         // Set dropdown type based on placeholder
         if (nextQuote.text.includes('{mobile_code}')) {
           this.mobileDropdownType = 'code';
         } else if (nextQuote.text.includes('{app_package}')) {
           this.mobileDropdownType = 'package';
-        } else if (nextQuote.text.includes('{app_activity}')) {
-          this.mobileDropdownType = 'activity';
-        } else {
+        }  else {
           this.mobileDropdownType = 'name';
         }
         
@@ -2704,9 +2683,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Handle keyboard navigation in the custom dropdown
   onDropdownKeydown(event: KeyboardEvent) {
     let optionsLength = 0;
-    if (this.mobileDropdownType === 'activity') {
-      optionsLength = this.appActivities.length;
-    } else if (this.mobileDropdownType === 'package') {
+    if (this.mobileDropdownType === 'package') {
       optionsLength = this.appPackages.length;
     } else {
       optionsLength = this.runningMobiles.length;
@@ -2734,9 +2711,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     } else if (event.key === 'Enter') {
       event.preventDefault();
       if (optionsLength > 0) {
-        if (this.mobileDropdownType === 'activity') {
-          this.onMobileDropdownSelect(this.appActivities[this.dropdownActiveIndex]);
-        } else if (this.mobileDropdownType === 'package') {
+        if (this.mobileDropdownType === 'package') {
           this.onMobileDropdownSelect(this.appPackages[this.dropdownActiveIndex]);
         } else {
           const mobile = this.runningMobiles[this.dropdownActiveIndex];
