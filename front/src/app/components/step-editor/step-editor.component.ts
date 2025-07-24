@@ -550,43 +550,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         // 1. The text matches the placeholder (as antes)
         // 2. The text is empty and the action expects this parameter (for user help)
         let allowEmptyDropdown = false;
-        if (insideText === '' && stepAction) {
-          // For 'On mobile start app' type actions, show APK for first param, Activity for second
-          if (/on mobile start app/i.test(stepAction) || /on mobile start app/i.test(value)) {
-            if (paramIndex === 0) {
-              this.mobileDropdownType = 'package';
-              allowEmptyDropdown = true;
-            } else if (paramIndex === 1) {
-              this.mobileDropdownType = 'activity';
-              allowEmptyDropdown = true;
-            }
-          } else {
-            // Fallback heuristics for other actions
-            if (
-              stepAction.toLowerCase().includes('app_package') ||
-              value.toLowerCase().includes('{app_package}')
-            ) {
-              this.mobileDropdownType = 'package';
-              allowEmptyDropdown = true;
-            } else if (
-              stepAction.toLowerCase().includes('app_activity') ||
-              value.toLowerCase().includes('{app_activity}')
-            ) {
-              this.mobileDropdownType = 'activity';
-              allowEmptyDropdown = true;
-            } else if (
-              stepAction.toLowerCase().includes('mobile_code') ||
-              value.toLowerCase().includes('{mobile_code}')
-            ) {
-              this.mobileDropdownType = 'code';
-              allowEmptyDropdown = true;
-            } else if (
-              stepAction.toLowerCase().includes('mobile_name') ||
-              value.toLowerCase().includes('{mobile_name}')
-            ) {
-              this.mobileDropdownType = 'name';
-              allowEmptyDropdown = true;
-            }
+        // NUEVA LÓGICA: Si la acción es 'On mobile start app', muestra el dropdown según el parámetro
+        if (stepAction && /on mobile start app/i.test(stepAction)) {
+          if (paramIndex === 0) {
+            this.mobileDropdownType = 'package';
+            allowEmptyDropdown = true;
+          } else if (paramIndex === 1) {
+            this.mobileDropdownType = 'activity';
+            allowEmptyDropdown = true;
+          }
+        } else if (insideText === '' && stepAction) {
+          // Fallback heuristics para otros casos
+          if (
+            stepAction.toLowerCase().includes('app_package') ||
+            value.toLowerCase().includes('{app_package}')
+          ) {
+            this.mobileDropdownType = 'package';
+            allowEmptyDropdown = true;
+          } else if (
+            stepAction.toLowerCase().includes('app_activity') ||
+            value.toLowerCase().includes('{app_activity}')
+          ) {
+            this.mobileDropdownType = 'activity';
+            allowEmptyDropdown = true;
+          } else if (
+            stepAction.toLowerCase().includes('mobile_code') ||
+            value.toLowerCase().includes('{mobile_code}')
+          ) {
+            this.mobileDropdownType = 'code';
+            allowEmptyDropdown = true;
+          } else if (
+            stepAction.toLowerCase().includes('mobile_name') ||
+            value.toLowerCase().includes('{mobile_name}')
+          ) {
+            this.mobileDropdownType = 'name';
+            allowEmptyDropdown = true;
           }
         }
         if (
