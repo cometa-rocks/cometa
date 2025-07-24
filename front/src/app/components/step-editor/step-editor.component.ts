@@ -1978,7 +1978,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           const input = stepRow.querySelector('.code') as HTMLInputElement;
           if (input) {
             input.focus();
-            // The onTextareaFocus event will handle setting up the autocomplete
+            // Simulate a click to trigger onStepTextareaClick logic (e.g., mobile dropdown position)
+            input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
           }
         }
       } catch (err) {
@@ -2150,9 +2151,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     if(event.key == 'ArrowDown'){
         this.addEmpty(i+1, true); // Open autocomplete
+        // Focus the newly created step immediately
+        this.focusStep(i+1);
     }
     else if (event.key == 'ArrowUp'){
         this.addEmpty(i, true); // Open autocomplete
+        // Focus the newly created step immediately
+        this.focusStep(i);
     }
     
     // Ensure the original step content is preserved after insertion
