@@ -64,6 +64,13 @@
   <div class="actions">
     <div class="desktop">Actions</div>
     <div class="mobile"><i></i></div>
+    <i 
+      class="documentation-icon material-icons"
+      [matTooltip]="'Toggle all step documentation'"
+      matTooltipPosition="above"
+      (click)="toggleAllDocumentation()">
+      {{ areAllDocumentationVisible() ? 'visibility_off' : 'visibility' }}
+    </i>
   </div>
 </div>
 <!-- Right click menu -->

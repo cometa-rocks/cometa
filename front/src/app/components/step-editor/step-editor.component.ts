@@ -243,15 +243,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @Select(FeaturesState.GetFeaturesAsArray) allFeatures$: Observable<Feature[]>;
 
   // Shortcut emitter to parent component
-  sendTextareaFocusToParent(isFocused: boolean, index?: number): void {
+  sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
     this.textareaFocusToParent.emit(isFocused);
 
     if (index === undefined) {
       return;
     }
 
-    // Toggle AI guidance overlay visibility
-    if (isFocused) {
+    // Toggle AI guidance overlay visibility only when explicitly requested
+    if (isFocused && showDocumentation) {
       // Make the step visible in the UI
       this.stepVisible[index] = true;
 
@@ -298,7 +298,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
         this._cdr.detectChanges();
       }
-    } else {
+    } else if (!isFocused) {
       if (index !== undefined) {
         this.stepVisible[index] = false;
       }
@@ -884,8 +884,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.currentFocusedStepIndex = index;
     console.log('onTextareaFocus - Setting currentFocusedStepIndex to:', index);
     
-    // Inform parent of focus
-    this.sendTextareaFocusToParent(true, index);
+    // Inform parent of focus (without showing documentation)
+    this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
@@ -1395,8 +1395,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
     }
     
-    // Make the step visible
-    this.stepVisible[targetIndex] = true;
+    // Don't automatically show documentation when selecting from autocomplete
+    // Documentation will only be shown when explicitly requested via the Actions button
+    // this.stepVisible[targetIndex] = true;
     
     // Force change detection
     this._cdr.detectChanges();
@@ -1473,8 +1474,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   toggleStepDocumentation(index: number) {
     this.stepVisible[index] = !this.stepVisible[index];
     
-    // If showing documentation, load documentation data for the step
+    // If showing documentation, load documentation data for the step and notify parent
     if (this.stepVisible[index]) {
+      // Notify parent to show documentation
+      this.sendTextareaFocusToParent(true, index, true);
+      
       const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
       
       // If step has content, try to find documentation for it
@@ -1507,6 +1511,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           examples: 'Examples will appear here when you enter a valid step'
         };
       }
+    } else {
+      // If hiding documentation, notify parent
+      this.sendTextareaFocusToParent(false, index);
     }
     
     this._cdr.detectChanges();
@@ -1602,7 +1609,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   onAutocompleteOpened(index?: number) {
     const actualIndex = index ?? this.currentFocusedStepIndex;
     if (actualIndex !== null) {
-      this.stepVisible[actualIndex] = true;
+      // Don't automatically show documentation when autocomplete opens
+      // Documentation will only be shown when explicitly requested via the Actions button
+      // this.stepVisible[actualIndex] = true;
       
       // Reset autocomplete filtering to show all actions for empty steps
       const stepContent = this.stepsForm.at(actualIndex)?.get('step_content')?.value || '';
@@ -2509,6 +2518,65 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    */
   hasSelectedSteps(): boolean {
     return this.stepsForm.controls.some(control => control.get('selected')?.value);
+  }
+
+  /**
+   * Toggle all step documentation visibility
+   */
+  toggleAllDocumentation() {
+    const shouldShow = !this.areAllDocumentationVisible();
+    
+    this.stepsForm.controls.forEach((control, index) => {
+      if (shouldShow) {
+        // Show documentation for all steps
+        this.stepVisible[index] = true;
+        this.sendTextareaFocusToParent(true, index, true);
+        
+        // Load documentation data for each step
+        const stepContent = control.get('step_content')?.value || '';
+        if (stepContent.trim()) {
+          const action = this.actions.find(a => 
+            stepContent.toLowerCase().includes(a.action_name.toLowerCase())
+          );
+          
+          if (action) {
+            const description = action.description || 'No description available';
+            const parts = description.split('Examples:');
+            const descriptionText = parts[0]?.trim() || description;
+            const examplesText = parts[1]?.trim() || 'No examples available';
+            
+            this.stepsDocumentation[index] = {
+              description: descriptionText,
+              examples: examplesText
+            };
+          } else {
+            this.stepsDocumentation[index] = {
+              description: 'No documentation found for this step',
+              examples: 'No examples available'
+            };
+          }
+        } else {
+          this.stepsDocumentation[index] = {
+            description: 'Enter a step to see documentation',
+            examples: 'Examples will appear here when you enter a valid step'
+          };
+        }
+      } else {
+        // Hide documentation for all steps
+        this.stepVisible[index] = false;
+        this.sendTextareaFocusToParent(false, index);
+      }
+    });
+    
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Returns true if all documentation is visible
+   */
+  areAllDocumentationVisible(): boolean {
+    return this.stepsForm.controls.length > 0 && 
+           this.stepsForm.controls.every((_, index) => this.stepVisible[index]);
   }
 
   /**
