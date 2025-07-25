@@ -1,5 +1,5 @@
 {
-  "version": "3.0.78",
+  "version": "3.0.79",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.79",
+      "date": "2025-07-25",
+      "features": [
+        {
+          "title": "View latest recording icon in feature actions - #6627",
+          "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
+        }
+      ]
+    },
     {
       "version": "3.0.78",
       "date": "2025-07-22",
