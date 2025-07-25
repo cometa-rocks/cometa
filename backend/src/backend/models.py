@@ -813,8 +813,12 @@ class Feature(models.Model):
     def save(self, *args, **kwargs):
         # Check if this is a new feature or existing one
         new_feature = self.feature_id is None
-        
+        # Make sure that emails should not contain the spaces, If feature_id is None, it means it is a new feature
         # If existing feature, get original state before changes
+        self.email_address = [email.strip() for email in self.email_address if email.strip()]
+        self.email_cc_address = [email.strip() for email in self.email_cc_address if email.strip()]
+        self.email_bcc_address = [email.strip() for email in self.email_bcc_address if email.strip()]
+        # create backup only if feature is being modified
         if not new_feature:
             try:
                 original_feature = Feature.objects.get(pk=self.feature_id)

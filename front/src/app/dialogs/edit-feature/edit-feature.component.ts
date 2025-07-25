@@ -3078,7 +3078,14 @@ export class EditFeature implements OnInit, OnDestroy {
     const restoredFeature = JSON.parse(this.fileContents[indexofFeature]);
 
     // Update steps with visual feedback
-    this.stepEditor.setSteps(restoredSteps);
+    if (this.stepEditor) {
+      // If StepEditor is available (panel is expanded), update it directly
+      this.stepEditor.setSteps(restoredSteps);
+    } else {
+      // If StepEditor is not available (panel is closed), update the store
+      // This will be picked up when the panel is opened
+      this._store.dispatch(new StepDefinitions.SetStepsForFeature(this.featureId, restoredSteps));
+    }
     
     // Update feature form with visual feedback
     Object.keys(restoredFeature).forEach(key => {
