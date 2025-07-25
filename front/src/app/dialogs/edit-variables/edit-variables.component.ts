@@ -300,6 +300,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
         title: 'translate:you_sure.delete_item_title',
         description: 'translate:you_sure.delete_item_desc',
       } as AreYouSureData,
+      autoFocus: true,
     });
 
     // if dialogs result is 'yes/true', removes variable completes action to eliminate variable
@@ -319,6 +320,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
           title: 'translate:you_sure.decrypt_title',
           description: 'translate:you_sure.decrypt_desc',
         } as AreYouSureData,
+        autoFocus: true,
       });
 
       // if dialogs result is 'yes/true', resets the value of variable. But it is still not saved, user can revert it by hitting ESC key or Cancel button
@@ -402,6 +404,10 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   // determines which columns filter must be applied to
   applyFilterPredicate() {
     this.dataSource.filterPredicate = (row: VariablePair, filter: string) => {
+      // Always show new rows (id = 0)
+      if (row.id === 0) {
+        return true;
+      }
       return (
         row.variable_name.toLocaleLowerCase().includes(filter) ||
         row.based.toLocaleLowerCase().includes(filter) ||

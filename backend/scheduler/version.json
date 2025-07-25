@@ -1,0 +1,6 @@
+{
+    "version": "1.4",
+    "stable_version": "1.4",
+    "version_description": "This is the nightly version of the API. It is the version that is used in the development and staging environment.",
+    "stable_version_description": "This is the stable version of the API. It is the version that is used in the production environment after testing in the development and staging environment."
+}

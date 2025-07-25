@@ -23,7 +23,7 @@ Author: dph000
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
                 <mat-option [value]="'__ALLDEPARTMENTS__'">
-                  -- Show all Departments --
+                  All Departments
                 </mat-option>
                 <mat-option
                   *ngFor="let dep of user.departments | sortBy: 'department_name'"
@@ -263,13 +263,7 @@ Author: dph000
     matTooltipPosition="below"
     *ngIf="row.schedule"
     >
-    {{ row.schedule}}
-     <!-- Old code checkbox -->
-    <!-- <mat-checkbox
-      *ngIf="row.schedule"
-      class="noPointerEvents"
-      [checked]="row.schedule.length > 0"
-      color="primary"></mat-checkbox> -->
+    {{ row.original_cron || row.schedule }}
   </div>
 </ng-template>
 

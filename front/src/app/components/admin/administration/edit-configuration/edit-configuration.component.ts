@@ -7,6 +7,7 @@ import {
   ViewChild,
   OnDestroy,
   ElementRef,
+  HostListener
 } from '@angular/core';
 import {
   MatLegacyDialog as MatDialog,
@@ -51,6 +52,7 @@ import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dia
 import { Configuration } from '@store/actions/config.actions';
 import { E } from '@angular/cdk/keycodes';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'edit-configuration',
@@ -481,5 +483,15 @@ export class EditConfigurationComponent implements OnInit, OnDestroy {
     this.dataSource = new MatTableDataSource(this.configurations);
     this.cdr.detectChanges();
     this.isEditing = true;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
+      event.preventDefault();
+      if (this.isEditing && this.configuration_backup) {
+        this.onSaveVar(this.configuration_backup);
+      }
+    }
   }
 }

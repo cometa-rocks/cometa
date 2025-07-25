@@ -18,7 +18,8 @@ $white-text: rgba(
 ); // Used in the add button in the new landing
 $folder: #ffe9a2; // Used as background color in folder items
 $folder-back: #ffedb4; // Used as background color in the back part of folder items
-$orange: #f57c00; // Used in canceled elements in feature list items
+$grey: #6e6f6d; // Used in canceled elements in feature list items (replacing $orange)
+$orange: #f57c00;
 // Color of the background when the user wants presses the add button on mobile
 $transparent-bg: rgba(0, 0, 0, 0.15);
 /* Header */
@@ -115,6 +116,12 @@ $starred-color-deparment: #5F6368;
 $screenshot-bg-color: #5f6368;
 
 // END - SCREENSHOT #####################################
+
+// edit-feature #########################################
+
+$edit-feature-button-bg-color:  linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+
+// END - edit-feature #####################################
 
 /* Option Pages */
 $opt-bg-color: #e5b355;

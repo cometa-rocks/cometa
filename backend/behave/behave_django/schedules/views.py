@@ -272,3 +272,12 @@ def updated_step_actions(request):
         return JsonResponse({'success': False, 'message': str(exception)})
 
 
+
+# this is a health check endpoint to check if the service is running
+@require_http_methods(["GET"])
+@csrf_exempt
+def health_check(request):
+    return JsonResponse({ 
+        'status': 'healthy',
+        'message': 'Service is up and running.'
+    })

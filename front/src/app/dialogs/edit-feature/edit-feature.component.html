@@ -19,9 +19,9 @@
 
       <!-- INFORMATION -->
       <mat-expansion-panel
-        [expanded]="data.mode == 'new' || (!config$.toggles.hideInformation && features[0].panels[0].expanded)"
-        (opened)="onExpansionChange(featureId, '1', true);"
-        (closed)="onExpansionChange(featureId, '1', false);">
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('1', true) : getPanelExpansionState('1', false)"
+        (opened)="onExpansionChange('1', true);"
+        (closed)="onExpansionChange('1', false);">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
@@ -35,8 +35,6 @@
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
               <mat-select
-                [(ngModel)]="selected_department"
-                [disabled]="data.mode === 'edit'"
                 formControlName="department_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -50,7 +48,6 @@
             <mat-form-field appearance="fill" class="edit-app">
               <mat-label>Application</mat-label>
               <mat-select
-                [(ngModel)]="selected_application"
                 formControlName="app_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -64,7 +61,6 @@
             <mat-form-field appearance="fill" class="edit-env">
               <mat-label>Environment</mat-label>
               <mat-select
-                [(ngModel)]="selected_environment"
                 formControlName="environment_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -100,7 +96,7 @@
             </mat-form-field>
           </div>
           <div
-            *ngIf="selected_department === 'Default' && departments$.length > 1"
+            *ngIf="featureForm.get('department_name').value === 'Default' && departments$.length > 1"
             class="department-warning">
             <mat-icon>info</mat-icon>
             <span
@@ -109,96 +105,162 @@
             >
           </div>
           <div class="depends">
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
-                Depends on other feature
-              </mat-checkbox>
-              <div class="hover-box">(D)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
-                Send email on finish
-              </mat-checkbox>
-              <div class="hover-box">(M)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
-                Record video
-              </mat-checkbox>
-              <div class="hover-box">(R)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox
-                color="primary"
-                *ngIf="!featureForm.value.depends_on_others"
-                formControlName="network_logging"
-                [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
-                Network Logging
-              </mat-checkbox>
-              <div class="hover-box">(N)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox
-                color="primary"
-                *ngIf="!featureForm.value.depends_on_others"
-                formControlName="generate_dataset"
-                [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
-                Generate Dataset
-              </mat-checkbox>
-              <div class="hover-box">(G)</div>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
-                <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
-                  Continue on failure
-                </mat-checkbox>
-                <div class="hover-box">(F)</div>
-              </ng-container>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
-              <div class="hover-box">(H)</div>
-            </div>
-            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
-              <div class="checkbox-container move-right">
-                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <button
-                    type="button"
-                    color="primary"
-                    [disabled]="disableVariables"
-                    (click)="editVariables()"
-                    mat-stroked-button
-                    [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
-                    Edit Variables
-                  </button>
-                </span>
-                <div class="hover-box-Vshortcut">(V)</div>
+            <!-- Checkboxes Section - Four Columns with Headers -->
+            <div class="checkboxes-section">
+              <!-- Basic Options Column -->
+              <div class="checkbox-column">
+                <div class="column-header">
+                  <mat-icon class="header-icon">settings</mat-icon>
+                  <span class="header-title">Basic Options</span>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">link</mat-icon>
+                    Depends on other feature
+                  </mat-checkbox>
+                  <div class="hover-box">(D)</div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">help</mat-icon>
+                    {{ 'need_help.ask_for' | translate }}
+                  </mat-checkbox>
+                  <div class="hover-box">(H)</div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                    <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
+                      <mat-icon class="checkbox-icon">error_outline</mat-icon>
+                      Continue on failure
+                    </mat-checkbox>
+                    <div class="hover-box">(F)</div>
+                  </ng-container>
+                </div>
               </div>
-            </ng-container>
-            <ng-container>
-              <div class="checkbox-container move-right">
-                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <div class="button-container">
+
+              <!-- Recording Options Column -->
+              <div class="checkbox-column">
+                <div class="column-header">
+                  <mat-icon class="header-icon">videocam</mat-icon>
+                  <span class="header-title">Recording Options</span>
+                </div>
+                <div class="checkbox-container notification-parent" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <div class="main-checkbox-wrapper">
+                    <mat-checkbox color="primary" formControlName="send_notification" [matTooltip]="'Enable notifications (email and/or Telegram) when test finishes'" matTooltipPosition="above">
+                      <mat-icon class="checkbox-icon">notifications</mat-icon>
+                      Send notification on finish
+                    </mat-checkbox>
+                    <div class="hover-box">(M)</div>
+                  </div>
+                  
+                  <!-- Notification sub-options -->
+                  <div class="notification-sub-options" *ngIf="featureForm.value.send_notification">
+                    <div class="checkbox-container sub-checkbox">
+                      <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
+                        <mat-icon class="checkbox-icon">email</mat-icon>
+                        Email
+                      </mat-checkbox>
+                    </div>
+                    <div class="checkbox-container sub-checkbox">
+                      <mat-checkbox color="primary" formControlName="send_telegram_notification" [matTooltip]="'Send test results via Telegram notification'" matTooltipPosition="above">
+                        <mat-icon class="checkbox-icon">chat</mat-icon>
+                        Telegram
+                      </mat-checkbox>
+                    </div>
+                  </div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">videocam</mat-icon>
+                    Record video
+                  </mat-checkbox>
+                  <div class="hover-box">(R)</div>
+                </div>
+              </div>
+
+              <!-- Advanced Options Column -->
+              <div class="checkbox-column">
+                <div class="column-header">
+                  <mat-icon class="header-icon">build</mat-icon>
+                  <span class="header-title">Advanced Options</span>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox
+                    color="primary"
+                    *ngIf="!featureForm.value.depends_on_others"
+                    formControlName="network_logging"
+                    [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">network_check</mat-icon>
+                    Network Logging
+                  </mat-checkbox>
+                  <div class="hover-box">(N)</div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox
+                    color="primary"
+                    *ngIf="!featureForm.value.depends_on_others"
+                    formControlName="generate_dataset"
+                    [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
+                    <mat-icon class="checkbox-icon">storage</mat-icon>
+                    Generate Dataset
+                  </mat-checkbox>
+                  <div class="hover-box">(G)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <mat-divider vertical class="section-divider"></mat-divider>
+
+            <!-- Buttons Section - Single Column -->
+            <div class="buttons-section">
+              <div class="column-header">
+                <mat-icon class="header-icon">play_arrow</mat-icon>
+                <span class="header-title">Actions</span>
+              </div>
+              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+                <div class="button-container">
+                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
                     <button
                       type="button"
                       color="primary"
                       [disabled]="disableVariables"
-                      (click)="openStartEmulatorScreen()"
+                      (click)="editVariables()"
                       mat-stroked-button
-                      [matTooltip]="'mobile_list.emulator_mobile' | translate"
-                      matTooltipPosition="above">
-                      Start Mobile
+                      [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
+                      Edit Variables
                     </button>
-                    <mat-icon
-                      class="memberShip"
-                      [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
-                      card_membership
-                    </mat-icon>
-                  </div>
-                </span>
-                <div class="hover-box-Vshortcut">(S)</div>
-              </div>
-            </ng-container>
+                  </span>
+                  <div class="hover-box-Vshortcut">(V)</div>
+                </div>
+              </ng-container>
+              
+              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
+                <div class="button-container">
+                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
+                    <div class="button-container">
+                      <button
+                        type="button"
+                        color="primary"
+                        [disabled]="disableMobile"
+                        (click)="openStartEmulatorScreen()"
+                        mat-stroked-button
+                        class="start-mobile-btn"
+                        [matTooltip]="'mobile_list.emulator_mobile' | translate"
+                        matTooltipPosition="above">
+                        Start Mobile
+                      </button>
+                      <mat-icon
+                        class="memberShip"
+                        [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
+                        card_membership
+                      </mat-icon>
+                    </div>
+                  </span>
+                  <div class="hover-box-Vshortcut">(S)</div>
+                </div>
+              </ng-container>
+            </div>
           </div>
         </ng-template>
       </mat-expansion-panel>
@@ -206,12 +268,11 @@
       <!-- EMAIL -->
       <mat-expansion-panel
         *ngIf="
-          featureForm.value.send_mail && !featureForm.value.depends_on_others
+          featureForm.value.send_notification && featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
-        [expanded]="!config$.toggles.hideSendMail && features[0].panels[1].expanded"
-        (opened)="onExpansionChange(featureId, '2', true); "
-        (closed)="onExpansionChange(featureId, '2', false); "
-        >
+        [expanded]="getPanelExpansionState('2')"
+        (opened)="onExpansionChange('2', true); "
+        (closed)="onExpansionChange('2', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Email template</span>
@@ -312,19 +373,6 @@
               (blur)="onInputBlur()"
               ></textarea>
           </mat-form-field>
-          <mat-form-field appearance="fill" class="" *ngIf="featureForm.value.check_maximum_notification_on_error" >
-            <mat-label
-              > Maximum notifications on errors
-            </mat-label>
-            <input
-              type="number"
-              matInput
-              spellcheck="false"
-              formControlName="maximum_notification_on_error"
-              (focus)="onInputFocus()"
-              (blur)="onInputBlur()"
-              />
-          </mat-form-field>
           <br>
           <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
@@ -336,28 +384,48 @@
             >
           </mat-radio-group>
 
-          <mat-checkbox
-            formControlName="check_maximum_notification_on_error"
-            aria-label="Screenshot"
-            color="primary"
-            [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
-            class="screenshot checkbox-blue maximum-notifications-check"
-            > Set maximum notifications on errors </mat-checkbox>
-          <mat-checkbox
-            formControlName="do_not_use_default_template"
-            aria-label="Screenshot"
-            color="primary"
-            [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
-            class="screenshot checkbox-blue default_template"
-            > Do not use default template </mat-checkbox>
-
-          <mat-checkbox
-            formControlName="attach_pdf_report_to_email"
-            aria-label="Screenshot"
-            color="primary"
-            [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
-            class="screenshot checkbox-blue report_to_email"
-            > Attach PDF report to email </mat-checkbox>
+          <!-- Group maximum notifications checkbox with its input -->
+          <div class="maximum-notifications-group">
+          <!-- Keep other checkboxes in a row -->
+            <mat-checkbox
+              formControlName="check_maximum_notification_on_error"
+              aria-label="Screenshot"
+              color="primary"
+              [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
+              class="screenshot checkbox-blue maximum-notifications-check"
+              > Set maximum notifications on errors 
+            </mat-checkbox>
+            <mat-checkbox
+              formControlName="do_not_use_default_template"
+              aria-label="Screenshot"
+              color="primary"
+              [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
+              class="screenshot checkbox-blue default_template"
+              > Do not use default template 
+            </mat-checkbox>
+            <mat-checkbox
+              formControlName="attach_pdf_report_to_email"
+              aria-label="Screenshot"
+              color="primary"
+              [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
+              class="screenshot checkbox-blue report_to_email"
+              > Attach PDF report to email </mat-checkbox>
+            <div class="maximum-notifications-input" *ngIf="featureForm.value.check_maximum_notification_on_error">
+              <mat-form-field appearance="fill" class="">
+                <mat-label
+                  > Maximum notifications on errors
+                </mat-label>
+                <input
+                  type="number"
+                  matInput
+                  spellcheck="false"
+                  formControlName="maximum_notification_on_error"
+                  (focus)="onInputFocus()"
+                  (blur)="onInputBlur()"
+                  />
+              </mat-form-field>
+            </div>
+          </div>
 
           <button
             type="button"
@@ -374,12 +442,194 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <!-- FILE UPLOAD -->
+      <!-- TELEGRAM -->
+      <mat-expansion-panel
+        *ngIf="
+          featureForm.value.send_notification && featureForm.value.send_telegram_notification && !featureForm.value.depends_on_others
+        "
+        [expanded]="getPanelExpansionState('3')"
+        (opened)="onExpansionChange('3', true); "
+        (closed)="onExpansionChange('3', false); ">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Telegram notification</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            Configure Telegram message content and format
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <div class="telegram-config-section">
+            <h4>Telegram Notification Options</h4>
+            <div formGroupName="telegram_options">
+              
+              <!-- Override Settings Section -->
+              <div class="telegram-override-section">
+                <mat-checkbox 
+                  color="primary" 
+                  formControlName="override_telegram_settings"
+                  [matTooltip]="'Override global Telegram settings for this feature only'" 
+                  matTooltipPosition="above">
+                  Override Telegram Notification Settings
+                </mat-checkbox>
+                
+                <!-- Override Input Fields -->
+                <div class="telegram-override-inputs" *ngIf="featureForm.value.telegram_options?.override_telegram_settings">
+                  <div class="override-inputs-row">
+                    <mat-form-field appearance="fill" class="override-field">
+                      <mat-label>Chatbot Token</mat-label>
+                      <input
+                        matInput
+                        formControlName="override_bot_token"
+                        placeholder="Enter bot token for this feature"
+                        type="password"
+                        (focus)="onInputFocus()"
+                        (blur)="onInputBlur()">
+                      <mat-hint>Override the global bot token for this feature</mat-hint>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="fill" class="override-field">
+                      <mat-label>Chat IDs</mat-label>
+                      <input
+                        matInput
+                        formControlName="override_chat_ids"
+                        placeholder="123456789,987654321"
+                        (focus)="onInputFocus()"
+                        (blur)="onInputBlur()">
+                      <mat-hint>Overrides department settings</mat-hint>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="fill" class="override-field">
+                      <mat-label>Message Thread ID</mat-label>
+                      <input
+                        matInput
+                        formControlName="override_message_thread_id"
+                        placeholder="Optional thread ID"
+                        type="number"
+                        (focus)="onInputFocus()"
+                        (blur)="onInputBlur()">
+                      <mat-hint>Optional: Send to specific thread in group chat</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+
+              <mat-divider *ngIf="featureForm.value.telegram_options?.override_telegram_settings"></mat-divider>
+              <div class="telegram-options-grid">
+                <div class="telegram-option-group">
+                  <h5>Basic Information</h5>
+                  <mat-checkbox color="primary" formControlName="include_department">Include Department</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_application">Include Application</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_environment">Include Environment</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_feature_name">Include Feature Name</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_feature_url">Include Feature URL</mat-checkbox>
+                </div>
+
+                <div class="telegram-option-group">
+                  <h5>Execution Details</h5>
+                  <mat-checkbox color="primary" formControlName="include_datetime">Include Date & Time</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_execution_time">Include Execution Time</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_browser_timezone">Include Browser Timezone</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_browser">Include Browser</mat-checkbox>
+                </div>
+
+                <div class="telegram-option-group">
+                  <h5>Test Results</h5>
+                  <mat-checkbox color="primary" formControlName="include_overall_status">Include Overall Status</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_step_results">Include Step Results</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_pixel_diff">Include Pixel Differences</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_failed_step_details">Include Failed Step Details</mat-checkbox>
+                </div>
+
+                <div class="telegram-option-group">
+                  <h5>Attachments</h5>
+                  <mat-checkbox color="primary" formControlName="attach_pdf_report">Attach PDF Report</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="attach_screenshots">
+                    Attach Screenshots
+                    <span class="screenshot-limit-hint">(max 10 images)</span>
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <div class="telegram-custom-message">
+                <mat-form-field appearance="fill" class="full-width">
+                  <mat-label>Custom Message (Optional)</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="custom_message"
+                    rows="3"
+                    placeholder="Add a custom message that will appear at the top of your notification..."
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()">
+                  </textarea>
+                  <mat-hint>This message will be displayed at the beginning of your Telegram notification. You can use variables like $var_name, $var_name2, $var_name3, etc.</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <mat-radio-group formControlName="send_on_error">
+                When to send notification:
+                <mat-radio-button color="primary" [value]="false">Always</mat-radio-button>
+                <mat-radio-button color="primary" [value]="true">On error</mat-radio-button>
+              </mat-radio-group>
+
+              <!-- Group maximum notifications checkbox with its input -->
+              <div class="maximum-notifications-group-telegram">
+                <mat-checkbox
+                  formControlName="check_maximum_notification_on_error_telegram"
+                  aria-label="Maximum Telegram notifications"
+                  color="primary"
+                  [matTooltip]="'Set maximum number of Telegram notifications when errors occur'" matTooltipPosition="above"
+                  class="screenshot checkbox-blue maximum-notifications-check-telegram"
+                  > Set maximum notifications on errors </mat-checkbox>
+
+                <mat-checkbox
+                  formControlName="do_not_use_default_template"
+                  aria-label="Do not use default Telegram template"
+                  color="primary"
+                  [matTooltip]="'When checked, only the custom message will be sent (no default template)'" matTooltipPosition="above"
+                  class="screenshot checkbox-blue default_template"
+                  > Do not use default template </mat-checkbox>
+
+                <div class="maximum-notifications-input-telegram" *ngIf="featureForm.value.telegram_options?.check_maximum_notification_on_error_telegram">
+                  <mat-form-field appearance="fill" class="">
+                    <mat-label
+                      > Maximum Telegram notifications on errors
+                    </mat-label>
+                    <input
+                      type="number"
+                      matInput
+                      spellcheck="false"
+                      formControlName="maximum_notification_on_error_telegram"
+                      (focus)="onInputFocus()"
+                      (blur)="onInputBlur()"
+                      />
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="openTelegramHelp()"
+            stopPropagation
+            [matTooltip]="'Telegram notification help'"
+            matTooltipPosition="left"
+            class="edit-feature-help-icon"
+            color="primary"
+            mat-icon-button>
+            <mat-icon>help_outline</mat-icon>
+          </button>
+
+        </ng-template>
+      </mat-expansion-panel>
+
+      <!-- UPLOADED FILES -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles.hideUploadedFiles && features[0].panels[2].expanded"
-        (opened)="onExpansionChange(featureId, '3', true); "
-        (closed)="onExpansionChange(featureId, '3', false); ">
+        [expanded]="getPanelExpansionState('4')"
+        (opened)="onExpansionChange('4', true); "
+        (closed)="onExpansionChange('4', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -388,6 +638,7 @@
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <app-files-management
+            #filesManagement
             *ngIf="department"
             [department]="department"
             [isExpanded]="true"
@@ -408,9 +659,9 @@
       <!-- BROWSERS -->
       <mat-expansion-panel
         *ngIf="!featureForm.value.depends_on_others"
-        [expanded]="data.mode == 'new' || !config$.toggles.hideBrowsers && features[0].panels[3].expanded"
-        (opened)="onExpansionChange(featureId, '4', true); "
-        (closed)="onExpansionChange(featureId, '4', false); ">
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('5', true) : getPanelExpansionState('5', false)"
+        (opened)="onExpansionChange('5', true); "
+        (closed)="onExpansionChange('5', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Browser selection</span>
@@ -443,9 +694,9 @@
 
       <!-- STEPS -->
       <mat-expansion-panel 
-        [expanded]="data.mode == 'new' || !config$.toggles.hideSteps && features[0].panels[4].expanded"
-        (opened)="onExpansionChange(featureId, '5', true); "
-        (closed)="onExpansionChange(featureId, '5', false); ">
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('6', true) : getPanelExpansionState('6', false)"
+        (opened)="onExpansionChange('6', true); "
+        (closed)="onExpansionChange('6', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -479,9 +730,9 @@
 
       <!-- SCHEDULE -->
       <mat-expansion-panel 
-        [expanded]="!config$.toggles.hideSchedule && features[0].panels[5].expanded"
-        (opened)="onExpansionChange(featureId, '6', true); "
-        (closed)="onExpansionChange(featureId, '6', false); ">
+        [expanded]="getPanelExpansionState('7')"
+        (opened)="onExpansionChange('7', true); "
+        (closed)="onExpansionChange('7', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>
@@ -491,15 +742,81 @@
           >
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <h5 (click)="openScheduleHelp()" class="schedule-help">
-            How to format a cron schedule (click)
-          </h5>
           <div class="run-now">
-            <!-- The run_now values have been inverted as now the schedule checkbox behaviour will be the opposite from the previous version -->
             <mat-checkbox formControlName="run_now" color="primary"
               >Enable schedule</mat-checkbox
             >
           </div>
+          <div class="schedule-header-inline" *ngIf="featureForm.value.run_now">
+            <h5 (click)="openScheduleHelp()" class="schedule-help">
+              How to format a cron schedule (click)
+            </h5>
+            <div class="timezone-selection-inline">
+              <mat-form-field class="form-field-blue compact" appearance="fill">
+                <mat-label>Preview Timezone</mat-label>
+                <mat-select 
+                  [(ngModel)]="timezone" 
+                  [ngModelOptions]="{standalone: true}"
+                  (selectionChange)="onTimezoneChange($event)"
+                  (focus)="onInputFocus()"
+                  (blur)="onInputBlur()">
+                  
+                  <!-- UTC Options -->
+                  <mat-optgroup label="UTC">
+                    <mat-option value="UTC">UTC (UTC+0)</mat-option>
+                    <mat-option value="Etc/UTC">Etc/UTC (UTC+0)</mat-option>
+                    <mat-option value="Etc/GMT">Etc/GMT (UTC+0)</mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- All Americas Timezones -->
+                  <mat-optgroup label="Americas - All">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('America')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- All Europe Timezones -->
+                  <mat-optgroup label="Europe - All">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Europe')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- All Asia Timezones -->
+                  <mat-optgroup label="Asia - All">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Asia')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Africa Timezones -->
+                  <mat-optgroup label="Africa">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Africa')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Australia & Oceania Timezones -->
+                  <mat-optgroup label="Australia & Oceania">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Australia|Pacific')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- User's Browser -->
+                  <mat-optgroup label="Your Location">
+                    <mat-option value="browser-timezone">{{ userTimezone }} ({{ getTimezoneOffset(userTimezone) }}) - Your Browser</mat-option>
+                  </mat-optgroup>
+                </mat-select>
+                <mat-hint>Preview timezone only</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <!-- Show help text when schedule is disabled -->
+          <h5 (click)="openScheduleHelp()" class="schedule-help" *ngIf="!featureForm.value.run_now">
+            How to format a cron schedule (click)
+          </h5>
           <table *ngIf="featureForm.value.run_now" class="schedule">
             <tr>
               <td>
@@ -507,9 +824,10 @@
                   <mat-label>Minute</mat-label>
                   <input
                     matInput
-                    [disabled]="!featureForm.value.schedule"
                     formControlName="minute"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('minute').hasError('pattern')"
                     >Invalid format</mat-error
@@ -522,9 +840,10 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
                     formControlName="hour"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error *ngIf="featureForm.get('hour').hasError('pattern')"
                     >Invalid format</mat-error
                   >
@@ -536,9 +855,10 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
                     formControlName="day_month"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('day_month').hasError('pattern')"
                     >Invalid format</mat-error
@@ -551,9 +871,10 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
                     formControlName="month"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('month').hasError('pattern')"
                     >Invalid format</mat-error
@@ -566,12 +887,13 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
                     formControlName="day_week"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('day_week').hasError('pattern')"
-                    >Invalid format</mat-error
+                    >Invalid format. Use numbers (0-7) or day names (SUN, MON, TUE, etc.)</mat-error
                   >
                 </mat-form-field>
               </td>
@@ -581,11 +903,11 @@
             <ng-container *ngIf="!parseError.error">
               <p>
                 <strong>Note:</strong> Your feature will be scheduled in
-                <strong>UTC</strong> timezone.
+                <strong>"{{ getDisplayTimezone() }}"</strong> timezone.
               </p>
               <p>
                 Here are some executions (in
-                <strong>"{{ timezone }}"</strong> timezone) based on the crontab
+                <strong>"{{ getDisplayTimezone() }}"</strong> timezone) based on the crontab
                 expression:
               </p>
               <li *ngFor="let nextRun of nextRuns">
@@ -667,7 +989,7 @@
         <button
           type="button"
           color="warn"
-          [disabled]="saving"
+          [disabled]="getButtonsDisabledState()"
           mat-stroked-button
           (click)="handleCancel()">
           CANCEL
@@ -675,7 +997,7 @@
         <button
           type="button"
           color="primary"
-          [disabled]="saving"
+          [disabled]="getButtonsDisabledState()"
           mat-stroked-button
           class="submit"
           (click)="editOrCreate()">

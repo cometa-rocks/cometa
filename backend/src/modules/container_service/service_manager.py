@@ -15,6 +15,10 @@ import uuid, time, sys, json
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
+
+from backend.utility.functions import detect_deployment_environment
+
+
 # src container/django container service_manager.py 
 
 class KubernetesServiceManager:
@@ -149,9 +153,15 @@ class DockerServiceManager:
 
     # This method will create the container base on the environment
     def create_service(self, configuration) -> dict:
-        logger.info(f"Creating container with configuration : {configuration}")
-        container = self.docker_client.containers.run(**configuration)
-        return container.attrs
+        try:
+            logger.info(f"Creating container with configuration : {configuration}")
+            container = self.docker_client.containers.run(**configuration)
+            return container.attrs
+        except docker.errors.NotFound:
+            return {"error": f"Image {configuration['image']} not found"}
+        except Exception as e:
+            return {"error": f"{str(e)}"}
+        
 
     def get_service_name(self, uuid):
         return self.inspect_service(uuid)['Config']['Hostname']           
@@ -222,33 +232,98 @@ class DockerServiceManager:
             traceback.print_exc()
             return False, str(e)
 
-    def delete_service(self, service_name_or_id):
-        logger.info(
-            f"Deleting service with container_name_or_id : {service_name_or_id}"
-        )
-        try:
-            # Find the container
-            container = self.docker_client.containers.get(service_name_or_id)
-            # Stop the container if it's running
-            container.stop()
-            logger.info(
-                f"Container stopped with container_name_or_id : {service_name_or_id}"
-            )
+        
 
-            # Remove the container
-            container.remove()
-            logger.info(
-                f"Container removed with container_name_or_id : {service_name_or_id}"
-            )
-            return True, "Container removed"
-        except (NullResource, NotFound) as null_resource:
-            logger.info(
-                f"Can not delete service with container_name_or_id : {service_name_or_id}, error message {str(null_resource)}"
-            )
-            return True, str(null_resource)
-        except Exception as e:
-            traceback.print_exc()
-            return False, str(e)
+    def delete_service(self, service_name_or_id):
+        logger.info(f"Deleting service with container_name_or_id: {service_name_or_id}")
+
+        max_delete_attempts = 10
+        retry_delay = 2  # seconds between retries
+
+        for attempt in range(1, max_delete_attempts + 1):
+            logger.info(f"Delete attempt {attempt} for {service_name_or_id}")
+            try:
+                # Find the container
+                try:
+                    container = self.docker_client.containers.get(service_name_or_id)
+                except NotFound as not_found:
+                    logger.info(f"Container not found: {service_name_or_id}. Error: {str(not_found)}")
+                    return True, f"Container not found: {service_name_or_id}"
+
+                # Check container state
+                container.reload()  # Refresh state
+                state = container.attrs.get('State', {})
+                status = state.get('Status', 'unknown')
+                logger.info(f"Container {service_name_or_id} current state: {status}")
+
+                # Stop the container if it's running or restarting
+                if status in ['running', 'restarting']:
+                    logger.info(f"Stopping container {service_name_or_id} (state: {status})")
+                    container.stop(timeout=10)
+                    # Wait for container to stop
+                    for _ in range(5):
+                        container.reload()
+                        status = container.attrs.get('State', {}).get('Status', 'unknown')
+                        if status == 'exited':
+                            break
+                        time.sleep(1)
+                    logger.info(f"Container {service_name_or_id} stopped (state: {status})")
+                else:
+                    logger.info(f"Container {service_name_or_id} is not running (state: {status})")
+
+                # Remove the container
+                logger.info(f"Removing container {service_name_or_id}")
+                container.remove(force=True)
+                logger.info(f"Container {service_name_or_id} removed successfully")
+                return True, "Container removed"
+
+            except NotFound as not_found:
+                logger.info(f"Container not found during deletion: {service_name_or_id}. Error: {str(not_found)}")
+                return True, f"Container not found: {service_name_or_id}"
+            except Exception as e:
+                logger.error(f"Error deleting container {service_name_or_id} on attempt {attempt}: {str(e)}")
+                traceback.print_exc()
+                if attempt < max_delete_attempts:
+                    logger.info(f"Retrying deletion in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logger.error(f"Max delete attempts reached for {service_name_or_id}. Giving up.")
+                    return False, f"Failed to delete container after {max_delete_attempts} attempts: {str(e)}"
+
+        
+    
+    # def delete_service(self, service_name_or_id):
+    #     logger.info(
+    #         f"Deleting service with container_name_or_id : {service_name_or_id}"
+    #     )
+        
+    #     max_delete_attampts = 10
+        
+        
+    #     def clean_up():
+    #         try:
+    #             # Find the container
+    #             container = self.docker_client.containers.get(service_name_or_id)
+    #             # Stop the container if it's running
+    #             container.stop()
+    #             logger.info(
+    #                 f"Container stopped with container_name_or_id : {service_name_or_id}"
+    #             )
+
+    #             # Remove the container
+    #             container.remove()
+    #             logger.info(
+    #                 f"Container removed with container_name_or_id : {service_name_or_id}"
+    #             )
+    #             return True, "Container removed"
+    #         except (NullResource, NotFound) as null_resource:
+    #             logger.info(
+    #                 f"Can not delete service with container_name_or_id : {service_name_or_id}, error message {str(null_resource)}"
+    #             )
+    #             return True, str(null_resource)
+    #         except Exception as e:
+    #             traceback.print_exc()
+    #             return False, str(e)
 
     def pull_image(self, image_name):
         try:
@@ -303,6 +378,55 @@ class DockerServiceManager:
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
 
+        # Check if emulator is ready
+        try:
+            exit_code, output = container.exec_run("adb devices")
+            if exit_code != 0:
+                return False, "Unable to check emulator status. Please ensure ADB is available."
+            
+            # Parse the output properly
+            lines = output.decode('utf-8').strip().split('\n')
+            if len(lines) < 2:  # Should have header + at least one device
+                return False, "No emulator device found. Please wait for the emulator to start."
+            
+            # Check the specific device status (skip header line)
+            device_found = False
+            for line in lines[1:]:
+                if line.strip():  # Skip empty lines
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        device_found = True
+                        device_status = parts[1].strip()
+                        if device_status == 'offline':
+                            logger.info(f"APK installation skipped - Emulator device offline")
+                            return False, "Emulator is still starting up. Please wait a moment and try again."
+                        elif device_status != 'device':
+                            logger.info(f"APK installation skipped - Emulator in unexpected state: {device_status}")
+                            return False, f"Emulator is in unexpected state: {device_status}. Please restart the emulator."
+            
+            if not device_found:
+                logger.info(f"APK installation skipped - No emulator device detected")
+                return False, "No emulator device detected. Please ensure the emulator is running."
+            
+            # Check if system is fully booted
+            exit_code, output = container.exec_run("adb shell getprop sys.boot_completed")
+            if exit_code != 0 or output.strip() != b"1":
+                logger.info(f"APK installation skipped - Android system still booting")
+                return False, "Android system is still booting. Please wait a moment and try again."
+            
+            # Check if package service is available
+            exit_code, output = container.exec_run("adb shell pm list packages -3")
+            if exit_code != 0:
+                if b"Can't find service: package" in output:
+                    logger.info(f"APK installation skipped - Package service not ready")
+                    return False, "Android package service is not ready yet. Please wait a moment and try again."
+                else:
+                    logger.warning(f"APK installation skipped - Package service error: {output.decode('utf-8').strip()}")
+                    return False, f"Error checking package service: {output.decode('utf-8').strip()}"
+                
+        except Exception as e:
+            return False, f"Error checking emulator status: {str(e)}"
+
         command = f"adb install \"/tmp/{apk_file_name}\""
 
         # Run the tar extraction command in the container
@@ -316,17 +440,7 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-# Select ServiceManager Parent class based on the deployment 
-service_manager = DockerServiceManager
-
-IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
-
-if IS_KUBERNETES_DEPLOYMENT:
-    service_manager = KubernetesServiceManager
-    logger.debug(
-        f'Deployment type is {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT","docker")}'
-    )
-
+service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
 
 class ServiceManager(service_manager):
     def __init__(self, *args, **kwargs):
@@ -369,6 +483,15 @@ class ServiceManager(service_manager):
         except Exception as e:
             logger.error("Exception loading the test hostAliases configurations", e)
             return []
+
+    def get_container_environments(self):
+        # Load the container environment variables
+        try:
+            container_envs = ConfigurationManager.get_configuration("CONTAINER_ENVS", '{}')
+            return json.loads(container_envs)
+        except Exception as e:
+            logger.error("Exception loading the container environments configurations", e)
+            return {}
         
     def get_video_volume(self):
         info = self.inspect_service("cometa_behave")
@@ -378,6 +501,7 @@ class ServiceManager(service_manager):
 
     def prepare_emulator_service_configuration(self, image):
         host_mappings = self.get_host_name_mapping()
+        container_envs = self.get_container_environments()
         
         # Flatten the host mappings for `extra_hosts`
         extra_hosts = [
@@ -400,7 +524,8 @@ class ServiceManager(service_manager):
                 "environment": {
                     "DISPLAY": ":0",
                     "VIDEO_PATH": "/video",
-                    "AUTO_RECORD": "true"
+                    "AUTO_RECORD": "true",
+                    **container_envs  # Add custom container environments from configuration
                 },  # Set the DISPLAY environment variable
                 "network": "cometa_testing",  # Attach the container to the 'testing' network
                 "restart_policy": {"Name": "unless-stopped"},
@@ -424,6 +549,7 @@ class ServiceManager(service_manager):
         browser_cpu=int(ConfigurationManager.get_configuration("COMETA_BROWSER_CPU","1"))
         
         host_mappings = self.get_host_name_mapping()
+        container_envs = self.get_container_environments()
         
         if super().deployment_type == "docker":        
             video_volume = self.get_video_volume()
@@ -449,6 +575,7 @@ class ServiceManager(service_manager):
                     "SE_SESSION_REQUEST_TIMEOUT": "7200",
                     "SE_NODE_SESSION_TIMEOUT": "7200",
                     "SE_NODE_OVERRIDE_MAX_SESSIONS": "true",
+                    **container_envs  # Add custom container environments from configuration
                 },  # Set environment variables
                 "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
                 "restart_policy": {"Name": "unless-stopped"},
@@ -518,6 +645,9 @@ class ServiceManager(service_manager):
                                 {"name": "SE_SESSION_REQUEST_TIMEOUT", "value": "7200"},
                                 {"name": "SE_NODE_SESSION_TIMEOUT", "value": "7200"},
                                 {"name": "SE_NODE_OVERRIDE_MAX_SESSIONS", "value": "true"}
+                            ] + [
+                                {"name": key, "value": str(value)} 
+                                for key, value in container_envs.items()
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},

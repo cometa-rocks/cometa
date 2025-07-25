@@ -376,9 +376,9 @@ h3 {
   background-color: $blue !important;
 }
 
-.mat-dialog-content {
-  width: 500px;
-}
+// .mat-dialog-content {
+//   width: 500px;
+// }
 
 .enter-value-panel .mat-dialog-content {
   width: auto !important;
@@ -400,7 +400,7 @@ h3 {
   width: 100%;
   position: relative !important;
   @media (max-width: 600px) {
-    //width: 95vw;
+    width: 95vw;
     width: 100%;
   }
 }
@@ -638,8 +638,11 @@ h3 {
   min-width: 95%;
   min-height: 60%;
   .mat-dialog-container {
+    max-height: 100dvh;
+    max-width: 100dvw;
     resize: both;
     overflow: auto;
+    overflow-y: hidden;
   }
 }
 
@@ -654,16 +657,52 @@ h3 {
   display: flex;
   flex-direction: column;
 }
+
+// .mobile-emulator-panel {
+//   width: 80vw;
+//   height: 85vh;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   .mat-dialog-container {
+//     overflow: hidden;
+//   }
+// }
+
 .mobile-emulator-panel {
-  width: 80vw;
-  height: 81vh;
+  background-color: $bg-mat-dialog-container;
+  min-width: 80vw;
+  min-height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
   .mat-dialog-container {
+    max-height: 100dvh;
+    max-width: 100dvw;
     overflow: hidden;
   }
 }
+
+.mobile-emulator-panel-dialog {
+  background-color: $bg-mat-dialog-container;
+  // width: 80vw;
+  // height: 85vh;
+  min-width: 80vw;
+  min-height: 85vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .mat-dialog-container {
+    max-height: 100dvh;
+    max-width: 100dvw;
+    overflow: hidden;
+  }
+}
+
+// .mat-dialog-content {
+//   width: 500px;
+// }
+
 
 .mat-menu-item {
   span {
@@ -762,9 +801,17 @@ h3 {
     background-color: $remove;
     border-bottom: 4px solid darken($remove, 10);
   }
+  &.canceled {
+    background-color: $grey;
+    border-bottom: 4px solid darken($grey, 10);
+  }
   &.running {
     background-color: $blue;
     border-bottom: 4px solid darken($blue, 10);
+  }
+  &.queued {
+    background-color: $orange;
+    border-bottom: 4px solid darken($orange, 10);
   }
 }
 
@@ -784,13 +831,16 @@ h3 {
   line-height: 15px;
   border-radius: 3px;
   height: 25px;
-  width: 62px;
+  width: 75px;
   text-align: center;
   &.passed {
     background-color: $good;
   }
   &.failed {
     background-color: $remove;
+  }
+  &.canceled {
+    background-color: $grey;
   }
   &.default {
     background-color: $step;
@@ -1100,4 +1150,8 @@ mat-dialog-container draggable-window{
 
 .mat-dialog-container {
   resize: both;
+}
+
+.no-resize-dialog .mat-dialog-container {
+  resize: none !important;
 }

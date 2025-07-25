@@ -420,6 +420,9 @@ def before_all(context):
         
         response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
                              data=json.dumps(container_configuration))
+        if response.status_code not in [200, 201]:
+            raise Exception("Error while starting browser, Please contact administrator")    
+
         logger.debug(response.json())
         if not response or not response.json()['success'] == True:
             raise Exception("Error while starting browser, Please contact administrator")    
@@ -441,8 +444,9 @@ def before_all(context):
         context.browser_hub_url = container_information['service_url']
         connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
         status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
-        context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
-    
+        is_running = context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
+        if not is_running:
+            return
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
     logger.debug(f"context.record_video {context.record_video }")
@@ -526,11 +530,11 @@ def before_all(context):
         # browser capabilities
         options.set_capability("selenoid:options", selenoid_capabilities)
         
+    options.set_capability(
+        "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
+    )
         
     if context.browser_info["browser"] == "chrome" and context.network_logging_enabled:
-        options.set_capability(
-            "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
-        )
         # If network logging enabled then fetch vulnerability headers info from server
         response =  requests.get(f'{get_cometa_backend_url()}/api/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
         logger.info("vulnerable headers info received")
@@ -880,7 +884,6 @@ def after_all(context):
     })
 
     if hasattr(context, "network_responses") and context.network_logging_enabled:
-
         network_response_count = 0
         vulnerable_response_count = 0
         logger.debug(
@@ -914,11 +917,24 @@ def after_all(context):
     
     import threading       
     # FIXME This code seems not working need to verify
-    def clean_up_and_mail():
-        # send mail
-        sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
-                                headers={'Host': 'cometa.local'})
-        logger.debug('SendEmail status: ' + str(sendemail.status_code))
+    def clean_up_and_notification():
+        
+        notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
+        headers = {'Host': 'cometa.local'}
+        logger.debug(f"Sending notification request on URL : {notifications_url}")
+        response = requests.get(notifications_url, headers=headers)
+        
+  
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data.get('success', False):
+                logger.info("Notification sent successfully")
+            else:
+                logger.warning(f"Notification failed: {response_data.get('message', 'Unknown error')}")
+        else:
+            logger.error(f"Notification request failed with status {response.status_code}: {response.text}")
+    
         # remove download folder if no files where downloaded during the testcase
         downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
         if len(downloadedFiles) == 0:
@@ -935,12 +951,12 @@ def after_all(context):
                     f"Something went wrong while trying to delete temp file: {tempfile}"
                 )
                 logger.exception(err)
-       
+
     
-    # Create a thread to run the remove_services function
-    thread = threading.Thread(target=clean_up_and_mail)
-    thread.daemon = True
-    thread.start() 
+    # Create a thread to run the clean_up_and_mail function
+    notification_and_cleanup_thread = threading.Thread(target=clean_up_and_notification)
+    notification_and_cleanup_thread.daemon = True
+    notification_and_cleanup_thread.start() 
     
     # call update task to delete a task with pid.
     task = {
@@ -953,8 +969,11 @@ def after_all(context):
     response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
                             data=json.dumps(task))
 
-    total_time = (time.time() - context.start_time) * 1000  # Convert to milliseconds
+    total_time = (time.time() - context.start_time) * 1000  # Convert to milliseconds    
     logger.debug(f"Step execution took {total_time:.2f}ms to execute")
+    
+    # Wait for cleanup thread to complete before exiting
+    notification_and_cleanup_thread.join()
 
 @error_handling()
 def before_step(context, step):
@@ -1115,6 +1134,7 @@ def after_step(context, step):
         step_error = context.step_data["custom_error"]
     elif hasattr(context, "step_error"):
         step_error = context.step_error
+        logger.debug(f"Step error: {step_error}")
     # send websocket to front to let front know about the step
 
     logger.debug("Running Mobiles")

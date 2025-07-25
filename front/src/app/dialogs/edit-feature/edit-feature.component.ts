@@ -30,6 +30,7 @@ import {
   Validators,
   UntypedFormBuilder,
   ReactiveFormsModule,
+  FormsModule,
 } from '@angular/forms';
 import {
   MatLegacyCheckboxChange as MatCheckboxChange,
@@ -95,6 +96,7 @@ import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
+import { MatDividerModule } from '@angular/material/divider';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
@@ -104,6 +106,8 @@ import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { FilesManagementComponent } from '@components/files-management/files-management.component';
 import { PageEvent } from '@angular/material/paginator';
 import { Departments } from '@store/actions/departments.actions';
+import { TelegramNotificationHelp } from './telegram-notification-help/telegram-notification-help.component';
+import { User } from '@store/actions/user.actions';
 
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -117,9 +121,11 @@ import { isArray } from 'highcharts';
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    FormsModule,
     NgIf,
     MatLegacyDialogModule,
     MatExpansionModule,
+    MatDividerModule,
     MatLegacyFormFieldModule,
     MatLegacySelectModule,
     NgFor,
@@ -149,7 +155,8 @@ import { isArray } from 'highcharts';
     TranslateModule,
     DraggableWindowModule,
     MobileListComponent,
-    FilesManagementComponent
+    FilesManagementComponent,
+    TelegramNotificationHelp
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -192,6 +199,7 @@ export class EditFeature implements OnInit, OnDestroy {
   fileContents: string[] = [];
   featureAge: string = '';
   selectedFile = new UntypedFormControl();
+  selected_department!: string;
   // next runs an array of next executions
   nextRuns = [];
   // parse error
@@ -200,14 +208,105 @@ export class EditFeature implements OnInit, OnDestroy {
     msg: '',
   };
   // get user timezone
-  timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // default to user's browser timezone
+  timezone = 'browser-timezone';
+  private timezoneOffsetCache = new Map<string, string>();
+
+  // Comprehensive list of timezones (based on tz database 2025b - canonical zones only)
+  allTimezones = [
+    'UTC', 'Etc/UTC', 'Etc/GMT',
+    // Americas
+    'America/Adak', 'America/Anchorage', 'America/Anguilla', 'America/Antigua', 'America/Araguaina',
+    'America/Argentina/Buenos_Aires', 'America/Argentina/Catamarca', 'America/Argentina/Cordoba', 
+    'America/Argentina/Jujuy', 'America/Argentina/La_Rioja', 'America/Argentina/Mendoza', 
+    'America/Argentina/Rio_Gallegos', 'America/Argentina/Salta', 'America/Argentina/San_Juan', 
+    'America/Argentina/San_Luis', 'America/Argentina/Tucuman', 'America/Argentina/Ushuaia',
+    'America/Aruba', 'America/Asuncion', 'America/Atikokan', 'America/Bahia', 'America/Bahia_Banderas', 
+    'America/Barbados', 'America/Belem', 'America/Belize', 'America/Blanc-Sablon', 'America/Boa_Vista', 
+    'America/Bogota', 'America/Boise', 'America/Cambridge_Bay', 'America/Campo_Grande', 'America/Cancun', 
+    'America/Caracas', 'America/Cayenne', 'America/Cayman', 'America/Chicago', 'America/Chihuahua', 
+    'America/Ciudad_Juarez', 'America/Costa_Rica', 'America/Creston', 'America/Cuiaba', 'America/Curacao', 
+    'America/Danmarkshavn', 'America/Dawson', 'America/Dawson_Creek', 'America/Denver', 'America/Detroit', 
+    'America/Dominica', 'America/Edmonton', 'America/Eirunepe', 'America/El_Salvador', 'America/Fort_Nelson',
+    'America/Fortaleza', 'America/Glace_Bay', 'America/Goose_Bay', 'America/Grand_Turk', 'America/Grenada', 
+    'America/Guadeloupe', 'America/Guatemala', 'America/Guayaquil', 'America/Guyana', 'America/Halifax', 
+    'America/Havana', 'America/Hermosillo', 'America/Indiana/Indianapolis', 'America/Indiana/Knox', 
+    'America/Indiana/Marengo', 'America/Indiana/Petersburg', 'America/Indiana/Tell_City', 'America/Indiana/Vevay', 
+    'America/Indiana/Vincennes', 'America/Indiana/Winamac', 'America/Inuvik', 'America/Iqaluit', 'America/Jamaica', 
+    'America/Juneau', 'America/Kentucky/Louisville', 'America/Kentucky/Monticello', 'America/La_Paz', 'America/Lima',
+    'America/Los_Angeles', 'America/Maceio', 'America/Managua', 'America/Manaus', 'America/Marigot',
+    'America/Martinique', 'America/Matamoros', 'America/Mazatlan', 'America/Menominee', 'America/Merida', 
+    'America/Metlakatla', 'America/Mexico_City', 'America/Miquelon', 'America/Moncton', 'America/Monterrey', 
+    'America/Montevideo', 'America/Montreal', 'America/Montserrat', 'America/Nassau', 'America/New_York', 
+    'America/Nipigon', 'America/Nome', 'America/Noronha', 'America/North_Dakota/Beulah', 'America/North_Dakota/Center',
+    'America/North_Dakota/New_Salem', 'America/Nuuk', 'America/Ojinaga', 'America/Panama', 'America/Pangnirtung',
+    'America/Paramaribo', 'America/Phoenix', 'America/Port_of_Spain', 'America/Port-au-Prince',
+    'America/Porto_Velho', 'America/Puerto_Rico', 'America/Punta_Arenas', 'America/Rainy_River',
+    'America/Rankin_Inlet', 'America/Recife', 'America/Regina', 'America/Resolute', 'America/Rio_Branco',
+    'America/Santarem', 'America/Santiago', 'America/Santo_Domingo', 'America/Sao_Paulo',
+    'America/Scoresbysund', 'America/Sitka', 'America/St_Barthelemy', 'America/St_Johns',
+    'America/St_Kitts', 'America/St_Lucia', 'America/St_Thomas', 'America/St_Vincent',
+    'America/Swift_Current', 'America/Tegucigalpa', 'America/Thule', 'America/Thunder_Bay',
+    'America/Tijuana', 'America/Toronto', 'America/Tortola', 'America/Vancouver', 'America/Whitehorse',
+    'America/Winnipeg', 'America/Yakutat', 'America/Yellowknife',
+    // Europe
+    'Europe/Amsterdam', 'Europe/Andorra', 'Europe/Astrakhan', 'Europe/Athens', 'Europe/Belgrade',
+    'Europe/Berlin', 'Europe/Bratislava', 'Europe/Brussels', 'Europe/Bucharest', 'Europe/Budapest',
+    'Europe/Busingen', 'Europe/Chisinau', 'Europe/Copenhagen', 'Europe/Dublin', 'Europe/Gibraltar',
+    'Europe/Guernsey', 'Europe/Helsinki', 'Europe/Isle_of_Man', 'Europe/Istanbul', 'Europe/Jersey',
+    'Europe/Kaliningrad', 'Europe/Kirov', 'Europe/Kyiv', 'Europe/Lisbon', 'Europe/Ljubljana', 
+    'Europe/London', 'Europe/Luxembourg', 'Europe/Madrid', 'Europe/Malta', 'Europe/Mariehamn', 
+    'Europe/Minsk', 'Europe/Monaco', 'Europe/Moscow', 'Europe/Nicosia', 'Europe/Oslo', 'Europe/Paris', 
+    'Europe/Podgorica', 'Europe/Prague', 'Europe/Riga', 'Europe/Rome', 'Europe/Samara', 'Europe/San_Marino', 
+    'Europe/Sarajevo', 'Europe/Saratov', 'Europe/Simferopol', 'Europe/Skopje', 'Europe/Sofia', 'Europe/Stockholm', 
+    'Europe/Tallinn', 'Europe/Tirane', 'Europe/Ulyanovsk', 'Europe/Uzhgorod', 'Europe/Vaduz', 'Europe/Vatican', 
+    'Europe/Vienna', 'Europe/Vilnius', 'Europe/Volgograd', 'Europe/Warsaw', 'Europe/Zagreb', 'Europe/Zaporozhye',
+    'Europe/Zurich',
+    // Asia
+    'Asia/Aden', 'Asia/Almaty', 'Asia/Amman', 'Asia/Anadyr', 'Asia/Aqtau', 'Asia/Aqtobe',
+    'Asia/Ashgabat', 'Asia/Atyrau', 'Asia/Baghdad', 'Asia/Bahrain', 'Asia/Baku', 'Asia/Bangkok',
+    'Asia/Barnaul', 'Asia/Beirut', 'Asia/Bishkek', 'Asia/Brunei', 'Asia/Chita', 'Asia/Choibalsan',
+    'Asia/Colombo', 'Asia/Damascus', 'Asia/Dhaka', 'Asia/Dili', 'Asia/Dubai', 'Asia/Dushanbe', 
+    'Asia/Famagusta', 'Asia/Gaza', 'Asia/Hebron', 'Asia/Ho_Chi_Minh', 'Asia/Hong_Kong', 'Asia/Hovd', 
+    'Asia/Irkutsk', 'Asia/Jakarta', 'Asia/Jayapura', 'Asia/Jerusalem', 'Asia/Kabul', 'Asia/Kamchatka', 
+    'Asia/Karachi', 'Asia/Kathmandu', 'Asia/Khandyga', 'Asia/Kolkata', 'Asia/Krasnoyarsk', 'Asia/Kuala_Lumpur', 
+    'Asia/Kuching', 'Asia/Kuwait', 'Asia/Macau', 'Asia/Magadan', 'Asia/Makassar', 'Asia/Manila', 'Asia/Muscat', 
+    'Asia/Nicosia', 'Asia/Novokuznetsk', 'Asia/Novosibirsk', 'Asia/Omsk', 'Asia/Oral', 'Asia/Phnom_Penh',
+    'Asia/Pontianak', 'Asia/Pyongyang', 'Asia/Qatar', 'Asia/Qostanay', 'Asia/Qyzylorda', 'Asia/Riyadh', 
+    'Asia/Sakhalin', 'Asia/Samarkand', 'Asia/Seoul', 'Asia/Shanghai', 'Asia/Singapore', 'Asia/Srednekolymsk', 
+    'Asia/Taipei', 'Asia/Tashkent', 'Asia/Tbilisi', 'Asia/Tehran', 'Asia/Thimphu', 'Asia/Tokyo', 'Asia/Tomsk', 
+    'Asia/Ulaanbaatar', 'Asia/Urumqi', 'Asia/Ust-Nera', 'Asia/Vientiane', 'Asia/Vladivostok', 'Asia/Yakutsk', 
+    'Asia/Yangon', 'Asia/Yekaterinburg', 'Asia/Yerevan',
+    // Africa
+    'Africa/Abidjan', 'Africa/Accra', 'Africa/Addis_Ababa', 'Africa/Algiers', 'Africa/Asmara',
+    'Africa/Bamako', 'Africa/Bangui', 'Africa/Banjul', 'Africa/Bissau', 'Africa/Blantyre',
+    'Africa/Brazzaville', 'Africa/Bujumbura', 'Africa/Cairo', 'Africa/Casablanca', 'Africa/Ceuta',
+    'Africa/Conakry', 'Africa/Dakar', 'Africa/Dar_es_Salaam', 'Africa/Djibouti', 'Africa/Douala',
+    'Africa/El_Aaiun', 'Africa/Freetown', 'Africa/Gaborone', 'Africa/Harare', 'Africa/Johannesburg',
+    'Africa/Juba', 'Africa/Kampala', 'Africa/Khartoum', 'Africa/Kigali', 'Africa/Kinshasa',
+    'Africa/Lagos', 'Africa/Libreville', 'Africa/Lome', 'Africa/Luanda', 'Africa/Lubumbashi',
+    'Africa/Lusaka', 'Africa/Malabo', 'Africa/Maputo', 'Africa/Maseru', 'Africa/Mbabane',
+    'Africa/Mogadishu', 'Africa/Monrovia', 'Africa/Nairobi', 'Africa/Ndjamena', 'Africa/Niamey',
+    'Africa/Nouakchott', 'Africa/Ouagadougou', 'Africa/Porto-Novo', 'Africa/Sao_Tome',
+    'Africa/Tripoli', 'Africa/Tunis', 'Africa/Windhoek',
+    // Australia & Oceania
+    'Australia/Adelaide', 'Australia/Brisbane', 'Australia/Broken_Hill', 'Australia/Currie',
+    'Australia/Darwin', 'Australia/Eucla', 'Australia/Hobart', 'Australia/Lindeman',
+    'Australia/Lord_Howe', 'Australia/Melbourne', 'Australia/Perth', 'Australia/Sydney',
+    'Pacific/Apia', 'Pacific/Auckland', 'Pacific/Bougainville', 'Pacific/Chatham', 'Pacific/Chuuk',
+    'Pacific/Easter', 'Pacific/Efate', 'Pacific/Enderbury', 'Pacific/Fakaofo', 'Pacific/Fiji',
+    'Pacific/Funafuti', 'Pacific/Galapagos', 'Pacific/Gambier', 'Pacific/Guadalcanal', 'Pacific/Guam',
+    'Pacific/Honolulu', 'Pacific/Kanton', 'Pacific/Kiritimati', 'Pacific/Kosrae', 'Pacific/Kwajalein', 
+    'Pacific/Majuro', 'Pacific/Marquesas', 'Pacific/Midway', 'Pacific/Nauru', 'Pacific/Niue', 'Pacific/Norfolk',
+    'Pacific/Noumea', 'Pacific/Pago_Pago', 'Pacific/Palau', 'Pacific/Pitcairn', 'Pacific/Pohnpei',
+    'Pacific/Port_Moresby', 'Pacific/Rarotonga', 'Pacific/Saipan', 'Pacific/Tahiti', 'Pacific/Tarawa',
+    'Pacific/Tongatapu', 'Pacific/Wake', 'Pacific/Wallis'
+  ];
 
   browserstackBrowsers = new BehaviorSubject<BrowserstackBrowser[]>([]);
 
   // List of default values to be displayed on the feature information selectors
-  selected_department;
-  selected_application;
-  selected_environment;
   department;
   variables!: VariablePair[];
 
@@ -220,11 +319,17 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(EditSchedule, { static: false })
   EditSch: EditSchedule;
 
+  @ViewChild(FilesManagementComponent, { static: false })
+  filesManagement: FilesManagementComponent;
+
   inputFocus: boolean = false;
 
   private inputFocusSubscription: Subscription;
 
   isExpanded: boolean = false;
+  
+  private notificationSubscription: Subscription;
+  private configSubscriptions: Subscription[] = [];
 
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
@@ -353,7 +458,7 @@ export class EditFeature implements OnInit, OnDestroy {
       {
         id: this.featureId,
         name: '',
-        panels: Array.from({ length: 6 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
+        panels: Array.from({ length: 7 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
       }
     ];
 
@@ -368,7 +473,10 @@ export class EditFeature implements OnInit, OnDestroy {
       environment_name: ['', Validators.required],
       feature_name: [
         '',
-        Validators.compose([Validators.required, noWhitespaceValidator]),
+        // Best way to angular 
+        [Validators.required, noWhitespaceValidator],
+        // Old validator
+        // Validators.compose([Validators.required, noWhitespaceValidator]),
       ],
       description: [''],
       schedule: [''],
@@ -380,10 +488,38 @@ export class EditFeature implements OnInit, OnDestroy {
       address_to_add: [''], // Used only for adding new email addresses
       depends_on_others: [false],
       run_now: [false], // Value changed to false so the create testcase dialog will have the schedule checkbox disabled by default
+      send_notification: [false], // Parent control for all notifications
       send_mail: [false],
       network_logging: [false],
       generate_dataset: [false],
       need_help: [false],
+      send_telegram_notification: [false],
+      telegram_options: this._fb.group({
+        include_department: [false],
+        include_application: [false],
+        include_environment: [false],
+        include_feature_name: [false],
+        include_datetime: [false],
+        include_execution_time: [false],
+        include_browser_timezone: [false],
+        include_browser: [false],
+        include_overall_status: [false],
+        include_step_results: [false],
+        include_pixel_diff: [false],
+        include_feature_url: [false],
+        include_failed_step_details: [false],
+        attach_pdf_report: [false],
+        attach_screenshots: [false],
+        custom_message: [''],
+        send_on_error: [false],
+        do_not_use_default_template: [false],
+        check_maximum_notification_on_error_telegram: [false],
+        maximum_notification_on_error_telegram: ['3'],
+        override_telegram_settings: [false],
+        override_bot_token: [''],
+        override_chat_ids: [''],
+        override_message_thread_id: ['']
+      }),
       send_mail_on_error: [false],
       check_maximum_notification_on_error: [false],
       maximum_notification_on_error: ['3'],
@@ -424,7 +560,7 @@ export class EditFeature implements OnInit, OnDestroy {
         '*',
         Validators.compose([
           Validators.required,
-          Validators.pattern('^[0-9,-/*]+$'),
+          Validators.pattern('^[0-9A-Za-z,-/*]+$'),
         ]),
       ],
     });
@@ -438,92 +574,241 @@ export class EditFeature implements OnInit, OnDestroy {
     this.environments$ = this._store.selectSnapshot(EnvironmentsState);
     // Initialize the values selected by default on the mat selector
     // Selected the department where the user is currently at or the first available department, only used when creating a new testcase
-    this.selected_department =
-      route.length > 0 ? route[0].name : this.departments$[0].department_name;
-    this.selected_application = this.applications$[0].app_name;
-    this.selected_environment = this.environments$[0].environment_name;
+    // Set default values in the form instead of using selected_* variables
+    const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0].department_name;
+    const defaultApplication = this.applications$[0].app_name;
+    const defaultEnvironment = this.environments$[0].environment_name;
+    
+    // Add reactive behavior for notification controls
+    this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
+      if (sendNotificationEnabled) {
+        // When send_notification is enabled, automatically check both child options
+        this.featureForm.get('send_mail').setValue(true, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(true, { emitEvent: false });
+      } else {
+        // When send_notification is disabled, also disable child options
+        this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
+      }
+    });
 
-    this.featureForm.valueChanges.subscribe(values => {
-      const { minute, hour, day_month, month, day_week } = values;
-      this.parseSchedule({ minute, hour, day_month, month, day_week });
+    // Add reactive behavior for child notification controls
+    // When both child options are unchecked, also uncheck the parent
+    const sendMailControl = this.featureForm.get('send_mail');
+    const sendTelegramControl = this.featureForm.get('send_telegram_notification');
+    
+    // Subscribe to both child controls
+    sendMailControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+    
+    sendTelegramControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
     });
   }
 
-  // Save the state of the expansion panel
-  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
-    // This object stores the expansion state of panels for each feature
-    // Format: { "comment": "Panel expansion states per feature", "featureId": { "panelId": boolean } }
-    const panelStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{"comment": "Panel expansion states per feature"}');
-
-    if (!panelStates[featureId]) {
-      panelStates[featureId] = {};
+  // Update parent notification state based on child checkboxes
+  private updateParentNotificationState(): void {
+    const sendMailValue = this.featureForm.get('send_mail').value;
+    const sendTelegramValue = this.featureForm.get('send_telegram_notification').value;
+    
+    // If both child options are unchecked, uncheck the parent
+    if (!sendMailValue && !sendTelegramValue) {
+      this.featureForm.get('send_notification').setValue(false, { emitEvent: false });
     }
 
-    // Save the state of the panel
-    panelStates[featureId][panelId] = isExpanded;
-    localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
   }
 
-  // Load the state of the expansion panel
-
-
-  getPanelSettingKey(panelId: number): string {
-    const panelMap: { [key: number]: string } = {
-      1: 'hideInformation',
-      2: 'hideSendEmail',
-      3: 'hideUploadedFiles',
-      4: 'hideBrowsers',
-      5: 'hideSteps',
-      6: 'hideSchedule'
-    };
-  
-    return panelMap[panelId];
-  }
-
-  loadPanelStates() {
-    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
-  
-    const userSettingsMap = {
-      'hideBrowsers': this.user.settings.hideBrowsers,
-      'hideInformation': this.user.settings.hideInformation,
-      'hideSendMail': this.user.settings.hideSendMail,
-      'hideSteps': this.user.settings.hideSteps,
-      'hideSchedule': this.user.settings.hideSchedule,
-      'hideUploadedFiles': this.user.settings.hideUploadedFiles,
-    };
-  
-    this.features.forEach(feature => {
-      if (!feature.id) return;
-  
-      feature.panels.forEach(panel => {
-        //map panel.id to the appropriate setting key:
-        const settingKey = this.getPanelSettingKey(panel.id);
-        const userSetting = userSettingsMap[settingKey];
-        // If setting is explicitly true, force it closed
-        if (userSetting === true) {
-          panel.expanded = false;
-        } else {
-          // otherwise, use saved state or default to open
-          panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
+  // Save the state of the expansion panel - Now generic for all features
+  // This method saves panel states globally instead of per-feature, so all features
+  // will have the same panel expansion state
+  savePanelState(panelId: string, isExpanded: boolean) {
+    try {
+      // Get existing states or initialize with default structure
+      let panelStates = {};
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      
+      if (savedStates) {
+        try {
+          panelStates = JSON.parse(savedStates);
+          // Ensure panelStates is an object
+          if (typeof panelStates !== 'object' || panelStates === null) {
+            panelStates = {};
+          }
+        } catch (e) {
+          panelStates = {};
         }
-      });
-    });
+      }
+
+      // Save the state of the panel globally (not per feature)
+      panelStates[panelId] = isExpanded;
+      
+      // Save back to localStorage
+      localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+    } catch (error) {
+      console.error('Error saving panel state:', error);
+    }
   }
 
-  // When the expansion panel changes, save
-  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
-    this.savePanelState(featureId, panelId, isExpanded);
+  // Get the setting key for a panel ID
+  getPanelSettingKey(panelId: string): string {
+    const panelMap = {
+      '1': 'hideInformation',
+      '2': 'hideSendMail',
+      '3': 'hideTelegramConfig',
+      '4': 'hideUploadedFiles',
+      '5': 'hideBrowsers',
+      '6': 'hideSteps',
+      '7': 'hideSchedule'
+    };
+    
+    return panelMap[panelId] || '';
+  }
 
-    // Expand only one panel at a time
-    const feature = this.features.find(f => f.id === featureId);
-    if (feature) {
-      const panel = feature.panels.find(p => p.id === panelId);
-      if (panel) {
-        panel.expanded = isExpanded;
+  // Helper method to get panel expansion state prioritizing user settings
+  getPanelExpansionState(panelId: string, isNewMode: boolean = false): boolean {
+    const panelSettingKey = this.getPanelSettingKey(panelId);
+    
+    // EXCEPTION: For new mode, force open certain panels regardless of user settings
+    if (this.data.mode === 'new') {
+      // Define which panels should be open by default in new mode
+      const panelsToOpenInNewMode = ['1', '5', '6']; // Information, Browsers, Steps
+      
+      if (panelsToOpenInNewMode.includes(panelId)) {
+        this.logger.msg('4', `Panel ${panelId} (NEW MODE EXCEPTION): FORCED OPEN for new feature creation`, 'Panel States');
+        return true; // Force open these panels in new mode
       }
     }
+    
+    // For new mode, show panels only if user explicitly shows them (default to closed)
+    if (isNewMode) {
+      // If user setting is explicitly false (show panel), return true (open)
+      // If user setting is true (hide panel) or undefined (no setting), return false (closed)
+      const result = this.user.settings?.[panelSettingKey] === false;
+      this.logger.msg('4', `Panel ${panelId} (NEW MODE): ${result ? 'OPEN' : 'CLOSED'} (user setting: ${this.user.settings?.[panelSettingKey]})`, 'Panel States');
+      return result;
+    }
+    
+    // For edit/clone modes, use a consistent priority order:
+    // 1. User settings (highest priority)
+    // 2. Config$.toggles (fallback)
+    // 3. localStorage (fallback)
+    // 4. Default to false (closed) - Changed from true to false
+    
+    // Check user settings first (priority)
+    const userSetting = this.user.settings?.[panelSettingKey];
+    if (userSetting === true) {
+      this.logger.msg('4', `Panel ${panelId} (USER SETTING): CLOSED (user setting: ${userSetting})`, 'Panel States');
+      return false; // Panel is hidden by user setting
+    }
+    
+    // If user setting is false or undefined, check config$.toggles
+    const configToggleKey = panelSettingKey;
+    const configSetting = this.config$.toggles?.[configToggleKey];
+    if (configSetting === true) {
+      this.logger.msg('4', `Panel ${panelId} (CONFIG SETTING): CLOSED (config setting: ${configSetting})`, 'Panel States');
+      return false; // Panel is hidden by config setting
+    }
+    
+    // If config setting is false or undefined, check localStorage state
+    try {
+      const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+      const savedState = savedStates[panelId];
+      
+      // Return saved state if available, otherwise default to false (closed) - Changed from true to false
+      const result = typeof savedState === 'boolean' ? savedState : false;
+      this.logger.msg('4', `Panel ${panelId} (LOCALSTORAGE): ${result ? 'OPEN' : 'CLOSED'} (saved state: ${savedState})`, 'Panel States');
+      return result;
+    } catch (error) {
+      // If localStorage parsing fails, default to false (closed) - Changed from true to false
+      this.logger.msg('4', `Panel ${panelId} (DEFAULT): CLOSED (localStorage error)`, 'Panel States');
+      return false;
+    }
   }
 
+  // Load panel states from localStorage and user settings - Now generic
+  // This method loads panel states globally and applies them to all features
+  // instead of loading per-feature states
+  loadPanelStates() {
+    try {
+      this.logger.msg('4', `Loading panel states for feature ${this.featureId}, mode: ${this.data.mode}`, 'Panel States');
+      
+      // Update all features with the same panel states using the helper method
+      this.features.forEach(feature => {
+        if (!feature.id) return;
+
+        feature.panels.forEach(panel => {
+          // Use the helper method to get the correct expansion state
+          // For main panels (Information, Browsers, Steps): use special new mode logic when data.mode == 'new', otherwise use normal logic
+          // For optional panels (Email, Telegram, Uploaded Files, Schedule): always use normal logic
+          const isMainPanel = ['1', '5', '6'].includes(panel.id);
+          const isNewMode = isMainPanel && this.data.mode === 'new';
+          
+          // Get the expansion state using the helper method
+          const expansionState = this.getPanelExpansionState(panel.id, isNewMode);
+          panel.expanded = expansionState;
+          
+          // Log the state for debugging
+          this.logger.msg('4', `Panel ${panel.id} (${this.getPanelSettingKey(panel.id)}): ${expansionState ? 'OPEN' : 'CLOSED'} (isMainPanel: ${isMainPanel}, isNewMode: ${isNewMode})`, 'Panel States');
+        });
+      });
+    } catch (error) {
+      console.error('Error loading panel states:', error);
+    }
+  }
+
+  // Handle panel expansion changes - Now generic
+  // This method now handles panel expansion changes globally for all features
+  // instead of being specific to individual features
+  onExpansionChange(panelId: string, isExpanded: boolean) {
+    try {
+      this.logger.msg('4', `Panel ${panelId} expansion changed to: ${isExpanded ? 'OPEN' : 'CLOSED'}`, 'Panel States');
+      
+      // EXCEPTION: For new mode, don't save any panel states or modify user settings
+      if (this.data.mode === 'new') {
+        this.logger.msg('4', `Panel ${panelId} (NEW MODE): Skipping all state saves and user setting modifications`, 'Panel States');
+        return; // Exit early without saving anything
+      }
+      
+      // Save the panel state globally (only for edit/clone modes)
+      this.savePanelState(panelId, isExpanded);
+      
+      // Update the panel state in all features (only for edit/clone modes)
+      this.features.forEach(feature => {
+        if (feature.panels) {
+          const panel = feature.panels.find(p => p.id === panelId);
+          if (panel) {
+            panel.expanded = isExpanded;
+          }
+        }
+      });
+
+      // Sync with user settings when panel is toggled (only for edit/clone modes)
+      const panelSettingKey = this.getPanelSettingKey(panelId);
+      if (panelSettingKey) {
+        // Update user settings to reflect the current state
+        // Note: We invert the logic because hideInformation=true means panel is closed
+        const shouldHide = !isExpanded;
+        
+        // Only update if the current user setting is different
+        const currentUserSetting = this.user.settings?.[panelSettingKey];
+        if (currentUserSetting !== shouldHide) {
+          this.logger.msg('4', `Updating user setting ${panelSettingKey} from ${currentUserSetting} to ${shouldHide}`, 'Panel States');
+          
+          // Update user settings in the store
+          this._store.dispatch(new User.SetSetting({ [panelSettingKey]: shouldHide }));
+          
+          // Also update config toggles to keep everything in sync
+          this._store.dispatch(new Configuration.ToggleCollapsible(panelSettingKey, shouldHide));
+          
+        } else {
+          this.logger.msg('4', `User setting ${panelSettingKey} already matches current state (${shouldHide})`, 'Panel States');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling expansion change:', error);
+    }
+  }
 
   // // Check if the create button should be disabled
   // ngAfterViewInit() {
@@ -563,31 +848,155 @@ export class EditFeature implements OnInit, OnDestroy {
     // When Edit Feature Dialog is closed, clear temporal steps
     return this._store.dispatch(new StepDefinitions.ClearNewFeature());
     this.inputFocusSubscription.unsubscribe();
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
+    // Clean up config subscriptions
+    this.configSubscriptions.forEach(sub => sub.unsubscribe());
+    this.configSubscriptions = [];
   }
 
   parseSchedule(expression) {
     // ignore if schedule is disabled
-    if (!this.featureForm.value.run_now) return;
+    if (!this.featureForm.value.run_now) {
+      return;
+    }
 
     try {
-      // parse cron expression
-      let parser = parseExpression(Object.values(expression).join(' '), {
-        utc: true,
+      const cronExpression = Object.values(expression).join(' ');
+      
+      // Determine which timezone to use for parsing and display
+      const displayTimezone = this.timezone === 'browser-timezone' ? this.userTimezone : this.timezone;
+      
+      // Parse the cron expression as if it's in the selected timezone
+      // This gives us the correct times when user enters times in their timezone
+      let parser = parseExpression(cronExpression, {
+        tz: displayTimezone, // Parse in the selected timezone instead of UTC
       });
+      
       // reset errors
       this.parseError.error = false;
       // reset nextRuns arrays
       this.nextRuns = [];
+      
       for (let i = 0; i < 5; i++) {
-        this.nextRuns.push(parser.next().toDate().toLocaleString());
+        const nextDate = parser.next().toDate();
+        // Format the date in the selected timezone for display
+        this.nextRuns.push(nextDate.toLocaleString(undefined, { 
+          timeZone: displayTimezone,
+          year: 'numeric',
+          month: '2-digit', 
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }));
       }
+      // Trigger change detection to update UI immediately for success case
+      this.cdr.detectChanges();
+
+      // Add backend validation to catch mismatches
+      this._api.validateCron(cronExpression).subscribe({
+        next: (response) => {
+          if (response.success && !response.valid) {
+            // Frontend parsing succeeded but backend validation failed
+            this.parseError = {
+              error: true,
+              msg: `Backend Validation Error: This cron pattern (${cronExpression}) will be rejected when saving. Please use a valid pattern.`,
+            };
+            // Trigger change detection to update UI immediately
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          // Don't show error to user for backend validation failures
+        }
+      });
+
     } catch (error) {
       this.nextRuns = [];
       this.parseError = {
         error: true,
         msg: error.message,
       };
+      // Trigger change detection to update UI immediately for frontend error
+      this.cdr.detectChanges();
     }
+  }
+
+  onTimezoneChange(event: any) {
+    // Update the timezone and re-parse the schedule to show updated times
+    this.timezone = event.value;
+    if (this.featureForm.value.run_now) {
+      const { minute, hour, day_month, month, day_week } = this.featureForm.value;
+      this.parseSchedule({ minute, hour, day_month, month, day_week });
+    }
+  }
+
+  getDisplayTimezone(): string {
+    return this.timezone === 'browser-timezone' ? this.userTimezone : this.timezone;
+  }
+
+  getTimezoneOffset(timezone: string): string {
+    if (this.timezoneOffsetCache.has(timezone)) {
+      return this.timezoneOffsetCache.get(timezone)!;
+    }
+    let result: string;
+    try {
+      const now = new Date();
+      const offsetMinutes = this.getTimezoneOffsetInMinutes(timezone);
+      const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+      const offsetMins = Math.abs(offsetMinutes) % 60;
+      
+      const sign = offsetMinutes >= 0 ? '+' : '-';
+      const formattedOffset = offsetMins > 0 
+        ? `UTC${sign}${offsetHours}:${offsetMins.toString().padStart(2, '0')}`
+        : `UTC${sign}${offsetHours}`;
+      
+      result = formattedOffset;
+    } catch (error) {
+      result = 'UTC';
+    }
+
+    // Cache the result
+    this.timezoneOffsetCache.set(timezone, result);
+    return result;
+  }
+
+  private getTimezoneOffsetInMinutes(timezone: string): number {
+    try {
+      const now = new Date();
+      const utcTime = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const targetTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+      
+      const offsetMs = targetTime.getTime() - utcTime.getTime();
+      return offsetMs / (1000 * 60);
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * Get timezones by continent/region
+   */
+  getTimezonesByContinent(continent: string): string[] {
+    const regex = new RegExp(`^(${continent})`);
+    return this.allTimezones
+      .filter(tz => regex.test(tz))
+      .sort();
+  }
+
+  /**
+   * Get a display name for a timezone
+   */
+  getTimezoneDisplayName(timezone: string): string {
+    // Remove continent prefix and replace underscores with spaces
+    const displayName = timezone
+      .split('/')[1] // Get the part after the continent
+      ?.replace(/_/g, ' ') // Replace underscores with spaces
+      || timezone; // Fallback to original if no slash found
+    
+    return displayName;
   }
 
   changeSchedule({ checked }: MatCheckboxChange) {
@@ -660,15 +1069,69 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Open variables popup, only if a environment is selected (see HTML)
   openStartEmulatorScreen() {
-    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
-    const departmentId = this.departments$.find(
-      dep =>
-        dep.department_name === this.featureForm.get('department_name').value
-    ).department_id;
+    // Check if form values are properly set
+    const departmentName = this.featureForm.get('department_name').value;
+    const environmentName = this.featureForm.get('environment_name').value;
+    
+    if (!departmentName || !environmentName) {
+      this._snackBar.open('Please select both department and environment first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department is available
+    if (!this.department) {
+      this._snackBar.open('Please select a department first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department has files property
+    if (!this.department.files) {
+      this._snackBar.open('No files available for this department', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
+    
+    // Check if departments array is available
+    if (!this.departments$ || this.departments$.length === 0) {
+      this._snackBar.open('No departments available', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Find department ID from departments array
+    const selectedDepartment = this.departments$.find(
+      dep => dep.department_name === this.featureForm.get('department_name').value
+    );
+    
+    if (!selectedDepartment) {
+      this._snackBar.open('Department not found', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     this._dialog
       .open(MobileListComponent, {
         data: {
-          department_id: departmentId,
+          department_id: selectedDepartment.department_id,
           uploadedAPKsList: uploadedAPKsList
         },
         panelClass: 'mobile-emulator-panel',
@@ -696,6 +1159,14 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+    // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
+    if (event.key === 'Escape') {
+      const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      if (contextMenuEl && contextMenuEl.style.display !== 'none') {
+        // A context menu is open – don't process ESC in EditFeature
+        return;
+      }
+    }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
@@ -703,8 +1174,10 @@ export class EditFeature implements OnInit, OnDestroy {
     const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
     const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
+    const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
+    const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -715,6 +1188,7 @@ export class EditFeature implements OnInit, OnDestroy {
                   title: 'translate:you_sure.quit_title',
                   description: 'translate:you_sure.quit_desc',
                 } as AreYouSureData,
+                autoFocus: true,
               })
               .afterClosed()
               .subscribe(exit => {
@@ -723,6 +1197,14 @@ export class EditFeature implements OnInit, OnDestroy {
               });
           } else {
             this.dialogRef.close();
+          }
+          break;
+        case KEY_CODES.ENTER:
+          // Check if Ctrl key is pressed for Ctrl+Enter
+          if (event.ctrlKey) {
+            // Trigger save button click
+            this.editOrCreate();
+            event.preventDefault();
           }
           break;
         case KEY_CODES.V:
@@ -746,7 +1228,7 @@ export class EditFeature implements OnInit, OnDestroy {
           break;
         case KEY_CODES.M:
           if(!event.ctrlKey && !this.inputFocus) {
-            // Send email
+            // Send notification on finish
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
@@ -770,7 +1252,13 @@ export class EditFeature implements OnInit, OnDestroy {
           break;
         case KEY_CODES.N:
           if(!event.ctrlKey && !this.inputFocus) {
-            // Network loggings
+            // Network logging
+            this.toggleDependsOnOthers(KeyPressed);
+          }
+          break;
+        case KEY_CODES.T:
+          if(!event.ctrlKey && !this.inputFocus) {
+            // Telegram notification
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
@@ -823,8 +1311,8 @@ export class EditFeature implements OnInit, OnDestroy {
       const dependsOnOthers = this.featureForm.get('depends_on_others').value;
       if(dependsOnOthers === false) {
         if(KeyPressed === KEY_CODES.M) {
-          const sendMail = this.featureForm.get('send_mail').value;
-          this.featureForm.get('send_mail').setValue(!sendMail);
+          const sendNotification = this.featureForm.get('send_notification').value;
+          this.featureForm.get('send_notification').setValue(!sendNotification);
         }
         else if (KeyPressed === KEY_CODES.R) {
           const video = this.featureForm.get('video').value;
@@ -867,6 +1355,15 @@ export class EditFeature implements OnInit, OnDestroy {
 
   /**
    * Check if edit feature form has different values from original object
+   * 
+   * Note: This method was causing issues where the form was being marked as dirty
+   * when opening the edit dialog without making any changes. The issue was caused by:
+   * 1. The notification subscription in the constructor that was modifying form values
+   * 2. Setting form values without using { emitEvent: false } which triggered change events
+   * 
+   * The fix involved:
+   * 1. Moving the notification subscription to ngOnInit after form initialization
+   * 2. Using { emitEvent: false } when setting form values in edit mode
    */
   hasChanged(): boolean {
     // Retrieve original feature data, when mode is `new` it will only have `feature_id: 0`
@@ -1048,13 +1545,44 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
 
-    // Initialize localStorage with a comment if it doesn't exist
-    if (!localStorage.getItem('co_mat_expansion_states')) {
-      localStorage.setItem('co_mat_expansion_states', JSON.stringify({
-        "comment": "Panel expansion states per feature",
-        "Default": {}
-      }));
+    // Subscribe to config changes to react to toggle changes from account-settings
+    // Only apply this for edit/clone modes, not for new features
+    if (this.data.mode !== 'new') {
+      this.config$.toggles && Object.keys(this.config$.toggles).forEach(toggleKey => {
+        // Create a subscription to watch for changes in each toggle
+        const subscription = this._store.select(state => state.config.toggles[toggleKey]).subscribe(value => {
+          if (value !== undefined) {
+            // Map toggle key to panel ID
+            const panelIdMap = {
+              'hideInformation': '1',
+              'hideSendMail': '2', 
+              'hideTelegramConfig': '3',
+              'hideUploadedFiles': '4',
+              'hideBrowsers': '5',
+              'hideSteps': '6',
+              'hideSchedule': '7'
+            };
+            
+            const panelId = panelIdMap[toggleKey];
+            if (panelId) {
+              // Update panel state based on toggle change
+              const shouldExpand = !value; // If hide=true, panel should be closed
+              this.onExpansionChange(panelId, shouldExpand);
+              this.cdr.markForCheck();
+            }
+          }
+        });
+        
+        // Store subscription for cleanup
+        this.configSubscriptions.push(subscription);
+      });
     }
+
+    // Initialize localStorage with consistent structure
+    this.initializeLocalStorage();
+
+    // Synchronize user settings with localStorage panel states
+    this.syncUserSettingsWithLocalStorage();
 
     // Show panel expansion states from localstorage
     this.logger.msg('4', 'Localstorage panel expansion states', localStorage.getItem('co_mat_expansion_states'));
@@ -1092,13 +1620,56 @@ export class EditFeature implements OnInit, OnDestroy {
       });
     });
 
+    const scheduleControls = ['minute', 'hour', 'day_month', 'month', 'day_week'];
+    scheduleControls.forEach(controlName => {
+      this.featureForm.get(controlName).valueChanges.subscribe(value => {
+        if (this.featureForm.get('run_now').value) {
+          this.parseSchedule({
+            minute: this.featureForm.get('minute').value,
+            hour: this.featureForm.get('hour').value,
+            day_month: this.featureForm.get('day_month').value,
+            month: this.featureForm.get('month').value,
+            day_week: this.featureForm.get('day_week').value
+          });
+        }
+      });
+    });
+
+    this.featureForm.get('run_now').valueChanges.subscribe(isEnabled => {
+      if (isEnabled) {
+        this.parseSchedule({
+          minute: this.featureForm.get('minute').value,
+          hour: this.featureForm.get('hour').value,
+          day_month: this.featureForm.get('day_month').value,
+          month: this.featureForm.get('month').value,
+          day_week: this.featureForm.get('day_week').value
+        });
+      }
+      // Update disabled state of schedule controls
+      this.updateScheduleControlsState();
+    });
+
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {
       // Code for editing feautre
       const featureInfo = this.data.info;
       // Initialize the selected by default application, department and environment
-      this.selected_application = featureInfo.app_name;
-      this.selected_department = featureInfo.department_name;
-      this.selected_environment = featureInfo.environment_name;
+      // Set form values directly instead of using selected_* variables
+      this.featureForm.get('app_name').setValue(featureInfo.app_name, { emitEvent: false });
+      this.featureForm.get('department_name').setValue(featureInfo.department_name, { emitEvent: false });
+      this.featureForm.get('environment_name').setValue(featureInfo.environment_name, { emitEvent: false });
+      
+      // Force initialize department object after setting form value
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === featureInfo.department_name
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
       this.feature.next(featureInfo);
       // Assign observable of department settings
       this.departmentSettings$ = this._store.select(
@@ -1106,7 +1677,7 @@ export class EditFeature implements OnInit, OnDestroy {
       );
       this.browserstackBrowsers.next(featureInfo.browsers);
       this.browsersOriginal = deepClone(featureInfo.browsers);
-      this.featureForm.get('run_now').setValue(featureInfo.schedule !== '');
+      this.featureForm.get('run_now').setValue(featureInfo.schedule !== '', { emitEvent: false });
       if (featureInfo.schedule) {
         const cron_fields = [
           'minute',
@@ -1115,17 +1686,60 @@ export class EditFeature implements OnInit, OnDestroy {
           'month',
           'day_week',
         ];
-        const cron_values = featureInfo.schedule.split(' ');
+        
+        // Use original_cron if available (for timezone-aware schedules), otherwise use schedule
+        const cronToDisplay = featureInfo.original_cron || featureInfo.schedule;
+        const cron_values = cronToDisplay.split(' ');
+        
         for (let i = 0; i < cron_fields.length; i++) {
-          this.featureForm.get(cron_fields[i]).setValue(cron_values[i]);
+          this.featureForm.get(cron_fields[i]).setValue(cron_values[i], { emitEvent: false });
+        }
+        
+        // Set the timezone dropdown to the original timezone if available
+        if (featureInfo.original_timezone) {
+          // Use the comprehensive timezone list for validation
+          const availableTimezones = [...this.allTimezones, 'browser-timezone'];
+          
+          if (availableTimezones.includes(featureInfo.original_timezone)) {
+            this.timezone = featureInfo.original_timezone;
+          } else {
+            // Fallback to browser timezone if saved timezone is not in dropdown
+            this.timezone = 'browser-timezone';
+          }
+        } else {
+          // Fallback to browser timezone if no original timezone is stored
+          this.timezone = 'browser-timezone';
+        }
+        // Trigger change detection to ensure the dropdown updates
+        this.cdr.detectChanges();
+        
+        if (this.featureForm.value.run_now) {
+          const { minute, hour, day_month, month, day_week } = this.featureForm.value;
+          this.parseSchedule({ minute, hour, day_month, month, day_week });
         }
       }
       // Try to save all possible feature properties in the form using the same property names
       for (const key in featureInfo) {
         if (this.featureForm.get(key) instanceof UntypedFormControl) {
-          this.featureForm.get(key).setValue(featureInfo[key]);
+          this.featureForm.get(key).setValue(featureInfo[key], { emitEvent: false });
         }
       }
+      
+      // Special handling for nested telegram_options FormGroup
+      if (featureInfo.telegram_options) {
+        const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
+        if (telegramOptionsGroup) {
+          telegramOptionsGroup.patchValue(featureInfo.telegram_options, { emitEvent: false });
+        }
+      }
+      
+      // Backward compatibility: Enable send_notification if send_mail or send_telegram_notification are enabled
+      // but send_notification is not explicitly set
+      if (featureInfo.send_notification === undefined || featureInfo.send_notification === null) {
+        const shouldEnableNotifications = featureInfo.send_mail || featureInfo.send_telegram_notification;
+        this.featureForm.get('send_notification').setValue(shouldEnableNotifications, { emitEvent: false });
+      }
+      
       this.stepsOriginal = this.data.steps;
     } else {
       // Code for creating a feature
@@ -1152,10 +1766,99 @@ export class EditFeature implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         });
       });
+
+    // Auto-focus the name input when creating a new feature
+    if (this.data.mode === 'new') {
+      setTimeout(() => {
+        this.focusFormControl('feature_name');
+      }, 300); // Delay to ensure input is rendered
+    }
+
+    // Add reactive behavior for notification controls AFTER form values are initialized
+    // This prevents the form from being marked as dirty when initializing values
+    this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
+      if (!sendNotificationEnabled) {
+        // When send_notification is disabled, also disable child options
+        this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
+      }
+    });
+
+    // Subscribe to department settings changes to update continue_on_failure state
+    this.departmentSettings$.subscribe(settings => {
+      if (settings) {
+        // Update the department object with new settings
+        if (this.department) {
+          this.department.settings = settings;
+        }
+        this.updateContinueOnFailureState();
+      }
+    });
+
+    // Initialize disabled states
+    this.initializeDisabledStates();
+  }
+
+  /**
+   * Initialize disabled states for form controls to avoid "changed after checked" errors
+   */
+  private initializeDisabledStates() {
+    // Note: Department field is now enabled in all modes to allow user interaction
+    // Previously it was disabled in edit mode, but this prevented user interaction
+
+    // Update schedule controls state
+    this.updateScheduleControlsState();
+
+    // Update continue_on_failure checkbox state
+    this.updateContinueOnFailureState();
+  }
+
+  /**
+   * Update the disabled state of schedule controls based on run_now value
+   */
+  private updateScheduleControlsState() {
+    const scheduleControls = ['minute', 'hour', 'day_month', 'month', 'day_week'];
+    const isScheduleEnabled = this.featureForm.get('run_now').value;
+    
+    scheduleControls.forEach(controlName => {
+      const control = this.featureForm.get(controlName);
+      if (isScheduleEnabled) {
+        control.enable();
+      } else {
+        control.disable();
+      }
+    });
+  }
+
+  /**
+   * Update the disabled state of continue_on_failure checkbox based on department and user settings
+   */
+  private updateContinueOnFailureState() {
+    const control = this.featureForm.get('continue_on_failure');
+    if (!control) return;
+
+    // Check if department settings or user settings disable the checkbox
+    const departmentDisabled = this.department?.settings?.continue_on_failure;
+    const userDisabled = this.user.settings?.continue_on_failure;
+    const isDisabled = departmentDisabled || userDisabled;
+    
+    if (isDisabled) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+  }
+
+  /**
+   * Get the disabled state for buttons based on saving state
+   */
+  getButtonsDisabledState(): boolean {
+    return this.saving$.value;
   }
 
   /**
    * Select user specified selections if any.
+   * Prioritizes current department context over user preselected department.
    */
   preSelectedOptions() {
     const {
@@ -1165,18 +1868,84 @@ export class EditFeature implements OnInit, OnDestroy {
       recordVideo,
     } = this.user.settings;
 
-    this.departments$.find(d => {
-      if (d.department_id == preselectDepartment)
-        this.selected_department = d.department_name;
-    });
+    // Get current route to determine department context
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    
+    // Only set department from user preferences if no current department context is available
+    // This ensures the current department context takes priority
+    if (!this.selected_department) {
+      // Check if we have a current department context from the route
+      if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
+        // Use current department context
+        const currentDepartment = this.departments$.find(d => d.department_id === currentRoute[0].folder_id);
+        if (currentDepartment) {
+          this.selected_department = currentDepartment.department_name;
+        }
+      }
+      
+      // Fallback to user preselected department if no current context
+      if (!this.selected_department) {
+        this.departments$.find(d => {
+          if (d.department_id == preselectDepartment)
+            this.selected_department = d.department_name;
+        });
+      }
+    }
+
+    // Set the department form value if we have a selected department
+    let departmentToSet = null;
+    if (this.selected_department) {
+      departmentToSet = this.selected_department;
+      this.featureForm.get('department_name').setValue(this.selected_department, { emitEvent: false });
+    } else {
+      // Fallback: set default department if none is selected
+      const route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+      const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0]?.department_name;
+      if (defaultDepartment) {
+        departmentToSet = defaultDepartment;
+        this.featureForm.get('department_name').setValue(defaultDepartment, { emitEvent: false });
+      }
+    }
+    
+    // Force initialize department object after setting form value
+    if (departmentToSet) {
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === departmentToSet
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
+    }
+
+    // Set application and environment from user preferences (these don't have context priority)
+    let appSet = false;
+    let envSet = false;
+    
     this.applications$.find(a => {
-      if (a.app_id == preselectApplication)
-        this.selected_application = a.app_name;
+      if (a.app_id == preselectApplication) {
+        this.featureForm.get('app_name').setValue(a.app_name, { emitEvent: false });
+        appSet = true;
+      }
     });
     this.environments$.find(e => {
-      if (e.environment_id == preselectEnvironment)
-        this.selected_environment = e.environment_name;
+      if (e.environment_id == preselectEnvironment) {
+        this.featureForm.get('environment_name').setValue(e.environment_name, { emitEvent: false });
+        envSet = true;
+      }
     });
+    
+    // Fallback: set default application and environment if none is selected
+    if (!appSet && this.applications$ && this.applications$.length > 0) {
+      this.featureForm.get('app_name').setValue(this.applications$[0].app_name, { emitEvent: false });
+    }
+    if (!envSet && this.environments$ && this.environments$.length > 0) {
+      this.featureForm.get('environment_name').setValue(this.environments$[0].environment_name, { emitEvent: false });
+    }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
       // ... add addition properties here.
@@ -1211,14 +1980,17 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   openEmailHelp() {
-    // this._dialog.open(EmailTemplateHelp);
-
-    // Close help dialog when pressing escape, but keep edit dialog open
-    const dialogRef = this._dialog.open(EmailTemplateHelp);
-    dialogRef.afterClosed().subscribe(() => {
-      // Dialog closed
+    this._dialog.open(EmailTemplateHelp, {
+      autoFocus: false,
+      panelClass: 'help-panel',
     });
+  }
 
+  openTelegramHelp() {
+    this._dialog.open(TelegramNotificationHelp, {
+      autoFocus: false,
+      panelClass: 'help-panel',
+    });
   }
 
   /**
@@ -1231,6 +2003,7 @@ export class EditFeature implements OnInit, OnDestroy {
         description:
           'Are you sure you want to save this feature? One or more steps contain errors.',
       } as AreYouSureData,
+      autoFocus: true,
     });
 
     return dialogRef
@@ -1249,6 +2022,7 @@ export class EditFeature implements OnInit, OnDestroy {
           title: 'translate:you_sure.quit_title',
           description: 'translate:you_sure.quit_desc',
         } as AreYouSureData,
+        autoFocus: true,
       });
 
       const result = await dialogRef.afterClosed().toPromise();
@@ -1400,17 +2174,35 @@ export class EditFeature implements OnInit, OnDestroy {
         department_id: departmentId,
         browsers: this.browserstackBrowsers.getValue(),
       };
+      
+      // Ensure notification consistency: if send_notification is false, child options should also be false
+      if (!dataToSend.send_notification) {
+        dataToSend.send_mail = false;
+        dataToSend.send_telegram_notification = false;
+      }
+      
       // Construct schedule for sending
       if (fValues.run_now) {
-        dataToSend.schedule = [
+        const cronExpression = [
           fValues.minute,
           fValues.hour,
           fValues.day_month,
           fValues.month,
           fValues.day_week,
         ].join(' ');
+        
+        dataToSend.schedule = cronExpression;
+        
+        // Add timezone information for backend conversion
+        if (this.timezone === 'browser-timezone') {
+          dataToSend.original_timezone = this.userTimezone;
+        } else {
+          dataToSend.original_timezone = this.timezone;
+        }
       } else {
         dataToSend.schedule = '';
+        // Clear timezone info when schedule is disabled
+        dataToSend.original_timezone = null;
       }
 
       // --------------------------------------------
@@ -1802,7 +2594,7 @@ export class EditFeature implements OnInit, OnDestroy {
   // Handle panel toggle events from files-management component
   onFilePanelToggled(isExpanded: boolean): void {
     // Update panel state if needed
-    this.onExpansionChange(this.featureId, '3', isExpanded);
+    this.onExpansionChange('4', isExpanded);
   }
   
   // Handle pagination events from files-management component
@@ -1859,6 +2651,7 @@ export class EditFeature implements OnInit, OnDestroy {
           description: `A feature named "${featureName}" already exists in the "${departmentName}" department. Do you want to continue with this name anyway?`,
         } as AreYouSureData,
         minWidth: '400px',
+        autoFocus: true,
       });
 
       // Wait for user decision
@@ -1909,6 +2702,107 @@ export class EditFeature implements OnInit, OnDestroy {
       return;
     }
     this.editOrCreate();
+  }
+
+  // Initialize localStorage with consistent structure
+  initializeLocalStorage() {
+    try {
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      if (!savedStates) {
+        // Initialize with default structure - Changed all defaults to false (closed)
+        const defaultStates = {
+          "comment": "Global panel expansion states (applies to all features)",
+          "1": false,  // Information - default closed
+          "2": false,  // Email - default closed
+          "3": false,  // Telegram - default closed
+          "4": false,  // Uploaded Files - default closed
+          "5": false,  // Browsers - default closed
+          "6": false,  // Steps - default closed
+          "7": false   // Schedule - default closed
+        };
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(defaultStates));
+        this.logger.msg('4', 'Initialized localStorage with default panel states (all closed)', 'Panel States');
+      } else {
+        // Validate existing structure
+        try {
+          const parsed = JSON.parse(savedStates);
+          if (typeof parsed !== 'object' || parsed === null) {
+            throw new Error('Invalid structure');
+          }
+          this.logger.msg('4', 'Using existing localStorage panel states', 'Panel States');
+        } catch (e) {
+          // If invalid, reinitialize
+          this.initializeLocalStorage();
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing localStorage:', error);
+    }
+  }
+
+  /**
+   * Synchronize user settings with localStorage panel states
+   * This ensures that user settings are reflected in localStorage when the component loads
+   */
+  syncUserSettingsWithLocalStorage() {
+    try {
+      // Map user setting keys to panel IDs
+      const settingToPanelMap = {
+        'hideInformation': '1',
+        'hideSendMail': '2',
+        'hideTelegramConfig': '3',
+        'hideUploadedFiles': '4',
+        'hideBrowsers': '5',
+        'hideSteps': '6',
+        'hideSchedule': '7'
+      };
+
+      // Get current user settings
+      const userSettings = this.user.settings;
+      if (!userSettings) return;
+
+      // Get existing localStorage states
+      let panelStates = {};
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      
+      if (savedStates) {
+        try {
+          panelStates = JSON.parse(savedStates);
+          if (typeof panelStates !== 'object' || panelStates === null) {
+            panelStates = {};
+          }
+        } catch (e) {
+          panelStates = {};
+        }
+      }
+
+      let hasChanges = false;
+
+      // Update localStorage based on user settings
+      Object.keys(settingToPanelMap).forEach(settingKey => {
+        const panelId = settingToPanelMap[settingKey];
+        const userSetting = userSettings[settingKey];
+        
+        // If user setting is true (hide), panel should be closed (false)
+        // If user setting is false (show), panel should be open (true)
+        const shouldExpand = userSetting === false;
+        
+        // Only update if the localStorage state is different
+        if (panelStates[panelId] !== shouldExpand) {
+          panelStates[panelId] = shouldExpand;
+          hasChanges = true;
+          this.logger.msg('4', `Synchronizing user setting ${settingKey} (${userSetting}) with localStorage panel ${panelId} (${shouldExpand})`, 'Panel States');
+        }
+      });
+
+      // Save back to localStorage if there are changes
+      if (hasChanges) {
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+        this.logger.msg('4', 'Synchronized user settings with localStorage panel states', 'Panel States');
+      }
+    } catch (error) {
+      console.error('Error synchronizing user settings with localStorage:', error);
+    }
   }
 
   deleteFeatureAfterDialog() {

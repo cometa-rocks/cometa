@@ -3,14 +3,14 @@
 # date : 2024-08-09
 
 from django.db import models
-
+from django.utils import timezone
 # Create your models here.
 from django.db import models
 from backend.models import OIDCAccount
 from django.core.exceptions import ValidationError
 import datetime, os, requests
 from backend.utility.encryption import encrypt
-from backend.utility.configurations import ConfigurationManager
+from backend.utility.configurations import ConfigurationManager, update_config_tracker
 from backend.utility.config_handler import get_cometa_behave_url
 from backend.utility.functions import getLogger
 
@@ -31,21 +31,16 @@ class Configuration(models.Model):
     can_be_edited = models.BooleanField(default=False)
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="create_by_user", null=True)
     updated_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="update_by_user", null=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
-    updated_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
+    updated_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
     
     def save(self, *args, **kwargs):            
-        self.updated_on = datetime.datetime.utcnow()
+        self.updated_on = timezone.now()
         if self.encrypted:
             self.configuration_value = encrypt(self.configuration_value)
-        
+        logger.info(f"Saving configuration {self.configuration_name}")
         return_data = super(Configuration, self).save(*args, **kwargs)
-        # Refresh configuration from memory
-        conf = ConfigurationManager()
-        conf.create_db_connection() 
-        conf.load_configuration_from_db()
-        logger.info("Updating the configuration in the behave")
-        requests.get(f'{get_cometa_behave_url()}/update_configurations')
+        update_config_tracker()
         return return_data
     
     class Meta:

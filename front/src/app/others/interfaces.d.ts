@@ -200,6 +200,8 @@ interface Feature {
   browser_code: string;
   browser_name: string;
   schedule: string;
+  original_cron?: string;
+  original_timezone?: string;
   success?: boolean;
   screenshot: string;
   compare: string;
@@ -224,6 +226,33 @@ interface Feature {
   steps_content?: FeatureStep[];
   continue_on_failure?: boolean;
   need_help: boolean;
+  send_notification?: boolean;
+  send_telegram_notification?: boolean;
+  telegram_options?: {
+    include_department: boolean;
+    include_application: boolean;
+    include_environment: boolean;
+    include_feature_name: boolean;
+    include_datetime: boolean;
+    include_execution_time: boolean;
+    include_browser_timezone: boolean;
+    include_browser: boolean;
+    include_overall_status: boolean;
+    include_step_results: boolean;
+    include_pixel_diff: boolean;
+    include_feature_url: boolean;
+    include_failed_step_details: boolean;
+    attach_pdf_report: boolean;
+    attach_screenshots: boolean;
+    custom_message: string;
+    send_on_error: boolean;
+    check_maximum_notification_on_error_telegram: boolean;
+    maximum_notification_on_error_telegram: string;
+    override_telegram_settings: boolean;
+    override_bot_token: string;
+    override_chat_ids: string;
+    override_message_thread_id: number;
+  };
   current_folder_id?: number;
 }
 
@@ -315,6 +344,7 @@ interface Action {
   compare?: boolean;
   text?: string;
   interpreted?: string;
+  step_type?: 'BROWSER' | 'MOBILE' | 'API' | 'DATABASE';
 }
 
 // Send Feature Information
@@ -346,6 +376,8 @@ interface SendFeature {
   email_body: string;
   last_edited: number;
   video: boolean;
+  send_notification?: boolean;
+  send_telegram_notification?: boolean;
 }
 
 interface GroupContent {
@@ -508,6 +540,8 @@ interface SendSaveFeature {
   send_mail_on_error: boolean;
   last_edited: number;
   video: boolean;
+  send_notification?: boolean;
+  send_telegram_notification?: boolean;
 }
 
 interface Config {
@@ -532,6 +566,7 @@ interface Config {
   copyright: string;
   license: string;
   featuresView: FeatureViewItems;
+  mobileView: FeatureViewItems;
   disableAnimations: boolean;
   translations: 'en' | 'de' | any;
   changelog: ChangelogItem[];
@@ -623,7 +658,8 @@ interface UploadedFile {
     | 'Encrypting'
     | 'DataDriven'
     | 'Done'
-    | 'Error';
+    | 'Error'
+    | 'Uploading';
 }
 
 interface Uploader {
@@ -1114,7 +1150,7 @@ interface IMobile {
 
 interface Container {
   id: number;
-  image: number | IMobile;
+  image: any;
   image_name?: string;
   image_version?: string;
   service_id: string;
@@ -1132,6 +1168,7 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+  checked?: boolean;
 }
 
 interface ContainerServiceResponse {

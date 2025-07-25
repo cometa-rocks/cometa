@@ -11,6 +11,8 @@ import os.path
 import datetime
 import traceback
 import sys
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from backend.utility.encryption import (
     decrypt,
     update_ENCRYPTION_START,
@@ -21,6 +23,8 @@ import secrets
 import base64
 from psycopg2.errors import ForeignKeyViolation
 from django.core.management.utils import get_random_secret_key
+from backend.utility.functions import detect_deployment_environment
+from django.utils import timezone
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -33,6 +37,7 @@ streamLogger = logging.StreamHandler()
 streamLogger.setFormatter(formatter)
 # add the stream handle to logger
 logger.addHandler(streamLogger)
+
 
 default_cometa_configurations = {
     "COMETA_STRIPE_CHARGE_AUTOMATICALLY": False,
@@ -61,6 +66,7 @@ default_cometa_configurations = {
     "COMETA_EMAIL_TLS": False,
     "COMETA_EMAIL_USER": "",
     "COMETA_EMAIL_PASSWORD": "",
+    "COMETA_EMAIL_FROM_DEFAULT": "no-reply@cometa.rocks",
     "COMETA_PROXY_ENABLED": False,
     "COMETA_NO_PROXY": "",
     "COMETA_PROXY": "",
@@ -72,16 +78,19 @@ default_cometa_configurations = {
     "REDIS_DB": 0,
     "REDIS_DB_TSL_SSL_ENABLED": False,
     "REDIS_CA_CERTIFICATE_FILE": "/share/certs/ca-cert.pem",
-    "COMETA_DEPLOYMENT_ENVIRONMENT": "docker", # it can be 'docker' or 'kubernetes'
+    "COMETA_DEPLOYMENT_ENVIRONMENT": detect_deployment_environment(), # it can be 'docker' or 'kubernetes'
     "COMETA_MOBILE_TOTAL_EMULATOR_VERSIONS": 3, 
     "COMETA_KUBERNETES_NAMESPACE": "cometa", 
     "COMETA_KUBERNETES_DATA_PVC": "cometa-data-volume-claim", 
     "COMETA_FEATURE_AI_ENABLED": False, 
     "COMETA_FEATURE_DATABASE_ENABLED": False, 
     "COMETA_FEATURE_MOBILE_TEST_ENABLED": False,
+    "COMETA_TELEGRAM_BOT_TOKEN": "",
+    "COMETA_TELEGRAM_ENABLED": False,
     # Add host hostAliases to test environments 
     # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
     "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",
+    "CONTAINER_ENVS": "{}", # this is used to set environment variables in the containers, i.e proxy settings
     "USE_COMETA_BROWSER_IMAGES": True,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",
@@ -247,8 +256,8 @@ class ConfigurationManager:
             default_value = ""
 
             # Define the values to be inserted
-            created_on = datetime.datetime.utcnow()
-            updated_on = datetime.datetime.utcnow()
+            created_on = timezone.now()
+            updated_on = timezone.now()
 
             default_value = ""
             created_by = 1
@@ -262,8 +271,8 @@ class ConfigurationManager:
             self.__db_connection.commit()
 
             # Define the values to be inserted
-        created_on = datetime.datetime.utcnow()
-        updated_on = datetime.datetime.utcnow()
+        created_on = timezone.now()
+        updated_on = timezone.now()
         string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, configuration_type, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True','backend', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
         # Generate the SQL query
         query = sql.SQL(string_query)
@@ -337,17 +346,9 @@ class ConfigurationManager:
 def load_configurations():
 
     if len(sys.argv) > 1:
-        # try:
-        #     # Load secret_variables as a module
-        #     global secret_variables
-        #     secret_variables = load_module_from_file(
-        #         "secret_variables", "/code/secret_variables.py"
-        #     )
-        # except Exception as exception:
-        #     logger.info(
-        #         "Did not find secret_variables.py, Not to worry this is only required for old Cometa setups"
-        #     )
-
+     
+        
+     
         # Load secret_variables as a module
         conf = ConfigurationManager()
         conf.create_db_connection()
@@ -391,3 +392,29 @@ def load_configurations():
         )
 
         conf.close_db_connection()
+
+# this file name and path should be same as behave configuration FILE_NAME and CONFIGURATION_UPDATE_WATCHED_DIRECTORY
+FILE_NAME = "config_tracker.txt"
+CONFIGURATION_UPDATE_WATCHED_DIRECTORY = "/code/config"
+
+CONFIGURATION_UPDATE_WATCHED_FILE = os.path.join(CONFIGURATION_UPDATE_WATCHED_DIRECTORY, FILE_NAME)
+
+def update_config_tracker():
+    with open(CONFIGURATION_UPDATE_WATCHED_FILE, "w") as f:
+        time = timezone.now().isoformat()
+        logger.debug(f"Updating configuration tracker at {time}")
+        f.write(time)
+
+class FileChangeHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        if event.src_path.endswith(FILE_NAME):
+            logger.debug(f"Change detected in {CONFIGURATION_UPDATE_WATCHED_FILE}, loading configurations")
+            load_configurations()
+
+def setup_config_file_watcher():
+    observer = Observer()
+    event_handler = FileChangeHandler()
+    observer.schedule(event_handler, path=CONFIGURATION_UPDATE_WATCHED_DIRECTORY, recursive=False)
+    observer.start()
+    logger.info(f"Configuration update watcher started, used file{CONFIGURATION_UPDATE_WATCHED_FILE}")
+    return observer

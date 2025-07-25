@@ -838,6 +838,18 @@ def step_iml(context, amount, selector):
     elements = waitSelector(context, "css", selector)
     context.browser.execute_script("arguments[0].scrollTo(0,%s)" % amount, elements[0])
 
+# Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector
+# Example: Scroll element "//div[@class='dual-scrollable-container']" by "200"px on x-axis and "-50"px on y-axis
+@step(u'Scroll element "{selector}" by "{x_amount}"px on x-axis and "{y_amount}"px on y-axis')
+@done(u'Scroll element "{selector}" by "{x_amount}"px on x-axis and "{y_amount}"px on y-axis')
+def step_iml(context, x_amount, y_amount, selector):
+    logger.debug(f"Scrolling element {selector} by {x_amount}px on x-axis and {y_amount}px on y-axis")
+    logger.debug(f"Searching for element {selector} ")
+    elements = waitSelector(context, "css", selector)
+    logger.debug(f"Element found: {elements}")
+    context.browser.execute_script("arguments[0].scrollBy(%s,%s)" % (x_amount, y_amount), elements[0])
+    logger.debug(f"Element has been scrolled")
+
 # Set a value on an element, normally used for inputs
 # Example: Set value "Rock&Roll" on "(//input[@formcontrolname="address_to_add"])[1]"
 @step(u'Set value "{text}" on "{selector}"')
@@ -895,6 +907,32 @@ def step_iml(context, keys):
         elem.send_keys(getattr(Keys, upperKey))
     else:
         elem.send_keys(keys)
+
+
+@step(u'Clear value on "{selector}"')
+@done(u'Clear value on "{selector}"')
+def step_clear_textbox(context, selector):
+    send_step_details(context, 'Looking for selector')    
+    element = waitSelector(context, "css", selector)
+    for i in range(0, 10):
+        try:
+            elementInteractable = WebDriverWait(context.browser, 10).until(CEC.element_to_be_interactable(element[0]))
+            if elementInteractable:
+                send_step_details(context, 'Clearing the text box')
+                element[0].clear()
+                # Optionally, verify the box is empty
+                valueCleared = WebDriverWait(context.browser, 10).until(
+                    lambda driver: element[0].get_attribute("value") == ""
+                )
+                if valueCleared:
+                    return True
+        except ElementNotInteractableException:
+            logger.error("Element is not interactable yet, will wait.")
+            time.sleep(1)
+        except TimeoutException:
+            logger.error("Element was not clickable or value was unable to clear, will try again.")
+    raise CustomError("Unable to clear the value, maybe there is another element in front?")
+
 
 # Focus on element using a CSS selector
 # Example: Focus on element with "//div[contains(@class, 'search-container')]"
@@ -1037,15 +1075,19 @@ def step_impl(context):
 # Example: I can switch to iFrame with id '1'
 @step(u'I can switch to iFrame with id "{iframe_id}"')
 @done(u'I can switch to iFrame with id "{iframe_id}"')
-# @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
-def step_impl(context,iframe_id):
-    while True:
+def step_impl(context, iframe_id):
+    start_time = time.time()
+    while time.time() - start_time < context.step_data['timeout']:
+        logger.debug("Switching to iFrame with id: %s" % iframe_id)
         try:
             # Try getting iframe by iframe_id as text
             iframe = context.browser.find_element(By.ID,  iframe_id )
             context.browser.switch_to.frame( iframe )
             return True
-        except:
+        except Exception as e:
+            logger.debug(e)
+            import traceback
+            traceback.print_exc()
             # failed switching to ID .. try overloading
             # Added method overloading with error handling by Ralf
             # Get total iframe count on current page source
@@ -1057,7 +1099,22 @@ def step_impl(context,iframe_id):
                     # Try getting iframe by iframe_id as index (int)
                     context.browser.switch_to.frame( iframes[iframe_id] )
                     return True
-        time.sleep(1)
+
+        time.sleep(0.5)
+    
+    raise CustomError("Unable to switch to iFrame with id: %s" % iframe_id)
+
+# Switches to a iframe tag inside the document within the specified ID
+# Example: I can switch to iFrame with selector '//iframe[@name="test_frame"]'
+@step(u'I can switch to iFrame with selector "{selector}"')
+@done(u'I can switch to iFrame with selector "{selector}"')
+# @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
+def step_impl(context, selector):
+    send_step_details(context, f'Looking for {selector}')
+    # Try getting iframe by iframe_id as text
+    iframe = waitSelector(context, "name", selector)
+    context.browser.switch_to.frame(iframe)
+
 
 # Switches to an iframe tag inside the document within the specified ID
 # Example: I can switch to iFrame with id '__privateStripeMetricsController8240'
@@ -1067,7 +1124,7 @@ def step_impl(context,iframe_name):
     send_step_details(context, 'Looking for selector')
     iframe = waitSelector(context, "name", iframe_name )
     send_step_details(context, 'Switching to iframe')
-    context.browser.switch_to.frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name'))
 
 # Changes the testing context to the main document in the current Tab/Window, similar to using window.top
 # Example: I switch to defaultContent
@@ -1571,6 +1628,35 @@ def step_impl(context, function):
         result = context.browser.execute_script("""
 %s
         """ % js_function)
+
+        addParameter(context, "js_return", result)
+        context.browser.set_script_timeout(30)
+    except Exception as err:
+        addParameter(context, "js_return", "")
+        context.browser.set_script_timeout(30)
+        error = str(err).split("(Session info:")[0]
+        raise CustomError(error)
+
+# Run a JavaScript function in the current browser context
+# Example: On element "//button[@id='login']" run javascript function "document.body.style.backgroundColor = 'lightblue';"
+@step(u'On element "{selector}" run javascript function "{function}"')  
+@done(u'On element "{selector}" run javascript function "{function}"')
+def step_impl(context, selector, function):
+    if context.browser.capabilities.get('browserName', None) != 'firefox':
+        _ = context.browser.get_log('browser') # clear browser logs
+    js_function = context.text
+    step_timeout = context.step_data['timeout']
+    context.browser.set_script_timeout(step_timeout)
+    try:
+
+        send_step_details(context, 'Looking for selector')
+        elem = waitSelector(context, "xpath", selector)
+        if not click_on_element(elem[0]):
+            raise CustomError("Unable to click on element with select %s" % selector)
+
+        result = context.browser.execute_script("""
+%s
+        """ % js_function , elem[0])
 
         addParameter(context, "js_return", result)
         context.browser.set_script_timeout(30)
@@ -2966,7 +3052,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
 
         # print sorted element list and sorted variable list
         for i in range(0, len(values_sorted) if len(values_sorted) >= len(element_values_sorted) else len(element_values_sorted)):
-            # get value for values_eq
+            # get value for values
             try:
                 val = values_sorted[i]
             except:
@@ -3033,37 +3119,6 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
         return True
     else:
         raise CustomError("Lists do not match, please check the attachment.")
-
-# This step compares two values to ensure they are identical. If they are not the same, an error will be raised, indicating the mismatch
-# Example: Assert "hello" to be same as "hello"
-@step(u'Assert "{value_one}" to be same as "{value_two}"')
-@done(u'Assert "{value_one}" to be same as "{value_two}"')
-def assert_imp(context, value_one, value_two):
-    assert_failed_error = f"{value_one} does not match {value_two}"
-    assert_failed_error = logger.mask_values(assert_failed_error)
-    addStepVariableToContext(context,                             
-                            {
-                                "value_one":value_one,
-                                "value_two":value_two,
-                            }, 
-                            save_to_step_report=True)
-    
-    assert value_one == value_two, assert_failed_error
-
-# This step checks if one string contains another. If the second string is not found within the first string, an error will be raised
-# Example: Assert "The quick brown fox" to contain "quick"'
-@step(u'Assert "{value_one}" to contain "{value_two}"')
-@done(u'Assert "{value_one}" to contain "{value_two}"')
-def assert_imp(context, value_one, value_two):
-    assert_failed_error = f"{value_one} does not contain {value_two}"
-    assert_failed_error = logger.mask_values(assert_failed_error)
-    addStepVariableToContext(context,{
-                                    "value_one":value_one,
-                                    "value_two":value_two,
-                                    }, 
-                            save_to_step_report=True)
-
-    assert value_two in value_one, assert_failed_error
 
 # This step initiates a loop that runs a specific number of times, starting from a given index
 # Example: Loop "3" times starting at "1" and do'
@@ -3388,6 +3443,44 @@ def drag_n_drop(context, element_selector, destination_selector):
 
     ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
 
+# This step simulates selecting a checkbox if it's not already selected.
+@step(u'Enable checkbox "{selector}"')
+@done(u'Enable checkbox "{selector}"')
+def select_checkbox(context, selector):
+    checkbox = waitSelector(context, "xpath", selector)
+    send_step_details(context, "Enabling checkbox")
+    # Handle if returned as a list (some frameworks wrap in lists)
+    if isinstance(checkbox, list) and len(checkbox) > 0:
+        checkbox = checkbox[0]
+
+    # Ensure checkbox is only clicked if not already selected
+    if not checkbox.is_selected():
+        checkbox.click()
+
+
+@step(u'Disable checkbox "{selector}"')
+@done(u'Disable checkbox "{selector}"')
+def unselect_checkbox(context, selector):
+    checkbox = waitSelector(context, "xpath", selector)
+    send_step_details(context, "Disabling checkbox")
+    if isinstance(checkbox, list) and len(checkbox) > 0:
+        checkbox = checkbox[0]
+
+    if checkbox.is_selected():
+        checkbox.click()        
+
+@step(u'Validate if checkbox "{selector}" is enabled save result in "{variable}"')
+@done(u'Validate if checkbox "{selector}" is enabled save result in "{variable}"')
+def unselect_checkbox(context, selector, variable):
+    checkbox = waitSelector(context, "xpath", selector)
+    send_step_details(context, "Validate if checkbox is enabled")
+    if isinstance(checkbox, list) and len(checkbox) > 0:
+        checkbox = checkbox[0]
+
+    # Save the result to the variable
+    addTestRuntimeVariable(context, variable, str(checkbox.is_selected()),  save_to_step_report=True)
+        
+        
 # This step fetches the HTML source code of the current browser page and attaches it to the feature result as notes
 # Example: Fetch HTML Source of current Browser page and attach it to the feature result
 @step(u'Fetch HTML Source of current Browser page and attach it to the feature result')
@@ -3468,6 +3561,7 @@ def step_impl(context, selector, variable_name, option):
     try:
         # Get the tag value (text content)
         tag_value = elements[0].text
+        logger.debug(f"Tag value found: {tag_value}")
 
         # Process the tag value based on the given option
         if option.lower() == "trim the spaces":
@@ -3698,6 +3792,183 @@ def count_aria_labels(context):
         'title': "Aria Labels",
         'content': json.dumps(aria_label_counts)  # Convert the dictionary to a JSON string
     }
+
+
+
+@step(u'Enable browser network logging')
+@done(u'Enable browser network logging')
+def fetch_all_network_requests(context):
+      # Enable Network tracking
+    context.browser.execute(
+        "executeCdpCommand",
+        {
+            "cmd": "Network.enable",
+            "params": {}
+        }
+    )
+
+@step(u'Disable browser network logging')
+@done(u'Disable browser network logging')
+def fetch_all_network_requests(context):
+      # Enable Network tracking
+    context.browser.execute(
+        "executeCdpCommand",
+        {
+            "cmd": "Network.disable",
+            "params": {}
+        }
+    )
+    
+
+@step(u'Get all browser network requests and save in variable "{variable}"')
+@done(u'Get all browser network requests and save in variable "{variable}"')
+def fetch_all_network_requests(context, variable):
+    # Dictionaries to store request and response info by requestId
+    requests = {}
+    responses = {}
+    logger.debug("fetching and processing network logs")
+
+    logs = context.browser.get_log('performance')
+    for entry in logs:
+        log = json.loads(entry['message'])['message']
+        method = log.get('method')
+        params = log.get('params', {})
+
+        # Collect request info
+        if method == 'Network.requestWillBeSent':
+            request_id = params['requestId']
+            request = params['request']
+            requests[request_id] = request
+                
+
+        # Collect response info
+        elif method == 'Network.responseReceived':
+            request_id = params['requestId']
+            response = params['response']
+            responses[request_id] = response
+
+    # For each request that has a response, get the response body
+    for request_id in responses:
+        # Get response body via CDP
+        try:
+            response_body = context.browser.execute(
+                "executeCdpCommand",
+                {
+                    "cmd": "Network.getResponseBody",
+                    "params": {"requestId": request_id}
+                }
+            )
+            responses[request_id]['body'] = response_body.get('value', {}).get('body')
+        except Exception:
+            responses[request_id]['body'] = None
+
+    all_requests_data = []
+    logger.debug("Combining the request and response")
+    # Combine and store info for all requests
+    for request_id in requests:
+        req = requests[request_id]
+        resp = responses.get(request_id)
+        entry = {
+            "request_id": request_id,
+            "url": req['url'],
+            "request_headers": req['headers'],
+            "request_body": req.get('body'),
+            "request_method": req.get('method'),
+        }
+        if resp:
+            entry.update({
+                "response_status": resp.get('status'),
+                "response_headers": resp.get('headers'),
+                "response_body": resp.get('body'),
+            })
+        else:
+            entry.update({
+                "response_status": None,
+                "response_headers": None,
+                "response_body": None,
+            })
+        all_requests_data.append(entry)
+    logger.debug(f"Total {len(all_requests_data)} requests found")
+    addTestRuntimeVariable(context, variable, all_requests_data, save_to_step_report=True)
+
+
+
+@step(u'Get browser network requests filter by "{url}" and save in the variable "{variable}"')
+@done(u'Get browser network requests filter by "{url}" and save in the variable "{variable}"')
+def fetch_network_requests_by_url(context, url,  variable):
+    # Dictionaries to store request and response info by requestId
+    logger.debug("fetching and processing network logs")
+    requests = {}
+    responses = {}
+
+    # Temporary map to link requestId to matching URLs
+    matching_request_ids = set()
+
+    logs = context.browser.get_log('performance')
+    for entry in logs:
+        log = json.loads(entry['message'])['message']
+        method = log.get('method')
+        params = log.get('params', {})
+
+        # Collect request info, filter by URL
+        if method == 'Network.requestWillBeSent':
+            request_id = params['requestId']
+            request = params['request']
+            if url in request['url']:
+                requests[request_id] = request
+                matching_request_ids.add(request_id)
+
+        # Collect response info only for matching requests
+        elif method == 'Network.responseReceived':
+            request_id = params['requestId']
+            if request_id in matching_request_ids:
+                response = params['response']
+                responses[request_id] = response
+
+    # For each request that has a response, get the response body
+    for request_id in responses:
+        try:
+            response_body = context.browser.execute(
+                "executeCdpCommand",
+                {
+                    "cmd": "Network.getResponseBody",
+                    "params": {"requestId": request_id}
+                }
+            )
+            responses[request_id]['body'] = response_body.get('value', {}).get('body')
+        except Exception:
+            responses[request_id]['body'] = None
+
+    all_requests_data = []
+    logger.debug("Combining the request and response")
+    # Combine and store info for all matching requests
+    for request_id in requests:
+        req = requests[request_id]
+        resp = responses.get(request_id)
+        entry = {
+            "request_id": request_id,
+            "url": req['url'],
+            "request_headers": req['headers'],
+            "request_body": req.get('body'),
+            "request_method": req.get('method'),
+        }
+        if resp:
+            entry.update({
+                "response_status": resp.get('status'),
+                "response_headers": resp.get('headers'),
+                "response_body": resp.get('body'),
+            })
+        else:
+            entry.update({
+                "response_status": None,
+                "response_headers": None,
+                "response_body": None,
+            })
+        all_requests_data.append(entry)
+    
+    logger.debug(f"Total {len(all_requests_data)} requests found")
+    addTestRuntimeVariable(context, variable, all_requests_data, save_to_step_report=True)
+
 
 # This step performs a basic accessibility check for aria-labels on the current page, providing a report on compliance with WCAG guidelines.
 # The report includes counts of elements with and without aria-labels, recommendations for improvement, and a basic compliance score.

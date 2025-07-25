@@ -112,19 +112,61 @@
     }
   }
   .prefix {
-    // @include for-tablet-portrait-up {
-    //   margin-left: 125px;
-    //   margin-right: 25px;
-    // }
     flex: 0 0 80px;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 115px;
-    margin-right: 40px;
-    &::ng-deep .mat-select-value {
-      font-size: 1rem;
+
+    // Firefox
+    @-moz-document url-prefix() {
+      margin-left: 120px;
+      margin-right: 40px;
+    }
+
+    // Safari
+    @media not all and (min-resolution: 0.001dpcm) {
+      @supports (-webkit-appearance:none) {
+        .your-element {
+          margin-left: 135px;
+          margin-right: 40px;
+        }
+      }
+    }
+    
+
+    // Edge
+    @supports (-ms-ime-align:auto) {
+      margin-left: 135px;
+      margin-right: 40px;
+    }
+
+    &::ng-deep {
+      .mat-select {
+        width: 100%;
+        min-width: 60px;
+        
+        .mat-select-value {
+          font-size: 1rem;
+          line-height: 1.5;
+          padding: 0 8px;
+        }
+        
+        .mat-select-arrow {
+          margin-right: 8px;
+        }
+      }
+      
+      .mat-select-panel {
+        min-width: 80px !important;
+        
+        .mat-option {
+          font-size: 1rem;
+          line-height: 1.5;
+          height: 36px;
+          padding: 0 16px;
+        }
+      }
     }
   }
   &:hover .move-row {
@@ -229,9 +271,7 @@
       display: flex;
       $lineHeight: 25px;
       flex: 1;
-      margin-bottom: 15px;
       line-height: $lineHeight;
-      max-height: $lineHeight * 5;
       box-sizing: border-box;
       border: 0;
       outline: 0;
@@ -239,8 +279,27 @@
       font-size: 1rem;
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
-      min-height: 25px;
       width: 100%;
+      min-height: 25px;
+
+      // Default state: fixed height, no resize handle
+      height: $lineHeight;
+      resize: none;
+      overflow: hidden;
+
+      // Active state: when content wraps or has newlines
+      &.allow-resize {
+        height: 100px; // 4 times the min-height
+        resize: vertical;
+        overflow: visible;
+      }
+    }
+    .code.multi-line {
+      resize: none !important;
+    }
+    // When resize is enabled, increase min-height to 4x for better usability
+    .code.multi-line-active {
+      height: 100px;
     }
   }
   
@@ -332,7 +391,8 @@
   .enable,
   .screenshot,
   .compare,
-  .warnings {
+  .warnings,
+  .select-step {
     @include for-tablet-portrait-up {
       flex: 0 0 80px;
     }
@@ -355,10 +415,6 @@
       align-items: center;
       justify-content: center;
     }
-
-    // .select-text {
-    //   margin-top: 32px;
-    // }
   }
   .enable {
     @include for-tablet-portrait-up {
@@ -389,7 +445,7 @@
     flex: 0 0 40px;
   }
 
-  .enable, .screenshot, .compare {
+  .enable, .screenshot, .compare, .select-all {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -425,7 +481,7 @@
   border-top: 1px $blue solid;
   border-bottom: 1px $blue solid;
   border-radius: 4px;
-  padding: 15px;
+  padding: 15px 0 15px 0;
   margin-top: 10px;
   margin-bottom: 10px;
   transition: opacity 0.3s ease-in-out;
@@ -442,21 +498,33 @@
   width: 100%;
 }
 
+// Documentation row fake columns: match header widths
+.fake-drop {
+  @include for-tablet-portrait-up {
+    flex: 0 0 30px;
+  }
+  flex: 0 0 30px;
+}
+.fake-dots {
+  @include for-tablet-portrait-up {
+    flex: 0 0 30px;
+  }
+  flex: 0 0 30px;
+}
+.fake-enable,
+.fake-screenshot,
+.fake-compare,
+.fake-hash {
+  @include for-tablet-portrait-up {
+    flex: 0 0 90px;
+  }
+  flex: 0 0 75px;
+  text-align: center;
+  font-weight: bold;
+}
+
 .stepDescriptionExample{
-  flex: 3;
-  margin-left: 325px;
-}
-
-.stepDocumentationIcons {
   flex: 1;
-}
-
-.columnOfIcons {
-  flex: 0.2;
-}
-
-.columnOfIcons {
-  flex: 0.2;
 }
 
 .columnOfIcons {
@@ -464,6 +532,8 @@
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  align-items: center;
+  flex: 0 0 100px;
 }
 
 .stepDescription {
@@ -481,27 +551,31 @@
   font-weight: bold;
 }
 
-// .cdk-overlay-container {
-//   position: relative;
-// }
-
-// ::ng-deep .mat-autocomplete-panel {
-//   position: absolute !important;
-//   bottom: 100% !important;
-//   top: auto !important;
-//   transform: translateY(-40px);
-//   z-index: 1000;
-// }
-
-// .autocomplete-container {
-//   display: flex;
-//   align-items: center;
-// }
-
 .autocomplete-container {
   position: relative;
   overflow-y: auto;  
   max-height: 300px;
+}
+
+::ng-deep .mat-autocomplete-panel {
+  .mat-optgroup {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .mat-optgroup-label {
+      color: $blue;
+      font-weight: 500;
+      padding: 8px 16px;
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .mat-option {
+      padding-left: 32px;
+    }
+  }
 }
 
 .fixed-autocomplete {
@@ -751,5 +825,19 @@ textarea {
   .collapsed-body {
     color: #666;
     font-style: italic;
+  }
+}
+
+
+// Custom badge styles for context menu
+::ng-deep .step-contect-menu {
+  .mat-badge-medium.mat-badge-overlap.mat-badge-after .mat-badge-content {
+    right: -20px;
+    top: -5px;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 16px;
+    color: white;
   }
 }

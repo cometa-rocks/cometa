@@ -3,3 +3,11 @@
 .mat-dialog-title {
   color: $blue;
 }
+
+.mat-dialog-content {
+  width: 500px;
+}
+
+::ng-deep .mat-dialog-container {
+  resize: none;
+}

@@ -12,7 +12,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import time, requests, json, os, datetime, sys, subprocess, re, shutil
+import time, requests, json, os, datetime, sys, subprocess, re, shutil, random, string
 
 sys.path.append("/opt/code/behave_django")
 
@@ -239,15 +239,18 @@ def waitSelectorNew(context, selector, max_timeout=None):
     
     device_driver = context.mobile["driver"] if context.STEP_TYPE == 'MOBILE' else context.browser
     
+    if max_timeout == None:
+        max_timeout = context.step_data["timeout"]
+    
     if selector_type in [By.ID, By.NAME]:
         method = device_driver.find_element
     else:
         method = device_driver.find_elements
-    
-    logger.debug(f"Trying to find element using selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
-    
-    while time.time() - start_time < max_timeout if max_timeout is not None else True:
-        logger.debug("running")
+    retry_count = 0
+    while time.time() - start_time < max_timeout :
+        # Reduce logging, above condition will print every 1 seconds
+        if retry_count%10 == 0:
+            logger.debug(f"Trying to find element with selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
         try:
             elements = method(selector_type, selector)
             # Check if it returned at least 1 element
@@ -263,7 +266,7 @@ def waitSelectorNew(context, selector, max_timeout=None):
         except Exception as err:
             # Store exception in context so that it can be used with raising exception when step timeout happens
             context.step_exception = err
-        
+        retry_count+=1
         time.sleep(0.1)
     
     # raise actual exception after the timeout 
@@ -274,7 +277,7 @@ def waitSelectorNew(context, selector, max_timeout=None):
 # Wrapper function to wait until an element, selector, id, etc is present
 # ... if first try for defined selector is not found
 # ... then it starts looping over the 6 different selectors type (e.g. css, id, xpath, ... )
-# ... until found or max trys is reached, between each loop wait for 1 second
+# ... until found or max tries is reached, between each loop wait for 1 second
 # ---
 # @author Alex Barba
 # @param context - Object containing the webdriver context
@@ -461,12 +464,42 @@ def send_step_screen_shot_details(feature_id, feature_result_id, user_id, browse
     logger.debug(f"response : {response} {response.text}")
 
 def click_element_by_css(context, selector):
-    elem = waitSelector(context, "css", selector)
-    for el in elem:
-        if el.is_displayed():
-            el.click()
+    start_time = time.time()
+    elements = waitSelector(context, "css", selector)
+    element = elements[0]
+    step_timeout = context.step_data.get('timeout', 30)
+
+    # 1. Wait for the element to be displayed using EC.visibility_of
+    elapsed = time.time() - start_time
+    remaining_time = max(0.5, step_timeout - elapsed)
+    logger.debug(f"Waiting for element to be displayed, remaining time {remaining_time}")
+    try:
+        wait_displayed = WebDriverWait(context.browser, remaining_time)
+        wait_displayed.until(EC.visibility_of(element))
+    except TimeoutException:
+        raise CometaTimeoutException(f"Element with css selector '{selector}' was not displayed after {remaining_time:.1f} seconds")
+
+    error = None
+    while remaining_time > 0:
+        try:
+            WebDriverWait(context.browser, max(0.5, remaining_time)).until(EC.element_to_be_clickable(element))
+            logger.debug(f"Clicking element '{selector}', remaining time {remaining_time:.1f}s")
+            element.click()
+            return  # success
+        except ElementClickInterceptedException as e:
+            logger.debug(f"Click intercepted on '{selector}', retrying...")
+            error = e
+            time.sleep(0.5)
+        except Exception as e:
+            logger.debug(f"Unhandled exception when clicking '{selector}'")
+            error = e
             break
 
+        elapsed = time.time() - start_time
+        remaining_time = step_timeout - elapsed
+
+    # Raise the last encountered error if retries fail
+    raise error if error else Exception(f"Failed to click element '{selector}' after {step_timeout}s")
 
 def click_element(context, element):
     if element.is_displayed():
@@ -488,10 +521,11 @@ def tempFile(source):
             logger.error("Unable to remove the file.")
             logger.exception(err)
 
-            # get the timestamp
+            # get the timestamp and add more random text
             ts = time.time()
-            logger.debug(f"Setting a different filename: /tmp/{ts}-{filename}")
-            target = f"/tmp/{ts}-{filename}"
+            additional_random = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+            logger.debug(f"Setting a different filename: /tmp/{ts}_{additional_random}_{filename}")
+            target = f"/tmp/{ts}_{additional_random}_{filename}"
 
     logger.info(f"TMP file will be created at {target} for {source}.")
 

@@ -398,6 +398,7 @@ export class ApiService {
                       title: 'translate:you_sure.budget_exceeded_title',
                       description: 'translate:you_sure.budget_exceeded_desc',
                     } as AreYouSureData,
+                    autoFocus: true,
                   })
                   .afterClosed();
                 break;
@@ -409,6 +410,7 @@ export class ApiService {
                       title: 'translate:you_sure.budget_ahead_title',
                       description: 'translate:you_sure.budget_ahead_desc',
                     } as AreYouSureData,
+                    autoFocus: true,
                   })
                   .afterClosed();
                 break;
@@ -573,6 +575,17 @@ export class ApiService {
   updateSchedule(FeatureID: number, schedule: string) {
     return this._http.patch<Success>(`${this.base}schedule/${FeatureID}/`, {
       schedule: schedule,
+    });
+  }
+
+  /**
+   * Validate cron expression using backend CronSlices library
+   * @param cronExpression The cron expression to validate  
+   * @returns Observable with validation result
+   */
+  validateCron(cronExpression: string) {
+    return this._http.post<{success: boolean, valid: boolean, cron_expression: string, error?: string}>(`${this.base}validateCron/`, {
+      cron_expression: cronExpression,
     });
   }
 
@@ -786,14 +799,18 @@ export class ApiService {
     return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
   }
 
+  stopDataDrivenTest(run_id: number) {
+    return this._http.post<{ success: boolean; tasks: number; run_id: number }>(`${this.base}stop_data_driven/${run_id}`, {});
+  }
+
   /**
    * Updates the data in a data-driven file
    * @param fileId The ID of the file to update
-   * @param data The updated data rows array
+   * @param dataOrRequest Either the updated data rows array (legacy) or an object with data and column_order
    * @param params Optional parameters, including sheet name for Excel files
    * @returns An observable with the response from the server
    */
-  updateDataDrivenFile(fileId: number, data: any[], params?: any) {
+  updateDataDrivenFile(fileId: number, dataOrRequest: any[] | {data: any[], column_order?: string[]}, params?: any) {
     // Create base params with skipInterceptor
     const apiParams = new InterceptorParams({
       skipInterceptor: true,
@@ -814,16 +831,26 @@ export class ApiService {
       });
     } else {
       // Merge all params if no sheet parameter
-    if (params) {
-      Object.keys(params).forEach(key => {
-        apiParams.set(key, params[key]);
-      });
+      if (params) {
+        Object.keys(params).forEach(key => {
+          apiParams.set(key, params[key]);
+        });
       }
+    }
+    
+    // Determine the request body format
+    let requestBody: any;
+    if (Array.isArray(dataOrRequest)) {
+      // Legacy format: just the data array
+      requestBody = { data: dataOrRequest };
+    } else {
+      // New format: object with data and optional column_order
+      requestBody = dataOrRequest;
     }
     
     return this._http.put<any>(
       url,
-      { data },
+      requestBody,
       {
         params: apiParams
       }
@@ -977,6 +1004,91 @@ export class ApiService {
   runHouseKeeping() {
     return this._http.delete(`${this.api}housekeeping/`);
   }
+
+  /**
+   * Get the existing schedule for a data-driven file.
+   */
+  getFileSchedule(fileId: number) {
+    return this._http.get<{ success: boolean; schedule: string; original_cron: string | null; original_timezone: string | null }>(`${this.base}schedule_data_driven/${fileId}/`);
+  }
+
+  /**
+   * Get schedule data for multiple files at once
+   */
+  getBulkFileSchedules(fileIds: number[]) {
+    return this._http.post<{
+      success: boolean;
+      schedules: { [fileId: number]: { schedule: string; original_cron: string | null; original_timezone: string | null } };
+      error?: string;
+    }>(`${this.base}bulk_file_schedules/`, { file_ids: fileIds });
+  }
+
+  /**
+   * Update or create a schedule entry for a data-driven file.
+   * NOTE: Backend endpoint `schedule_data_driven` must exist.
+   */
+  updateFileSchedule(fileId: number, payload: { schedule: string; original_timezone?: string | null }) {
+    return this._http.patch<{success: boolean}>(`${this.base}schedule_data_driven/${fileId}/`, payload);
+  }
+
+  /**
+   * Get the currently running feature for a data-driven test run.
+   * Used for real-time LiveSteps tracking in DDT mode.
+   */
+  getDDTCurrentlyRunningFeature(runId: number) {
+    return this._http.get<{
+      success: boolean;
+      current_feature: {
+        feature_id: number;
+        feature_name: string;
+        feature_result_id: number;
+        current_step: string;
+        running: boolean;
+        date_time: string | null;
+      } | null;
+      ddt_info?: {
+        run_id: number;
+        file_name: string;
+        total_features: number;
+        status: string;
+      };
+      status?: string;
+      message?: string;
+    }>(`${this.base}data_driven/${runId}/current_feature/`);
+  }
+
+  /**
+   * Get all features and their status for a DDT run.
+   * Used for LiveSteps component in data-driven mode.
+   */
+  getDDTAllFeatures(runId: number) {
+    return this._http.get<{
+      success: boolean;
+      features: Array<{
+        feature_id: number;
+        feature_name: string;
+        feature_result_id: number;
+        status: 'queued' | 'running' | 'completed' | 'failed';
+        current_step: string | null;
+        running: boolean;
+        success: boolean;
+        date_time: string | null;
+        execution_time: number;
+      }>;
+      ddt_info: {
+        run_id: number;
+        file_name: string;
+        status: string;
+        running: boolean;
+        total: number;
+        ok: number;
+        fails: number;
+        skipped: number;
+        execution_time: number;
+      };
+    }>(`${this.base}data_driven/${runId}/all_features/`);
+  }
+
 
 }
   

@@ -43,6 +43,19 @@
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
   </div>
+  <div class="select-step">
+    <span class="desktop">Select</span>
+    <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="toggleSelectAllSteps($event)"
+      [checked]="areAllStepsSelected()"
+      color="primary"
+      class="select-all checkbox-blue"
+      aria-label="Select all steps"
+      [matTooltip]="'step_editor.select_all_steps' | translate"
+      matTooltipPosition="above">
+    </mat-checkbox>
+  </div>
   <div class="step">Step Description</div>
   <div class="warnings">
     <div class="desktop">Status</div>
@@ -53,7 +66,7 @@
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
     <div
-      (click)="addEmpty(item)"
+      (click)="addEmpty(item, true)"
       [matTooltip]="'step-definition.insert-new-above' | translate" matTooltipPosition="right">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
@@ -61,7 +74,7 @@
   </ng-template>
   <ng-template contextMenuItem let-item>
     <div
-      (click)="addEmpty(item + 1)"
+      (click)="addEmpty(item + 1, true)"
       [matTooltip]="'step-definition.insert-new-below' | translate" matTooltipPosition="right">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
@@ -107,6 +120,42 @@
       <span>Delete</span>
     </div>
   </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="canPasteSteps()"
+      (click)="pasteSteps(item)"
+      [matTooltip]="'step_editor.paste_steps_here' | translate" 
+      matTooltipPosition="right">
+      <mat-icon matBadge="{{ clipboardSteps.length }}" matBadgeColor="primary">archive</mat-icon>
+      <span>Paste steps here</span>
+    </div>
+    <div 
+      *ngIf="!canPasteSteps()"
+      [matTooltip]="'No steps in clipboard to paste'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
+      <mat-icon>archive</mat-icon>
+      <span>Paste steps here</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="hasSelectedSteps()"
+      (click)="deleteSelectedSteps()"
+      [matTooltip]="'step_editor.delete_selected_steps' | translate" 
+      matTooltipPosition="right">
+      <mat-icon matBadge="{{ getSelectedStepsCount() }}" matBadgeColor="warn" class="delete">delete_sweep</mat-icon>
+      <span>Delete selected steps</span>
+    </div>
+    <div 
+      *ngIf="!hasSelectedSteps()"
+      [matTooltip]="'No steps selected to delete'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
+      <mat-icon class="delete">delete_sweep</mat-icon>
+      <span>Delete selected steps</span>
+    </div>
+  </ng-template>
 </context-menu>
 <!-- Editor step rows -->
 <div class="DragDropContainer" cdkDropList (cdkDropListDropped)="drop($event)">
@@ -132,18 +181,21 @@
               <mat-icon>more_vert</mat-icon>
             </button>
             <div class="step-extras">
-
               <div class="index">{{ i + 1 }}</div>
               <mat-checkbox
                 formControlName="enabled"
                 aria-label="Enable"
                 color="primary"
-                class="enable checkbox-blue"></mat-checkbox>
+                class="enable checkbox-blue"
+                (click)="onEnableCheckboxClick($event, i)"
+                >
+              </mat-checkbox>
               <mat-checkbox
                 formControlName="screenshot"
                 aria-label="Screenshot"
                 color="primary"
                 class="screenshot checkbox-blue"
+                (click)="onScreenshotCheckboxClick($event, i)"
                 (change)="screenshotChange($event, i)"
                 [matTooltip]="'step_editor.screenshot_disabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
@@ -152,8 +204,18 @@
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
+                (click)="onCompareCheckboxClick($event, i)"
                 (change)="onCompareChange($event, i)"
                 [matTooltip]="'step_editor.compare_enabled' | translate"
+                matTooltipPosition="above"></mat-checkbox>
+              <mat-checkbox
+                formControlName="selected"
+                color="primary"
+                class="select-step checkbox-blue"
+                aria-label="Select step"
+                (click)="onSelectCheckboxClick($event, i)"
+                (change)="onSelectStepChange($event, i)"
+                [matTooltip]="'step_editor.select_step_tooltip' | translate"
                 matTooltipPosition="above"></mat-checkbox>
             </div>
             <div class="prefix">
@@ -187,8 +249,9 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
             <textarea
+              #stepTextarea
               *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
-              (input)="onStepChange($event, i)"
+              (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
               (click)="
                 stepVariableData['currentStepIndex'] === i
@@ -203,12 +266,11 @@
               (keydown.alt.control.arrowdown)="copyStep($event, i)"
               class="code"
               spellcheck="false"
-              cdkTextareaAutosize
               autocomplete="off"
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
               placeholder="Step Code"
-              (focus)="sendTextareaFocusToParent(true, i) && onTextareaFocus($event, i)">
+              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
             <mat-list
               class="var_name_autoComplete"
@@ -235,7 +297,7 @@
                   <span class="var_value">={{ variable.variable_value }}</span>
                 </div>
                 <ng-template #noVariable>
-                  <div class="variable-wrapper">
+                  <div class="variable-wrapper" *ngIf="!step.get('step_content').value?.startsWith('Run Javascript function')">
                     <span class="no-variable">No variable with this name</span>
                   </div>
                 </ng-template>
@@ -303,7 +365,6 @@
                 [matTooltip]="'continue_on_failure.tooltip' | translate"
                 [matTooltipDisabled]="!disabled"
                 color="primary"
-                [disabled]="disabled"
                 formControlName="continue_on_failure"
                 >Continue on failure</mat-checkbox
               >
@@ -342,28 +403,23 @@
             <mat-icon color="warn">delete</mat-icon>Delete
           </button>
         </mat-menu>
-        <div class="autocomplete-container">
-          <div class="autocomplete-wrapper">
-            <mat-autocomplete
-              #stepHelp="matAutocomplete"
-              (opened)="onAutocompleteOpened(i)"
-              (optionSelected)="selectFirstVariable($event, i)"
-              (optionActivated)="onOptionActivated($event, i)"
-              (closed)="closeAutocomplete(i)">
-          
-
-              <mat-option *ngFor="let action of actions | filterStep: step.value.step_content : false" [value]="action.action_name">
-                {{ action.action_name }}
-              </mat-option>
-
-            </mat-autocomplete>
-          </div>
-        </div>
       </div>
       <div *ngIf="!showHideStepDocumentation">
         <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
-
+          
           <div class="containerFather">
+            <div class="fake-drop">
+            </div>
+            <div class="fake-dots">
+            </div>
+            <div class="fake-hash">
+            </div>
+            <div class="fake-enable">
+            </div>
+            <div class="fake-screenshot">
+            </div>
+            <div class="fake-compare">
+            </div>
             <div class="stepDescriptionExample">
               <p class="stepDescriptionPar">
                 <span class="bluetext">Description:</span> <br>
@@ -503,7 +559,7 @@
     <mat-menu #addStep="matMenu" yPosition="below">
       <button 
         type="button"
-        (click)="addEmpty()" mat-menu-item>
+        (click)="addEmpty(-1, false)" mat-menu-item>
         <mat-icon>chat_bubble</mat-icon>Empty
       </button>
       <button 
@@ -514,3 +570,21 @@
     </mat-menu>
   </div>
 </div>
+
+<!-- Single shared autocomplete instance outside the loop -->
+<mat-autocomplete
+  #stepHelp="matAutocomplete"
+  (opened)="onAutocompleteOpened(currentFocusedStepIndex)"
+  (optionSelected)="selectFirstVariable($event, currentFocusedStepIndex)"
+  (optionActivated)="onOptionActivated($event, currentFocusedStepIndex)"
+  (closed)="closeAutocomplete(currentFocusedStepIndex)">
+  
+  <ng-container *ngFor="let group of filteredGroupedActions$ | async">
+    <mat-optgroup [label]="group.name">
+      <mat-option *ngFor="let action of group.actions" [value]="action.action_name">
+        {{ action.action_name }}
+      </mat-option>
+    </mat-optgroup>
+  </ng-container>
+
+</mat-autocomplete>

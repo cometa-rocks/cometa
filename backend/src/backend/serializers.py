@@ -11,8 +11,8 @@ from backend.payments import get_user_subscriptions, get_requires_payment
 from backend.utility.functions import getLogger
 from backend.utility.config_handler import *
 from backend.utility.configurations import ConfigurationManager
-
-# logger information
+from backend.ee.modules.notification.serializers import FeatureTelegramOptionsSerializer
+# logger informationf
 logger = getLogger()
 
 ##################################
@@ -281,6 +281,7 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
 #############################
 # Feature model serializers #
 #############################
+
 class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
 
     # get info about the latest feature result
@@ -288,12 +289,15 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     last_edited = BasicOIDCAccountSerializer(many=False)
     created_by = BasicOIDCAccountSerializer(many=False)
     schedule = serializers.CharField(source='schedule.schedule', allow_null=True, default="")
+    original_cron = serializers.CharField(source='schedule.original_cron', allow_null=True, default="")
+    original_timezone = serializers.CharField(source='schedule.original_timezone', allow_null=True, default="")
     last_edited_date = serializers.DateTimeField(format=datetimeTZFormat)
+    telegram_options = FeatureTelegramOptionsSerializer(many=False, read_only=True)
 
     class Meta:
         model = Feature
         fields = '__all__'
-        extra_fields = ('schedule', )
+        extra_fields = ('schedule', 'original_cron', 'original_timezone')
     def create(self, validated_data):
         return Feature.objects.create(**validated_data)
 
@@ -385,6 +389,7 @@ class StepResultSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_belongs_to(self, instance):
+        logger.debug(f"StepResultSerializer: Getting belongs to for step result {instance.step_result_id}")
         feature = None
         try:
             feature = BasicFeatureInfoSerializer(Feature.objects.get(feature_id=instance.belongs_to), many=False).data
@@ -396,24 +401,33 @@ class StepResultSerializer(serializers.ModelSerializer):
             }
         return feature
 
+# This serializer is used to send the step result-details to the frontend
 class StepResultRegularSerializer(serializers.Serializer):
     step_result_id = serializers.IntegerField()
     feature_result_id = serializers.IntegerField()
-    step_name = serializers.CharField()
-    execution_time = serializers.IntegerField()
-    status = serializers.CharField(max_length=100)
-    pixel_diff = serializers.IntegerField()
-    template_name = serializers.CharField() # Remove when possible
-    success = serializers.BooleanField()
-    screenshots = serializers.JSONField(default=dict)
-    previous = serializers.IntegerField(default=None)
-    next = serializers.IntegerField(default=None)
-    files = serializers.JSONField(default=[])
+    belongs_to = serializers.IntegerField()
+    current_step_variables_values = serializers.JSONField(default=[])
+    database_query_result = serializers.JSONField(default=[])
     diff = serializers.BooleanField(default=False)
+    error = serializers.CharField(default='')
+    execution_time = serializers.IntegerField()
+    files = serializers.JSONField(default=[])
+    next = serializers.IntegerField(default=None)
+    notes = serializers.CharField(default='')
+    pixel_diff = serializers.IntegerField()
+    previous = serializers.IntegerField(default=None)
+    rest_api_id = serializers.IntegerField(default=None)
+    relative_execution_time = serializers.IntegerField()
     screenshot_current = serializers.CharField()
-    screenshot_style = serializers.CharField()
     screenshot_difference = serializers.CharField()
+    screenshot_style = serializers.CharField()
     screenshot_template = serializers.CharField()
+    screenshots = serializers.JSONField(default=dict)
+    status = serializers.CharField(max_length=100)
+    step_name = serializers.CharField()
+    step_type = serializers.CharField()
+    success = serializers.BooleanField()
+    template_name = serializers.CharField()
 
 
 #################################
@@ -653,6 +667,8 @@ class AuthenticationProviderSerializer(serializers.Serializer):
 class ScheduleSerializer(serializers.ModelSerializer):
     created_on = serializers.DateTimeField(format=datetimeTZFormat)
     delete_on = serializers.DateTimeField(format=datetimeTZFormat)
+    original_cron = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    original_timezone = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     class Meta:
         model = Schedule
         fields = '__all__'

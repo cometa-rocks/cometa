@@ -6,6 +6,7 @@
 # 2020-07-24 RRO cat output.log to viewshow possible compile errors
 # 2020-02-06 ASO Modified script into seperate functions for easy execution
 # 2018-11-12 ABA First version
+# 2025-01-01 This is only used for development purposes 
 # #########################################
 
 # #########################################
@@ -44,8 +45,8 @@ function install_essentials(){
 	echo -e "\e[32mOK\e[0m"
 
 	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	curl -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
-	apt-get install -y nodejs >> output.log 2>&1
+	curl -sL https://deb.nodesource.com/setup_18.x | bash - >> output.log 2>&1
+	apt-get install -y nodejs=18.* >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 
 	# create lbtest1.html just in case we are running behind a LB
@@ -75,9 +76,8 @@ function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
 	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
-	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
-	npm ci >> output.log 2>&1
+	npm ci --legacy-peer-deps >> output.log 2>&1
 	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/front/node_modules/\@types/d3-shape/index.d.ts
 	echo -e "\e[32mOK\e[0m"
 }
@@ -169,10 +169,25 @@ function build_project(){
 # @params:
 # #########
 function serve_project() {
+	# kill all processes running "ng serve"
+	ps aux | grep "ng serve" | grep -v grep | awk '{print $2}' | xargs -r kill -9
 	# replace baseHref inside index.html before serving
 	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
 	# serve the project
 	npx ng serve
+}
+
+# #########
+# This function will serve the angular project
+# on port 4200 but will be accessible from /debug/
+# if the configuration in apache is activated.
+# @params:
+# #########
+function serve_project_auto() {
+	# replace baseHref inside index.html before serving
+	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
+	# serve the project
+	nohup npx ng serve & > /usr/local/apache2/angular_serve.logs 2>&1 &
 }
 
 # #########
@@ -185,11 +200,25 @@ function install_openidc(){
 	# install some oidc feature before starting httpd service
 	cd /tmp
 	apt-get update
-	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget
+	# Install essential tools
+	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget procps
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
-	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev 
+	# libpcre3-dev is replaced by libpcre2-dev in Debian 12
+	apt-get install -y libpcre2-dev zlib1g-dev
+	# Install libcjose from available packages
+	apt-get install -y libcjose0 libcjose-dev || {
+		echo "Warning: libcjose packages not found in standard repos"
+	}
 	apt-get install -y libapache2-mod-security2
+	
+	# Install libssl1.1 for mod_auth_openidc compatibility
+	# mod_auth_openidc.so is compiled against OpenSSL 1.1, but Debian 12 has OpenSSL 3.0
+	echo "Installing libssl1.1 for mod_auth_openidc compatibility..."
+	wget -q http://deb.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+	dpkg -i libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+	rm -f libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+	
 	cd -
 }
 
@@ -217,7 +246,7 @@ function install_appium_inspector() {
         echo "Appium Inspector files successfully copied to Apache server."
 
         # Return to the previous directory
-        cd -
+        # cd -
     else
         echo "Appium Inspector build not found, skipping appium-inspector installation."
     fi
@@ -239,7 +268,8 @@ OPTIONS:
 	angular						installs angular and all the node_modules packages.
 	compile						compiles the angular project and copies the content to the apache's htdocs
 	serve						serves the app on port 4200 and reverse proxies it to /debug/
-
+	serve-auto					starts serving when a dev environment starts on port 4200 and reverse proxies it to /debug/
+	
 EXAMPLES:
 	* Fresh install / Complete Deployment
 	${0} openidc basic angular compile
@@ -291,6 +321,10 @@ do
 		SERVE=TRUE
 		shift
 		;;
+	serve-auto)
+		SERVEAUTO=TRUE
+		shift
+		;;
 	no-restart)
 		NORESTART=TRUE
 		shift
@@ -303,6 +337,7 @@ do
     esac
 done
 
+
 # #########
 # Execute function depending on what is found on cmd
 # #########
@@ -314,9 +349,21 @@ test "${OPENIDC:-FALSE}" == "TRUE" && install_openidc
 check_ssl_certificate
 
 test "${BASIC:-FALSE}" == "TRUE" && install_essentials
+
+# This done for show initial loading screen, and let develop know that it's loading in the background	
+if [[ "${NORESTART:-FALSE}" == "FALSE" && "${SERVE:-FALSE}" == "FALSE" ]]; then
+	# #########################################
+	# Restart apache server
+	# #########################################
+	cp -f /code/front/src/server_starting.html /usr/local/apache2/htdocs/welcome.html
+	cp -r /code/front/src/assets /usr/local/apache2/htdocs/
+	httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
+fi
+
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
 test "${COMPILE:-FALSE}" == "TRUE" && build_project
 test "${SERVE:-FALSE}" == "TRUE" && serve_project
+test "${SERVEAUTO:-FALSE}" == "TRUE" && serve_project_auto
 
 echo -e "\e[32mSuccessful\e[0m"
 
@@ -326,7 +373,8 @@ if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# #########################################
 	# Restart apache server
 	# #########################################
+	# This path is provided so that we do not override the apache conf directory
 	httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
 
-	find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log
+	find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log /usr/local/apache2/angular_serve.logs
 fi

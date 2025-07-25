@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'command_log.apps.ManagementCommandLogConfig',
     'backend.ee.modules.security',
     'backend.ee.modules.mobile',
+    'backend.ee.modules.notification',
     'modules.housekeeping',
     'modules.configuration',
     'modules.container_service',
@@ -91,6 +92,7 @@ MIGRATION_MODULES = {
     'housekeeping': 'migrations.housekeeping',
     'security': 'migrations.security',
     'token_authentication': 'migrations.token_authentication',
+    'notification': 'migrations.notification',
 } 
  
 MIDDLEWARE = [
@@ -230,6 +232,8 @@ if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "T
     if COMETA_EMAIL_PASSWORD != '':
         EMAIL_HOST_PASSWORD = COMETA_EMAIL_PASSWORD
     EMAIL_USE_TLS = ConfigurationManager.get_configuration('COMETA_EMAIL_TLS', 'False') == "True"
+    # Default sender email address
+    DEFAULT_FROM_EMAIL = ConfigurationManager.get_configuration('COMETA_DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
     
 # Static files (CSS, JavaScript, Images)

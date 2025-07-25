@@ -41,31 +41,22 @@ DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 
 
-class GeneratePDF(View):
-    """This functions generates a PDF using a feature result, including images, browser, etc...
-    It creates a HTML file from generatePDF.html that then converts and exports to PDF.
-    Then, the PDF is sent by mail using the backend email settings (settings.py).
-    More info on: https://redmine.amvara.de/projects/cometa/wiki#Feature-Results-Reporting-in-PDF
-    Requires library: xhtml2pdf. Is in requirements.txt and gets installed with "docker-compose up -d"
 
-    Parameters:
-    request (HTTPRequest): GET request containing feature_result_id, from Feature_Results model.
-
-    Returns:
-    HTTPResponse: 200 if everything ok, 503 if something went wrong.
-
-    CHANGELOG:
-    2021-06-24 RRO - update logger assignment to not emit multiple logs with same message
-    2020-06-22 PEH - Big refactoring.
-    2020-06-18 PEH - Last changes and code review
-    2020-07-28 ABP - Add download parameter and behavior
-
-    """
-    # Initialization. This is the main function, this executes all the class. We get here from URL /pdf/.
+class PDFAndEmailManager:
+    
+    def __init__(self) -> None:
+        self.__pdf_generated = False
+    
+    def is_pdf_generated(self) -> bool:
+        return self.__pdf_generated
+    
+    
+      # Initialization. This is the main function, this executes all the class. We get here from URL /pdf/.
     # All of the steps are functions from this class. Each function has information about it before being declared.
-    def get(self, request):
+    def prepare_the_get(self, request):
         # Get the request
         self.request = request
+        self.__step_variable_values = []
 
         #  logger assignment
         self.my_logger = logger
@@ -82,54 +73,58 @@ class GeneratePDF(View):
         # Filter objects to get that result id
         self.feature_result = self.GetFeatureResult()
 
-        # save the pdf download path
-        self.downloadPath = "/code/behave/pdf"
-        self.pdf_file_name = "%s-%s.pdf" % (str(self.feature_result.feature_name), str(self.feature_result_id))
-        self.downloadFullPath = "%s/%s" % (self.downloadPath, self.pdf_file_name)
 
-        # check if download path exists
-        if not exists(self.downloadPath):
-            self.my_logger.debug("Download path does not exists .... creating one...")
-            os.makedirs(self.downloadPath)
+        # Get the steps from the executed feature.
+        self.steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
 
-        # check if lock file exists if so that mean the pdf file is being generate
-        if exists(self.downloadFullPath + ".lock"):
-            return HttpResponse("PDF File for Feature: %s and Feature Result ID: %s is still being generated, please try again later." % (str(self.feature_result.feature_name), str(self.feature_result_id)))
+        # Get the feature result screenshots.
+        self.screenshots_array = self.GetStepsAndScreenshots()
 
-        # generate pdf url
-        self.pdfURL = "https://%s/backend/pdf/?feature_result_id=%s" % (DOMAIN, self.feature_result_id)
+        # Calculate percentatge of OK steps and NOK steps
+        try:
+            self.percentok = int((self.feature_result.ok * 100) / self.feature_result.total)
+        except ZeroDivisionError:
+            self.percentok = 0
+        try:
+            self.percentnok = int(((self.feature_result.fails + self.feature_result.skipped) * 100) / self.feature_result.total)
+        except ZeroDivisionError:
+            self.percentnok = 0
+        self.totalnok = int(self.feature_result.fails) + int(self.feature_result.skipped)
 
         # Assigning class variables to use in all the functions.
         self.feature_template = self.feature_result.feature_id
         self.feature_id = self.feature_result.feature_id_id
-
-        # If the request GET parameter "download" is present, download the PDF instead of emailing it to it's recipient
-        download = self.request.GET.get('download', None)
-
         
+        # Take path from fature_result and check if the pdf was generated
+        self.downloadFullPath = self.feature_result.pdf_result_file_path 
+        
+        # PDF Generation code start here
         # check if file already exists
         if not exists(self.downloadFullPath):
-            self.my_logger.debug("Creating a lock file for %s" % self.downloadFullPath)
+            # save the pdf download path
+            self.downloadPath = "/code/behave/pdf"
+            self.pdf_file_name = "%s-%s.pdf" % (str(self.feature_result.feature_name), str(self.feature_result_id))
+            self.downloadFullPath = "%s/%s" % (self.downloadPath, self.pdf_file_name)
+
+            # check if download path exists
+            if not exists(self.downloadPath):
+                self.my_logger.debug("Download path does not exists .... creating one...")
+                os.makedirs(self.downloadPath)
+
+            # check if lock file exists if so that mean the pdf file is being generate
+            if exists(self.downloadFullPath + ".lock"):
+                return HttpResponse("PDF File for Feature: %s and Feature Result ID: %s is still being generated, please try again later." % (str(self.feature_result.feature_name), str(self.feature_result_id)))
+
+            # generate pdf url
+            self.pdfURL = "https://%s/backend/pdf/?feature_result_id=%s" % (DOMAIN, self.feature_result_id)
+
+            # If the request GET parameter "download" is present, download the PDF instead of emailing it to it's recipient
+            download = self.request.GET.get('download', None)
+                
             # create a lock file to check if pdf is still being generated or not
             self.touch(self.downloadFullPath + ".lock")
-
-            # Get the steps from the executed feature.
-            steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
-            self.steps = steps
-
-            # Get the feature result screenshots.
-            self.screenshots_array = self.GetStepsAndScreenshots()
-
-            # Calculate percentatge of OK steps and NOK steps
-            try:
-                self.percentok = int((self.feature_result.ok * 100) / self.feature_result.total)
-            except ZeroDivisionError:
-                self.percentok = 0
-            try:
-                self.percentnok = int(((self.feature_result.fails + self.feature_result.skipped) * 100) / self.feature_result.total)
-            except ZeroDivisionError:
-                self.percentnok = 0
-            self.totalnok = int(self.feature_result.fails) + int(self.feature_result.skipped)
+            
+            self.my_logger.debug("Creating a lock file for %s" % self.downloadFullPath)
 
             # Build the HTML and then render it into a PDF.
             self.pdf = self.BuildHtmlAndRenderPdf()
@@ -142,9 +137,11 @@ class GeneratePDF(View):
             if exists(self.downloadFullPath + ".lock"):
                 self.my_logger.debug("Removing lock file for %s" % self.downloadFullPath)
                 os.remove(self.downloadFullPath + ".lock")
-
-        # Saving pdf file name in FeatureResults it will help to do housekeeping
-        self.feature_result.pdf_result_file_path = self.pdf_file_name
+            
+            self.feature_result.pdf_result_file_path = self.pdf_file_name
+            
+            # Saving pdf file name in FeatureResults it will help to do housekeeping
+            
         self.feature_result.house_keeping_done = False
         self.feature_result.save()
         
@@ -157,7 +154,6 @@ class GeneratePDF(View):
         # read file content and save it to PDFContent
         with open(self.downloadFullPath, 'rb') as f:
             PDFContent = f.read()
-        
         
         # download param should contain something, otherwise it is considered Falsy, ex: ?download=true
         if download == 'true':
@@ -178,11 +174,13 @@ class GeneratePDF(View):
         # Finish
         return HttpResponse("200")
 
+    
     """
         This function handles the logic of sending the mail
     """
     def send_mail(self):
         feature = Feature.objects.get(feature_id=self.feature_id)
+        self.feature = feature
         should_send_the_email = True
         
         # if feature is set to check for notification on error 
@@ -282,6 +280,7 @@ class GeneratePDF(View):
         # This is done to protect user from sending emails to unwanted directions.
         bad_emails = []
         for email in self.feature_template.email_address or []:
+            email = email.strip()
             try:
                 validate_email(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
@@ -297,6 +296,7 @@ class GeneratePDF(View):
         # This is done to protect user from sending emails to unwanted directions.
         bad_cc_emails = []
         for email in self.feature_template.email_cc_address or []:
+            email = email.strip()
             try:
                 validate_email(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
@@ -314,6 +314,7 @@ class GeneratePDF(View):
         # This is done to protect user from sending emails to unwanted directions.
         bad_bcc_emails = []
         for email in self.feature_template.email_bcc_address or []:
+            email = email.strip()
             try:
                 validate_email(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
@@ -346,6 +347,21 @@ class GeneratePDF(View):
         for step in self.steps:
             # Create photos list
             listphotos = []
+            
+            if isinstance(step.current_step_variables_value, dict):
+                variable_info = {}
+                variable_value = step.current_step_variables_value.get('variable_value', None)
+                variable_info['variable_name'] = step.current_step_variables_value.get('variable_name', None)
+                if isinstance(variable_value, dict) or isinstance(variable_value, list):
+                    # If variable_value is a dict, we need to convert it to a list
+                    variable_info['variable_value'] = json.dumps(variable_value)
+                else:
+                    variable_info['variable_value'] = step.current_step_variables_value.get('variable_value')
+                        
+                self.__step_variable_values.append(variable_info)
+            
+            
+            
             # Count to enumerate steps, as django templates language cannot modify variables
             step.count = count
             count = count + 1
@@ -381,7 +397,7 @@ class GeneratePDF(View):
                             photo = base64.b64encode(file.read()).decode('utf-8')
                             # Push it to list of photos
                             listphotos.append(photo)
-                    
+                     
             # Build the steps array. This array contains the images sorted, and all steps data to use for the images and screenshot generation
             screenshots_array[step.step_result_id] = []
             screenshots_array[step.step_result_id].append({'step_name': step.step_name})
@@ -393,6 +409,7 @@ class GeneratePDF(View):
             screenshots_array[step.step_result_id].append({'photo3': None})
             screenshots_array[step.step_result_id].append({'count' : step.count})
             screenshots_array[step.step_result_id].append({'error': step.error})
+            screenshots_array[step.step_result_id].append({'variables_value': step.current_step_variables_value})
             # Change the images from None to the base64 string, only if the image exists. We use i+4 because screenshots are located in indexs 4 5 and 6
             for i in range(0, len(listphotos)):
                 index = i+4
@@ -424,6 +441,7 @@ class GeneratePDF(View):
             "cet_date": cet_date,
             "ist_date": ist_date,
             "stepsarray": self.steps,
+            "step_variable_values": self.__step_variable_values,
             "domain": domain,
             "featureinfo": self.feature_result,
             "percentok": self.percentok,
@@ -438,7 +456,9 @@ class GeneratePDF(View):
             html = template.render(context)
             # Render HTML to PDF
             pdf = render_to_pdf('generatePDF.html', context)
+            self.__pdf_generated = True
             return pdf
+        
         except Exception as e:
             self.my_logger.critical("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Error while rendering the PDF. Error stack trace: ", e)
             raise ValueError("Error while rendering the PDF")
@@ -447,19 +467,8 @@ class GeneratePDF(View):
         Replaces the feature variables for the given text
     """
     def replaceFeatureVariables(self, text):
-        # Transform feature object to dict
-        info = model_to_dict(self.feature_result)
-        # Provide some custom keys
-        info['status'] = 'PASSED' if info['success'] else 'FAILED'
-        # Iterate over each property
-        for key in info:
-            # Filter by allowed key type
-            if isinstance(info[key], (int, str, datetime.datetime, bool)):
-                # Replace new lines with <br>
-                variable_text = '<br />'.join(str(info[key]).splitlines())
-                # Replace variable value with key
-                text = text.replace("$%s" % str(key), str(variable_text))
-        return text
+        from backend.utility.variable_replacement import replace_feature_variables
+        return replace_feature_variables(text, self.feature_result, use_html_breaks=True)
 
     """
         Email Subject Building, if there is no subject, a default one will be created.
@@ -566,15 +575,45 @@ class GeneratePDF(View):
 
         return new_email_body, email_multi_alternatives
 
+    def _get_failed_steps_for_email(self):
+        """Get HTML formatted failed steps information for email"""
+        if self.feature_result.success or self.feature_result.fails <= 0:
+            return ""
+        
+        failed_steps = [step for step in self.steps if not step.success]
+        if not failed_steps:
+            return ""
+        
+        html = "<br><strong>Failed Steps:</strong><br><ul>"
+        for step in failed_steps:
+            step_name = step.step_name or f"Step {step.step_execution_sequence}"
+            error = (step.error or "No error message").strip()
+            if len(error) > 200:
+                error = error[:200] + "..."
+            html += f"<li><strong>Step {step.step_execution_sequence}: {step_name}</strong><br><em>{error}</em></li>"
+        html += "</ul><br>"
+        return html
+
     def BuildEmailBody(self):
         date_time = self.feature_result.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        
+        # Get browser selected timezone
+        browser_info = self.feature_result.browser
+        browser_timezone = browser_info.get('selectedTimeZone', 'UTC') if browser_info else 'UTC'
+        
+        # Format browser timezone if different from UTC
+        browser_date = ""
+        if browser_timezone != 'UTC':
+            try:
+                browser_date = date_time.astimezone(pytz.timezone(browser_timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
+            except Exception as e:
+                self.my_logger.warning(f"Invalid browser timezone '{browser_timezone}': {e}")
+                browser_date = f"Browser timezone: {browser_timezone}"
 
         pdf_email_part = ""
 
-        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature_result.attach_pdf_report_to_email:
+        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature.attach_pdf_report_to_email:
            pdf_email_part = """
             PDF file size (%.2fMB) is over the threshold (%.2fMB) and will not be attached to the email, choose from options below to either download of view the pdf:
             <ul>
@@ -599,6 +638,11 @@ class GeneratePDF(View):
                 %s<br><br>
                 """ % str(self.feature_template.email_body)
             
+        # Get failed steps information
+        failed_steps_section = self._get_failed_steps_for_email()
+        
+        # Build feature URL for frontend
+        feature_url = f"https://{DOMAIN}/#/{self.feature_result.department_name}/{self.feature_result.app_name}/{self.feature_result.feature_id.feature_id}"
 
         email_body = """
             Dear user!<br><br>
@@ -611,17 +655,15 @@ class GeneratePDF(View):
                 <tr><td><strong>App:</strong></td><td>%s</td></tr>
                 <tr><td><strong>Environment:</strong></td><td>%s</td></tr>
                 <tr><td><strong>Test:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Feature URL:</strong></td><td><a href="%s">Open in Co.meta</a></td></tr>
                 <tr><td><strong>Date + Time:<br><br><br></strong></td>
                             <td>
-                                %s
-                                <br>
-                                %s
-                                <br>
                                 %s
                             </td>
                 </tr>
                 <tr><td><strong>Pixel Difference:</strong></td><td>%s</td></tr>
             </table>
+            %s
             $[[[CUSTOM_EMAIL_DATA]]]
             %s
             <br><p>
@@ -637,10 +679,10 @@ class GeneratePDF(View):
             self.feature_result.app_name,
             self.feature_result.environment_name,
             self.feature_result.feature_name,
-            utc_date,
-            cet_date,
-            ist_date,
+            feature_url,
+            utc_date if browser_date == "" else f"{utc_date}<br>{browser_date}",
             str(self.feature_result.pixel_diff),
+            failed_steps_section,
             pdf_email_part
         )
         # Replace variables of feature
@@ -658,7 +700,7 @@ class GeneratePDF(View):
         email = EmailMultiAlternatives(
             self.subject,
             '',
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=self.feature_template.email_address,
             cc=self.feature_template.email_cc_address,
             bcc=self.feature_template.email_bcc_address,
@@ -685,10 +727,43 @@ class GeneratePDF(View):
         try:
             email.send()
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Email sent. Additional info: ")
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to (next line): ")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to mail: "+ str(self.feature.email_address))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to CC mail: "+ str(self.feature.email_cc_address))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to BCC mail: "+ str(self.feature.email_bcc_address))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Subject: "+ str(self.subject))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent by email account: "+ str(settings.EMAIL_HOST_USER))
             # return HttpResponse("200 OK")
         except Exception as e:
             self.my_logger.critical("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Error while sending the email. Error stack trace: ", e)
             raise Exception("Error while sending email")
+
+
+
+
+
+class GeneratePDF(View, PDFAndEmailManager):
+    """This functions generates a PDF using a feature result, including images, browser, etc...
+    It creates a HTML file from generatePDF.html that then converts and exports to PDF.
+    Then, the PDF is sent by mail using the backend email settings (settings.py).
+    More info on: https://redmine.amvara.de/projects/cometa/wiki#Feature-Results-Reporting-in-PDF
+    Requires library: xhtml2pdf. Is in requirements.txt and gets installed with "docker-compose up -d"
+
+    Parameters:
+    request (HTTPRequest): GET request containing feature_result_id, from Feature_Results model.
+
+    Returns:
+    HTTPResponse: 200 if everything ok, 503 if something went wrong.
+
+    CHANGELOG:
+    2021-06-24 RRO - update logger assignment to not emit multiple logs with same message
+    2020-06-22 PEH - Big refactoring.
+    2020-06-18 PEH - Last changes and code review
+    2020-07-28 ABP - Add download parameter and behavior
+
+    """    
+    
+      # Initialization. This is the main function, this executes all the class. We get here from URL /pdf/.
+    # All of the steps are functions from this class. Each function has information about it before being declared.
+    # FIXME 
+    def get(self, request):
+        return self.prepare_the_get(request)

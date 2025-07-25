@@ -68,8 +68,8 @@ class AdminStep_result(admin.ModelAdmin):
 
 class AdminFeature(admin.ModelAdmin):
     model = Feature
-    search_fields = ['feature_name', 'app_name', 'environment_name', 'department_name', 'description', 'browsers']
-    list_display = ('feature_name', 'app_name', 'environment_name', 'steps', 'department_name', 'depends_on_others', 'cloud')
+    search_fields = ['feature_id','feature_name', 'app_name', 'environment_name', 'department_name', 'description', 'browsers']
+    list_display = ('feature_id','feature_name', 'app_name', 'environment_name', 'steps', 'department_name', 'depends_on_others', 'cloud')
     list_filter = ('depends_on_others','cloud')
     readonly_fields = ('browsers_prettified', )
     exclude = ('browsers', )
@@ -181,7 +181,7 @@ class AdminPermissions(admin.ModelAdmin):
         }),
         ('Step Results', {
             'fields': (
-                ('remove_screenshot', 'change_step_result_status'),
+                ('remove_screenshot', 'change_result_status'),
                 )
         }),
         ('Feature Results', {
@@ -297,8 +297,8 @@ class AdminFile(admin.ModelAdmin):
 
 class AdminDepartment(admin.ModelAdmin):
     model = Department
-    search_fields = ['department_name']
-    list_display = ("department_name", "created_on")
+    search_fields = ["department_id",'department_name']
+    list_display = ("department_id","department_name", 'slug',"created_on")
     list_filter = ('created_on',)
 
 class ActionAdmin(admin.ModelAdmin):
@@ -306,6 +306,11 @@ class ActionAdmin(admin.ModelAdmin):
     search_fields = ['action_name']
     list_display = ("action_id", "action_name", "step_type")
     list_filter = ('step_type',)
+
+class ScheduleAdmin(admin.ModelAdmin):
+    model = Schedule
+    # search_fields = ['action_name']
+    list_display = ("id", "schedule", "comment", "created_on", "delete_after_days")
 
   
 class InviteAdmin(admin.ModelAdmin):
@@ -336,7 +341,7 @@ admin.site.register(Action, ActionAdmin)
 admin.site.register(Permissions, AdminPermissions)
 admin.site.register(Cloud, AdminCloud)
 admin.site.register(AuthenticationProvider)
-admin.site.register(Schedule)
+admin.site.register(Schedule,ScheduleAdmin)
 admin.site.register(Invite, InviteAdmin)
 admin.site.register(Integration, IntegrationAdmin)
 admin.site.register(IntegrationPayload)

@@ -76,7 +76,7 @@ _executor = ThreadPoolExecutor(max_workers=4)
 def _async_post(url, headers=None, json=None):
     def _task():
         try:
-            logger.debug(f"Async POST to {url} with headers: {headers} and json: {json}")
+            logger.debug(f"Async POST to {url} with headers: {headers}")
             requests.post(url, headers=headers, json=json)
         except Exception as e:
             logger.error(f"Async POST to {url} failed: {e}")
@@ -101,7 +101,7 @@ def takeScreenshot(device_driver):
             logger.error(f"Unable to take screenshot ...{(str(err))}")
             return None
 #
-# some usefull functions
+# some useful functions
 #
 # def takeScreenshot(device_driver, screenshots_step_path):
     # pass
@@ -288,7 +288,7 @@ def addVariable(context, variable_name, result, encrypted=False, save_to_step_re
 # check if encrypted
 def returnDecrypted(value):
     # encrypted string start
-
+    value = str(value)
     if value.startswith(ENCRYPTION_START):
         value = decrypt(value)
         # append value to be masked in logger
@@ -402,7 +402,7 @@ def done(*_args, **_kwargs):
 
             # get EnvironmentVariables
             env_variables = json.loads(args[0].VARIABLES)
-            # job parametes
+            # job parameters
             job_parameters = json.loads(args[0].PARAMETERS)
 
             # message that will be saved in database once the code has been executed!
@@ -415,35 +415,73 @@ def done(*_args, **_kwargs):
                 # reset the step_error field in context
                 if hasattr(args[0], "step_error"):
                     del args[0].step_error
-
+                # logger.debug(f"Values of kwargs : {kwargs}")
                 # replace variables in kwargs
+                # Got here the parameter list
+                
                 for parameter in kwargs:
-                    if not kwargs[parameter]:
+                    parameter_value = kwargs[parameter]
+                    if not parameter_value:
                         continue
-                    # replace variables
-                    for key in env_variables:
-                        variable_name = key["variable_name"]
-                        variable_value = str(key["variable_value"])
-                        pattern = r"\${?%s(?:}|\b)" % variable_name
-                        if (
-                            args[0].text and "Loop" not in save_message
-                        ):  # we do not want to replace all the variables inside the loop sub-steps
-                            # Replace in step description for multiline step values
-                            args[0].text = re.sub(
-                                pattern, returnDecrypted(variable_value), args[0].text
-                            )
-                            # ###
-                            # variable was not being replaced correctly if variable contained another variable name in itself.
-                            # ###
-                            # args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
-                        if re.search(pattern, kwargs[parameter]):
-                            # Replace in step content
-                            kwargs[parameter] = re.sub(
-                                pattern,
-                                returnDecrypted(variable_value),
-                                kwargs[parameter],
-                            )
-                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+
+                    # Match $VAR, ${VAR}, and %index only
+                    found_vars = re.findall(r'(\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[a-zA-Z_][a-zA-Z0-9_]*\}|%index)', parameter_value)
+                    if args[0].text:
+                        found_vars_in_text = re.findall(r'(\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[a-zA-Z_][a-zA-Z0-9_]*\}|%index)', args[0].text)
+                        logger.debug(f"args[0].text {args[0].text}")
+                        found_vars.extend(found_vars_in_text)
+                    # logger.debug(f"Found variables for {parameter_value} value {found_vars}")
+                    for raw_var in found_vars:
+                        # logger.debug(f"Iterating for {raw_var}")
+                        if raw_var.startswith('%'):
+                            # Handle only %index
+                            if raw_var != '%index':
+                                continue
+                            variable_name = 'index'
+                        else:
+                            # Clean $VAR and ${VAR}
+                            variable_name = raw_var.strip('${}$')
+
+                        # Find the variable in the env_variables list
+                        # logger.debug(f"Trying to find value for variable {variable_name}")
+                        # logger.debug(f"env_variables {variable_name}")
+                        index = [
+                            i for i, _ in enumerate(env_variables)
+                            if _["variable_name"] == variable_name
+                        ]
+                        if not index:
+                          #   logger.debug(f"Variable not found {variable_name}")
+                            continue  # Variable not found
+
+                        env_var = env_variables[index[0]]
+                        # logger.debug(f"found variable {env_var}")
+
+                        decrypted_value = returnDecrypted(str(env_var["variable_value"]))
+
+                        # Regex pattern: match both $VAR and ${VAR}, or just %index
+                        if raw_var.startswith('%'):
+                            pattern = r'%index'
+                        else:
+                            pattern = r"\${?%s(?:}|\b)" % re.escape(variable_name)
+
+                        # Replace in args[0].text if not inside a loop
+                        if args[0].text and "Loop" not in save_message:
+                            # Escape backslashes for regex safety, but preserve unicode sequences (\uXXXX)
+                            # Then use lambda to avoid re.sub interpreting escape sequences
+                            safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
+                            args[0].text = re.sub(pattern, lambda m: safe_value, args[0].text)
+
+                        # Replace in kwargs[parameter]
+                        if re.search(pattern, parameter_value):
+                            # Escape backslashes for regex safety, but preserve unicode sequences (\uXXXX)
+                            # Then use lambda to avoid re.sub interpreting escape sequences
+                            safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
+                            kwargs[parameter] = re.sub(pattern, lambda m: safe_value, parameter_value)
+                        parameter_value = parameter_value.replace(("$%s" % variable_name), returnDecrypted(env_var["variable_value"]))
+
+                    # Assign back parameter_value value to kwargs[parameter] which will be passed in the step parameter
+                    kwargs[parameter] = parameter_value
+                            
                     # replace job parameters
                     for (
                         parameter_key
@@ -451,9 +489,13 @@ def done(*_args, **_kwargs):
                         job_parameters.keys()
                     ):  # we do not want to replace all the parameters inside the loop sub-steps
                         if args[0].text and "Loop" not in save_message:
+                            # Escape backslashes for regex safety, but preserve unicode sequences (\uXXXX)
+                            # Then use lambda to avoid re.sub interpreting escape sequences
+                            param_value = returnDecrypted(str(job_parameters[parameter_key]))
+                            safe_param_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', param_value)
                             args[0].text = re.sub(
                                 r"%%%s\b" % parameter_key,
-                                returnDecrypted(str(job_parameters[parameter_key])),
+                                lambda m: safe_param_value,
                                 args[0].text,
                             )
                         if re.search(r"%%%s\b" % parameter_key, kwargs[parameter]):
@@ -527,7 +569,7 @@ def done(*_args, **_kwargs):
                 # Set step exception to be saved in the database, 
                 # As timeout exception does not give idea about what happed with the application
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = logger.mask_values(str(err))
+                args[0].step_error = format_error_message(logger.mask_values(str(err)),step_name=args[0].step_data.get("step_name"), context=args[0])
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(
@@ -568,10 +610,16 @@ def done(*_args, **_kwargs):
                         "Not failing on %s because continue on failure is checked."
                         % args[0].step_data["step_content"]
                     )
-                    logger.error("Error: %s" % str(err))
+                    # Use improved error formatting
+                    formatted_error = format_error_message(
+                        err,
+                        step_name=args[0].step_data.get("step_content"),
+                        context=args[0]
+                    )
+                    logger.error(formatted_error)
                 else:
-                    # fail the feature
-                    raise AssertionError(str(err))
+                    # fail the feature with better error message
+                    raise AssertionError(format_error_message(err, step_name=args[0].step_data.get("step_content"),context=args[0]))
             finally:
                 # reset element highligh is any
                 reset_element_highlight(args[0])
@@ -641,8 +689,12 @@ def saveToDatabase(
         data["files"] = json.dumps([])
 
     log_file = open("output.txt", "w")
+    # Since it contains the network logs data which sometime contains the images, logging image in the console make it very hard to read logs
+    # removing variables 
+    data_logger = data.copy()
+    data_logger['current_step_variables_value'] = {"variable_hidden_message":"Since it contains the network logs data which sometime contains the images, logging image in the console make it very hard to read logs, removing variables "}
     log_file.write("Data -> ")
-    log_file.write(str(data))
+    log_file.write(str(data_logger))
     log_file.write("\n")
     logger.debug("Saving data to feature_result")
     try:
@@ -704,7 +756,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
     excluded = ["Close the browser"]
     
     start_time = time.time()  # Add timing start
-    logger.debug("Starting execution of saveToDatabase")
+    logger.debug("Starting execution of take_screenshot_and_process")
     
     # Exclude banned steps
     if step_name in excluded:
@@ -736,7 +788,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
         if final_screenshot_file is None:
             return
         
-        logger.debug(f"Started the screenshot prcessing step thread for step {context.counters['index']}")
+        logger.debug(f"Started the screenshot processing step thread for step {context.counters['index']}")
         _async_process_screen_shot(
                   step_execution_sequence, 
                   feature_result_id,
@@ -1159,3 +1211,179 @@ def getVariableType(variable):
         # Remove prefix
         variable = variable[6:]
     return variable
+
+def format_error_message(error, step_name=None, context=None):
+    """
+    Format error messages with proper stacktrace and context information
+    """
+    import traceback
+
+    logger.debug(f"Formatting error message for step: {step_name}")
+
+    # Base error message
+    error_parts = []
+
+    if step_name:
+        error_parts.append(f"Step: {step_name}")
+
+    error_parts.append(f"Error Type: {type(error).__name__}")
+    logger.debug(f"Error Type: {type(error).__name__}")
+
+    # Extract only the meaningful part of Selenium errors
+    error_message = str(error)
+
+    # Remove starting "Message: " from the error message
+    if error_message.startswith('Message: '):
+        error_message = error_message.strip('Message: ')
+
+    # For Selenium errors, extract only the main message (before the stacktrace)
+    if 'element not interactable' in error_message.lower():
+        # Extract just the main error message
+        main_message = error_message.split('\n')[0]  # Take only the first line
+        error_parts.append(f"Error Message: {main_message}")
+    else:
+        # For other errors, clean the message
+        cleaned_message = re.sub(r'#\d+\s+0x[0-9a-f]+\s+<unknown>.*?\n?', '', error_message).strip()
+        error_parts.append(f"Error Message: {cleaned_message}")
+        logger.debug(f"Cleaned error message: {cleaned_message}")
+
+    # Store the shortest possible error message in context.step_error
+    if context:
+        # Just use the error type name for the shortest possible message
+        context.step_error = cleaned_message
+        logger.debug(f"Stored short error message in context.step_error: {context.step_error}")
+
+            # Add stacktrace if available
+    if hasattr(error, '__traceback__') and error.__traceback__:
+        stacktrace = ''.join(traceback.format_tb(error.__traceback__))
+        # Clean up the stacktrace to remove internal framework calls
+        cleaned_stacktrace = []
+        for line in stacktrace.split('\n'):
+            if line.strip() and not any(skip in line for skip in [
+                'selenium', 'webdriver', 'behave', 'cometa_itself/steps'
+            ]):
+                logger.debug(f"Working on Line: {line}")
+                cleaned_stacktrace.append(line)
+
+        if cleaned_stacktrace:
+            error_parts.append("Stacktrace:")
+            error_parts.extend(cleaned_stacktrace[:10])  # Limit to first 10 lines
+
+    # Add context information if available
+    if context and hasattr(context, 'browser_info'):
+        error_parts.append(f"Browser: {context.browser_info.get('browser', 'Unknown')}")
+
+    final_error_message =  '\n-------------------------------------------------\n'
+    final_error_message += '\n'.join(error_parts)
+    final_error_message += '\n-------------------------------------------------\n'
+    logger.debug(f"Final error message: \n{final_error_message}")
+
+    context.step_error += final_error_message
+
+    return final_error_message
+
+
+def inspect_context_complete(context, logger=None, max_depth=2, current_depth=0):
+    """
+    Comprehensive function to inspect context and all its contents, including bound methods
+    Usage: inspect_context_complete(context, logger)
+    """
+    if logger is None:
+        import logging
+        logger = logging.getLogger(__name__)
+    
+    indent = "  " * current_depth
+    
+    if current_depth == 0:
+        logger.info("=== COMPLETE CONTEXT INSPECTION ===")
+        logger.info(f"Context type: {type(context)}")
+        logger.info(f"Context object: {context}")
+    
+    # Get all attributes
+    attributes = dir(context)
+    public_attrs = [attr for attr in attributes if not attr.startswith('_')]
+    
+    for attr in public_attrs:
+        try:
+            value = getattr(context, attr)
+            value_type = type(value)
+            
+            logger.info(f"{indent}context.{attr} = {value}")
+            logger.info(f"{indent}  Type: {value_type}")
+            
+            # Handle bound methods
+            if hasattr(value, '__self__') and hasattr(value, '__func__'):
+                logger.info(f"{indent}  *** BOUND METHOD DETECTED ***")
+                logger.info(f"{indent}  Method name: {value.__name__}")
+                logger.info(f"{indent}  Method qualname: {value.__qualname__}")
+                logger.info(f"{indent}  Method module: {value.__module__}")
+                
+                # Get function signature
+                import inspect
+                try:
+                    func = value.__func__
+                    sig = inspect.signature(func)
+                    logger.info(f"{indent}  Function signature: {sig}")
+                    
+                    # Show docstring if available
+                    if func.__doc__:
+                        doc_lines = func.__doc__.strip().split('\n')
+                        logger.info(f"{indent}  Docstring:")
+                        for line in doc_lines:
+                            logger.info(f"{indent}    {line.strip()}")
+                    
+                    # Show function defaults
+                    if func.__defaults__:
+                        logger.info(f"{indent}  Defaults: {func.__defaults__}")
+                    if func.__kwdefaults__:
+                        logger.info(f"{indent}  Keyword defaults: {func.__kwdefaults__}")
+                        
+                except Exception as e:
+                    logger.info(f"{indent}  Could not inspect function: {e}")
+                
+                # Show what it's bound to
+                bound_instance = value.__self__
+                logger.info(f"{indent}  Bound to: {bound_instance}")
+                logger.info(f"{indent}  Bound instance type: {type(bound_instance)}")
+            
+            # Handle other callable objects
+            elif callable(value) and not isinstance(value, (type, type(None))):
+                logger.info(f"{indent}  *** CALLABLE OBJECT ***")
+                logger.info(f"{indent}  Callable type: {value_type}")
+                
+                import inspect
+                try:
+                    sig = inspect.signature(value)
+                    logger.info(f"{indent}  Signature: {sig}")
+                except Exception as e:
+                    logger.info(f"{indent}  Could not get signature: {e}")
+            
+            # Handle complex objects (dict, list, etc.)
+            elif isinstance(value, (dict, list, tuple, set)) and len(str(value)) > 100:
+                logger.info(f"{indent}  *** COMPLEX OBJECT ***")
+                logger.info(f"{indent}  Length: {len(value)}")
+                if isinstance(value, dict):
+                    logger.info(f"{indent}  Keys: {list(value.keys())[:10]}...")  # Show first 10 keys
+                elif isinstance(value, (list, tuple)):
+                    logger.info(f"{indent}  First few items: {value[:5]}...")  # Show first 5 items
+            
+            # Recursively inspect objects if not too deep
+            elif (current_depth < max_depth and 
+                  hasattr(value, '__dict__') and 
+                  not isinstance(value, (str, int, float, bool, type(None)))):
+                
+                logger.info(f"{indent}  *** RECURSIVE INSPECTION ***")
+                try:
+                    # Only inspect if it's not the same object (avoid infinite recursion)
+                    if value is not context:
+                        inspect_context_complete(value, logger, max_depth, current_depth + 1)
+                except Exception as e:
+                    logger.info(f"{indent}  Recursive inspection failed: {e}")
+                    
+        except Exception as e:
+            logger.info(f"{indent}context.{attr} = <Error accessing: {e}>")
+    
+    if current_depth == 0:
+        logger.info("=== END COMPLETE CONTEXT INSPECTION ===")
+
+

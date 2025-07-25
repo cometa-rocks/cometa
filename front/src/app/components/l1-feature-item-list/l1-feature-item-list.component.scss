@@ -55,9 +55,9 @@
           }
         }
         &.canceled {
-          background-color: $orange;
+          background-color: $grey;
           .triangle {
-            border-bottom-color: $orange;
+            border-bottom-color: $grey;
           }
         }
         &.failed {
@@ -497,6 +497,44 @@ input {
   i {
     color: #666;
     font-size: 18px;
+  }
+}
+
+// Notification icons container
+.notification-icons-container {
+  display: flex;
+  position: absolute;
+  left: 19px; // Same position as star
+  bottom: 9px;
+  gap: 8px; // Space between icons
+  align-items: center;
+  
+  // When star is present, move to the right
+  &.with-star {
+    left: 47px; // Position after star (19px + 18px star width + 10px gap)
+  }
+}
+
+// Notification icons
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: all 0.2s ease;
+  cursor: help;
+
+  .notification-icon-material {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    color: #666;
+  }
+
+  &:hover .notification-icon-material {
+    color: #333;
   }
 }
 

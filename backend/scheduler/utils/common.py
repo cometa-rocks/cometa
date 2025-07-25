@@ -28,7 +28,8 @@ def get_django_server_url():
     return f"http://{DJANGO_SERVER_URL}:{DJANGO_SERVER_PORT}"
 
 
-BASE_PATH = os.path.join(Path(__file__).parent.parent)
+# BASE_PATH = os.path.join(Path(__file__).parent.parent)
+BASE_PATH = "/"
 logger.debug(f"BASE_PATH {BASE_PATH}")
 # job list file to see how many jobs are scheduled
 JOB_LIST_FILE_PATH = os.path.join(BASE_PATH,"tmp", ".jobs")

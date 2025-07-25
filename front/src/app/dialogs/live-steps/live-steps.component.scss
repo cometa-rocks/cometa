@@ -116,27 +116,30 @@ h2 {
   padding-right: 10px;
   box-sizing: border-box;
   scrollbar-gutter: stable;
-  overflow-y: scroll;
   & > div {
     flex: initial;
     &.text {
       flex: 1;
       margin-left: 34px !important;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     &.screenshot {
       flex: 0 75px;
       text-align: center;
     }
-    &:first-child {
+    &.index {
       margin-right: 5px;
       flex: 0 25px;
       text-align: center;
     }
-    &:last-child {
-      margin-left: 5px;
+    &:not(.index):not(.text):not(:last-child) {
+      margin-right: 5px;
     }
-    &:not(:first-child):not(:last-child) {
-      margin: 0 5px;
+    &:not(.index):not(.text):not(:first-child) {
+       margin-left: 5px;
     }
   }
 }
@@ -291,6 +294,9 @@ mat-label {
 
     .mobile-name {
       flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .mobile-status {
@@ -298,6 +304,7 @@ mat-label {
       align-items: center;
       gap: 4px;
       font-size: 12px;
+      white-space: nowrap;
       
       mat-icon {
         font-size: 8px;
@@ -334,12 +341,16 @@ mat-label {
       gap: 8px;
       font-size: 12px;
       color: rgba(0, 0, 0, 0.87);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       mat-icon {
         font-size: 16px;
         width: 16px;
         height: 16px;
         color: rgba(0, 0, 0, 0.54);
+        flex-shrink: 0;
       }
     }
   }
@@ -416,6 +427,154 @@ mat-label {
 
       &.busy {
         color: #ff9800;
+      }
+    }
+  }
+}
+
+// DDT-specific styles
+.ddt-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .current-feature-indicator {
+      font-size: 16px;
+      color: #1976d2;
+      font-weight: normal;
+    }
+  }
+
+  .ddt-progress-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+
+    .progress-text {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    .overview-toggle {
+      mat-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+.ddt-overview-panel {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.02);
+
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+
+    .feature-card {
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 8px;
+      padding: 12px;
+      background: white;
+      transition: all 0.2s ease;
+
+      &.current {
+        border-color: #1976d2;
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+        background: #e3f2fd;
+      }
+
+      &.status-running {
+        border-left: 4px solid #4caf50;
+        .feature-header mat-icon {
+          color: #4caf50;
+        }
+      }
+
+      &.status-completed {
+        border-left: 4px solid #2196f3;
+        .feature-header mat-icon {
+          color: #2196f3;
+        }
+      }
+
+      &.status-failed {
+        border-left: 4px solid #f44336;
+        .feature-header mat-icon {
+          color: #f44336;
+        }
+      }
+
+      &.status-queued {
+        border-left: 4px solid #ff9800;
+        .feature-header mat-icon {
+          color: #ff9800;
+        }
+      }
+
+      .feature-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+
+        .feature-name {
+          font-weight: 500;
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .feature-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .status {
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .current-step {
+          font-size: 11px;
+          color: rgba(0, 0, 0, 0.6);
+          font-style: italic;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
     }
   }

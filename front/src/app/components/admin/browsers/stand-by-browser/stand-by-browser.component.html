@@ -1,38 +1,98 @@
 
+<stand-by-browser-header
+  [header_stand_by_browsers]="stand_by_browsers"
+  (selectionChanged)="onBrowserSelectionChanged($event)"
+  (deleteMultiple)="deleteAllBrowsers($event)">
+</stand-by-browser-header>
 
 
 
-<h2>Manage Stand By browsers</h2>
-
-<div *ngIf="!stand_by_browsers">
-  Loading...
-</div>
-<div *ngIf="stand_by_browsers" >
-  <div *ngIf="stand_by_browsers.length === 0">
-    Please start your favourite browser to speed up your testing
-  </div>
-  <div class="grid-table">
-    <!-- Header Row -->
-    <div class="header">Icon</div>
-    <div class="header">Name</div>
-    <div class="header">Status</div>
-    <div class="header">Usage</div>
-    <div class="header">Created On</div>
-    <div class="header">Action</div>
-  
-    <!-- Data Rows -->
-    <ng-container *ngFor="let stand_by_browser of stand_by_browsers">
-      <div class="row icon"></div>
-      <div class="row name">{{ stand_by_browser | standByBrowserComboText }}</div>
-      <div class="row">{{ stand_by_browser.service_status }}</div>
-      <div class="row">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</div>
-      <div class="row">{{ stand_by_browser.created_on | amParse
-        | amDateFormat: "MMMM d yyyy',' HH:mm a"
-        | firstLetterUppercase  }}</div>
-      <div class="row">
-        <div (click)="removeBrowserContainer(stand_by_browser.id)" class="remove">
-        </div>
+    
+<!-- Data Rows -->     
+<div *ngFor="let stand_by_browser of stand_by_browsers; let i = index; trackBy: trackByFn" [ngClass]="{ 'even': i % 2 === 1 }">
+  <div class="specs"> 
+      
+      <!-- Check Box -->
+      <div class="checkbox">
+        <mat-checkbox
+          [checked]="selectedBrowserIds.includes(stand_by_browser.id)"
+          (change)="onCheckboxToggle(stand_by_browser.id, $event.checked)">
+        </mat-checkbox>        
       </div>
-    </ng-container>
-  </div>  
-</div>
+  
+      <!-- Browser ID -->
+      <div class="id" >
+        <span matTooltip="ID" matTooltipPosition="above">{{ stand_by_browser.id}}</span>
+      </div>
+      
+      <!-- Name -->
+      <div class="name" >
+        <input
+          [value]="stand_by_browser | standByBrowserComboText"
+          readonly
+          spellcheck="false"
+          autocomplete="off"
+          (focus)="onInputFocus()"
+          (blur)="onInputBlur()" matTooltip="Name" matTooltipPosition="above"/> 
+      </div>
+   
+    
+        
+      <!-- Service ID -->
+      <div class="service_id" matTooltip="Service_ID" matTooltipPosition="above" (click)="copyToClipboard(stand_by_browser.service_id)">
+            <!--<span class="icon-container-clipboard">
+              <i class="material-icons clipboard-icon">content_copy</i>
+            </span>-->
+            <span class="id-container">
+              {{ stand_by_browser.service_id | slice:0:12 }}
+            </span>
+      </div>
+
+      
+
+      <!-- Status-->
+      <div class="status" >
+        <span matTooltip="Status" matTooltipPosition="above">{{ stand_by_browser.service_status }}</span>
+      </div>
+
+      
+      
+      <!-- Usage -->
+      <div class="usage" >
+        <span matTooltip="Usage" matTooltipPosition="above">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</span>
+      </div>
+
+      <!-- Labels -->
+      <div class="info" 
+        [ngClass]="{ 'has-value': hasValue(stand_by_browser.labels) }" 
+        matTooltip="Information" 
+        matTooltipPosition="above"
+      >
+        <pre>{{ stand_by_browser.labels | json }}</pre>
+      </div>
+
+      <!-- Created On -->
+      <div class="created_on" matTooltip="Created_On" matTooltipPosition="above">
+        <span>{{
+          stand_by_browser.created_on
+          | amParse
+          | amDateFormat: "MMMM d yyyy',' HH:mm a"
+          | firstLetterUppercase
+        }}</span>
+      </div>
+      
+    <!-- Remove -->
+      <div (click)="removeBrowserContainer(stand_by_browser.id)"
+           class="remove "></div>
+    </div>
+  </div>
+
+           
+        
+
+      
+      
+    
+
+    
+  

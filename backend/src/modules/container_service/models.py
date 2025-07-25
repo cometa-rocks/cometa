@@ -103,6 +103,8 @@ class ContainerService(models.Model):
                 )
                 
             service_details = service_manager.create_service()
+            if "error" in service_details:
+                raise ValidationError(service_details["error"])
             self.service_id = service_details["Id"]
             self.service_status = "Running"
             self.information = service_details
@@ -128,18 +130,18 @@ class ContainerService(models.Model):
                     self.service_status = "Stopped"
                     return super(ContainerService, self).save()
 
-            if kwargs.get("shared", "") != "":
+            if "shared" in kwargs and kwargs["shared"] is not None:
                 print("Updating share")
-                self.shared = kwargs.get("shared")
+                self.shared = kwargs["shared"]
                 return super(ContainerService, self).save()
 
-            if kwargs.get("apk_file", "") != "":
+            if "apk_file" in kwargs and kwargs["apk_file"] is not None:
                 file = File.objects.get(id=kwargs["apk_file"])
-                file_name = service_manager.upload_file(
+                file_name = service_manager.upload_file( 
                     service_name_or_id=self.service_id, file_path=file.path
                 )
                 if not file_name:
-                    raise ValidationError(message)
+                    raise ValidationError("Failed to upload file")
                 result, message = service_manager.install_apk(
                     service_name_or_id=self.service_id, apk_file_name=file_name
                 )

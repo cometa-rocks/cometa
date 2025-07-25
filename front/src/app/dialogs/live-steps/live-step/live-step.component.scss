@@ -30,15 +30,19 @@
     }
     .text {
       line-height: 20px;
-      flex: 1;
-      word-break: break-all;
+      flex: 1 1 50%;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 0;
+      overflow: hidden;
+      
+      .step-content,
       .step-detail {
-        color: $blue;
-        font-weight: bold;
-        opacity: 0.9;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
       }
     }
     .icon-status {
@@ -104,6 +108,24 @@
   .error-row {
     color: #d32f2f;
     font-weight: bold;
-    text-rendering: optimizeLegibility;
+    background-color: #ffebee;
+    border: 1px solid #f44336;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 4px 0;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    
+    .error-header {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    
+    .error-message {
+      font-size: 12px;
+      line-height: 1.4;
+    }
   }
 }

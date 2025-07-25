@@ -4,7 +4,7 @@ metadata:
   name: cometa-django-deployment
   namespace: cometa  # Added namespace
 spec:
-  replicas: 1  # Adjust the number of replicas as needed
+  replicas: 2  # Adjust the number of replicas as needed
   selector:
     matchLabels:
       app: cometa-django-pod  # Ensure this matches the label used in the template
@@ -46,6 +46,24 @@ spec:
             cpu: "2"
             memory: "2Gi"
         # command: ["/bin/bash", "-c", "sleep infinity"]
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -54,8 +72,11 @@ spec:
         - name: DATABASE_PORT
           value: "5432"
         - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef: 
+              name: cometa-secrets
+              key: DATABASE_PASSWORD
           # Note: Please change the password before the deployment
-          value: "***REMOVED***"
         - name: FRONT_SERVER_HOST
           value: "cometa-front-service"
         - name: CRONTAB_SERVER_URL

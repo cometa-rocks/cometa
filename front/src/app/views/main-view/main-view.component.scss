@@ -242,6 +242,11 @@
   }
 }
 
+.success {
+  background-color: $good;
+}
+
+
 :host::ng-deep .status-bar {
   flex: 0 5px;
   max-width: 5px;
@@ -568,4 +573,38 @@
 ::ng-deep .mat-mdc-select-panel.mdc-menu-surface--open {
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+:host::ng-deep .status-box {
+  &.passed {
+    background-color: $good;
+  }
+  &.failed {
+    background-color: $bad;
+  }
+  &.canceled {
+    background-color: $grey;
+  }
+}
+
+:host::ng-deep .status-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+  
+  &.passed {
+    color: $good;
+  }
+  &.failed {
+    color: $bad;
+  }
+  &.canceled {
+    color: $grey;
+  }
+  &.default {
+    color: inherit;
+  }
 }

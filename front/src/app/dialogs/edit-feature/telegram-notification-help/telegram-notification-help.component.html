@@ -1,0 +1,194 @@
+<h2 mat-dialog-title>Telegram notification help</h2>
+<mat-dialog-content>
+  <div class="telegram-help-content">
+    <p>Configure your Telegram notifications to receive test results directly in your Telegram chats.</p>
+    
+    <div class="help-section">
+      <h4>Setup Requirements</h4>
+      <ol>
+        <li><strong>Telegram Bot:</strong> Your administrator must configure a Telegram bot token as an environment variable (COMETA_TELEGRAM_BOT_TOKEN) for security</li>
+        <li><strong>Global Setting:</strong> Telegram notifications must be enabled in system configuration (COMETA_TELEGRAM_ENABLED)</li>
+        <li><strong>Chat IDs:</strong> Your department must have Telegram chat IDs configured in department settings (supports multiple chat IDs separated by commas)</li>
+        <li><strong>Feature Settings:</strong> Enable "Send notification on finish" and select "Telegram" option</li>
+      </ol>
+    </div>
+
+    <div class="help-section">
+      <h4>Message Components</h4>
+      <p>You can customize which information appears in your Telegram notifications:</p>
+      
+      <div class="component-group">
+        <h5>📋 Basic Information</h5>
+        <ul>
+          <li><strong>Department:</strong> Show which department the feature belongs to</li>
+          <li><strong>Application:</strong> Display the application name configured for the feature</li>
+          <li><strong>Environment:</strong> Show the environment name configured for the feature (e.g., dev, staging, production)</li>
+          <li><strong>Feature Name:</strong> Include the specific feature that was tested</li>
+        </ul>
+      </div>
+
+      <div class="component-group">
+        <h5>⏱️ Execution Details</h5>
+        <ul>
+          <li><strong>Date & Time:</strong> Shows execution time in multiple timezones (UTC, CEST, IST)</li>
+          <li><strong>Execution Time:</strong> Total time the test took to complete (in seconds)</li>
+          <li><strong>Overall Status:</strong> Clear PASSED/FAILED indicator with emoji</li>
+        </ul>
+      </div>
+
+      <div class="component-group">
+        <h5>📊 Test Results</h5>
+        <ul>
+          <li><strong>Step Results:</strong> Breakdown of total, passed, failed, and skipped steps</li>
+          <li><strong>Pixel Difference:</strong> Visual comparison results</li>
+        </ul>
+      </div>
+
+      <div class="component-group">
+        <h5>📎 Attachments</h5>
+        <ul>
+          <li><strong>PDF Report:</strong> Attach the complete test execution report as a PDF file</li>
+          <li><strong>Screenshots:</strong> Attach step screenshots from test execution 
+            <span class="screenshot-limit-note">(Telegram supports up to 10 images per message - if your test has more screenshots, only the first 10 will be sent)</span>
+          </li>
+        </ul>
+        <div class="screenshot-info">
+          <p><strong>Screenshot Types Included:</strong></p>
+          <ul>
+            <li><strong>Current:</strong> Screenshots taken during test execution</li>
+            <li><strong>Expected:</strong> Template/baseline images for visual comparison</li>
+            <li><strong>Difference:</strong> Visual diff images (only included when pixel differences are detected)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h4>Screenshot Attachment Details</h4>
+      <div class="screenshot-details">
+        <p><strong>📸 Telegram Screenshot Limits:</strong></p>
+        <ul>
+          <li>Telegram allows a maximum of 10 images per media group</li>
+          <li>If your test produces more than 10 screenshots, the system will send the first 10 based on step execution order</li>
+          <li>Screenshots are organized by step sequence and include current, expected, and difference images when available</li>
+          <li>Each screenshot includes a caption with the step number and step name for easy identification</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h4>Notification Options</h4>
+      <ul>
+        <li><strong>Always:</strong> Send notification for every test execution (pass or fail)</li>
+        <li><strong>On error only:</strong> Send notification only when tests fail</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h4>Custom Message</h4>
+      <p>Add a custom message that will appear at the top of your Telegram notification, before the test results. This is useful for:</p>
+      <ul>
+        <li>Adding context about the test run</li>
+        <li>Including team-specific information</li>
+        <li>Mentioning specific team members with @username</li>
+        <li>Adding deployment or release information</li>
+      </ul>
+      
+      <div class="variable-support">
+        <h5>📝 Variable Support</h5>
+        <p>You can use variables in your custom message to include dynamic values:</p>
+        <ul>
+          <li><strong>Database Variables:</strong> Use variables created through the variable management interface (e.g., <code>$userNumber_var2</code>, <code>$mobile</code>, <code>$apiKey</code>)</li>
+          <li><strong>Step Variables:</strong> Use variables created during test execution (e.g., <code>$order_id</code>, <code>$timestamp</code>)</li>
+          <li><strong>Built-in Variables:</strong> Use feature properties (e.g., <code>$feature_name</code>, <code>$environment_name</code>, <code>$status</code>)</li>
+          <li><strong>Direct Links:</strong> Use <code>$url</code> to include a direct link to open the feature in Co.meta interface</li>
+        </ul>
+        
+        <div class="variable-example">
+          <p><strong>Example Custom Message with Variables:</strong></p>
+          <code>🚀 Test Alert for Order: $order_id<br>
+          User ID: $userNumber_var2<br>
+          Mobile: $mobile<br>
+          Environment: $environment_name<br>
+          Test Status: $status<br><br>
+          View Results: $url</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h4>Multiple Chat IDs Support</h4>
+      <p>Your department can be configured to send notifications to multiple Telegram chats:</p>
+      <ul>
+        <li>Enter multiple chat IDs in department settings separated by commas</li>
+        <li>Example: <code>123456789, 987654321, 555666777</code></li>
+        <li>All configured chat IDs will receive the same notification</li>
+        <li>If one chat ID fails, notifications will still be sent to the remaining ones</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h4>Template Options</h4>
+      <p>You have two options for how your Telegram notification is formatted:</p>
+      
+      <div class="subsection">
+        <h5>Default Template:</h5>
+        <ul>
+          <li>Your custom message appears at the top with a "📝 Custom Message:" label</li>
+          <li>Followed by the standard Cometa notification template with test details</li>
+          <li>Provides comprehensive information about the test execution</li>
+        </ul>
+      </div>
+      
+      <div class="subsection">
+        <h5>Custom Message Only:</h5>
+        <ul>
+          <li>Check "Do not use default template" to send only your custom message</li>
+          <li>No additional Cometa template information will be included</li>
+          <li>You have complete control over the message content and format</li>
+          <li>Variables are still supported and will be replaced with actual values</li>
+        </ul>
+      </div>
+      
+      <div class="note">
+        <strong>Important:</strong> If you enable "Do not use default template" but don't provide a custom message, no notification will be sent.
+      </div>
+    </div>
+
+    <div class="help-section example">
+      <h4>Example Notification</h4>
+      <div class="example-message">
+        <p><strong>📝 Custom Message:</strong><br>
+        🚀 Nightly regression test completed for user: 12345<br></p>
+        
+        <p><strong>✅ Test Execution Complete</strong></p>
+        
+        <p><strong>🏢 Department:</strong> QA Team<br>
+        <strong>📱 Application:</strong> E-commerce Platform<br>
+        <strong>🌍 Environment:</strong> staging<br>
+        <strong>🧪 Feature:</strong> User Login Flow</p>
+        
+        <p><strong>📅 Date & Time:</strong><br>
+        2025-01-03 15:30:00 UTC<br>
+        2025-01-03 16:30:00 CEST<br>
+        2025-01-03 21:00:00 IST</p>
+        
+        <p><strong>📊 Results:</strong><br>
+        • Total Steps: 15<br>
+        • Passed: 13 ✅<br>
+        • Failed: 2 ❌<br>
+        • Skipped: 0 ⏭️</p>
+        
+        <p><strong>🖼️ Pixel Difference:</strong> 1,234,567<br>
+        <strong>⏱️ Execution Time:</strong> 45.32s<br>
+        <strong>🎯 Overall Status:</strong> SUCCESS</p>
+        
+        <p><em>+ PDF Report attached<br>
+        + 8 Screenshots attached (first 10 of 12 available)</em></p>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button color="primary" mat-dialog-close>Close</button>
+</mat-dialog-actions> 

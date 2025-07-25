@@ -11,6 +11,33 @@
        * Run URL checks before loading anything.
        */
 
+      // Check current URL for port and store backend URI in localStorage
+      function checkAndStoreBackendURI() {
+        const currentUrl = window.location.href;
+        const urlObj = new URL(currentUrl);
+        
+        // Check if the URL contains a port
+        if (urlObj.port) {
+          console.log('Port detected in URL:', urlObj.port);
+          
+          // Create the full backend URI with protocol, hostname, port, and /backend/ path
+          const fullBackendURI = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}/backend/`;
+          
+          // Create the host:port version
+          const hostPortURI = `${urlObj.hostname}:${urlObj.port}`;
+          
+          // Store both values in localStorage
+          localStorage.setItem('co_backend_uri', fullBackendURI);
+          localStorage.setItem('socket_url', hostPortURI);
+          
+          console.log('Stored co_backend_uri:', fullBackendURI);
+          console.log('Stored socket_url:', hostPortURI);
+        }
+      }
+      
+      // Run the check immediately
+      checkAndStoreBackendURI();
+
       // check if query parameters contain target_link_uri if not redirect to /
       if (
         !window.location.search.includes('target_link_uri') &&
@@ -105,6 +132,7 @@
         margin-bottom: 10px;
         font-style: italic;
         height: 58px; /* fixed jumping screen buttons when changeing to long sentences */
+        
       }
       .author {
         margin-bottom: 30px;
@@ -203,12 +231,47 @@
       >Please enable JavaScript to continue using this application.</noscript
     >
     <script>
+
+      function getApiBase() {
+        // New way: Check localStorage for `co_backend_uri`
+        var co_backend_uri = localStorage.getItem('co_backend_uri');
+        if (co_backend_uri !== null) {
+          console.log('C.: setting new API URL to: ' + co_backend_uri);
+          return `${co_backend_uri}`;
+        }
+
+        // Old way: Determine API base based on host, protocol, etc.
+        const developmentMode = location.host !== 'cometa.amvara.de';
+        let protocol = location.protocol;
+        const protocolInStorage = localStorage.getItem('http_protocol');
+        if (protocolInStorage) {
+          protocol = protocolInStorage;
+        }
+
+        let host = location.hostname;
+        const hostInStorage = localStorage.getItem('api_url');
+        const portInStorage = localStorage.getItem('port');
+        let port = '';
+        if (portInStorage) {
+          port = ':' + portInStorage;
+        }
+
+        if (hostInStorage) {
+          host = hostInStorage;
+          if (!port) {
+            port = '';
+          }
+        }
+
+        return `${protocol}//${host}${port}/backend/`;
+      }
+
       function focusInput() {
         // Focus captcha input
         document.querySelector('#userCaptchaInput').focus();
       }
       // fetch all providers
-      fetch('/backend/api/authproviders/')
+      fetch(`${getApiBase()}api/authproviders/`)
         .then(response => response.json())
         .then(json => {
           // get all the results

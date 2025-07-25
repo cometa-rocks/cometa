@@ -209,8 +209,8 @@ export class StepViewComponent implements OnInit {
   clickStepResult: number = null;
   test$: Observable<FeatureResult>;
 
-  @Select(UserState.GetPermission('change_step_result_status'))
-  canChangeStepResultStatus$: Observable<boolean>;
+  @Select(UserState.GetPermission('change_result_status'))
+  canChangeResultStatus$: Observable<boolean>;
  
   stepResultsUrl$: Observable<string>;
 
@@ -346,7 +346,6 @@ export class StepViewComponent implements OnInit {
   }
 
   openStepNotes(item) {
-    console.log(item.notes);
     try {
       // Parse the content - this will work for JSON content
       const content = JSON.parse(item.notes.content);
@@ -424,5 +423,14 @@ export class StepViewComponent implements OnInit {
         console.error('Failed to handle step notes content:', err);
       }
     }
+  }
+
+  onStepRowClick(event: MouseEvent, stepId: number) {
+    // If user is selecting text, do not navigate
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      return;
+    }
+    this.goToDetail(stepId);
   }
 }

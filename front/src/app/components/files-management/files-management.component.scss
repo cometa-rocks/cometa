@@ -19,6 +19,11 @@
       text-align: center;
     }
   }
+
+  // Cell hover highlighting
+  .mtx-grid-expansion-detail .mtx-grid td:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+  }
 }
 
 .table-container {
@@ -467,12 +472,13 @@
     display: flex !important;
     align-items: center !important;
     overflow: hidden !important;
-    padding: 0 5px !important;
+    padding: 0 6px 0 6px !important;
     box-sizing: border-box !important;
     
     .cell-edit-input {
-      max-width: 100% !important;
-      width: 100% !important;
+      margin: 0 !important;
+      max-width: calc(100% - 9px) !important;
+      width: calc(100% - 9px) !important;
       box-sizing: border-box !important;
       transition: none !important;
       font-size: inherit !important;
@@ -481,6 +487,7 @@
       padding: 4px 6px !important;
       border: 1px solid #ccc !important;
       border-radius: 3px !important;
+      z-index: 3 !important;
     }
   }
 }
@@ -604,6 +611,76 @@
 
 .mat-mdc-row {
   z-index: 5 !important;
+}
+
+// Schedule icon font weight and color styling
+:host ::ng-deep {
+  // Default: All schedule icons are gray and bold
+  button[ng-reflect-message*="Schedule"] .mat-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon {
+    font-weight: 600 !important;
+    color: #666666 !important; // Default gray color
+  }
+  
+  // Blue color for schedule icons with the has-schedule-icon class (higher specificity)
+  button[ng-reflect-message*="Schedule"] .mat-icon.has-schedule-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon.has-schedule-icon {
+    color: $blue !important; // Primary blue
+  }
+
+  // Uploading status styling
+  .status-uploading {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Scanning status styling
+  .status-scanning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Encrypting status styling
+  .status-encrypting {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Spinner animation
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 }
 
 

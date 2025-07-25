@@ -41,6 +41,7 @@ import {
   forkJoin,
   Observable,
   of,
+  take,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -98,6 +99,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ApiTestingComponent } from '@components/api-testing/api-testing.component';
 import { TruncateApiBodyPipe } from '../../pipes/truncate-api-body.pipe';
+import { MatBadgeModule } from '@angular/material/badge';
 
 interface StepState {
   showLinkIcon: boolean;
@@ -137,6 +139,7 @@ interface StepState {
     CheckDuplicatePipe,
     TranslateModule,
     TruncateApiBodyPipe,
+    MatBadgeModule,
   ],
 })
 export class StepEditorComponent extends SubSinkAdapter implements OnInit {
@@ -151,6 +154,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Input() mode: 'new' | 'edit' | 'clone';
   @Input() variables: VariablePair[];
   @Input() department: Department;
+  
+  // Track which step is currently focused for the shared autocomplete
+  currentFocusedStepIndex: number | null = null;
+  
+  // Track filtered actions for each step independently
+  stepFilteredActions: { [key: number]: Observable<{ name: string; actions: Action[] }[]> } = {};
+  
+  // Throttle Ctrl+Arrow operations to prevent erratic behavior
+  private lastInsertTime: number = 0;
+  private readonly INSERT_THROTTLE_MS = 200; // 0.5 seconds
 
   @ViewChildren(MatListItem, { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
@@ -163,6 +176,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   snack: any;
 
   private editingApiCallIndex: number | null = null;
+
+  filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
+
+  /**
+   * Clipboard for storing copied steps.
+   */
+  clipboardSteps: any[] = [];
+  // Track last checked index for multi-selection
+  private lastEnableCheckedIndex: number | null = null;
+  private lastScreenshotCheckedIndex: number | null = null;
+  private lastCompareCheckedIndex: number | null = null;
+  private lastSelectCheckedIndex: number | null = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -178,8 +203,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     @Host() public readonly _editFeature: EditFeature,
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
-    private logger: LogService,
-    private _sharedActions: SharedActionsService,
+    private log: LogService,
+    private _sharedActions: SharedActionsService
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -200,37 +225,37 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       return;
     }
 
-    // Esto hace que aparezca o desaparezca la guía de IA
+    // Toggle AI guidance overlay visibility
     if (isFocused) {
-      // Hacer visible el paso en la UI
+      // Make the step visible in the UI
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
 
       if (stepContent === undefined) {
-        // Limpiar la descripción y ejemplos si el contenido está vacío
+        // Clear description and examples if content is empty
         this.descriptionText = '';
         this.examplesText = '';
         this._cdr.detectChanges();
         return;
       }
 
+      // Find the corresponding action
       const activatedAction = this.actions.find(action =>
         action.action_name === stepAction
       );
 
       if (activatedAction) {
-        // Asignar título y descripción de la acción seleccionada
+        // Assign title and description of the selected action
         this.selectedActionTitle = activatedAction.action_name;
         this.selectedActionDescription = activatedAction.description;
 
-        // Limpiar las etiquetas <br> de la descripción
+        // Remove <br> tags from the description
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-        // Separar la descripción y ejemplos si es necesario
+        // Separate description and examples if necessary
         if (this.selectedActionDescription.includes("Example")) {
           const parts = this.selectedActionDescription.split("Example:");
           this.descriptionText = parts[0].trim();
@@ -240,14 +265,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.examplesText = '';
         }
 
-        // Actualizar la documentación del paso correspondiente
-        const currentIndex = this.stepsForm.value.findIndex(step => step.step_action === stepAction);
-        if (currentIndex !== -1) {
-          this.stepsDocumentation[currentIndex] = {
-            description: this.descriptionText,
-            examples: this.examplesText
-          };
-        }
+        // Update documentation for this step
+        this.stepsDocumentation[index] = {
+          description: this.descriptionText,
+          examples: this.examplesText
+        };
 
         this._cdr.detectChanges();
       }
@@ -260,7 +282,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
-    steps.forEach(step => {
+    steps.forEach((step, index) => {
       const formGroup = this._fb.group({
         enabled: step.enabled,
         screenshot: step.screenshot,
@@ -273,14 +295,86 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         step_action: step.step_action || '',
         step_type: step.step_type,
         continue_on_failure: step.continue_on_failure,
-        timeout: step.timeout || this.department?.settings?.step_timeout || 60
+        timeout: step.timeout || this.department?.settings?.step_timeout || 60,
+        selected: false
       });
 
-
-
       this.stepsForm.push(formGroup);
+
+      // Load documentation for the step
+      if (step.step_action) {
+        const activatedAction = this.actions.find(action =>
+          action.action_name === step.step_action
+        );
+
+        if (activatedAction) {
+          // Clean <br> tags from description
+          const cleanDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+
+          // Separate description and examples
+          let descriptionText = '';
+          let examplesText = '';
+          if (cleanDescription.includes("Example")) {
+            const parts = cleanDescription.split("Example:");
+            descriptionText = parts[0].trim();
+            examplesText = parts[1]?.trim() || '';
+          } else {
+            descriptionText = cleanDescription;
+            examplesText = '';
+          }
+
+          // Store documentation for this step
+          this.stepsDocumentation[index] = {
+            description: descriptionText,
+            examples: examplesText
+          };
+        }
+      }
+
+      // Process feature links when loading steps
+      if (step.step_content?.startsWith('Run feature with id') || step.step_content?.startsWith('Run feature with name')) {
+        const match = step.step_content.match(/"([^"]*)"/);
+        if (match) {
+          const searchValue = match[1];
+          if (step.step_content.startsWith('Run feature with id')) {
+            const featureId = parseInt(searchValue, 10);
+            if (!isNaN(featureId)) {
+              this.allFeatures$.pipe(take(1)).subscribe(features => {
+                const userDepartments = this.user.departments.map(dept => dept.department_id);
+                const feature = features.find(f => 
+                  f.feature_id === featureId && 
+                  userDepartments.includes(f.department_id)
+                );
+                if (feature) {
+                  this.stepStates[index] = {
+                    featureId: featureId,
+                    showLinkIcon: true
+                  };
+                  this._cdr.detectChanges();
+                }
+              });
+            }
+          } else {
+            this.allFeatures$.pipe(take(1)).subscribe(features => {
+              const userDepartments = this.user.departments.map(dept => dept.department_id);
+              const matchingFeature = features.find(f => 
+                f.feature_name === searchValue && 
+                userDepartments.includes(f.department_id)
+              );
+              if (matchingFeature) {
+                this.stepStates[index] = {
+                  featureId: matchingFeature.feature_id,
+                  showLinkIcon: true
+                };
+                this._cdr.detectChanges();
+              }
+            });
+          }
+        }
+      }
     });
     this._cdr.detectChanges();
+
   }
 
   getSteps(): FeatureStep[] {
@@ -292,15 +386,63 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
     
+    // Initialize filteredGroupedActions$ with the grouped actions
+    this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+    
+    // Detect Safari and add class to body
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      document.body.classList.add('safari-only');
+    }
+    
+    // Subscribe to steps changes
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
       .subscribe(steps => {
-        // Ensure compare is disabled initially
-        const stepsWithCompareDisabled = steps.map(step => ({
-          ...step,
-          compare: step.screenshot ? step.compare : false // Only allow compare if there is screenshot
-        }));
-        this.setSteps(stepsWithCompareDisabled);
+        if (steps) {
+          // Ensure compare is disabled initially
+          const stepsWithCompareDisabled = steps.map(step => ({
+            ...step,
+            compare: step.screenshot ? step.compare : false // Only allow compare if there is screenshot
+          }));
+          
+          // Set the steps
+          this.setSteps(stepsWithCompareDisabled);
+
+          // After setting steps, load documentation for each step
+          stepsWithCompareDisabled.forEach((step, index) => {
+            if (step.step_action) {
+              const activatedAction = this.actions.find(action =>
+                action.action_name === step.step_action
+              );
+
+              if (activatedAction) {
+                // Clean <br> tags from description
+                const cleanDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+
+                // Separate description and examples
+                let descriptionText = '';
+                let examplesText = '';
+                if (cleanDescription.includes("Example")) {
+                  const parts = cleanDescription.split("Example:");
+                  descriptionText = parts[0].trim();
+                  examplesText = parts[1]?.trim() || '';
+                } else {
+                  descriptionText = cleanDescription;
+                  examplesText = '';
+                }
+
+                // Store documentation for this step
+                this.stepsDocumentation[index] = {
+                  description: descriptionText,
+                  examples: examplesText
+                };
+              }
+            }
+          });
+
+          this._cdr.detectChanges();
+        }
       });
 
     // When steps$ is changed do the rollup of duplicated steps
@@ -312,6 +454,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.feature.feature_id === 0) {
       this.insertDefaultStep();
     }
+
+    // Update the disabled state of continue_on_failure checkbox based on department and user settings
+    this.updateContinueOnFailureState();
   }
 
   /**
@@ -395,8 +540,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // when escape is clicked, prevent parent dialog from closing and removes variable flyout
   onStepEscape(event: Event) {
-    event.stopImmediatePropagation();
-    this.stepVariableData.currentStepIndex = null;
+    // Autocomplete panels are handled by the global ESC listener, no need to close them here
   }
 
   onStepFocusOut(event: FocusEvent): void {
@@ -413,12 +557,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   
 
   onTextareaFocus(event: FocusEvent, index: number): void {
-    // If this is an API call step, expand it for editing
+    // Set the current focused step index for the shared autocomplete
+    this.currentFocusedStepIndex = index;
+    
+    // Inform parent of focus
+    this.sendTextareaFocusToParent(true, index);
+    
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
       this._cdr.detectChanges();
     }
-    this.sendTextareaFocusToParent(true, index);
+    
+    this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+    this._cdr.detectChanges();
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
@@ -475,7 +626,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData = {};
 
     const textarea = event.target as HTMLTextAreaElement;
+    this.updateTextareaResize(index); // Update resize state on input
     const textareaValue = textarea.value.trim();
+
+    // Filter actions based on input
+    if (textareaValue) {
+      const filteredActions = this.actions.filter(action => 
+        action.action_name.toLowerCase().includes(textareaValue.toLowerCase())
+      );
+      this.filteredGroupedActions$.next(this.getGroupedActions(filteredActions));
+    } else {
+      this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+    }
 
     // Check if step starts with "Run feature with id" or "Run feature with name"
     if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
@@ -493,7 +655,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.allFeatures$.subscribe(features => {
             // Get user's departments
             const userDepartments = this.user.departments.map(dept => dept.department_id);
-            
             // Filter features by name and user's departments
             const matchingFeature = features.find(f => 
               f.feature_name === searchValue && 
@@ -578,6 +739,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+      // Do not display variables or the dialog if the step is "Run Javascript function"
+      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+        this.displayedVariables = [];
+        this.stepVariableData.currentStepIndex = null;
+        return;
+      }
+
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -653,67 +821,73 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
-    // Obtain the value of the selected step
+    const targetIndex = this.currentFocusedStepIndex ?? index;
+    
+    // Get the selected value
     const step = event.option.value;
-
-    // Make the step visible in the UI for the specified index
-    this.stepVisible[index] = true;
-
-    const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
-
-    // We use a regular expression to extract the action name and the variable
+    
+    // Update the form control immediately
+    const stepFormGroup = this.stepsForm.at(targetIndex) as FormGroup;
+    if (!stepFormGroup) {
+      console.error('Step form group not found at index:', targetIndex);
+      return;
+    }
+    
+    // Set the step content
+    stepFormGroup.patchValue({ 
+      step_content: step
+    });
+    
     const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
     if (matchResult) {
       const actionName = matchResult[1].trim();
-
-      // Search for the corresponding action using the action name
       const activatedAction = this.actions.find(action =>
         action.action_name.split('"')[0].trim() === actionName
       );
+      
+      if (activatedAction) {
+        stepFormGroup.patchValue({ 
+          step_action: activatedAction.action_name
+        });
+        
+        this.selectedActionTitle = activatedAction.action_name;
+        this.selectedActionDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
 
-      // Access the specific FormGroup for this step in the list of forms
-      const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+        if (this.selectedActionDescription.includes("Example")) {
+          const parts = this.selectedActionDescription.split("Example:");
+          this.descriptionText = parts[0].trim();
+          this.examplesText = parts[1]?.trim() || '';
+        } else {
+          this.descriptionText = this.selectedActionDescription;
+          this.examplesText = '';
+        }
 
-      // Update the value of "step_action" in the FormGroup
-      stepFormGroup.patchValue({ step_action: activatedAction.action_name });
-
-      // Update the documentation for this step
-      this.selectedActionTitle = activatedAction.action_name;
-      this.selectedActionDescription = activatedAction.description;
-
-      // Clean the <br> tags from the description
-      this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
-
-      // Separate the description and examples if necessary
-      if (this.selectedActionDescription.includes("Example")) {
-        const parts = this.selectedActionDescription.split("Example:");
-        this.descriptionText = parts[0].trim();
-        this.examplesText = parts[1]?.trim() || '';
-      } else {
-        this.descriptionText = this.selectedActionDescription;
-        this.examplesText = '';
+        this.stepsDocumentation[targetIndex] = {
+          description: this.descriptionText,
+          examples: this.examplesText
+        };
       }
-
-      // Store the documentation for the current step
-      this.stepsDocumentation[index] = {
-        description: this.descriptionText,
-        examples: this.examplesText
-      };
-
-      this._cdr.detectChanges();
     }
-
-    // Get the corresponding textarea and select the first parameter
-    const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
-    const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
-    const match = parameterRegex.exec(step);
-    if (match) {
-      this._ngZone.runOutsideAngular(() =>
-        input.setSelectionRange(match.index, match.index + match[0].length)
-      );
-    }
-
+    
+    // Make the step visible
+    this.stepVisible[targetIndex] = true;
+    
+    // Force change detection
     this._cdr.detectChanges();
+
+    // Select first parameter if exists - do this after change detection
+    requestAnimationFrame(() => {
+      const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
+      const match = parameterRegex.exec(step);
+      
+      const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+      const targetTextarea = textareas[targetIndex] as HTMLTextAreaElement;
+      
+      if (targetTextarea && match) {
+        targetTextarea.focus();
+        targetTextarea.setSelectionRange(match.index, match.index + match[0].length);
+      }
+    });
   }
 
 
@@ -729,14 +903,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
       const activatedAction = this.actions.find(action => action.action_name === activatedActionName);
       if (activatedAction) {
-        // Asignar los valores de la acción seleccionada
+        // Assign values for the selected action
         this.selectedActionTitle = activatedAction.action_name;
         this.selectedActionDescription = activatedAction.description;
 
-        // Limpiar las etiquetas <br> de la descripción
+        // Remove <br> tags from the description
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-        // Separar la descripción y los ejemplos si es necesario
+        // Separate description and examples if necessary
         if (this.selectedActionDescription.includes("Example")) {
           const parts = this.selectedActionDescription.split("Example:");
 
@@ -749,8 +923,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.examplesText = '';
         }
 
-        // Aquí puedes agregar la actualización de la documentación para este paso
-        // Si tienes un arreglo de `stepsDocumentation`, puedes almacenarlo aquí también
+        // Here you can add documentation update for this step
+        // If you have a `stepsDocumentation` array, you can store it here as well
         this.stepsDocumentation[index] = {
           description: this.descriptionText,
           examples: this.examplesText
@@ -766,15 +940,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.showHideStepDocumentation = !this.showHideStepDocumentation
   }
 
-  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+  @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
+  @HostListener('document:keydown', ['$event'])
+  handleGlobalKeyDown(event: KeyboardEvent): void {
+    const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
+    if (!isEscape) {
+      return;
+    }
 
-  // @HostListener('document:keydown', ['$event'])
-  // handleKeydown(event: KeyboardEvent): void {
-  //   if (event.keyCode === KEY_CODES.ESCAPE) {
-  //     this.closeAutocomplete();
-  //   }
-  // }
+    // Attempt to close autocomplete panels
+    let panelClosed = false;
+    this.autocompleteTriggers?.forEach(trigger => {
+      if (trigger.panelOpen) {
+        trigger.closePanel();
+        panelClosed = true;
+      }
+    });
+
+    // Close variable fly-out (step list) if it is open
+    if (this.displayedVariables.length > 0) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      panelClosed = true;
+    }
+
+    if (panelClosed) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      this.isAutocompleteOpened = false;
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      this._cdr.detectChanges();
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateAllTextareasResize();
+  }
 
   iconPosition = { top: 0, left: 0 };
 
@@ -782,16 +986,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
-    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-    const stepContent = stepFormGroup.get('step_content')?.value;
-    if (stepContent == '') {
-      this.stepsDocumentation[index] = {
-        description: '',
-        examples: ''
-      };
+    const actualIndex = index ?? this.currentFocusedStepIndex;
+    
+    if (actualIndex !== null) {
+      const stepFormGroup = this.stepsForm.at(actualIndex) as FormGroup;
+      const stepContent = stepFormGroup?.get('step_content')?.value;
+      
+      if (stepContent == '') {
+        this.stepsDocumentation[actualIndex] = {
+          description: '',
+          examples: ''
+        };
+      }
+      
+      this.stepVisible[actualIndex] = false;
     }
-
+    
+    this.isAutocompleteOpened = false;
     this._cdr.detectChanges();
+
   }
 
   isIconActive: { [key: string]: boolean } = {};
@@ -806,7 +1019,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }, 400);
     this.snack.open('Text copied to clipboard', 'Close');
     }).catch(err => {
-      console.error('Error copying: ', err);
+      // Silently handle the error without logging to console
       this.snack.open('Error copying text', 'Close');
     });
   }
@@ -814,7 +1027,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   isAutocompleteOpened: boolean = false;
 
   onAutocompleteOpened(index?: number) {
-    this.stepVisible[index] = true;
+    const actualIndex = index ?? this.currentFocusedStepIndex;
+    if (actualIndex !== null) {
+      this.stepVisible[actualIndex] = true;
+    }
     this.isAutocompleteOpened = true;
 
     setTimeout(() => {
@@ -964,7 +1180,30 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
 
-  addEmpty(index: number = -1) {
+  /**
+   * Closes every assistive panel (autocomplete or variable fly-out) ensuring
+   * that only one can be visible at any time – used before inserting / copying
+   * steps to avoid multiple overlapping panels.
+   */
+  private closeAssistPanels(): void {
+    // Close the shared autocomplete trigger if it exists
+    const trigger = this.autocompleteTriggers?.first;
+    if (trigger?.panelOpen) {
+      trigger.closePanel();
+    }
+
+    // Reset variable fly-out state
+    if (this.displayedVariables.length) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+    }
+
+    // Reset focused step
+    this.currentFocusedStepIndex = null;
+    this.isAutocompleteOpened = false;
+  }
+
+  addEmpty(index: number = -1, openAutocomplete: boolean = false) {
     const template = this._fb.group({
       enabled: [true],
       screenshot: [false],
@@ -974,10 +1213,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       step_action: [''],
       step_type: [''],
       continue_on_failure: [false],
-      timeout: [this.department?.settings?.step_timeout || 60]
+      timeout: [this.department?.settings?.step_timeout || 60],
+      selected: [false]
     });
-
-
 
     if (index >= 0) {
       this.stepsForm.insert(index, template);
@@ -987,12 +1225,34 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     this._cdr.detectChanges();
     
-    // Focus the new step
     const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
-    this.focusStep(stepIndex);
+    this.currentFocusedStepIndex = stepIndex;
+    
+    // Focus and open autocomplete
+    requestAnimationFrame(() => {
+      const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+      const textarea = textareas[stepIndex] as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+        
+        // Open autocomplete if requested
+        if (openAutocomplete) {
+          // Use the autocomplete trigger directly
+          requestAnimationFrame(() => {
+            const trigger = this.autocompleteTriggers?.first;
+            if (trigger && !trigger.panelOpen) {
+              trigger.openPanel();
+            }
+          });
+        }
+      }
+    });
   }
 
   copyItem(index: number, position: string) {
+    // Close assistive panels before duplicating
+    this.closeAssistPanels();
+
     const stepToCopy =
       position === 'up'
         ? this.stepsForm.controls[index]
@@ -1010,9 +1270,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       enabled: stepToCopy.value.enabled,
       continue_on_failure: stepToCopy.value.continue_on_failure,
       timeout: stepToCopy.value.timeout,
+      selected: false  // Add the selected FormControl, always start as false for new copies
     });
-
-
 
     this.stepsForm.insert(index, newStepToCopy);
 
@@ -1049,6 +1308,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       };
     }
     this._cdr.detectChanges();
+    
+    // Focus the new step
+    this.focusStep(index);
   }
 
   drop(event: CdkDragDrop<string[]>) {
@@ -1071,25 +1333,55 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
 
   deleteStep(i: number) {
+    // Check if the step being deleted was selected
+    const stepToDelete = this.stepsForm.at(i);
+    const wasSelected = stepToDelete?.get('selected')?.value;
+    
+    // Remove the step
     this.stepsForm.removeAt(i);
+    
+    // If the deleted step was selected, clear the clipboard
+    if (wasSelected) {
+      this.clearClipboardIfNoSelectedSteps();
+    }
+    
     this._cdr.detectChanges();
   }
 
-  focusStep(childIndex) {
-    setTimeout(_ => {
+  /**
+   * Clears the clipboard if there are no more selected steps.
+   * This ensures the paste option is properly disabled when all selected steps are deleted.
+   */
+  private clearClipboardIfNoSelectedSteps(): void {
+    const hasAnySelectedSteps = this.stepsForm.controls.some(control => 
+      control.get('selected')?.value
+    );
+    
+    if (!hasAnySelectedSteps) {
+      this.clipboardSteps = [];
+    }
+  }
+
+  focusStep(childIndex: number) {
+    requestAnimationFrame(() => {
       try {
-        document
-          .querySelector(
-            `.mat-dialog-content .step-row:nth-child(${childIndex + 1})`
-          )
-          .scrollIntoView({ block: 'center', behavior: 'smooth' });
-        (
-          document.querySelector(
-            `.mat-dialog-content .step-row:nth-child(${childIndex + 1}) .code`
-          ) as HTMLInputElement
-        ).focus();
-      } catch (err) {}
-    }, 0);
+        const stepRow = document.querySelector(
+          `.mat-dialog-content .step-row:nth-child(${childIndex + 1})`
+        );
+        
+        if (stepRow) {
+          stepRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          
+          const input = stepRow.querySelector('.code') as HTMLInputElement;
+          if (input) {
+            input.focus();
+            // The onTextareaFocus event will handle setting up the autocomplete
+          }
+        }
+      } catch (err) {
+        // Silently handle any errors
+      }
+    });
   }
 
   scrollStepsToBottom(focusLastStep: boolean = false) {
@@ -1228,7 +1520,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       ],
       step_action: [''],
       continue_on_failure: [false],
-      timeout: [this.department?.settings?.step_timeout || 60]
+      timeout: [this.department?.settings?.step_timeout || 60],
+      selected: [false]
     });
 
 
@@ -1237,21 +1530,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   insertStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    event.stopPropagation();
+    
+    // Throttle to prevent erratic behavior when holding keys
+    const currentTime = Date.now();
+    if (currentTime - this.lastInsertTime < this.INSERT_THROTTLE_MS) {
+      return; // Ignore if called too quickly
+    }
+    this.lastInsertTime = currentTime;
+    
+    // Close any open panels before inserting
+    this.closeAssistPanels();
+    
     if(event.key == 'ArrowDown'){
-      this.addEmpty(i+1);
+        this.addEmpty(i+1, true); // Open autocomplete
     }
     else if (event.key == 'ArrowUp'){
-      this.addEmpty(i);
+        this.addEmpty(i, true); // Open autocomplete
     }
   }
 
   copyStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    event.stopPropagation();
+    
+    // Throttle to prevent erratic behavior when holding keys
+    const currentTime = Date.now();
+    if (currentTime - this.lastInsertTime < this.INSERT_THROTTLE_MS) {
+      return; // Ignore if called too quickly
+    }
+    this.lastInsertTime = currentTime;
+    
+    // Close any open autocomplete properly without removing from DOM
+    this.closeAssistPanels();
+    
     if(event.key == 'ArrowDown'){
-      this.copyItem(i+1, 'down');
+        this.copyItem(i+1, 'down');
     }
     else if (event.key == 'ArrowUp'){
-      this.copyItem(i, 'up');
+        this.copyItem(i, 'up');
     }
   }
 
@@ -1329,7 +1646,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepsForm.controls.forEach(control => {
       control.get('screenshot')?.setValue(checked);
       if (!checked) {
-        // control.get('compare')?.setValue(false);
+        // If screenshot is unchecked, disable compare and set it to false
+        control.get('compare')?.setValue(false);
       }
     });
     this._cdr.detectChanges();
@@ -1368,6 +1686,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     return stepsWithCompare.length === totalSteps;
   }
 
+  getGroupedActions(actions: Action[]): { name: string; actions: Action[] }[] {
+    const groups = {
+      'Browser Steps': [] as Action[],
+      'Mobile Steps': [] as Action[],
+      'API Steps': [] as Action[],
+      'Database Steps': [] as Action[],
+      'Other Steps': [] as Action[]
+    };
+
+    actions.forEach(action => {
+      const stepType = action.step_type?.toUpperCase() || '';
+      switch (stepType) {
+        case 'BROWSER':
+          groups['Browser Steps'].push(action);
+          break;
+        case 'MOBILE':
+          groups['Mobile Steps'].push(action);
+          break;
+        case 'API':
+          groups['API Steps'].push(action);
+          break;
+        case 'DATABASE':
+          groups['Database Steps'].push(action);
+          break;
+        default:
+          groups['Other Steps'].push(action);
+      }
+    });
+
+    // Return only non-empty groups
+    return Object.entries(groups)
+      .filter(([_, actions]) => actions.length > 0)
+      .map(([name, actions]) => ({ name, actions }));
+  }
+
   onCompareChange(event: MatCheckboxChange, i: number) {
     const stepFormGroup = this.stepsForm.at(i) as FormGroup;
     if (event.checked) {
@@ -1378,4 +1731,322 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this._cdr.detectChanges();
   }
 
+  @ViewChildren('stepTextarea') stepTextareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
+
+  ngAfterViewInit() {
+    
+    // When the view is ready, update all textareas to set their initial resize state.
+    this.updateAllTextareasResize();
+
+    // Subscribe to changes in the list of textareas (e.g., when steps are added/removed)
+    // and update their state accordingly.
+    this.subs.sink = this.stepTextareas.changes.subscribe(() => {
+        this.updateAllTextareasResize();
+    });
+    
+    // Also subscribe to autocomplete triggers changes
+    if (this.autocompleteTriggers) {
+      this.subs.sink = this.autocompleteTriggers.changes.subscribe(() => {
+        this.autocompleteTriggers.forEach((trigger, idx) => {
+          const triggerEl = (trigger as any)._element?.nativeElement;
+        });
+      });
+    }
+  }
+
+
+  /**
+   * Iterates through all step textareas and updates their resize state.
+   * Uses a timeout to ensure the DOM is stable before measuring.
+   */
+  private updateAllTextareasResize(): void {
+    setTimeout(() => {
+      this.stepsForm.controls.forEach((_, index) => {
+        this.updateTextareaResize(index);
+      });
+    }, 0);
+  }
+
+  /**
+   * Checks a specific textarea's content and adds or removes the 'allow-resize'
+   * class to enable or disable the vertical resize handle.
+   * @param index The index of the step to update.
+   */
+  private updateTextareaResize(index: number): void {
+    const textareaRef = this.stepTextareas?.toArray()[index];
+    if (!textareaRef) return;
+
+    const textarea = textareaRef.nativeElement;
+    const value = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    
+    // To get an accurate measurement, we first reset the state.
+    this.renderer.removeClass(textarea, 'allow-resize');
+
+    // Enable resize if there's an explicit newline or if the content visually wraps.
+    const hasExplicitNewline = value.includes('\n');
+    const isVisuallyWrapped = textarea.scrollHeight > textarea.clientHeight;
+
+    if (hasExplicitNewline || isVisuallyWrapped) {
+      this.renderer.addClass(textarea, 'allow-resize');
+    }
+  }
+
+  /**
+   * Toggle selection of all steps.
+   */
+  toggleSelectAllSteps(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('selected')?.setValue(checked);
+    });
+    
+    // Automatically copy selected steps when select all changes
+    setTimeout(() => {
+      this.copySelectedSteps();
+    }, 0);
+    
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Returns true if all steps are selected.
+   */
+  areAllStepsSelected(): boolean {
+    return this.stepsForm.controls.length > 0 && 
+           this.stepsForm.controls.every(control => control.get('selected')?.value);
+  }
+
+  /**
+   * Returns true if some (but not all) steps are selected.
+   */
+  areSomeStepsSelected(): boolean {
+    const selectedCount = this.stepsForm.controls.filter(control => control.get('selected')?.value).length;
+    return selectedCount > 0 && selectedCount < this.stepsForm.controls.length;
+  }
+
+  /**
+   * Returns true if there is at least one selected step.
+   */
+  hasSelectedSteps(): boolean {
+    return this.stepsForm.controls.some(control => control.get('selected')?.value);
+  }
+
+  /**
+   * Returns the number of selected steps.
+   */
+  getSelectedStepsCount(): number {
+    return this.stepsForm.controls.filter(control => control.get('selected')?.value).length;
+  }
+
+  /**
+   * Copies the selected steps to the clipboardSteps array.
+   */
+  copySelectedSteps() {
+    this.clipboardSteps = this.stepsForm.controls
+      .map((control, idx) => control.get('selected')?.value ? control.getRawValue() : null)
+      .filter(step => step !== null);
+  }
+
+  /**
+   * Returns true if there are steps in the clipboard to paste.
+   */
+  canPasteSteps(): boolean {
+    return this.clipboardSteps && this.clipboardSteps.length > 0;
+  }
+
+  /**
+   * Pastes the steps from clipboardSteps after the last selected step, or at the end if none selected.
+   */
+  pasteSteps(insertAtIndex?: number) {
+    let insertIndex: number;
+    
+    if (insertAtIndex !== undefined) {
+      // If called from context menu, insert at the specified index
+      insertIndex = insertAtIndex + 1;
+    } else {
+      // Original behavior: find the last selected index, or -1 if none
+      let lastSelectedIndex = -1;
+      this.stepsForm.controls.forEach((control, index) => {
+        if (control.get('selected')?.value) {
+          lastSelectedIndex = index;
+        }
+      });
+      insertIndex = lastSelectedIndex >= 0 ? lastSelectedIndex + 1 : this.stepsForm.length;
+    }
+    
+    // Insert each step from clipboardSteps
+    this.clipboardSteps.forEach((step, i) => {
+      const formGroup = this._fb.group({
+        enabled: step.enabled,
+        screenshot: step.screenshot,
+        step_keyword: step.step_keyword,
+        compare: step.screenshot ? step.compare : false,
+        step_content: [step.step_content, CustomValidators.StepAction.bind(this)],
+        step_action: step.step_action || '',
+        step_type: step.step_type,
+        continue_on_failure: step.continue_on_failure,
+        timeout: step.timeout || this.department?.settings?.step_timeout || 60,
+        selected: false  // Add the selected FormControl, pasted steps start unselected
+      });
+      this.stepsForm.insert(insertIndex + i, formGroup);
+    });
+    // Clear clipboard after pasting
+    this.clipboardSteps = [];
+    // Clear selection
+    this.stepsForm.controls.forEach(control => {
+      control.get('selected')?.setValue(false);
+    });
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Automatically copies selected steps when selection changes.
+   */
+  onSelectStepChange(event: MatCheckboxChange, index: number) {
+    // Automatically copy selected steps whenever selection changes
+    setTimeout(() => {
+      this.copySelectedSteps();
+    }, 0);
+  }
+
+  /**
+   * Handles click on Select checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onSelectCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastSelectCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastSelectCheckedIndex, index].sort((a, b) => a - b);
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('selected')?.setValue(checked);
+      }
+      event.preventDefault(); // Prevent default click behavior
+      
+      // Update clipboard after multi-selection
+      setTimeout(() => {
+        this.copySelectedSteps();
+        this._cdr.detectChanges(); // Force UI update to reflect Select All checkbox state
+      }, 0);
+    }
+    this.lastSelectCheckedIndex = index;
+  }
+
+  /**
+   * Deletes the selected steps after confirmation.
+   */
+  deleteSelectedSteps() {
+    const selectedCount = this.stepsForm.controls.filter(control => control.get('selected')?.value).length;
+    
+    this._dialog
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'Delete Selected Steps',
+          description: `Are you sure you want to delete ${selectedCount} selected step${selectedCount > 1 ? 's' : ''}?`,
+        } as AreYouSureData,
+        autoFocus: true,
+      })
+      .afterClosed()
+      .subscribe(confirmed => {
+        if (confirmed) {
+          // Get indices of selected steps in reverse order to maintain correct indices during deletion
+          const selectedIndices: number[] = [];
+          this.stepsForm.controls.forEach((control, index) => {
+            if (control.get('selected')?.value) {
+              selectedIndices.push(index);
+            }
+          });
+          
+          // Delete in reverse order to maintain indices
+          selectedIndices.reverse().forEach(index => {
+            this.stepsForm.removeAt(index);
+          });
+          
+          // Clear clipboard since all selected steps were deleted
+          this.clipboardSteps = [];
+          
+          this._cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Handles click on Enable checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onEnableCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastEnableCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastEnableCheckedIndex, index].sort((a, b) => a - b);
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('enabled')?.setValue(checked);
+      }
+      event.preventDefault(); // Prevent default click behavior
+    }
+    this.lastEnableCheckedIndex = index;
+  }
+
+  /**
+   * Handles click on Screenshot checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onScreenshotCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastScreenshotCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastScreenshotCheckedIndex, index].sort((a, b) => a - b);
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('screenshot')?.setValue(checked);
+      }
+      event.preventDefault();
+    }
+    this.lastScreenshotCheckedIndex = index;
+  }
+
+  /**
+   * Handles click on Compare checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
+   */
+  onCompareCheckboxClick(event: MouseEvent, index: number) {
+    if (event.shiftKey && this.lastCompareCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastCompareCheckedIndex, index].sort((a, b) => a - b); 
+      for (let i = start; i <= end; i++) {
+        this.stepsForm.at(i).get('compare')?.setValue(checked);
+        // If compare is checked, ensure screenshot is also checked
+        if (checked) {
+          this.stepsForm.at(i).get('screenshot')?.setValue(true);
+        }
+      }
+      event.preventDefault();
+    }
+    this.lastCompareCheckedIndex = index;
+  }
+
+  /**
+   * Update the disabled state of continue_on_failure checkbox based on department and user settings
+   */
+  private updateContinueOnFailureState() {
+    // Get the continue_on_failure control from the form
+    const continueOnFailureControl = this.stepsForm.at(0)?.get('continue_on_failure');
+    if (!continueOnFailureControl) return;
+
+    // Check if department settings or user settings force disable the checkbox
+    // If continue_on_failure is false in settings, it means the checkbox should be disabled (forced)
+    const departmentForcedDisabled = this._editFeature?.department?.settings?.continue_on_failure === false;
+    const userForcedDisabled = this.user?.settings?.continue_on_failure === false;
+    const isForcedDisabled = departmentForcedDisabled || userForcedDisabled;
+    
+    if (isForcedDisabled) {
+      continueOnFailureControl.disable();
+    } else {
+      continueOnFailureControl.enable();
+    }
+  }
 }

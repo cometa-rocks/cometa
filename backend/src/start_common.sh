@@ -10,23 +10,20 @@ python manage.py makemigrations configuration
 python manage.py makemigrations container_service
 python manage.py makemigrations mobile
 python manage.py makemigrations token_authentication
+python manage.py makemigrations notification
 python manage.py migrate
+
+# Create database indexes
+python manage.py create_indexes
 
 # if this is the first time initializing co.meta
 # import basic data
-if [ ! -f "/code/.initiated" ]; then
+if [ ! -f "/code/config/.initiated" ]; then
     if find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}; then
-        touch /code/.initiated
-        
-        echo "Copied file .initiated from /code/.initiated to /share/.initiated"
+        touch /code/config/.initiated
+        echo "Default configuration loaded"
     else
         echo "Failed to import default data"
-        exit 1
-    fi
-    if cp /code/.initiated /share/.initiated; then
-        echo "Copied file .initiated from /code/.initiated to /share/.initiated"
-    else
-        echo "Failed to copy .initiated file"
         exit 1
     fi
 fi

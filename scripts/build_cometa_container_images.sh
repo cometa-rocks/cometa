@@ -1,12 +1,12 @@
 cd ..
-IMAGE_PATHS=("front" "backend/behave" "backend/src")
-IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django")
-VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json")
+IMAGE_PATHS=("front" "backend/behave" "backend/src" "backend/scheduler" "backend/ws-server")
+IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django" "cometa/scheduler" "cometa/socket")
+VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json" "backend/scheduler/version.json" "backend/ws-server/version.json")
 for i in "${!IMAGE_PATHS[@]}"; do
   IMAGE_DIR="${IMAGE_PATHS[$i]}"
   IMAGE_NAME="${IMAGE_NAMES[$i]}"
   VERSION_PATH="${VERSION_PATHS[$i]}" 
-  BUILD_VERSION=$(jq -r '.version' "$VERSION_PATH") 
+  BUILD_VERSION=$(jq -r '.version' "$VERSION_PATH")
   echo "Processing image: $IMAGE_NAME"
   # Fetch the JSON response from Docker Hub
   RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/?page_size=2&ordering=last_updated")

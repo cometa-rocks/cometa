@@ -19,7 +19,7 @@ from django_cryptography.fields import encrypt
 from crontab import CronSlices
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
-
+from django.utils import timezone
 
 from .utility.config_handler import *
  
@@ -97,7 +97,7 @@ def backup_feature_steps(feature):
     feature_dir = get_feature_path(feature.feature_id)
     file = feature_dir['featureFileName']
     path = feature_dir['path'] + 'features/'
-    time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
     backupsFolder = '/code/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
@@ -119,7 +119,7 @@ def backup_feature_info(feature):
     feature_dir = get_feature_path(feature.feature_id)
     file = feature_dir['featureFileName']
     path = feature_dir['path'] + 'features/'
-    time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
     backupsFolder = '/code/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
@@ -586,7 +586,7 @@ class Permissions(models.Model):
     
     # Step_result related
     remove_screenshot = models.BooleanField(default=False)
-    change_step_result_status = models.BooleanField(default=False)
+    change_result_status = models.BooleanField(default=False)
     
     # Feature_result related
     remove_feature_result = models.BooleanField(default=False)
@@ -653,8 +653,8 @@ class OIDCAccount(models.Model):
     name = models.CharField(max_length=250)
     email = models.EmailField(max_length=100)
     user_permissions = models.ForeignKey(Permissions, on_delete=models.SET_NULL, null=True, default=Permissions.get_default_permission)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    last_login = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    last_login = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     login_counter = models.IntegerField(default=0, help_text="+1 on each login.")
     favourite_browsers = models.JSONField(default=list, blank=True)
     settings = models.JSONField(default=dict, blank=True)
@@ -680,7 +680,7 @@ class Application(models.Model):
     app_id = models.AutoField(primary_key=True)
     app_name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     def __str__( self ):
         return u"Application_name = %s" % self.app_name
     def save(self, *args, **kwargs):
@@ -695,7 +695,7 @@ class Application(models.Model):
 class Environment(models.Model):
     environment_id = models.AutoField(primary_key=True)
     environment_name = models.CharField(max_length=100)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     def __str__( self ):
         return f"{self.environment_name} ({self.environment_id})"
     class Meta:
@@ -724,7 +724,7 @@ class Department(models.Model):
     department_name = models.CharField(max_length=100)
     slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
     settings = models.JSONField(default=dict, blank=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     readonly_fields = ('department_id',)
     def save(self, *args, **kwargs):
         self.slug = slugify(self.department_name)
@@ -785,8 +785,8 @@ class Feature(models.Model):
     browsers = models.JSONField(default=list)
     mobiles = models.JSONField(default=list)
     last_edited = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="last_edited")
-    last_edited_date = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    last_edited_date = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="created_by")
     send_mail = models.BooleanField(default=False)
     send_mail_on_error = models.BooleanField(default=False)
@@ -805,6 +805,7 @@ class Feature(models.Model):
     generate_dataset = models.BooleanField(default=False)
     continue_on_failure = models.BooleanField(default=False)
     need_help = models.BooleanField(default=False)
+    send_telegram_notification = models.BooleanField(default=False)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
     readonly_fields=('feature_id',)
     def __str__( self ):
@@ -1156,7 +1157,7 @@ class Folder(models.Model):
     owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True) # will be removed once new settings has been settled. 
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
     parent_id = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name='child')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     def __str__( self ):
         return self.name
     class Meta:
@@ -1327,7 +1328,7 @@ class EnvironmentVariables(models.Model):
     variable_name = models.CharField(max_length=100, default=None, blank=False, null=False)
     variable_value = models.TextField()
     encrypted = models.BooleanField(default=False)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     
     class Meta:
         ordering = ['variable_name']
@@ -1345,11 +1346,11 @@ class Variable(models.Model):
     in_use = models.ManyToManyField(Feature, editable=False, related_name="variable_in_use")
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_owner", null=True)
     updated_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_modifier", null=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
-    updated_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
+    updated_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
     
     def save(self, *args, **kwargs):
-        self.updated_on = datetime.datetime.utcnow()
+        self.updated_on = timezone.now()
         return super(Variable, self).save(*args, **kwargs)
 
     class Meta:
@@ -1394,7 +1395,7 @@ class Invite(models.Model):
     issuer = models.ForeignKey(OIDCAccount, on_delete=models.CASCADE)
     code = models.CharField(max_length=255, default=None, blank=False, null=False, unique=True)
     departments = models.ManyToManyField(Department)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
 
     class Meta:
         ordering = ['id']
@@ -1405,10 +1406,12 @@ class Schedule(models.Model):
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules")
     parameters = models.JSONField(default=dict,null=True, blank=True)
     schedule = models.CharField(max_length=255)
+    original_cron = models.CharField(max_length=255, null=True, blank=True, help_text="Original cron expression as entered by user")
+    original_timezone = models.CharField(max_length=50, null=True, blank=True, help_text="Timezone in which the original cron was entered")
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
     owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)
     
@@ -1426,18 +1429,37 @@ class Schedule(models.Model):
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
         # create the command
         if self.command is None:
-            # self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
-            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            if self.feature is not None:
+                # Standard feature execution command
+                self.command = (
+                    "curl --silent --data '{\"feature_id\":%d, \"jobId\":<jobId>}' "
+                    "-H \"Content-Type: application/json\" -H \"COMETA-ORIGIN: CRONTAB\" "
+                    "-H \"COMETA-USER: %d\" -X POST %s/exectest/"
+                ) % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            elif self.parameters and isinstance(self.parameters, dict) and self.parameters.get('file_id'):
+                # Data-driven file execution command
+                raw_file_id = self.parameters['file_id']
+                try:
+                    file_id = int(raw_file_id)
+                except (TypeError, ValueError):
+                    raise Exception(f"Invalid file_id '{raw_file_id}' in schedule parameters; expected integer.")
+                self.command = (
+                    "curl --silent --data '{\"file_id\":%d, \"jobId\":<jobId>}' "
+                    "-H \"Content-Type: application/json\" -H \"COMETA-ORIGIN: CRONTAB\" "
+                    "-H \"COMETA-USER: %d\" -X POST %s/exec_data_driven/"
+                ) % (file_id, self.owner.user_id, get_cometa_backend_url())
+            else:
+                raise Exception("Schedule must be linked to a feature or contain 'file_id' parameter.")
         # create the comment
         if self.comment is None:
             self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
 
         # check if schedule has a <today> and <tomorrow> in string
         if "<today>" in self.schedule:
-            today = datetime.datetime.now().strftime("%d")
+            today = timezone.now().strftime("%d")
             self.schedule = self.schedule.replace("<today>", today)
         if "<tomorrow>" in self.schedule:
-            tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+            tomorrow = timezone.now() + datetime.timedelta(days=1)
             tomorrow = tomorrow.strftime("%d")
             self.schedule = self.schedule.replace("<tomorrow>", tomorrow)
 
@@ -1468,7 +1490,7 @@ class Integration(models.Model):
     send_on = models.JSONField(default=dict)
     application = models.CharField(null=False, blank=False, max_length=255, choices=IntegrationApplications)
     active = models.BooleanField(default=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
 
     class Meta:
         ordering = ['id']
@@ -1479,7 +1501,7 @@ class IntegrationPayload(models.Model):
     send_on = models.CharField(blank=False, null=False, max_length=255)
     application = models.CharField(null=False, blank=False, max_length=255, choices=IntegrationApplications)
     payload = models.TextField()
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
 
     class Meta:
         ordering = ['id']
@@ -1530,7 +1552,7 @@ class PaymentRequest(models.Model):
     stripe_session_id = models.CharField(blank=True, max_length=255, help_text='Session ID created with Stripe SDK for payment')
     status = models.CharField(null=False, max_length=50, blank=False, help_text='Current status of the Stripe Payment Request')
     error = models.TextField(null=True, blank=True, help_text='If there was an error during payment, it will appear here')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When the Payment Request was created')
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When the Payment Request was created')
 
     class Meta:
         ordering = ['-created_on']
@@ -1542,7 +1564,7 @@ class StripeWebhook(models.Model):
     event_type = models.CharField(blank=True, max_length=255, help_text='Type of event sended by Stripe')
     handled = models.BooleanField(default=False, help_text='True if there was a handler available for the event type and it was successful')
     event_json = models.JSONField(default=dict, blank=True, help_text='All the JSON info sended by Stripe')
-    received_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was received')
+    received_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When was received')
 
     class Meta:
         ordering = ['received_on']
@@ -1597,7 +1619,7 @@ class File(SoftDeletableModel):
     extras = models.JSONField(default=dict)
     column_order = models.JSONField(default=list, null=True, help_text='Original column order from the file')
     sheet_names = models.JSONField(default=list, null=True, blank=True, help_text='List of sheet names in the file')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
         # restore the file back to original state if exists
@@ -1627,7 +1649,7 @@ class FileData(SoftDeletableModel):
     data = models.JSONField(default=dict)
     extras = models.JSONField(default=dict)
     sheet = models.CharField(max_length=255, blank=True, null=True, help_text='Sheet name for Excel files')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When was created')
 
     class Meta:
         verbose_name_plural = "Files Data"

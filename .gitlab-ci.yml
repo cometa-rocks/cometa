@@ -48,14 +48,14 @@ stages:
 # redundancy.
 .deployment_script: &deployment_script
   stage: deploy
-  script:    
+  script:
     #########################################################
     # REPLACE
     #########################################################
     # update docker-compose file depending on server variables
     - sed -i 's/<outside_port>/'$DOCKER_HTTP_PORT'/g;s/<server>/'$DOCKER_OPENIDC_CONFIG_EXT'/g' docker-compose.yml
     # Replace secrets in openidc
-    - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache-conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
+    - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache2/conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
     # Replace Stripe client keys
     # - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
     # - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
@@ -89,10 +89,6 @@ stages:
     # Commenting below line since from 22-08-2024 secret_variables will be stored in the database
     # - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > backend/secret_variables.py
     # Build Selenoid browsers
-    - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
-    - bash backend/selenoid/deploy_selenoid.sh
-    # - docker exec -it cometa_selenoid sh /etc/selenoid/check_for_custom_background.sh
-    - echo -e "\e[0Ksection_end:`date +%s`:deploy_selenoid\r\e[0K"
     # Install new python packages in django and behave container
     - docker exec cometa_django poetry install
     - docker exec cometa_behave poetry install
@@ -141,6 +137,10 @@ stages:
     # - echo "If there are changes to docker-compose file it will recreate the container..."
     # - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
 
+    # ############## Update Crontab and Websocket ######################
+    # Since pull_policy is set to always it will pull image each time it deployed with "latest" tag
+    - docker compose up --force-recreate crontab ws -d
+
     #########################################################
     # RELOAD GUNICORNS
     #########################################################
@@ -153,8 +153,15 @@ stages:
     - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
+# main script anchor to avoid code
+# redundancy. 
+.kubernetes_deployment_script: &kubernetes_deployment_script
+  stage: deploy
+  script:
+    bash scripts/kubernetes_cicd_deployment.sh
+
 # create a deploy job for amvara2 for branch stage
-deploy:amvara2.stage:
+deploy:amvara2.stage: 
   <<: *deployment_script
   extends: .amvara2.stage
 
@@ -162,6 +169,15 @@ deploy:amvara2.stage:
 deploy:amvara3.prod:
   <<: *deployment_script
   extends: .amvara3.prod
+
+# create a deploy job for amvara3 for branch prod
+deploy:kubernetes.client1.prod:
+  <<: *kubernetes_deployment_script
+  tags: # on what runners we'd like to run this job
+    - amvara3
+  only: # on what branch we'd like to run this job
+    refs:
+      - master
 
 # # create a deploy job for client01 for branch prod
 # deploy:client01.int:

@@ -11,6 +11,7 @@ from backend.serializers import FileSerializer
 from backend.utility.functions import getLogger
 from .config_handler import *
 from backend.utility.configurations import ConfigurationManager
+from backend.utility.excel_handler import create_excel_handler
 
 # logger information
 logger = getLogger()
@@ -79,101 +80,48 @@ def getFileContent(file: File, sheet_name=None):
     # decrypt file
     targetPath = decryptFile(file.path)
 
-    import pandas as pd
     try:
-        if file.name.lower().endswith('.csv'):
-            df = pd.read_csv(targetPath, header=0, skipinitialspace=True, skip_blank_lines=True)
-            
-            # Preserve original column order before any modifications
-            original_columns = list(df.columns)
-            file.column_order = original_columns
-        else:
-            # For Excel, first get sheet names, then read the data
-            try:
-                xls = pd.ExcelFile(targetPath)
-                
-                # Store all sheet names
-                sheet_names = xls.sheet_names
-                file.sheet_names = sheet_names
-                
-                # Use requested sheet if specified and available, otherwise use first sheet
-                if sheet_name and sheet_name in sheet_names:
-                    logger.info(f"Reading Excel file with specified sheet: {sheet_name}")
-                    df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
-                else:
-                    # If no sheet specified or specified sheet not found, use first sheet
-                    selected_sheet = sheet_names[0] if sheet_names else 0
-                    logger.info(f"Reading Excel file with first sheet: {selected_sheet}")
-                    df = pd.read_excel(xls, sheet_name=selected_sheet, header=0)
-                
-                original_columns = list(df.columns)
-                file.column_order = original_columns
-            except Exception as e_excel:
-                logger.error(f"Error parsing Excel file: {e_excel}")
-                file.extras['ddr'] = {
-                    'data-driven-ready': False,
-                    'reason': 'Unable to parse Excel file, please upload a valid Excel file.'
-                }
-                file.save()
-                raise Exception(f"Unable to parse Excel file: {str(e_excel)}")
-    except ValueError as e_csv:
-        logger.error(f"Error parsing file as CSV: {e_csv}")
-        try:
-            # Try again as Excel in case it was misidentified
-            xls = pd.ExcelFile(targetPath)
-            file.sheet_names = xls.sheet_names
-            
-            # Use requested sheet if specified and available
-            if sheet_name and sheet_name in xls.sheet_names:
-                df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
-            else:
-                df = pd.read_excel(xls, header=0)
-            
-            original_columns = list(df.columns)
-            file.column_order = original_columns
-        except Exception as e_excel:
-            logger.error(f"Error parsing file as Excel after CSV parsing failed: {e_excel}")
-            file.extras['ddr'] = {
-                'data-driven-ready': False,
-                'reason': 'Unable to parse Excel or CSV file, please upload a valid Excel or CSV file.'
-            }
-            file.save()
-            raise Exception("Unable to parse excel or csv file.")
-    
-    # replace " " with "_" and to lower the column names
-    df.columns = df.columns.str.replace(" ", "_").str.lower()
+        # Use the new excel handler
+        excel_handler = create_excel_handler(targetPath)
+        result = excel_handler.process_file(sheet_name=sheet_name)
+        
+        # Update file metadata
+        file.column_order = result['metadata']['column_order']
+        file.sheet_names = result['metadata']['sheet_names']
+        
+        # Set the data-driven ready status in the file extras
+        file.extras['ddr'] = result['ddr_status']
+        file.save()
 
-    # check if feature id or feature name column is present
-    ddr_ready = 'feature_id' in df.columns or 'feature_name' in df.columns
-    
-    # Set the data-driven ready status in the file extras
-    if ddr_ready:
-        file.extras['ddr'] = {
-            'data-driven-ready': True
-        }
-    else:
+        # Determine the sheet name to use for FileData objects
+        if file.name.lower().endswith('.csv'):
+            file_sheet_name = None
+        else:
+            file_sheet_name = result['metadata']['selected_sheet']
+
+        # Create FileData objects from processed data
+        file_data = []
+        if result['data']:
+            rows = (FileData(file=file, data=data, sheet=file_sheet_name) for data in result['data'])
+            
+            # Batch create FileData objects
+            batch_size = 100
+            while True:
+                batch = list(islice(rows, batch_size))
+                if not batch:
+                    break
+                file_data.extend(FileData.objects.bulk_create(batch, batch_size))
+
+        return file_data
+        
+    except Exception as e:
+        logger.error(f"Error processing file {file.name}: {str(e)}")
         file.extras['ddr'] = {
             'data-driven-ready': False,
-            'reason': 'Missing \'feature_id\' or \'feature_name\' columns. This file can be viewed but not used for data-driven testing.'
+            'reason': str(e)
         }
-    file.save()
-
-    # convert row to json
-    json_data = df.to_json(orient='records', lines=True).splitlines()
-
-    # add all the lines to the FileData
-    rows = (FileData(file=file, data=json.loads(data)) for data in json_data)
-    
-    # how many row we want to save in single query
-    batch_size = 100
-    file_data = []
-    while True:
-        batch = list(islice(rows, batch_size))
-        if not batch:
-            break
-        file_data.extend(FileData.objects.bulk_create(batch, batch_size))
-
-    return file_data
+        file.save()
+        raise Exception(str(e))
 
 """
 

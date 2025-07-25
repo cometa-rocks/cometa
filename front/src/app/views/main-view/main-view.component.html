@@ -87,22 +87,26 @@
 <!-- ROW TEMPLATES -->
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
   <div class="cell status" *ngLet="row.status == 'Success' as passed">
-    <!-- Status box -->
+
+    <div *ngIf="!(canChangeResultStatus$ | async)"
+      class="status-box {{row.status==='Success'?'success':row.status==='Failed'?'failed':'canceled'}}"
+      #statusBar
+      stopPropagation
+      >
+        {{row.status==='Success'?'Passed':row.status==='Failed'?'Failed':'Canceled'}}
+    </div>
     <div
-      class="status-box passed"
+      *ngIf="canChangeResultStatus$ | async"
+      class="status-box {{row.status==='Success'?'success':row.status==='Failed'?'failed':'canceled'}}"
+      #statusBar
       stopPropagation
       [matMenuTriggerFor]="runStatus"
-      *ngIf="passed; else failed">
-      Passed
+    >
+        {{row.status==='Success'?'Passed':row.status==='Failed'?'Failed':'Canceled'}}
     </div>
-    <ng-template #failed>
-      <div
-        class="status-box failed"
-        stopPropagation
-        [matMenuTriggerFor]="runStatus">
-        Failed
-      </div>
-    </ng-template>
+
+
+    <!-- Status box -->
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
       <div class="menu-header">Override run status:</div>
@@ -111,6 +115,9 @@
       </button>
       <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
         <div class="status-option failed">Failed</div>
+      </button>
+      <button (click)="setResultStatus(row, 'Canceled')" mat-menu-item>
+        <div class="status-option canceled">Canceled</div>
       </button>
       <mat-divider></mat-divider>
       <button (click)="setResultStatus(row, '')" mat-menu-item>

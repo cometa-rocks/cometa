@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>COMETA TESTING</title>
+    <title>COMETA TESTING!</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -29,7 +29,6 @@
       .scrollable {
         height: 150px;
         overflow-x: hidden;
-        width: 400px;
       }
       .scrollable > * {
         height: 30px;
@@ -37,12 +36,82 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .dual-scroll {
+        height: 200px;
+        width: 300px;
+        overflow: auto;
+        border: 2px solid #333;
+        padding: 10px;
+      }
+      .dual-scroll-content {
+        width: 600px;
+        height: 400px;
+        background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+        background-size: 20px 20px;
+        position: relative;
+      }
+      .dual-scroll-content::before {
+        content: "This content requires both horizontal and vertical scrolling to view completely. Try scrolling in both directions!";
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 250px;
+      }
+      .dual-scroll-content::after {
+        content: "Bottom-right corner content that requires scrolling to reach!";
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 200px;
+      }
+      section {
+        margin-bottom: 50px;
+      }
+      /* Dynamic forms styles */
+      .card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .form-row input {
+        flex: 1;
+      }
+      #add_form_btn {
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        border-radius: 50%;
+        background: #4caf50;
+        color: #fff;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
     </style>
   </head>
   <body>
     <section>
       <h1>COMETA TESTING</h1>
-      <p>This page tests every single step in Cometa Behave.</p>
+      <p>This page can be used for testing steps and their results using Cometa.</p>
     </section>
     <section id="mouse_mouse_and_click">
       <h2>I move mouse to "{css_selector}" and click</h2>
@@ -78,7 +147,7 @@
         </div>
         <div>What the Road Said</div>
         <div>Eyes That Kiss in the Corners</div>
-        <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
+        <div>Rowley Jefferson's Awesome Friendly Spooky Stories</div>
         <div>Time for School, Little Blue Truck</div>
         <div>Everyone's Table: Global Recipes for Modern Health</div>
         <div>Getaway: Food & Drink to Transport You</div>
@@ -102,10 +171,16 @@
         </div>
         <div>What the Road Said</div>
         <div>Eyes That Kiss in the Corners</div>
-        <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
+        <div>Rowley Jefferson's Awesome Friendly Spooky Stories</div>
         <div>Time for School, Little Blue Truck</div>
         <div>Everyone's Table: Global Recipes for Modern Health</div>
         <div>Getaway: Food & Drink to Transport You</div>
+      </div>
+    </section>
+    <section id="dual_scrolling">
+      <h2>Element with both horizontal and vertical scrolling</h2>
+      <div class="dual-scroll">
+        <div class="dual-scroll-content">This element has dual scroll</div>
       </div>
     </section>
     <section id="set_value_on">
@@ -149,6 +224,7 @@
       </h2>
       <input type="text" value="PE:1269;CO:01;AC:01" />
     </section>
+
     <section id="download_file">
       <h2>Download a file by clicking on "{linktext}"</h2>
       <a download href="/welcome.html">Download file</a>
@@ -171,27 +247,105 @@
       </a>
     </section>
 
-    <section id="Load_with_Delays">
-      <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
-      <br />
-      <div id="5_Second"></div>
-      <br />
-      <div id="10_Second"></div>
-      <br />
-      <div id="20_Second"></div>
-      <br />
-      <div id="30_Second"></div>
-      <br />
-      <div id="40_Second"></div>
-      <br />
-      <h2>This button has show/hide functionality</h2>
-      <div>
-        <button id="show_hide_in_10_10_Secs" style="display: none">
-          This button will shown after 10 seconds of page load, and will be hide
-          in next 10 seconds
-        </button>
-      </div>
-    </section>
+    <div style="position: relative; overflow: hidden; min-height: 800px; border: 1px solid #ddd; padding: 20px; margin-bottom: 30px;">
+      <section id="element_interaction_errors">
+        <h2>Test Element Interaction Errors</h2>
+        <p>These elements are designed to provoke "element not interactable: has no size and location" errors</p>
+        
+        <h3>1. Zero-size element (no width/height) - #zero_size_button</h3>
+        <div id="zero_size_element" style="width: 0; height: 0; overflow: hidden;">
+          <button id="zero_size_button">This button has zero size</button>
+        </div>
+        
+        <h3>2. Element with negative position (off-screen) - #negative_position_button</h3>
+        <div id="negative_position_element" style="position: absolute; left: -9999px; top: -9999px;">
+          <button id="negative_position_button">This button is positioned off-screen</button>
+        </div>
+        
+        <h3>3. Element with zero opacity (invisible) - #zero_opacity_button</h3>
+        <div id="zero_opacity_element" style="opacity: 0;">
+          <button id="zero_opacity_button">This button is invisible</button>
+        </div>
+        
+        <h3>4. Element with display: none - #hidden_button</h3>
+        <div id="hidden_element" style="display: none;">
+          <button id="hidden_button">This button is hidden</button>
+        </div>
+        
+        <h3>5. Element with visibility: hidden - #invisible_button</h3>
+        <div id="invisible_element" style="visibility: hidden;">
+          <button id="invisible_button">This button is invisible</button>
+        </div>
+        
+        <h3>6. Element that appears after delay (initially has no size) - #delayed_button</h3>
+        <div id="delayed_element" style="width: 0; height: 0; transition: all 2s ease;">
+          <button id="delayed_button">This button appears after 3 seconds</button>
+        </div>
+        
+        <h3>7. Element inside collapsed container - #collapsed_button</h3>
+        <div id="collapsed_container" style="height: 0; overflow: hidden;">
+          <button id="collapsed_button">This button is in a collapsed container</button>
+        </div>
+        
+        <h3>8. Element with transform scale(0) - #scaled_button</h3>
+        <div id="scaled_element" style="transform: scale(0);">
+          <button id="scaled_button">This button is scaled to zero</button>
+        </div>
+        
+        <h3>9. Element that becomes interactable after 5 seconds - #becomes_interactable_button</h3>
+        <div id="becomes_interactable" style="width: 0; height: 0; opacity: 0; transition: all 1s ease;">
+          <button id="becomes_interactable_button">This button becomes interactable after 5 seconds</button>
+        </div>
+        
+        <h3>10. Element with pointer-events: none - #no_pointer_events_button</h3>
+        <div id="no_pointer_events" style="pointer-events: none;">
+          <button id="no_pointer_events_button">This button ignores pointer events</button>
+        </div>
+        
+        <h3>11. Element with z-index: -1 (behind other elements) - #behind_element</h3>
+        <div style="position: relative;width: 250px; height: 150px;">
+          <div style="position: absolute; width: 100px; height: 100px; background: red; z-index: 1;"></div>
+          <button id="behind_element" style="position: absolute; z-index: -1;">This button is behind another element</button>
+        </div>
+        
+        <h3>12. Element that changes size dynamically - #dynamic_size_button</h3>
+        <div id="dynamic_size_element" style="width: 250px; height: 150px;width: 0; height: 0; transition: all 0.5s ease;">
+          <button id="dynamic_size_button">This button changes size every 2 seconds</button>
+        </div>
+      </section>
+    </div>
+
+    <hr>
+    <br><p></p>
+
+    <div>
+      <section id="Load_with_Delays">
+        <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
+        <br />
+        <div id="5_Second"></div>
+        <br />
+        <div id="10_Second"></div>
+        <br />
+        <div id="20_Second"></div>
+        <br />
+        <div id="30_Second"></div>
+        <br />
+        <div id="40_Second"></div>
+        <br />
+        <h2>This button has show/hide functionality</h2>
+        <div>
+          <button id="show_hide_in_10_10_Secs" style="display: none">
+            This button will shown after 10 seconds of page load, and will be hiden
+            in next 10 seconds
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <hr>
+    <br><p></p>
+
+    
     <section id="lazy_loading">
       <h2>Scroll through a lazy loading table</h2>
       <table>
@@ -204,6 +358,22 @@
         </thead>
         <tbody id="table-body"></tbody>
       </table>
+    </section>
+    <section id="dynamic_forms">
+      <h2>Dynamic Forms</h2>
+      <button id="add_form_btn" title="Add new form">+</button>
+      <div id="forms_container">
+        <div class="card form-card">
+          <div class="form-row">
+            <input type="text" placeholder="First Name" name="first_name" />
+            <input type="text" placeholder="Last Name" name="last_name" />
+          </div>
+          <div class="form-row">
+            <input type="email" placeholder="Email" name="email" />
+            <input type="tel" placeholder="Phone" name="phone" />
+          </div>
+        </div>
+      </div>
     </section>
   </body>
   <script>
@@ -340,5 +510,55 @@
     setTimeout(function () {
       document.getElementById('show_hide_in_10_10_Secs').style.display = 'none';
     }, 20000);
+
+
+    setTimeout(function () {
+      document.getElementById('show_hide_in_10_10_Secs').style.display = 'none';
+    }, 20000);
+    
+    // Element interaction error testing
+    setTimeout(function () {
+      const delayedElement = document.getElementById('delayed_element');
+      delayedElement.style.width = '200px';
+      delayedElement.style.height = '50px';
+    }, 3000);
+    
+    setTimeout(function () {
+      const becomesInteractable = document.getElementById('becomes_interactable');
+      becomesInteractable.style.width = '300px';
+      becomesInteractable.style.height = '50px';
+      becomesInteractable.style.opacity = '1';
+    }, 5000);
+    
+    // Dynamic size element that changes every 2 seconds
+    let dynamicSizeToggle = false;
+    setInterval(function () {
+      const dynamicElement = document.getElementById('dynamic_size_element');
+      if (dynamicSizeToggle) {
+        dynamicElement.style.width = '0';
+        dynamicElement.style.height = '0';
+      } else {
+        dynamicElement.style.width = '250px';
+        dynamicElement.style.height = '50px';
+      }
+      dynamicSizeToggle = !dynamicSizeToggle;
+    }, 2000);
+
+    /* -------------------- Dynamic Forms -------------------- */
+    (function () {
+      const addBtn = document.getElementById('add_form_btn');
+      const formsContainer = document.getElementById('forms_container');
+      if (addBtn && formsContainer) {
+        addBtn.addEventListener('click', function () {
+          const template = document.querySelector('.form-card');
+          if (!template) return;
+          const clone = template.cloneNode(true);
+          clone.querySelectorAll('input').forEach((inp) => (inp.value = ''));
+          formsContainer.appendChild(clone);
+          clone.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+    })();
+
   </script>
 </html>

@@ -139,10 +139,10 @@
 
 <ng-template #expansionTpl let-row>
   <div class="expansion-content">
-    <!-- Loading Spinner -->
+    <!-- Loading Spinner with dynamic message -->
     <app-loading-spinner 
       [isVisible]="file_data[row.id]?.isLoading"
-      [message]="file_data[row.id]?.isLoading ? 'Loading file data...' : 'Processing...'"
+      [message]="getLoadingMessage(row.id)"
       [paddingTop]="20"
       [paddingBottom]="20"
     ></app-loading-spinner>
@@ -180,9 +180,6 @@
       [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
       [noResultTemplate]="noFileDataTpl"
       [showPaginator]="file_data[row.id]?.showPagination"
-      [cellTemplate]="{
-        actions: actionsColumnTpl
-      }"
       (page)="updateFilePagination($event, row)"
       (columnChange)="saveNestedColumnVisibilitySettings($event, row.id)">
     </mtx-grid>
@@ -199,12 +196,14 @@
         </button>
       </div>
       
-      <div class="sheet-tabs-container">
-        <ng-container *ngFor="let sheetName of getSheetNames(row.id)">
+      <div class="sheet-tabs-container" (keydown)="onSheetTabKeydown($event, row.id)">
+        <ng-container *ngFor="let sheetName of getSheetNames(row.id); let i = index">
           <button 
             mat-button 
             class="sheet-tab" 
             [class.active]="getCurrentSheet(row.id) === sheetName"
+            [attr.tabindex]="getCurrentSheet(row.id) === sheetName ? '0' : '-1'"
+            [attr.data-sheet-index]="i"
             (click)="switchSheet(row.id, sheetName)">
             {{ sheetName }}
           </button>
@@ -219,6 +218,8 @@
    <!-- Use the new extractFileIdFromClass method -->
    <div class="editable-cell" 
         (dblclick)="startEdit(extractFileIdFromClass(col.class), index, col.field, dataItem[col.field])" 
+        [contextMenu]="cellContextMenu"
+        [contextMenuValue]="{fileId: extractFileIdFromClass(col.class), rowIndex: index, columnField: col.field}"
         style="min-height: 28px; width: 100%; cursor: text; padding: 2px 5px; overflow: hidden;">
      <!-- Show display text if not editing -->
      <span *ngIf="!isEditing(extractFileIdFromClass(col.class), index, col.field)" class="cell-content">
@@ -240,39 +241,60 @@
    </div>
 </ng-template>
 
-<!-- Actions Column Template -->
-<ng-template #actionsColumnTpl let-dataItem let-col="colDef" let-index="index">
-  <button 
-    type="button" 
-    mat-icon-button 
-    [matMenuTriggerFor]="rowActionsMenu" 
-    aria-label="row actions">
-    <mat-icon>more_vert</mat-icon>
-  </button>
-  <mat-menu #rowActionsMenu="matMenu">
-    <button 
-      type="button" 
-      mat-menu-item 
-      (click)="addRowAbove(extractFileIdFromClass(col.class), index)">
+<!-- Context Menu using ngx-contextmenu like step-editor -->
+<context-menu menuClass="step-contect-menu" #cellContextMenu (show)="onContextMenuShow()" (hide)="onContextMenuHide()">
+  <!-- Row Actions -->
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; addRowAboveContext()">
       <mat-icon>add_circle_outline</mat-icon>
       <span>Add Row Above</span>
-    </button>
-    <button 
-      type="button" 
-      mat-menu-item 
-      (click)="addRowBelow(extractFileIdFromClass(col.class), index)">
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; addRowBelowContext()">
       <mat-icon>add_circle</mat-icon>
       <span>Add Row Below</span>
-    </button>
-    <button 
-      type="button" 
-      mat-menu-item 
-      (click)="deleteRow(extractFileIdFromClass(col.class), index)">
-      <mat-icon>delete</mat-icon>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; cloneRowContext()">
+      <mat-icon>content_copy</mat-icon>
+      <span>Clone Row</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; deleteRowContext()">
+      <mat-icon class="delete">delete</mat-icon>
       <span>Delete Row</span>
-    </button>
-  </mat-menu>
-</ng-template>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem divider="true"></ng-template>
+  <!-- Column Actions -->
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; addColumnLeft()">
+      <mat-icon>view_column</mat-icon>
+      <span>Add Column Left</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; addColumnRight()">
+      <mat-icon>view_column</mat-icon>
+      <span>Add Column Right</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; renameColumnContext()">
+      <mat-icon>edit</mat-icon>
+      <span>Rename Column</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
+    <div (click)="contextMenuFileId = item.fileId; contextMenuRowIndex = item.rowIndex; contextMenuColumnField = item.columnField; deleteColumnContext()">
+      <mat-icon class="delete">delete</mat-icon>
+      <span>Delete Column</span>
+    </div>
+  </ng-template>
+</context-menu>
 
 <!-- No Results templates for files -->
 <ng-template #noFileDataTpl>

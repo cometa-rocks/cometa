@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import {
   UntypedFormGroup,
   UntypedFormBuilder,
@@ -31,6 +31,7 @@ import { DisableAutocompleteDirective } from '../../directives/disable-autocompl
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { InputFocusService } from '../../services/inputFocus.service';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'modify-department',
@@ -101,6 +102,7 @@ export class ModifyDepartmentComponent {
       ],
       result_expire_days: [expireDays],
       queue_name: [this.department.settings?.queue_name || ''],
+      telegram_chat_ids: [this.department.settings?.telegram_chat_ids || ''],
       validate_duplicate_feature_names: [
         this.department.settings?.validate_duplicate_feature_names === true,
       ],
@@ -141,6 +143,10 @@ export class ModifyDepartmentComponent {
   };
 
   modifyDepartment(values) {
+    // Prevent submit if form is invalid or not dirty
+    if (!this.rForm.valid || !this.rForm.dirty) {
+      return;
+    }
     const payload = {
       department_name: values.department_name,
       settings: {
@@ -151,6 +157,7 @@ export class ModifyDepartmentComponent {
           ? values.result_expire_days
           : null,
         queue_name: values.queue_name,
+        telegram_chat_ids: values.telegram_chat_ids,
         validate_duplicate_feature_names: values.validate_duplicate_feature_names,
       },
     };
@@ -177,5 +184,16 @@ export class ModifyDepartmentComponent {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
+      event.preventDefault();
+      if (!this.loading) {
+        // Call the modifyDepartment function with the form values
+        this.modifyDepartment(this.rForm.value);
+      }
+    }
   }
 }

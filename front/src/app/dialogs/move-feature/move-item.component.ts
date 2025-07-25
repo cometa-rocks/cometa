@@ -164,6 +164,7 @@ export class MoveItemDialog {
                 title: 'translate:you_sure.move_feature_title',
                 description: 'translate:you_sure.move_feature',
               } as AreYouSureData,
+              autoFocus: true,
             })
             .afterClosed()
             .subscribe(move => {

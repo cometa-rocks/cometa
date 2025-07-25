@@ -27,6 +27,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseBadRequ
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, \
     get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, \
     get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
@@ -66,6 +67,10 @@ from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
 from modules.container_service.service_manager import DockerServiceManager, ServiceManager
+from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
+import logging
+
+from backend.ee.modules.notification.models import FeatureTelegramOptions
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
 BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_PASSWORD', '')
@@ -305,7 +310,7 @@ def GetStepResultsData(request, *args, **kwargs):
     response = HttpResponse(
         content_type="text/csv",
         headers={
-            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")}.csv"'
+            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{timezone.now().strftime("%Y%m%d%H%M%S")}.csv"'
         },
     )
 
@@ -1003,7 +1008,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                     return {'success': False, 'error': str(err)}
 
     # create a run id for the executed test
-    date_time = datetime.datetime.utcnow()
+    date_time = timezone.now()
     fRun = Feature_Runs(feature=feature, date_time=date_time)
     fRun.save()
 
@@ -1019,9 +1024,15 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # update feature info
     feature.info = fRun
 
-    # Make sure feature files exists
-    steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-    feature.save(steps=list(steps))
+    # Make sure feature files exist - only create if missing to prevent step duplication
+    feature_path = get_feature_path(feature)['fullPath']
+    if not os.path.exists(feature_path + '.feature'):
+        logger.info(f"Feature files missing for {feature_id}, creating them...")
+        steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+        feature.save(steps=list(steps))
+    else:
+        # Files exist, just save feature metadata without regenerating steps
+        feature.save(dontSaveSteps=True)
     json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
@@ -1051,7 +1062,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             # create a feature_result
             feature_result = Feature_result(
                 feature_id_id=feature.feature_id,
-                result_date=datetime.datetime.utcnow(),
+                result_date=timezone.now(),
                 run_hash=run_hash,
                 running=True,
                 network_logging_enabled = feature.network_logging,
@@ -1609,31 +1620,52 @@ def Contact(request):
     return JsonResponse({'success': True})
 
 
-def schedule_update(feature_id, schedule, user_id):
+def schedule_update(feature_id, schedule, user_id, original_cron=None, original_timezone=None):
     features = Feature.objects.filter(pk=feature_id)
+    if not features.exists():
+        logger.error(f"Feature with id {feature_id} not found in schedule_update call.")
+        return None
     feature = features[0]
-    current_schedule = feature.schedule
-    schedule_model = current_schedule
-    if current_schedule and current_schedule.schedule == schedule:
-        logger.info("Same schedule found ... will not update.")
+    current_schedule_model = feature.schedule
+    
+    # Determine if an update is truly needed by comparing all relevant fields:
+    # UTC cron string, original (user-facing) cron string, and original timezone.
+    needs_database_update = True
+    if current_schedule_model:
+        if current_schedule_model.schedule == schedule and \
+           current_schedule_model.original_cron == original_cron and \
+           current_schedule_model.original_timezone == original_timezone:
+            needs_database_update = False
+            
+    if not needs_database_update:
+        logger.info(f"Schedule for feature {feature_id} (schedule ID: {current_schedule_model.id}) is effectively unchanged. "
+                    f"UTC: '{schedule}', Original: '{original_cron} {original_timezone}'. No database update performed.")
+        return current_schedule_model
     else:
-        # Check if new schedule is set
+        # If there's an old schedule model, it needs to be deleted as we're either replacing it or disabling the schedule.
+        if current_schedule_model:
+            logger.info(f"Deleting old schedule (ID: {current_schedule_model.id}) for feature {feature_id} as part of update/disable action.")
+            current_schedule_model.delete()
+
+        # Handle active new schedule: create a new Schedule instance.
         if schedule != 'now' and schedule != "":
-            schedule_model = Schedule.objects.create(
+            logger.info(f"Creating new schedule for feature {feature_id}. "
+                        f"UTC cron: '{schedule}', Original cron: '{original_cron}', Original timezone: '{original_timezone}'.")
+            new_schedule_instance = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
+                original_cron=original_cron,
+                original_timezone=original_timezone,
                 owner_id=user_id, 
                 delete_after_days=0
             )
-            schedule_model.save()
-            features.update(schedule=schedule_model)
-        else:
+            features.update(schedule=new_schedule_instance)
+            logger.info(f"New schedule (ID: {new_schedule_instance.id}) created and assigned to feature {feature_id}.")
+            return new_schedule_instance
+        else: # Handle disabling of schedule (schedule is 'now' or empty).
+            logger.info(f"Disabling schedule for feature {feature_id} (input schedule string: '{schedule}').")
             features.update(schedule=None)
-            schedule_model = None
-
-        if current_schedule:
-            current_schedule.delete()
-    return schedule_model
+            return None
 
 
 @csrf_exempt
@@ -1652,7 +1684,23 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     feature = features[0]
 
     try:
-        schedule_update(feature.pk, schedule, request.session['user']['user_id'])
+        original_cron = schedule
+        original_timezone = data.get('original_timezone', None)
+        schedule_to_store = schedule
+        
+        # Convert to UTC if timezone is provided
+        if original_timezone and original_cron:
+            converted_schedule = convert_cron_to_utc(original_cron, original_timezone)
+            if converted_schedule is not None:
+                schedule_to_store = converted_schedule
+        
+        schedule_update(
+            feature.pk, 
+            schedule_to_store, 
+            request.session['user']['user_id'],
+            original_cron=original_cron,
+            original_timezone=original_timezone
+        )
     except Exception as err:
         return JsonResponse({'success': False, 'error': str(err)})
 
@@ -2016,6 +2064,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
 
+    @require_permissions("change_result_status")
     def patch(self, request, *args, **kwargs):
         # Primary option is from URL param
         feature_result_id = self.kwargs.get('feature_result_id', None)
@@ -2187,10 +2236,9 @@ class StepResultViewSet(viewsets.ModelViewSet):
         step_result = Step_result.objects.create(**data)
         logger.debug("Data saved to Step_result")
         response = StepResultSerializer(step_result, many=False).data
-        logger.debug(f"Response: {response}")
         return JsonResponse(response)
     
-    @require_permissions("change_step_result_status")
+    @require_permissions("change_result_status")
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
         step_result_id = self.kwargs.get('step_result_id', None)
@@ -2224,6 +2272,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants all the step_results related to the feature_result_id
         feature_result_id = self.kwargs.get('feature_result_id', None)
         if feature_result_id:
+            logger.debug(f"StepResultViewSet: Getting list of step results for feature result {feature_result_id}")
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
             queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
@@ -2251,6 +2300,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants to only see that particular step_result
         step_result_id = self.kwargs.get('step_result_id', None)
         if step_result_id:
+            logger.debug(f"StepResultViewSet: Getting details for step result {step_result_id}")
             # if step_result_id was found in the url
             # find the step_result that related to specified step_result_id
             step_result = Step_result.objects.filter(step_result_id=step_result_id)
@@ -2282,6 +2332,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
                 "success": True,
                 "results": StepResultRegularSerializer(step_result, many=False).data
             }
+            logger.debug(f"StepResultViewSet: Sending response for step result {data}")
             # send the response to user.
             return Response(data)
 
@@ -2649,7 +2700,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             generate_dataset=request.data.get('generate_dataset', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
-            last_edited_date=datetime.datetime.utcnow(),
+            last_edited_date=timezone.now(),
             created_by_id=request.session['user']['user_id']
         )
  
@@ -2711,7 +2762,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Retrieve feature model fields
         fields = feature._meta.get_fields()
         # Make some exceptions
-        exceptions = ['feature_id', 'schedule']
+        exceptions = ['feature_id', 'schedule', 'telegram_options']
         # Iterate over each field of model
         for field in fields:
             # Check if the field exists in data payload
@@ -2719,11 +2770,14 @@ class FeatureViewSet(viewsets.ModelViewSet):
                 # Set value into model field with default to previous value
                 setattr(feature, field.name, data.get(field.name, getattr(feature, field.name)))
 
+        # Handle telegram_options separately since it's a OneToOne relationship
+        
+
         """
         Update last edited fields
         """
         feature.last_edited_id = request.session['user']['user_id']
-        feature.last_edited_date = datetime.datetime.utcnow()
+        feature.last_edited_date = timezone.now()
 
         """
         Save submitted feature steps
@@ -2738,12 +2792,78 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save without steps
             result = feature.save()  
 
+        # Only process telegram_options if feature save was successful and feature exists in database
+        if result['success'] and 'telegram_options' in data and feature.feature_id is not None:
+            
+            telegram_data = data['telegram_options']
+            
+            # Get or create telegram options for this feature
+            telegram_options, created = FeatureTelegramOptions.objects.get_or_create(
+                feature=feature,
+                defaults={
+                    'include_department': False,
+                    'include_application': False,
+                    'include_environment': False,
+                    'include_feature_name': False,
+                    'include_datetime': False,
+                    'include_execution_time': False,
+                    'include_browser_timezone': False,
+                    'include_browser': False,
+                    'include_overall_status': False,
+                    'include_step_results': False,
+                    'include_pixel_diff': False,
+                    'include_feature_url': False,
+                    'include_failed_step_details': False,
+                    'attach_pdf_report': False,
+                    'attach_screenshots': False,
+                    'custom_message': '',
+                    'send_on_error': False,
+                    'do_not_use_default_template': False,
+                    'check_maximum_notification_on_error_telegram': False,
+                    'maximum_notification_on_error_telegram': 3,
+                    'number_notification_sent_telegram': 0
+                }
+            )
+            
+            # Update the telegram options with the provided data
+            for key, value in telegram_data.items():
+                if hasattr(telegram_options, key):
+                    # Handle empty strings for integer fields - convert to None
+                    if key in ['override_message_thread_id', 'maximum_notification_on_error_telegram', 'number_notification_sent_telegram']:
+                        if value == '' or value is None:
+                            value = None
+                        elif isinstance(value, str) and value.strip() == '':
+                            value = None
+                    setattr(telegram_options, key, value)
+            
+            # Save the telegram options
+            telegram_options.save()
+            
+            logger.debug(f"Updated telegram options for feature {feature.feature_id}: created={created}")
+
+        
         """
-        Process schedule if requested
+        Process schedule if requested - only if feature save was successful and feature exists in database
         """
-        if 'schedule' in data:
+        if result['success'] and 'schedule' in data and feature.feature_id is not None:
             try:
-                newSchedule = schedule_update(feature.pk, data['schedule'], request.session['user']['user_id'])
+                original_cron = data['schedule']
+                original_timezone = data.get('original_timezone', None)
+                schedule_to_store = data['schedule']
+                
+                # Convert to UTC if timezone is provided
+                if original_timezone and original_cron:
+                    converted_schedule = convert_cron_to_utc(original_cron, original_timezone)
+                    if converted_schedule is not None:
+                        schedule_to_store = converted_schedule
+                
+                newSchedule = schedule_update(
+                    feature.pk, 
+                    schedule_to_store, 
+                    request.session['user']['user_id'],
+                    original_cron=original_cron,
+                    original_timezone=original_timezone
+                )
                 feature.schedule = newSchedule
             except Exception as err:
                 logger.error("Unable to save the schedule...")
@@ -2909,7 +3029,7 @@ class DatasetViewset(viewsets.ModelViewSet):
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")
-        file_name_date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        file_name_date = timezone.now().strftime("%Y%m%d-%H%M%S")
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename=Dataset_{file_name_date}.xlsx'
         # Attach workbook to reponse
@@ -3766,13 +3886,16 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
 
         # get all schedules whom delete date is not due yet
-        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        schedules = Schedule.objects.filter(Q(delete_on__gt=timezone.now()) | Q(delete_on=None))
 
         # save all schedules here
         cronSchedules = []
 
         # loop over all schedules and generate a line of crontab
         for schedule in schedules:
+            # Check if schedule needs DST recalculation
+            recalculate_schedule_if_needed(schedule)
+            
             cronString = "%s %s %s" % (schedule.schedule, schedule.command, schedule.comment)
             cronString = cronString.replace("<jobId>", str(schedule.id))
             cronSchedules.append(cronString)
@@ -3783,6 +3906,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         # get request payload
         data = json.loads(request.body)
+        
         # get the feature
         try:
             fid = int(data['feature'])
@@ -3792,6 +3916,22 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         if not feature.exists():
             return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
+        
+        # Handle timezone conversion if timezone is provided
+        if 'original_timezone' in data and 'schedule' in data:
+            # Store original values
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = data['original_timezone']
+            
+            # Convert to UTC
+            utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
+            if utc_cron is not None:
+                data['schedule'] = utc_cron
+        elif 'schedule' in data:
+            # If no timezone provided, assume UTC and store as original
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = 'UTC'
+        
         # check if id exists in payload else throw error
         try:
             # update data with object recieved as payload
@@ -3807,6 +3947,22 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         # check if id exists in payload else throw error
         if 'id' not in kwargs:
             return JsonResponse({"success": False, "error": "Missing id"}, status=404)
+        
+        # Handle timezone conversion if timezone is provided
+        if 'original_timezone' in data and 'schedule' in data:
+            # Store original values
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = data['original_timezone']
+            
+            # Convert to UTC
+            utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
+            if utc_cron is not None:
+                data['schedule'] = utc_cron
+        elif 'schedule' in data:
+            # If no timezone provided, assume UTC and store as original
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = 'UTC'
+        
         try:
             # update data with object recieved as payload
             Schedule.objects.filter(id=kwargs['id']).update(**data)
@@ -4198,11 +4354,253 @@ def extract_date_from_filename(filename):
     return TIMESTAMP_PATTERN.search(filename).group(1)
 
 
-
-# import EE Modules
 from backend.ee.modules.data_driven.views import (
     DataDrivenViewset,
     DataDrivenFileViewset,
     DataDrivenResultsViewset
 )
 
+
+def health_check(request):
+    """
+    This method checks if the service is up and running.
+    It does so by trying to connect to the database and executing a simple query.
+    If the connection is successful, it returns a JSON response with status "healthy".
+    Otherwise, it returns a JSON response with status "broken" and an error message.
+    """
+    from django.db import connection    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            row = cursor.fetchone()
+        return JsonResponse({ 
+            'status': 'healthy' if row else 'broken',
+            'message': 'Service is up and running.'
+        }, status=200 if row else 500) 
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JsonResponse({ 
+            'status': 'broken', 
+            'message': 'Database connection failed.' 
+        }, status=500)
+
+
+@csrf_exempt
+def ValidateCron(request, *args, **kwargs):
+    """
+    Validate cron expression using backend CronSlices library.
+    This ensures frontend validation matches backend validation.
+    """
+    try:
+        data = json.loads(request.body)
+        cron_expression = data.get('cron_expression', None)
+        
+        if cron_expression is None:
+            return JsonResponse({
+                'success': False, 
+                'valid': False,
+                'error': 'Cron expression not provided.'
+            })
+        
+        # Import CronSlices here since it's used in Schedule model
+        from crontab import CronSlices
+        
+        # Validate using the same method as Schedule model
+        is_valid = CronSlices.is_valid(cron_expression)
+        
+        return JsonResponse({
+            'success': True,
+            'valid': is_valid,
+            'cron_expression': cron_expression
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'valid': False,
+            'error': 'Invalid JSON payload.'
+        })
+    except Exception as err:
+        logger.error(f"Error validating cron expression: {err}")
+        return JsonResponse({
+            'success': False,
+            'valid': False,
+            'error': str(err)
+        })
+
+# ========================= NEW: Schedule for Data-Driven Files =============================
+
+def schedule_update_file(file_id: int, schedule: str, user_id: int, original_cron: str = None, original_timezone: str = None):
+    """Create or update a schedule entry for a data-driven file.
+
+    This mimics schedule_update() but stores the file_id inside Schedule.parameters.
+    """
+    # Remove any existing schedules for this file (soft approach: delete)
+    Schedule.objects.filter(parameters__file_id=file_id).delete()
+
+    if schedule and schedule.lower() not in ("now",):
+        logger.info(f"Creating new data-driven schedule for file {file_id} – schedule '{schedule}' (orig tz={original_timezone})")
+        new_schedule = Schedule.objects.create(
+            feature=None,
+            parameters={"file_id": file_id},
+            schedule=schedule,
+            original_cron=original_cron,
+            original_timezone=original_timezone,
+            owner_id=user_id,
+            delete_after_days=0,
+        )
+        return new_schedule
+    else:
+        # schedule is disabled / empty – nothing else to do
+        logger.info(f"Disabled schedule for data-driven file {file_id} (input schedule string: '{schedule}').")
+        return None
+
+
+@csrf_exempt
+@require_permissions('edit_feature')
+def UpdateFileSchedule(request, file_id, *args, **kwargs):
+    """HTTP handler to get/create/update schedules for data-driven files."""
+    
+    # Validate file exists and user has access
+    try:
+        user_departments = GetUserDepartments(request)
+        _ = File.all_objects.get(pk=file_id, department_id__in=user_departments)
+    except File.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'File not found or access denied.'})
+
+    if request.method == 'GET':
+        # Get existing schedule for the file
+        try:
+            schedule_obj = Schedule.objects.get(parameters__file_id=file_id)
+            return JsonResponse({
+                'success': True,
+                'schedule': schedule_obj.original_cron or schedule_obj.schedule,
+                'original_cron': schedule_obj.original_cron,
+                'original_timezone': schedule_obj.original_timezone
+            })
+        except Schedule.DoesNotExist:
+            return JsonResponse({
+                'success': True,
+                'schedule': '',
+                'original_cron': None,
+                'original_timezone': None
+            })
+    
+    elif request.method in ['POST', 'PATCH']:
+        # Update/create schedule
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON payload.'})
+
+        schedule = data.get('schedule', None)
+        if schedule is None:
+            return JsonResponse({'success': False, 'error': 'Schedule not provided.'})
+
+        original_cron = schedule
+        original_timezone = data.get('original_timezone', None)
+        schedule_to_store = schedule
+
+        # Convert to UTC if timezone provided
+        if original_timezone and original_cron:
+            converted = convert_cron_to_utc(original_cron, original_timezone)
+            if converted is not None:
+                schedule_to_store = converted
+
+        try:
+            schedule_update_file(
+                file_id=file_id,
+                schedule=schedule_to_store,
+                user_id=request.session['user']['user_id'],
+                original_cron=original_cron,
+                original_timezone=original_timezone,
+            )
+        except Exception as err:
+            logger.exception(err)
+            return JsonResponse({'success': False, 'error': str(err)})
+
+        return JsonResponse({'success': True})
+    
+    else:
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
+
+
+@csrf_exempt
+def GetBulkFileSchedules(request):
+    """HTTP handler to get schedule data for multiple files at once."""
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON payload.'})
+    
+    file_ids = data.get('file_ids', [])
+    if not file_ids or not isinstance(file_ids, list):
+        return JsonResponse({'success': False, 'error': 'file_ids must be a non-empty list.'})
+    
+    # Validate user has access to all files
+    try:
+        user_departments = GetUserDepartments(request)
+        accessible_files = File.all_objects.filter(
+            pk__in=file_ids, 
+            department_id__in=user_departments
+        ).values_list('id', flat=True)
+        
+        # Check if all requested files are accessible
+        inaccessible_files = set(file_ids) - set(accessible_files)
+        if inaccessible_files:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Access denied to files: {list(inaccessible_files)}'
+            })
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({'success': False, 'error': 'Error validating file access.'})
+    
+    # Get schedule data for all accessible files
+    try:
+        # Convert file_ids to strings since they're stored as strings in the JSON field
+        file_ids_as_strings = [str(file_id) for file_id in file_ids]
+        
+        # Query for schedules using Django ORM
+        schedules = Schedule.objects.filter(
+            parameters__file_id__in=file_ids_as_strings
+        ).values(
+            'parameters__file_id',
+            'schedule',
+            'original_cron',
+            'original_timezone'
+        )
+        
+        # Create a mapping of file_id to schedule data
+        schedule_data = {}
+        for schedule in schedules:
+            file_id = schedule['parameters__file_id']
+            schedule_data[file_id] = {
+                'schedule': schedule['original_cron'] or schedule['schedule'],
+                'original_cron': schedule['original_cron'],
+                'original_timezone': schedule['original_timezone']
+            }
+        
+        # Add empty entries for files without schedules
+        for file_id in file_ids:
+            file_id_str = str(file_id)  # Convert to string to match database keys
+            if file_id_str not in schedule_data:
+                schedule_data[file_id_str] = {
+                    'schedule': '',
+                    'original_cron': None,
+                    'original_timezone': None
+                }
+        
+        return JsonResponse({
+            'success': True,
+            'schedules': schedule_data
+        })
+        
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({'success': False, 'error': 'Error retrieving schedule data.'})

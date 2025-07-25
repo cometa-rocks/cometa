@@ -1,6 +1,6 @@
 {
-  "version": "3.0.51",
-  "version": "3.0.51",
+  "version": "3.0.78",
+  "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -27,6 +27,9 @@
     "with": "tiles",
     "without": "tiles",
     "folder": "tiles"
+  },
+  "mobileView": {
+    "with": "tiles"
   },
   "internal": {
     "openedMenu": false,
@@ -237,6 +240,337 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.78",
+      "date": "2025-07-22",
+      "features": [
+        {
+          "title": "Step editor improvements - #6608",
+          "description": "Fixed issue on step editor preventing step list from being displayed when adding a new step above."
+        },
+        {
+          "title": "Improvements to Recent Component and Feature Editing",
+          "description": "Changes made to the Recent component and Feature view. It now displays whether the feature sends notifications and if it is connected to Telegram. Checkboxes and buttons are now better organized in the Edit Feature section."
+        }
+      ]
+    },
+    {
+      "version": "3.0.77",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "File uploading status - #6594",
+          "description": "Upgraded 'Status' label in file section to show current status of the file when uploading."
+        }
+      ]
+    },
+    {
+      "version": "3.0.76",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "Enhance APK installation messages - #6580",
+          "description": "Enhanced APK installation messages to provide more detailed information about the installation process."
+        },
+        {
+          "title": "Snackbar visual improvement - #6580",
+          "description": "Fixed issue snackbar displayed behind the edit mobile dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.75",
+      "date": "2025-07-14",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6559",
+          "description": "Add list view to mobile list, add noVNC button to mobile list, add spinner to mobile list, add warning message to mobile list, etc"
+        }
+      ]
+    },
+    {
+      "version": "3.0.74",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Fixed issue with preselected department in user settings,mobile, DDT and Data Driven Execution dialogs - #6462",
+          "description": "Fixed issue with preselected department in user settings, mobile, DDT and Data Driven Execution dialogs"
+        }
+      ]
+    },
+    {
+      "version": "3.0.73",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Pop-up conflict resolution, deprecated use of ngModel",
+          "description": "Fixed the conflict resolution pop-up when closing the edit feature dialog. Deprecated the use of ngModel in the edit feature dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.72",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Pop-up conflict resolution, deprecated use of ngModel",
+          "description": "Fixed the conflict resolution pop-up when closing the edit feature dialog. Deprecated the use of ngModel in the edit feature dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.71",
+      "date": "2025-07-08",
+      "features": [
+        {
+          "title": "Step editor improvements",
+          "description": "Added a tooltip to the select step checkbox in the step editor. When selecting 'Uncheck All Screenshots', all enabled checkboxes will be unchecked."
+        }
+      ]
+    },
+    {
+      "version": "3.0.70",
+      "date": "2025-07-05",
+      "features": [
+        {
+          "title": "Mobile emulator enhancements",
+          "description": "APK list and install logic fail with duplicate names; old file ID is used, UI needs wider dropdown and auto-refresh, etc"
+        }
+      ]
+    },   
+    {
+      "version": "3.0.69",
+      "date": "2025-07-04",
+      "features": [
+        {
+          "title": "Updated Step Context Menu",
+          "description": "The positions of the copy and paste buttons have been changed. A new 'Delete' functionality has been added to remove selected steps. Right-clicking on a step now shows all available options."
+        },
+        {
+          "title": "Schedule data driven tests",
+          "description": "Data driven tests can be scheduled to run at a specific time or date."
+        }
+      ]
+    },
+    {
+      "version": "3.0.68",
+      "date": "2025-06-30",
+      "features": [
+        {
+          "title": "Copy and paste steps functionality",
+          "description": "Added the ability to copy and paste steps in the Step Editor."
+        },
+        {
+          "title": "Improved search file functionality",
+          "description": "Added the ability to search files by name, id, uploaded by, upload path."
+        }
+      ]
+    },
+    {
+      "version": "3.0.67",
+      "date": "2025-06-27",
+      "features": [
+        {
+          "title": "Enable multi-selection of checkboxes via Shift + Click #6514",
+          "description": "Implemented support for selecting multiple checkboxes by holding the Shift key and clicking on another checkbox."
+        }
+      ]
+    },
+    {
+      "version": "3.0.66",
+      "date": "2025-06-25",
+      "features": [
+        {
+          "title": "Enhance step editor layout with new fake columns for documentation #6464",
+          "description": "Adjusted styling for better alignment, including updated padding and flex properties in SCSS for improved responsiveness."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.65",
+      "date": "2025-06-25",
+      "features": [
+        {
+          "title": "Help Shortcuts Table Improvements (#6496)",
+          "description": "Added 'Administration' and 'Create Folder' shortcut tables, unified table width, and sorted tables alphabetically in the help section."
+        }
+      ]
+    },
+    {
+      "version": "3.0.64",
+      "date": "2025-06-24",
+      "features": [
+        {
+          "title": "Refactored user component panel state handling #6491",
+          "description": "Removed try-catch and simplified localStorage sync for panel visibility."
+        }
+      ]
+    },
+    {
+      "version": "3.0.63",
+      "date": "2025-06-24",
+      "features": [
+        {
+          "title": "Resizable steps with multiline support #6461",
+          "description": "Made steps with more than one line resizable. If a step contains multiple lines, its default height is now set to 4x the normal height."
+        }
+      ]
+    },   
+    {
+      "version": "3.0.62",
+      "date": "2025-06-20",
+      "features": [
+        {
+          "title": "Fixed issues in the edit-feature dialog, admin components, main view, etc. #6458",
+          "description": "Added auto-focus to the name input when creating a new feature, highlighted the 'No' button in confirmation dialogs, added Ctrl + Enter shortcut to submit, and more."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.61",
+      "date": "2025-06-19",
+      "features": [
+        {
+          "title": "Auto detect user timezone #6460",
+          "description": "Auto detect user timezone and set it as default timezone for browser container"
+        }
+      ]
+    },
+    {
+      "version": "3.0.60",
+      "date": "2025-06-18",
+      "features": [
+        {
+          "title": "Fix mat-expansion-panel expansion state - #6442",
+          "description": "Fixed the expansion state of the mat-expansion-panel in the Edit Feature dialog, add telegram in user settings"
+        }
+      ]
+    },
+    {
+      "version": "3.0.59",
+      "date": "2025-06-17",
+      "features": [
+        {
+          "title": "Improve variable view for JQ path designing #6451",
+          "description": "Enhanced variable view, to avoid of adding .variable_value while creating jq pattern in the JSON variable view"
+        },
+        {
+          "title": "Small improvements made to step editor",
+          "description": "Step list now can be closed with 'ESC' key & fixed bug when filtering actions in step editor."
+        },
+        {
+          "title": "Enhanced files management with a new menu #6082",
+          "description": "Enhanced files management with a new menu to manage files and data driven files."
+        },
+        {
+          "title": "Fixed error validation for scheduling features #6286",
+          "description": "Cron expression validation error fixed in the scheduling feature"
+        }
+      ]
+    },
+    {
+      "version": "3.0.58",
+      "date": "2025-06-13",
+      "features": [
+        {
+          "title": "Feature reports should be editable by assigned person only #6175",
+          "description": "User role can be created to make sure reports are editable by assigned person only. This is useful to prevent other users from changing the report status."
+        }
+      ]
+    },
+    {
+      "version": "3.0.57",
+      "date": "2025-06-09",
+      "features": [
+        {
+          "title": "Integration of variables in telegram notifications",
+          "description": "Variables now can be used in telegram custom message body e.g. $var_name (will display actual value in message)."
+        },
+        {
+          "title": "Override telegram notification settings per feature", 
+          "description": "Now you can override the telegram notification settings per feature. This is useful if you want to use a different chatbot_token, chat_id and message_thread_id."
+        }
+      ]
+    },
+    {
+      "version": "3.0.56",
+      "date": "2025-06-05",
+      "features": [
+        {
+          "title": "Integrated variables in email templates",
+          "description": "Variables now can be used in email templates message body"
+        },
+        {
+          "title": "Fix (UI) dialogs, edit-variable, step-editor, others - #6352",
+          "description": "Made modifications to the dialogs and fixed bugs in the edit-variables, step editor, main-view components."
+        }
+      ]
+    },
+    {
+      "version": "3.0.55",
+      "date": "2025-06-03",
+      "features": [
+        {
+          "title": "Upgraded NodeJS version - #4229",
+          "description": "Upgraded NodeJS version to from v14 to v18" 
+        },
+        {
+          "title": "Integrated Telegram notifications from Cometa test reports - #6365",
+          "description": "Telegram chat bots are configurable department wise to receive the notifications in Telegram"
+        }
+      ]
+    },
+    {
+      "version": "3.0.54",
+      "date": "2025-05-30",
+      "features": [
+        {
+          "title": "Fix (UI) dialogs, step editor, and live steps, others - #6360",
+          "description": "Dialogs scaling, JS function ellipsis, editor resizing, variable name warning, and status display issues have all been resolved."
+        }
+      ]
+    },
+    {
+      "version": "3.0.53",
+      "date": "2025-05-29",
+      "features": [
+        {
+          "title": "Show the user the different steps grouped by sections - #6328",
+          "description": "Steps section are grouped by category (browser, mobile, API, etc.)"
+        }
+      ]
+    },
+    {
+      "version": "3.0.52",
+      "date": "2025-05-28",
+      "features": [
+        {
+          "title": "Go to Department and Go to Folder buttons in feature list - #6343",
+          "description": "Added Go to Department and Go to Folder buttons in feature list to navigate to the department or folder where the feature is located."
+        },
+        {
+          "title": "Go to Department and Go to Folder buttons in feature list",
+          "description": "Added Go to Department and Go to Folder buttons in feature list to navigate to the department or folder where the feature is located."
+        },
+        {
+          "title": "Fixed the size of the buttons in administration section - #6343",
+          "description": "Fixed the size of the buttons in others section (administration) to be more visible and easier to use."
+        }
+      ]
+    },
+    {
+      "version": "3.0.51",
+      "date": "2025-05-28",
+      "features": [
+        {
+          "title": "Network logging request tracking implemented #6334",
+          "description": "Feature implemented to fetch browser network requests and perform assertions"
+        },
+        {
+          "title": "Mobile step enhancements and renaming for better readability"
+        }
+      ]
+    },
     {
       "version": "3.0.51",
       "date": "2025-05-22",

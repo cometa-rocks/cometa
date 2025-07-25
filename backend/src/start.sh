@@ -71,7 +71,9 @@ if [ "$ENVIRONMENT" = "dev" ]; then
     echo "###################################################"
     echo "Devmode was requested ... starting python manage.py runserver"
     python manage.py runserver 0.0.0.0:8000
+    sleep infinity
 fi
+
 #
 #  Run in VSCode IDE debug mode 
 #
