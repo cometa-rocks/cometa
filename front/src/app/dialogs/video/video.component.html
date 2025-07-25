@@ -9,7 +9,7 @@
 <ng-template #loading>
   <mat-spinner diameter="50" color="primary"></mat-spinner>
 </ng-template>
-<div *ngIf="showHeader$ | async" class="header">
+<div *ngIf="(showHeader$ | async) && result" class="header">
   <div class="left">
     <button
       [matTooltip]="'whats_new.close' | translate | titlecase"
@@ -17,12 +17,12 @@
       mat-icon-button>
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <div class="browser">
+    <div class="browser" *ngIf="result.browser">
       <i [style.backgroundImage]="result.browser | browserIcon"></i>
       {{ result.browser | browserComboText }}
     </div>
   </div>
   <div class="right">
-    <div class="feature-name">{{ result.feature_name }}</div>
+    <div class="feature-name" *ngIf="result.feature_name">{{ result.feature_name }}</div>
   </div>
 </div>
