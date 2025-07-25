@@ -610,13 +610,13 @@
         (closed)="onExpansionChange('5', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <span>Browser selection</span>
+            <span>Device selection</span>
             <ng-container *ngIf="hasSubscription">
               ({{ (browserstackBrowsers | async).length }} selected)
             </ng-container>
           </mat-panel-title>
           <mat-panel-description
-            >Select which browsers will run this feature</mat-panel-description
+            >Configure settings to run this feature</mat-panel-description
           >
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
@@ -624,8 +624,11 @@
             <cometa-browser-selection
               *ngIf="feature | async as feat"
               [feature]="feat"
-              (selectionChange)="
+              (selectionChange)=" 
                 handleBrowserChange($event)
+              "
+              (testSettings)="
+                testConfigurationChange($event)
               "></cometa-browser-selection>
           </ng-container>
           <ng-template #noCloudsAvailable>

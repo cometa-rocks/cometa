@@ -83,6 +83,8 @@ ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_STA
 # setup logging
 logger = logging.getLogger('FeatureExecution')
 
+from backend.behave.cometa_itself.driver_manager import BrowserDriverManager
+
 
 
 
@@ -92,7 +94,7 @@ logger = logging.getLogger('FeatureExecution')
 @done(u'StartBrowser and call URL "{url}"')
 def step_impl(context,url):
     send_step_details(context, 'Loading page')
-    context.browser.get(url)
+    BrowserDriverManager.start_browser(context, url)
 
 # Browse to an URL
 # Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new"

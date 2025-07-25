@@ -33,7 +33,7 @@
         *ngFor="let category of categories | async | keyvalue">
         <i [style.backgroundImage]="category.key | browserIcon"></i>
         <span>{{ category.key | translateName }}</span>
-        <ul *ngIf="(selectedCategory | async) === category.key">
+        <ul *ngIf="(selectedCategory | async) === category.key" >
           <li
             [ngClass]="{ selected: (selectedVersion | async) === version }"
             stopPropagation
@@ -45,9 +45,15 @@
         </ul>
       </li>
     </ul>
+    <h4>Test Configuration</h4>
+    <ul>
+      <li (click)="activeWindow = 'test-configuration'">
+        <span>Settings</span>
+      </li>
+    </ul>
   </div>
   <!-- Available Devices -->
-  <div class="devices">
+  <div class="devices" *ngIf="activeWindow === 'browsers'">
     <div class="selected-and-favs">
       <div class="selected-browsers">
         <h4>Selected browsers</h4>
@@ -221,6 +227,39 @@
         Swipe left or right to view more browsers (if available)
       </div>
     </div>
+  </div>
+  <div class="devices" *ngIf="activeWindow === 'test-configuration'">
+    <div class="selected-and-favs">
+      <div class="selected-browsers">
+      <h4>Configure Test Environment</h4>
+      <br>
+      <!-- Keep other checkboxes in a row -->
+      <mat-checkbox
+        aria-label="Screenshot"
+        color="primary"
+        (change)="onTestConfigurationChange($event.checked, 'disable_legacy_execution')"
+        [matTooltip]="'Disable old way of executing tests'" matTooltipPosition="above"
+        class="screenshot checkbox-blue report_to_email"
+        [checked]="testConfiguration.disable_legacy_execution"
+        > Disable old way of executing tests </mat-checkbox>
+        <br>
+        <br>
+      <mat-form-field appearance="fill" class="">
+        <mat-label
+          > Total number of parallel tests to run
+        </mat-label>
+        <input
+          type="number"
+          matInput
+          [value]="testConfiguration.total_parallel_tests"
+          spellcheck="false"
+          (change)="onTestConfigurationChange($event.target.value, 'total_parallel_tests')"
+          />
+      </mat-form-field>
+    </div>
+    </div>
+    <!-- Browser selection section -->
+    
   </div>
 </ng-container>
 <ng-template #loading>

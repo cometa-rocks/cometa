@@ -142,6 +142,9 @@ export class BrowserSelectionComponent implements OnInit {
   // Whenever the testing cloud control changes will emit the value
   @Output() testingCloud = new EventEmitter<string>();
 
+  // Whenever the testing cloud control changes will emit the value
+  @Output() testSettings = new EventEmitter<TestConfiguration>();
+
   // Used to hold categories on the left panel
   categories = new BehaviorSubject<any>({});
 
@@ -162,6 +165,13 @@ export class BrowserSelectionComponent implements OnInit {
   selectedVersion = new BehaviorSubject<string>('');
 
   browsersSelected = new BehaviorSubject<BrowserstackBrowser[]>([]);
+
+  activeWindow: string = 'browsers';
+
+  testConfiguration: TestConfiguration = {
+    total_parallel_tests: 1,
+    disable_legacy_execution: true,
+  };
 
   ngOnInit() {
     // Auto-detect user's timezone if available in the list
@@ -244,6 +254,19 @@ export class BrowserSelectionComponent implements OnInit {
     } catch (err) {
       this.testing_cloud.setValue('browserstack');
     }
+
+    // Check if feature has a test configuration assigned, fallback is empty object
+    try {
+      this.testConfiguration = this.feature.test_configuration || {
+        total_parallel_tests: 1,
+        disable_legacy_execution: true,
+      };
+    } catch (err) {
+      this.testConfiguration = {
+        total_parallel_tests: 1,
+        disable_legacy_execution: true,
+      };
+    }
   }
 
   browserExpandStatus = {};
@@ -266,6 +289,15 @@ export class BrowserSelectionComponent implements OnInit {
   }
 
   clickOnCategory(key, ev: MouseEvent) {
+    this.activeWindow = 'browsers';
+    if (this.selectedCategory.getValue() === key) {
+      this.selectedCategory.next('');
+    } else {
+      this.selectedCategory.next(key);
+    }
+  }
+
+  clickOnSettings(key, ev: MouseEvent) {
     if (this.selectedCategory.getValue() === key) {
       this.selectedCategory.next('');
     } else {
@@ -311,6 +343,7 @@ export class BrowserSelectionComponent implements OnInit {
 
   // Classify by browser based on the select operating system and version
   processVersion(os: string, version: string, ev?: MouseEvent) {
+    this.activeWindow = 'browsers';
     this.selectedVersion.next(version);
     let browsers = this.categoriesInternal[os][version];
     browsers = classifyByProperty(browsers, 'browser');
@@ -373,6 +406,11 @@ export class BrowserSelectionComponent implements OnInit {
     }
 
     return JSON.stringify(obj);
+  }
+
+  onTestConfigurationChange(value: any, configuration_name: string) {
+    this.testConfiguration[configuration_name] = value;
+    this.testSettings.emit(this.testConfiguration);
   }
 
   // List of timezone supported by selenoid refer https://aerokube.com/selenoid/latest/#_per_session_time_zone_timezone

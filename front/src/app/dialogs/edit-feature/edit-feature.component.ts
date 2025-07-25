@@ -550,6 +550,10 @@ export class EditFeature implements OnInit, OnDestroy {
           Validators.pattern('^[0-9A-Za-z,-/*]+$'),
         ]),
       ],
+      test_configuration: this._fb.group({
+        total_parallel_tests: [1],
+        disable_legacy_execution: [true]
+      })
     });
     // Gets the currently active route
     let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
@@ -927,6 +931,16 @@ export class EditFeature implements OnInit, OnDestroy {
       return offsetMs / (1000 * 60);
     } catch (error) {
       return 0;
+    }
+  }
+
+  testConfigurationChange(testConfiguration: TestConfiguration) {
+    console.log('testConfiguration', testConfiguration);
+    try {
+      this.featureForm.get('test_configuration').setValue(testConfiguration);
+      this.cdr.detectChanges();
+    } catch (error) {
+      this.logger.msg('4', `Error handling test configuration change: ${error}`, 'Test Configuration');
     }
   }
 

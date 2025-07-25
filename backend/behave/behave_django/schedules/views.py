@@ -58,7 +58,7 @@ def run_test(request):
     # logger.debug('Environment Variables: {}'.format(VARIABLES))
     PROXY_USER = request.POST['HTTP_PROXY_USER'] # user who executed the testcase
     logger.debug('Executed By: {}'.format(PROXY_USER))
-    executions = json.loads(request.POST['browsers']) # browsers list of the feature
+    executions = json.loads(request.POST['executions']) # executions list of the feature
     logger.debug('Executions: {}'.format(executions))
     feature_id = request.POST['feature_id'] # id of the feature that is being executed
     logger.debug('Feature id: {}'.format(feature_id))
@@ -66,6 +66,9 @@ def run_test(request):
     logger.debug('Department the feature belongs to: {}'.format(department))
     PARAMETERS = request.POST['parameters'] # job parameters if the job was scheculed using schedule step
     logger.debug('Job Parameters: {}'.format(PARAMETERS)) 
+    # Use new strategy to start execution and disable legacy execution
+    DISABLE_LEGACY_EXECUTION = request.POST['disable_legacy_execution'] 
+    logger.debug('Disable legacy execution: {}'.format(DISABLE_LEGACY_EXECUTION)) 
     
     # assign environment variables to share data between files and threads
     environment_variables = {
@@ -75,7 +78,8 @@ def run_test(request):
         'VARIABLES': VARIABLES,
         'PARAMETERS': PARAMETERS,
         'department': department,
-        'feature_id': feature_id
+        'feature_id': feature_id,
+        'DISABLE_LEGACY_EXECUTION': DISABLE_LEGACY_EXECUTION
     }
 
     # Loads user data
@@ -86,7 +90,7 @@ def run_test(request):
 
     # create a thread for each browser
     for execution in executions:
-        browser = execution['browser']
+        browser = execution.get('browser',{})
         feature_result_id = execution['feature_result_id']
         run_hash = execution['run_hash']
         connection_url = execution['connection_url']
@@ -98,6 +102,7 @@ def run_test(request):
         # send websocket about the feature has been queued
         request = requests.get(f'{get_cometa_socket_url()}/feature/%s/queued' % feature_id, data={
             "user_id": user_data['user_id'],
+            "disable_legacy_execution": DISABLE_LEGACY_EXECUTION,
             "browser_info": browser,
             "network_logging_enabled": network_logging_enabled,
             "feature_result_id": feature_result_id,
@@ -105,7 +110,7 @@ def run_test(request):
             "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         })
         # add missing variables to environment_variables dict
-        environment_variables['NETWORK_LOGGING'] = "Yes" if execution['network_logging_enabled']  else "No"
+        environment_variables['NETWORK_LOGGING'] = "Yes" if execution['network_logging_enabled'] else "No"
         environment_variables['BROWSER_INFO'] = browser
         environment_variables['feature_result_id'] = str(feature_result_id)
         environment_variables['RUN_HASH'] = run_hash

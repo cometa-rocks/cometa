@@ -815,6 +815,7 @@ class Feature(models.Model):
     need_help = models.BooleanField(default=False)
     send_telegram_notification = models.BooleanField(default=False)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
+    test_configuration = models.JSONField(default=dict, blank=True)
     readonly_fields=('feature_id',)
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"

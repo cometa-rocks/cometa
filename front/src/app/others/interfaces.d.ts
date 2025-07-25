@@ -254,6 +254,12 @@ interface Feature {
     override_message_thread_id: number;
   };
   current_folder_id?: number;
+  test_configuration?: TestConfiguration;
+}
+
+interface TestConfiguration {
+  total_parallel_tests: number;
+  disable_legacy_execution: boolean;
 }
 
 interface FeatureRun {

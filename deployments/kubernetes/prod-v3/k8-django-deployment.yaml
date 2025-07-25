@@ -95,6 +95,12 @@ spec:
           value: "cometa-django-service"
         - name: DJANGO_SERVER_PORT
           value: "8000"
+        - name: REDIS_SERVER
+          value: "cometa-redis-service"
+        - name: REDIS_PORT
+          value: "6379" 
+        - name: REDIS_WORKERS
+          value: "10"
         ports:
         - containerPort: 8000
         volumeMounts:
@@ -185,6 +191,12 @@ spec:
         - podSelector:
             matchLabels:
               app: cometa-scheduler-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+        - podSelector:
+            matchLabels:
+              app: cometa-redis-pod
           namespaceSelector:
             matchLabels:
               name: cometa  # Restrict ingress to pods in the 'cometa' namespace
