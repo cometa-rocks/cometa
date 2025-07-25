@@ -503,7 +503,8 @@
   .screenshot,
   .compare,
   .warnings,
-  .select-step {
+  .select-step,
+  .actions {
     @include for-tablet-portrait-up {
       flex: 0 0 80px;
     }
@@ -546,6 +547,15 @@
   .warnings {
     @include for-tablet-portrait-up {
       flex: 0 0 100px;
+      text-align: center;
+    }
+    flex: 0 0 75px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .actions {
+    @include for-tablet-portrait-up {
+      flex: 0 0 80px;
       text-align: center;
     }
     flex: 0 0 75px;
@@ -625,11 +635,12 @@
 .fake-enable,
 .fake-screenshot,
 .fake-compare,
-.fake-hash {
+.fake-hash,
+.fake-actions {
   @include for-tablet-portrait-up {
-    flex: 0 0 90px;
+    flex: 0 0 71.5px;
   }
-  flex: 0 0 75px;
+  flex: 0 0 71.5px;
   text-align: center;
   font-weight: bold;
 }
@@ -644,7 +655,7 @@
   flex-direction: column;
   cursor: pointer;
   align-items: center;
-  flex: 0 0 100px;
+  flex: 0 0 80px;
 }
 
 .stepDescription {
@@ -897,6 +908,35 @@ textarea {
     color: $blue;
   }
 
+}
+
+.actions-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  position: relative;
+  flex: 0 0 80px;
+  min-height: 64px;
+
+  .documentation-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    position: relative;
+    font-size: 16px;
+    color: $blue;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
 }
 
 .disabled-menu-item {

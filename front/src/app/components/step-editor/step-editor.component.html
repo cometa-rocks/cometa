@@ -61,6 +61,10 @@
     <div class="desktop">Status</div>
     <div class="mobile"><i></i></div>
   </div>
+  <div class="actions">
+    <div class="desktop">Actions</div>
+    <div class="mobile"><i></i></div>
+  </div>
 </div>
 <!-- Right click menu -->
 <context-menu menuClass="step-contect-menu" #basicMenu>
@@ -402,6 +406,15 @@
             link
           </i>
         </div>
+        <div class="actions-container">
+          <i 
+            class="documentation-icon material-icons"
+            [matTooltip]="'Toggle step documentation'"
+            matTooltipPosition="above"
+            (click)="toggleStepDocumentation(i)">
+            {{ stepVisible[i] ? 'visibility_off' : 'visibility' }}
+          </i>
+        </div>
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
           <button 
@@ -458,8 +471,7 @@
           </button>
         </mat-menu>
       </div>
-      <div *ngIf="!showHideStepDocumentation">
-        <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
+      <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
           
           <div class="containerFather">
             <div class="fake-drop">
@@ -473,6 +485,8 @@
             <div class="fake-screenshot">
             </div>
             <div class="fake-compare">
+            </div>
+            <div class="fake-actions">
             </div>
             <div class="stepDescriptionExample">
               <p class="stepDescriptionPar">
@@ -513,19 +527,9 @@
                   </i>
                 </a>
               </div>
-              <div class="contentCopy">
-                <div class="containerVisibility" (click)="sendTextareaFocusToParent(false, i)">
-                  <i
-                    class="material-icons visibility_offIcon"
-                    matTooltip="Hide the step documentation"
-                    matTooltipPosition="above">
-                    visibility_off
-                  </i>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
+
       </div>
     </ng-container>
   </ng-container>
@@ -581,19 +585,6 @@
     </mat-menu>
   </div>
   <div class="right">
-    <button
-      type="button"
-      color="primary"
-      (click)="toggleShowHideDoc()"
-      mat-stroked-button
-      class="remove_all"
-      matTooltip="{{ showHideStepDocumentation ? 'Show the step documentation' : 'Hide the step documentation' }}"
-      matTooltipPosition="above">
-      <span class="button-content">
-        <i class="material-icons icon-left">{{ showHideStepDocumentation ? 'visibility' : 'visibility_off' }}</i>
-        <span>Documentation</span>
-      </span>
-    </button>
     <button
       type="button"
       color="primary"

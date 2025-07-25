@@ -1427,7 +1427,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   selectedActionDescription: string = '';
   descriptionText: string = '';
   examplesText: string = '';
-  showHideStepDocumentation: boolean = true;
+
 
   onOptionActivated(event: MatAutocompleteActivatedEvent, index): void {
     if (event && event.option) {
@@ -1468,8 +1468,48 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
 
-  toggleShowHideDoc() {
-    this.showHideStepDocumentation = !this.showHideStepDocumentation
+
+
+  toggleStepDocumentation(index: number) {
+    this.stepVisible[index] = !this.stepVisible[index];
+    
+    // If showing documentation, load documentation data for the step
+    if (this.stepVisible[index]) {
+      const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
+      
+      // If step has content, try to find documentation for it
+      if (stepContent.trim()) {
+        const action = this.actions.find(a => 
+          stepContent.toLowerCase().includes(a.action_name.toLowerCase())
+        );
+        
+        if (action) {
+          // Parse description to separate description and examples
+          const description = action.description || 'No description available';
+          const parts = description.split('Examples:');
+          const descriptionText = parts[0]?.trim() || description;
+          const examplesText = parts[1]?.trim() || 'No examples available';
+          
+          this.stepsDocumentation[index] = {
+            description: descriptionText,
+            examples: examplesText
+          };
+        } else {
+          this.stepsDocumentation[index] = {
+            description: 'No documentation found for this step',
+            examples: 'No examples available'
+          };
+        }
+      } else {
+        // If step is empty, show placeholder documentation
+        this.stepsDocumentation[index] = {
+          description: 'Enter a step to see documentation',
+          examples: 'Examples will appear here when you enter a valid step'
+        };
+      }
+    }
+    
+    this._cdr.detectChanges();
   }
 
   @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
