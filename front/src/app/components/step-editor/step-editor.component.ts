@@ -242,7 +242,63 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(FeaturesState.GetFeaturesAsArray) allFeatures$: Observable<Feature[]>;
 
-  // Shortcut emitter to parent component
+  // Add helper to extract description and examples from raw action description or comments
+  private parseStepDocumentation(rawDescription: string): { description: string; examples: string } {
+    // Handle cases where the description starts with "Exemple:" (misspelled)
+    if (rawDescription.toLowerCase().startsWith('exemple:')) {
+      const parts = rawDescription.split('\n');
+      const firstLine = parts[0];
+      const rest = parts.slice(1).join('\n');
+      
+      // Extract the example from the first line (remove "Exemple: ")
+      const example = firstLine.replace(/^exemple:\s*/i, '').trim();
+      
+      return {
+        description: 'Mobile automation step for connecting to a mobile device or emulator.',
+        examples: example + (rest ? '\n' + rest : '')
+      };
+    }
+    
+    // Handle cases where the description starts with "Example:" (correct spelling)
+    if (rawDescription.toLowerCase().startsWith('example:')) {
+      const parts = rawDescription.split('\n');
+      const firstLine = parts[0];
+      const rest = parts.slice(1).join('\n');
+      
+      // Extract the example from the first line (remove "Example: ")
+      const example = firstLine.replace(/^example:\s*/i, '').trim();
+      
+      return {
+        description: 'Mobile automation step for connecting to a mobile device or emulator.',
+        examples: example + (rest ? '\n' + rest : '')
+      };
+    }
+    
+    // Original logic for standard format
+    const descRegex = /#?\s*Description:\s*(.*?)(?:\n|$)/;
+    const exampleRegex = /#?\s*Example:\s*([\s\S]*)/;
+    const descMatch = rawDescription.match(descRegex);
+    const exampleMatch = rawDescription.match(exampleRegex);
+    let descriptionText: string;
+    if (descMatch) {
+      descriptionText = descMatch[1].trim();
+    } else if (exampleMatch && typeof exampleMatch.index === 'number') {
+      descriptionText = rawDescription.substring(0, exampleMatch.index).trim();
+    } else {
+      descriptionText = rawDescription.trim();
+    }
+    let examplesText = '';
+    if (exampleMatch) {
+      examplesText = exampleMatch[1]
+        .split('\n')
+        .map(line => line.replace(/^#?\s*/, ''))
+        .join('\n')
+        .trim();
+    }
+    return { description: descriptionText, examples: examplesText };
+  }
+
+  // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
     this.textareaFocusToParent.emit(isFocused);
 
@@ -256,47 +312,42 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+      const stepType = stepFormGroup.get('step_type')?.value;
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
 
       if (stepContent === undefined) {
         // Clear description and examples if content is empty
-        this.descriptionText = '';
-        this.examplesText = '';
+        this.stepsDocumentation[index] = { description: '', examples: '' };
         this._cdr.detectChanges();
         return;
       }
 
-      // Find the corresponding action
-      const activatedAction = this.actions.find(action =>
-        action.action_name === stepAction
-      );
-
-      if (activatedAction) {
-        // Assign title and description of the selected action
-        this.selectedActionTitle = activatedAction.action_name;
-        this.selectedActionDescription = activatedAction.description;
-
-        // Remove <br> tags from the description
-        this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
-
-        // Separate description and examples if necessary
-        if (this.selectedActionDescription.includes("Example")) {
-          const parts = this.selectedActionDescription.split("Example:");
-          this.descriptionText = parts[0].trim();
-          this.examplesText = parts[1]?.trim() || '';
-        } else {
-          this.descriptionText = this.selectedActionDescription;
-          this.examplesText = '';
+      // Handle mobile step documentation via new endpoint
+      if (stepType === 'MOBILE') {
+        this._api.getMobileStepDoc(stepAction).subscribe(doc => {
+          this.stepsDocumentation[index] = {
+            description: doc.description,
+            examples: doc.example || ''
+          };
+          this._cdr.detectChanges();
+        });
+      } else {
+        // Find the corresponding action
+        const activatedAction = this.actions.find(action =>
+          action.action_name === stepAction
+        );
+        if (activatedAction) {
+          // Clean HTML breaks
+          const rawDesc = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+          // Parse description and examples
+          const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
+          this.stepsDocumentation[index] = {
+            description: descriptionText,
+            examples: examplesText
+          };
+          this._cdr.detectChanges();
         }
-
-        // Update documentation for this step
-        this.stepsDocumentation[index] = {
-          description: this.descriptionText,
-          examples: this.examplesText
-        };
-
-        this._cdr.detectChanges();
       }
     } else if (!isFocused) {
       if (index !== undefined) {
@@ -304,6 +355,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
     }
   }
+  // ... existing code ...
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
@@ -506,6 +558,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   onStepTextareaClick(event: MouseEvent, index: number) {
     const textarea = event.target as HTMLTextAreaElement;
     const value = textarea.value;
+    // Auto-detect action based on content before the first quote (case-insensitive)
+    const prefix = value.split('"')[0].trim().toLowerCase();
+    console.log('[DEBUG] onStepTextareaClick prefix:', prefix);
+    const activatedAction = this.actions.find(action => {
+      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+      return actionPrefix === prefix;
+    });
+    console.log('[DEBUG] onStepTextareaClick activatedAction:', activatedAction?.action_name);
+    if (activatedAction) {
+      const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+      stepFormGroup.patchValue({ step_action: activatedAction.action_name });
+    }
     let cursorPos = textarea.selectionStart;
 
     // Reset dropdown state – will reopen only if a valid placeholder is found
@@ -913,6 +977,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     }
     
+    // Auto-detect action based on content before the first quote (case-insensitive)
+    const prefix = text.split('"')[0].trim().toLowerCase();
+    console.log('[DEBUG] onTextareaFocus prefix:', prefix);
+    const activatedAction = this.actions.find(action => {
+      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+      return actionPrefix === prefix;
+    });
+    console.log('[DEBUG] onTextareaFocus activatedAction:', activatedAction?.action_name);
+    if (activatedAction) {
+      // Context: immediately after this.stepsForm.at(index).patchValue
+      this.stepsForm.at(index).patchValue({
+        step_action: activatedAction.action_name
+      });
+    }
+
     // Check if the step contains mobile placeholders and auto-open dropdown for the first one
     const textarea = event.target as HTMLTextAreaElement;
     if (textarea) {
@@ -1131,6 +1210,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     }
 
+    // Extract action name from input and update step_action and documentation
+    if (textareaValue) {
+      const detectedAction = this.actions.find(a =>
+        textareaValue.startsWith(a.action_name)
+      );
+      if (detectedAction) {
+        // Update step_action form control
+        this.stepsForm.at(index).get('step_action')?.setValue(detectedAction.action_name);
+      } else {
+        // Clear if no matching action
+        this.stepsForm.at(index).get('step_action')?.setValue('');
+      }
+    }
+
     // Check if step starts with "Run feature with id" or "Run feature with name"
     if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
       // Extract content between quotes
@@ -1186,12 +1279,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.removeLinkIcon(textarea, index);
     }
 
-    if (!textareaValue) {
-      this.stepsDocumentation[index] = {
-        description: '',
-        examples: ''
-      };
-    }
+    // Update documentation automatically when step content changes
+    // This ensures documentation always reflects the original step (without quote modifications)
+    this.loadStepDocumentation(index);
+
+
 
     this._cdr.detectChanges();
 
@@ -1438,7 +1530,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       if (activatedAction) {
         // Assign values for the selected action
         this.selectedActionTitle = activatedAction.action_name;
-        this.selectedActionDescription = activatedAction.description;
+        this.selectedActionDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
 
         // Remove <br> tags from the description
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
@@ -1474,43 +1566,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   toggleStepDocumentation(index: number) {
     this.stepVisible[index] = !this.stepVisible[index];
     
-    // If showing documentation, load documentation data for the step and notify parent
     if (this.stepVisible[index]) {
       // Notify parent to show documentation
       this.sendTextareaFocusToParent(true, index, true);
       
-      const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
-      
-      // If step has content, try to find documentation for it
-      if (stepContent.trim()) {
-        const action = this.actions.find(a => 
-          stepContent.toLowerCase().includes(a.action_name.toLowerCase())
-        );
-        
-        if (action) {
-          // Parse description to separate description and examples
-          const description = action.description || 'No description available';
-          const parts = description.split('Examples:');
-          const descriptionText = parts[0]?.trim() || description;
-          const examplesText = parts[1]?.trim() || 'No examples available';
-          
-          this.stepsDocumentation[index] = {
-            description: descriptionText,
-            examples: examplesText
-          };
-        } else {
-          this.stepsDocumentation[index] = {
-            description: 'No documentation found for this step',
-            examples: 'No examples available'
-          };
-        }
-      } else {
-        // If step is empty, show placeholder documentation
-        this.stepsDocumentation[index] = {
-          description: 'Enter a step to see documentation',
-          examples: 'Examples will appear here when you enter a valid step'
-        };
-      }
+      // Load documentation for this step
+      this.loadStepDocumentation(index);
     } else {
       // If hiding documentation, notify parent
       this.sendTextareaFocusToParent(false, index);
@@ -1930,7 +1991,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (activatedAction) {
       // Asignar título y descripción de la acción seleccionada
       this.selectedActionTitle = activatedAction.action_name;
-      this.selectedActionDescription = activatedAction.description;
+      this.selectedActionDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
 
       // Limpiar las etiquetas <br> de la descripción
       this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
@@ -2525,50 +2586,333 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    */
   toggleAllDocumentation() {
     const shouldShow = !this.areAllDocumentationVisible();
-    
-    this.stepsForm.controls.forEach((control, index) => {
-      if (shouldShow) {
-        // Show documentation for all steps
+
+    this.stepsForm.controls.forEach((_, index) => {
+      const visible = this.stepVisible[index];
+      if (shouldShow && !visible) {
+        // Load documentation for all steps when showing all
+        this.loadStepDocumentation(index);
         this.stepVisible[index] = true;
-        this.sendTextareaFocusToParent(true, index, true);
+      } else if (!shouldShow && visible) {
+        this.stepVisible[index] = false;
+      }
+    });
+
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Extracts the original action name from a step content (ignoring modifications inside quotes)
+   */
+  private extractOriginalActionName(stepContent: string): string {
+    const text = stepContent.trim();
+    if (!text) return '';
+    
+    // Split by quotes and take the first part (before first quote)
+    const parts = text.split('"');
+    const actionPart = parts[0].trim();
+    
+    console.log('[DEBUG] extractOriginalActionName - stepContent:', text);
+    console.log('[DEBUG] extractOriginalActionName - actionPart:', actionPart);
+    
+    return actionPart;
+  }
+
+  /**
+   * Detects if a step is a mobile step based on its content
+   */
+  private isMobileStep(stepContent: string): boolean {
+    const text = stepContent.toLowerCase();
+    // Check for mobile-related keywords and patterns
+    const mobilePatterns = [
+      'mobile',
+      'android',
+      'ios',
+      'app',
+      'device',
+      'capabilities',
+      'start app',
+      'connect to mobile',
+      'start mobile'
+    ];
+    
+    return mobilePatterns.some(pattern => text.includes(pattern));
+  }
+
+  /**
+   * Generates documentation for mobile actions based on their action name
+   */
+  private generateMobileDocumentation(actionName: string): { description: string; examples: string } {
+    const actionNameLower = actionName.toLowerCase();
+    
+    // Start mobile emulator
+    if (actionNameLower.includes('start mobile') && actionNameLower.includes('capabilities')) {
+      return {
+        description: 'Starts a mobile emulator with specified capabilities and references it to a variable for use in mobile automation tests.',
+        examples: 'Start mobile "Android_13.0_API33_x86_64" use capabilities """{"platformName": "Android", "app": "/path/to/app.apk"}""" reference to "myMobile"'
+      };
+    }
+    
+    // Connect to mobile
+    if (actionNameLower.includes('connect to mobile') && actionNameLower.includes('capabilities')) {
+      return {
+        description: 'Connects to an existing mobile device or emulator using specified capabilities and references it to a variable.',
+        examples: 'Connect to mobile "6c7f06630a88" use capabilities """{"platformName": "Android"}""" reference to "myMobile"'
+      };
+    }
+    
+    // Start mobile app
+    if (actionNameLower.includes('on mobile start app')) {
+      return {
+        description: 'Launches a specific mobile application using its package name and activity name on the connected mobile device.',
+        examples: 'On mobile start app "com.example.app" "com.example.app.MainActivity"'
+      };
+    }
+    
+    // Install app
+    if (actionNameLower.includes('install app')) {
+      return {
+        description: 'Installs an APK file on the connected mobile device for testing purposes.',
+        examples: 'Install app "new_app.apk" on mobile'
+      };
+    }
+    
+    // Tap on element
+    if (actionNameLower.includes('on mobile tap on')) {
+      return {
+        description: 'Taps on a specific element in the mobile application using the provided selector.',
+        examples: 'On mobile tap on "~Login Button"'
+      };
+    }
+    
+    // Long press
+    if (actionNameLower.includes('on mobile long press')) {
+      return {
+        description: 'Performs a long press gesture on a specific element in the mobile application.',
+        examples: 'On mobile long press "~Menu Button"'
+      };
+    }
+    
+    // Double tap
+    if (actionNameLower.includes('on mobile double tap on')) {
+      return {
+        description: 'Performs a double tap gesture on a specific element in the mobile application.',
+        examples: 'On mobile double tap on "~Image"'
+      };
+    }
+    
+    // Swipe actions
+    if (actionNameLower.includes('on mobile swipe')) {
+      if (actionNameLower.includes('right')) {
+        return {
+          description: 'Performs a swipe gesture to the right on the mobile screen.',
+          examples: 'On mobile swipe right'
+        };
+      } else if (actionNameLower.includes('left')) {
+        return {
+          description: 'Performs a swipe gesture to the left on the mobile screen.',
+          examples: 'On mobile swipe left'
+        };
+      } else if (actionNameLower.includes('up')) {
+        return {
+          description: 'Performs a swipe gesture upward on the mobile screen.',
+          examples: 'On mobile swipe up'
+        };
+      } else if (actionNameLower.includes('down')) {
+        return {
+          description: 'Performs a swipe gesture downward on the mobile screen.',
+          examples: 'On mobile swipe down'
+        };
+      } else if (actionNameLower.includes('from coordinate')) {
+        return {
+          description: 'Performs a swipe gesture from one coordinate to another on the mobile screen.',
+          examples: 'On mobile swipe from coordinate "100,200" to "300,400"'
+        };
+      }
+    }
+    
+    // Set value
+    if (actionNameLower.includes('on mobile set value')) {
+      return {
+        description: 'Sets a value in a text input field on the mobile application.',
+        examples: 'On mobile set value "test@example.com" in "~Email Input"'
+      };
+    }
+    
+    // Clear textbox
+    if (actionNameLower.includes('on mobile clear textbox')) {
+      return {
+        description: 'Clears the content of a text input field on the mobile application.',
+        examples: 'On mobile clear textbox "~Search Input"'
+      };
+    }
+    
+    // Assert actions
+    if (actionNameLower.includes('on mobile assert if')) {
+      if (actionNameLower.includes('screen contains')) {
+        return {
+          description: 'Asserts that the mobile screen contains specific text or elements.',
+          examples: 'On mobile assert if screen contains "Welcome"'
+        };
+      } else {
+        return {
+          description: 'Asserts a condition on a specific element in the mobile application.',
+          examples: 'On mobile assert if "~Button" is enabled'
+        };
+      }
+    }
+    
+    // Switch to frame
+    if (actionNameLower.includes('on mobile switch to frame')) {
+      return {
+        description: 'Switches the context to an iframe within the mobile application.',
+        examples: 'On mobile switch to frame with id "webview"'
+      };
+    }
+    
+    // Default fallback for unknown mobile actions
+    return {
+      description: `Mobile automation action: ${actionName}`,
+      examples: 'This is a mobile automation step for testing mobile applications'
+    };
+  }
+
+  /**
+   * Loads documentation for a specific step index
+   * Always shows documentation for the original step (without modifications inside quotes)
+   */
+  private loadStepDocumentation(index: number) {
+    const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    const stepType = this.stepsForm.at(index)?.get('step_type')?.value;
+    
+    console.log('[DEBUG] loadStepDocumentation - stepContent:', stepContent);
+    console.log('[DEBUG] loadStepDocumentation - stepType:', stepType);
+    console.log('[DEBUG] loadStepDocumentation - total actions available:', this.actions.length);
+    
+    // Detect if it's a mobile step based on content if stepType is not set correctly
+    const isMobile = stepType === 'MOBILE' || this.isMobileStep(stepContent);
+    console.log('[DEBUG] loadStepDocumentation - isMobile:', isMobile);
+    
+    if (isMobile) {
+      // Extract action name from step content for mobile steps (original without quote modifications)
+      const text = stepContent.trim();
+      if (text) {
+        // Get the part before the first quote (action name)
+        const prefix = text.split('"')[0].trim().toLowerCase();
+        console.log('[DEBUG] loadStepDocumentation mobile prefix:', prefix);
         
-        // Load documentation data for each step
-        const stepContent = control.get('step_content')?.value || '';
-        if (stepContent.trim()) {
-          const action = this.actions.find(a => 
-            stepContent.toLowerCase().includes(a.action_name.toLowerCase())
-          );
+        // Try to find the action by matching the prefix
+        let activatedAction = this.actions.find(action => {
+          const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+          console.log('[DEBUG] loadStepDocumentation comparing:', prefix, 'with', actionPrefix);
+          return actionPrefix === prefix;
+        });
+        
+        // If not found by exact prefix match, try a more flexible search
+        if (!activatedAction) {
+          console.log('[DEBUG] loadStepDocumentation - trying flexible search');
+          activatedAction = this.actions.find(action => {
+            // Check if the action name contains the prefix or vice versa
+            const actionName = action.action_name.toLowerCase();
+            const actionPrefix = actionName.split('"')[0].trim();
+            console.log('[DEBUG] loadStepDocumentation flexible comparing:', prefix, 'with', actionPrefix);
+            return actionPrefix === prefix || actionName.includes(prefix) || prefix.includes(actionPrefix);
+          });
+        }
+        
+        // If still not found, try searching in the full action name
+        if (!activatedAction) {
+          console.log('[DEBUG] loadStepDocumentation - trying full action name search');
+          activatedAction = this.actions.find(action => {
+            const actionName = action.action_name.toLowerCase();
+            console.log('[DEBUG] loadStepDocumentation full search comparing:', prefix, 'with full action:', actionName);
+            return actionName.includes(prefix);
+          });
+        }
+        
+        // Debug: log all mobile actions to see what's available
+        if (!activatedAction) {
+          console.log('[DEBUG] loadStepDocumentation - all available actions:');
+          this.actions.forEach(action => {
+            if (action.action_name.toLowerCase().includes('mobile')) {
+              console.log('[DEBUG] Mobile action found:', action.action_name);
+            }
+          });
+        }
+        
+        console.log('[DEBUG] loadStepDocumentation activatedAction:', activatedAction?.action_name);
+        
+        if (activatedAction) {
+          console.log('[DEBUG] loadStepDocumentation - Using fallback for mobile action:', activatedAction.action_name);
+          console.log('[DEBUG] loadStepDocumentation - activatedAction:', activatedAction);
+          console.log('[DEBUG] loadStepDocumentation - action description:', activatedAction.description);
           
-          if (action) {
-            const description = action.description || 'No description available';
-            const parts = description.split('Examples:');
-            const descriptionText = parts[0]?.trim() || description;
-            const examplesText = parts[1]?.trim() || 'No examples available';
+          // Use fallback directly since the API doesn't exist
+          if (activatedAction.description && activatedAction.description.trim()) {
+            const rawDesc = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+            console.log('[DEBUG] loadStepDocumentation - rawDesc:', rawDesc);
+            const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
+            console.log('[DEBUG] loadStepDocumentation - parsed description:', descriptionText);
+            console.log('[DEBUG] loadStepDocumentation - parsed examples:', examplesText);
             
+            this.stepsDocumentation[index] = {
+              description: descriptionText || 'Documentation loaded from action description',
+              examples: examplesText || 'Examples loaded from action description'
+            };
+          } else {
+            // Generate documentation based on action name for mobile steps
+            console.log('[DEBUG] loadStepDocumentation - No description, generating mobile documentation');
+            const { description: descriptionText, examples: examplesText } = this.generateMobileDocumentation(activatedAction.action_name);
             this.stepsDocumentation[index] = {
               description: descriptionText,
               examples: examplesText
             };
-          } else {
-            this.stepsDocumentation[index] = {
-              description: 'No documentation found for this step',
-              examples: 'No examples available'
-            };
           }
+          console.log('[DEBUG] loadStepDocumentation - Final documentation set:', this.stepsDocumentation[index]);
+          this._cdr.detectChanges();
         } else {
           this.stepsDocumentation[index] = {
-            description: 'Enter a step to see documentation',
-            examples: 'Examples will appear here when you enter a valid step'
+            description: 'No documentation found for this step',
+            examples: 'No examples available'
           };
         }
       } else {
-        // Hide documentation for all steps
-        this.stepVisible[index] = false;
-        this.sendTextareaFocusToParent(false, index);
+        this.stepsDocumentation[index] = {
+          description: 'Enter a step to see documentation',
+          examples: 'Examples will appear here when you enter a valid step'
+        };
       }
-    });
-    
-    this._cdr.detectChanges();
+    } else {
+      // For non-mobile steps, extract documentation using parseStepDocumentation
+      if (stepContent.trim()) {
+        // Find action by matching the original step structure (before quote modifications)
+        const action = this.actions.find(a => {
+          // Check if the step content contains the action name (original structure)
+          return stepContent.toLowerCase().includes(a.action_name.toLowerCase());
+        });
+        
+        if (action) {
+          // Clean HTML breaks and parse documentation
+          const rawDesc = action.description.replace(/<br\s*\/?>/gi, '');
+          const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
+          this.stepsDocumentation[index] = {
+            description: descriptionText || 'No documentation found for this step',
+            examples: examplesText || 'No examples available'
+          };
+        } else {
+          this.stepsDocumentation[index] = {
+            description: 'No documentation found for this step',
+            examples: 'No examples available'
+          };
+        }
+      } else {
+        // If step is empty, show placeholder documentation
+        this.stepsDocumentation[index] = {
+          description: 'Enter a step to see documentation',
+          examples: 'Examples will appear here when you enter a valid step'
+        };
+      }
+    }
   }
 
   /**
