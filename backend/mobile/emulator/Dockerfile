@@ -1,100 +1,65 @@
-# Base image
-# Thanks to https://github.com/amrsa1/Android-Emulator-image
-
+# Base image with Node.js, Appium, etc.
 FROM cometa/appium
 
-# Create a non-root user `cometa`
-RUN useradd -ms /bin/bash cometa
-
-# set directory for sdk 
-WORKDIR /home/cometa/android-sdk
+USER root
 
 # Environment variables for Android SDK
-ENV ANDROID_HOME /home/cometa/android-sdk
-ENV ANDROID_SDK_ROOT /home/cometa/android-sdk
-ENV COMMAND_LINE_TOOLS $ANDROID_SDK_ROOT/cmdline-tools/tools
-ENV ANDROID_COMMAND_LINE_TOOLS="commandlinetools-linux-8512546_latest.zip"
+ENV ANDROID_HOME=/root/android-sdk
+ENV ANDROID_SDK_ROOT=/root/android-sdk
+ENV PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
 
-# Install necessary dependencies
+# Android SDK Command Line Tools ZIP version
+ENV CMDLINE_TOOLS_ZIP=commandlinetools-linux-8512546_latest.zip
+ENV CMDLINE_TOOLS_DIR=$ANDROID_HOME/cmdline-tools
+
+# Install dependencies
 RUN apt-get update && \
-    apt-get install -y wget unzip openjdk-11-jdk lib32stdc++6 lib32z1 libvirt-daemon-system libvirt-clients bridge-utils lib32stdc++6 lib32z1 \
-    qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils \
-    x11vnc xvfb fluxbox novnc websockify git ffmpeg jq && \
-    apt-get clean
+    apt-get install -y wget unzip openjdk-11-jdk \
+    lib32stdc++6 lib32z1 qemu-kvm \
+    libvirt-daemon-system libvirt-clients bridge-utils \
+    x11vnc xvfb fluxbox novnc websockify \
+    git ffmpeg jq xterm && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ENV COMMAND_LINE_TOOLS $ANDROID_SDK_ROOT/cmdline-tools
-# Install Android SDK
-RUN mkdir -p $COMMAND_LINE_TOOLS && \
-    cd $COMMAND_LINE_TOOLS && \
-    echo $COMMAND_LINE_TOOLS && \
-    wget https://dl.google.com/android/repository/${ANDROID_COMMAND_LINE_TOOLS} -O tools.zip && \
-    unzip tools.zip -d $COMMAND_LINE_TOOLS && \
-    mv $COMMAND_LINE_TOOLS/cmdline-tools/ $COMMAND_LINE_TOOLS/tools && \
-    ls -al $COMMAND_LINE_TOOLS && \
-    rm tools.zip && \
-    ls -al $COMMAND_LINE_TOOLS && \
-    cd -
+# Download and install command line tools
+RUN mkdir -p ${CMDLINE_TOOLS_DIR} && \
+    cd ${CMDLINE_TOOLS_DIR} && \
+    wget https://dl.google.com/android/repository/${CMDLINE_TOOLS_ZIP} -O tools.zip && \
+    unzip tools.zip -d ./ && \
+    mv cmdline-tools latest && \
+    rm tools.zip
 
-ENV PATH $PATH:$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/tools:$ANDROID_SDK_ROOT/tools/bin:$ANDROID_SDK_ROOT/platform-tools:$COMMAND_LINE_TOOLS/tools/bin
+# Install emulator, platform tools, system image and build tools
+ARG API_LEVEL=34
+ARG ARCH=x86_64
+ARG TARGET=google_apis
+ARG BUILD_TOOLS=34.0.0
+ARG PLATFORM_VERSION=android-${API_LEVEL}
+ARG SYSTEM_IMAGE="system-images;${PLATFORM_VERSION};${TARGET};${ARCH}"
+ARG PLATFORM="platforms;${PLATFORM_VERSION}"
+ARG BUILD_TOOLS_PKG="build-tools;${BUILD_TOOLS}"
 
-RUN echo ${ARCH}
-RUN echo ${TARGET}
-RUN echo ${API_LEVEL}
-RUN echo ${BUILD_TOOLS}
-RUN echo ${ANDROID_API_LEVEL}
 
-ARG ARCH="x86_64" 
-ARG TARGET="google_apis"  
-ARG API_LEVEL="30" 
-ARG BUILD_TOOLS="34.0.0"
-ARG ANDROID_API_LEVEL="android-${API_LEVEL}"
-ARG ANDROID_APIS="${TARGET};${ARCH}"
-ARG EMULATOR_PACKAGE="system-images;${ANDROID_API_LEVEL};${ANDROID_APIS}"
-ARG PLATFORM_VERSION="platforms;${ANDROID_API_LEVEL}"
-ARG BUILD_TOOL="build-tools;${BUILD_TOOLS}"
-ARG ANDROID_SDK_PACKAGES="${EMULATOR_PACKAGE} ${PLATFORM_VERSION} ${BUILD_TOOL} platform-tools emulator"
+RUN yes | sdkmanager --licenses && \
+    sdkmanager --sdk_root=${ANDROID_HOME} --no_https \
+      "platform-tools" \
+      "emulator" \
+      "${PLATFORM}" \
+      "${SYSTEM_IMAGE}" \
+      "${BUILD_TOOLS_PKG}"
 
-RUN echo ${ARCH}
-RUN echo ${TARGET}
-RUN echo ${API_LEVEL}
-RUN echo ${BUILD_TOOLS}
-RUN echo ${ANDROID_API_LEVEL}
+# Set working directory
+WORKDIR /app
 
-# Set up Android SDK
-RUN yes | sdkmanager --sdk_root=${ANDROID_HOME} --licenses
-# Download the required tools SDK
-RUN yes Y | sdkmanager --sdk_root=${ANDROID_HOME} --verbose --no_https ${ANDROID_SDK_PACKAGES} 
-
-# RUN sdkmanager --sdk_root=${ANDROID_HOME} "platform-tools" "$PLATFORM_VERSION" "system-images;$ANDROID_API_LEVEL;google_apis;x86_64" "emulator"
-
-ARG EMULATOR_NAME="nexus"
-ARG EMULATOR_DEVICE="Nexus 6"
-ENV EMULATOR_NAME=${EMULATOR_NAME}
-ENV DEVICE_NAME=${EMULATOR_DEVICE}
-ENV ANDROID_API_LEVEL=${ANDROID_API_LEVEL}
-ENV TARGET=${TARGET}
-ENV ARCH=${ARCH}
-# Create AVD
-RUN echo "no" | avdmanager create avd --force --name "${EMULATOR_NAME}" --device "${EMULATOR_DEVICE}" --package "${EMULATOR_PACKAGE}" 
-
-WORKDIR /root/.android/avd/${EMULATOR_NAME}.avd
-
-RUN ls -al
-
-# RUN sed -i '/hw.ramSize/d;s/^$/hw.ramSize=4096/g' /root/.android/avd/${EMULATOR_NAME}.avd/config.ini
-# Remove any line containing hw.ramSize
-RUN sed -i '/^hw\.ramSize/d' "/root/.android/avd/${EMULATOR_NAME}.avd/config.ini"
-
-# Add the new hw.ramSize line
-RUN echo "hw.ramSize = 2048" >> "/root/.android/avd/${EMULATOR_NAME}.avd/config.ini"
-
-# Copy the current directory contents into the container at /app
+# Copy your project files including start.sh, supervisor, etc.
 COPY . /app
 
-# Expose ports needed by the emulator
-EXPOSE 6080 5900 
+# Make sure start.sh is executable
+RUN chmod +x /app/start.sh
+RUN chmod +x /app/scripts/video_recorder.sh
 
+# Expose ports (VNC, noVNC)
+EXPOSE 6080 5900
 
-# Run ollama when the container launches
+# Entry point is still supervisord (optional — can override with CMD)
 ENTRYPOINT ["supervisord", "-c", "/app/supervisor/supervisord.conf"]
-
