@@ -574,7 +574,46 @@ def normalize_variable_step(context, variable_name, variable):
     send_step_details(context, f'Normalized value of {variable_name} stored in {variable}')
     addTestRuntimeVariable(context, variable, normalized_value, save_to_step_report=True)
     
-
+    
+# Step to parse a value to a specific type and store the result in a new variable
+# Example:
+# Parse value "123" to "int" and store in "parsed_value"
+# Parse value "123.45" to "float" and store in "parsed_value"
+# Parse value "true" to "boolean" and store in "parsed_value"
+# Parse value "123" to "string" and store in "parsed_value"
+# Parse value "123" to "byte" and store in "parsed_value"
+@step(u'Parse value "{value}" to "{target_type}" and store in "{variable}"')
+@done(u'Parse value "{value}" to "{target_type}" and store in "{variable}"')
+def parse_value_to_type(context, value: str, target_type: str, variable: str):
+    """
+    Parses a string value into the specified type.
+    
+    Supported types: int, float, double, string, byte, boolean
+    """
+    target_type = target_type.lower()
+    new_value = value
+    if target_type == "int":
+        new_value = int(value)
+    elif target_type in ("float", "double"):
+        new_value = float(value)
+    elif target_type == "string":
+        new_value = str(value)
+    elif target_type == "byte":
+        # Converts string to bytes using UTF-8
+        new_value = bytes(value, encoding="utf-8")
+    elif target_type == "boolean":
+        val = value.strip().lower()
+        if val in ("true", "1", "yes", "y"):
+            new_value = True
+        elif val in ("false", "0", "no", "n"):
+            new_value = False
+        else:
+            raise ValueError(f"Cannot convert '{value}' to boolean.")
+    else:
+        raise TypeError(f"Unsupported target type: {target_type}")
+    
+    addTestRuntimeVariable(context, variable, str(new_value), save_to_step_report=True)
+    
     
 # Step to parse a value to a specific type and store the result in a new variable
 # Example:

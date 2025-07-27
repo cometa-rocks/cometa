@@ -35,11 +35,14 @@
       font-weight: bold;
       color: $column-header-dark;
       z-index: 4 !important;
+      text-align: center;
+      vertical-align: middle;
       &:not(:first-child):not(:last-child):hover {
         background-color: $high-black-opaque;
       }
       &.name {
         border-right: none !important;
+        text-align: left;
       }
       mat-icon {
         display: none;
@@ -71,6 +74,8 @@
     font-weight: bold;
     color: $dark;
     text-align: center;
+    vertical-align: middle;
+    padding: 8px 5px;
     &.name {
       text-align: left;
       border-right: none !important;
@@ -89,6 +94,7 @@
 
     .time {
       color: $text-pink;
+      font-weight: 500;
     }
   }
   th,
@@ -143,11 +149,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   .mat-icon {
-    margin-right: 5px;
+    margin-right: 0;
   }
   &::ng-deep .mat-progress-spinner {
-    margin-right: 10px;
+    margin-right: 5px;
   }
   &.success {
     color: $good;
@@ -158,10 +165,14 @@
   &.failed {
     color: $remove;
   }
+  &.canceled {
+    color: $remove;
+  }
   span {
     display: inline-block;
-    width: 60px;
-    text-align: left;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 500;
   }
 }
 
@@ -206,5 +217,14 @@
 
 ::ng-deep .mat-option-text {
   font-size: 16px;
+}
+
+// Simple and effective header centering
+:host ::ng-deep .mtx-grid table thead th {
+  text-align: center !important;
+}
+
+:host ::ng-deep .mtx-grid table thead th.name {
+  text-align: left !important;
 }
 

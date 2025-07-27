@@ -29,11 +29,17 @@ export class FileUploadService {
     this.setTempFiles([...files], department, user);
 
     // starts websocket comunication for each uploaded file
-    this._api.uploadFiles(formData).subscribe();
+    this._api.uploadFiles(formData).subscribe({
+      error: (error) => {
+        console.error('File upload error:', error);
+        // On upload error, update status of uploading files to Error
+        this.handleUploadError(files, department);
+      }
+    });
   }
 
   // temporarilty inserts uploaded files into department state, temporary files contain information received from file input event
-  private setTempFiles(files: File[], department: Department, user) {
+  private setTempFiles(files: File[], department: any, user: any) {
     const payload = {
       files: [...this.getTempFilesInfo(files, user), ...department.files],
     } as any;
@@ -69,9 +75,27 @@ export class FileUploadService {
       name: user.name,
     };
     uploadedFile.created_on = new Date().toJSON();
-    uploadedFile.status = 'Unknown';
+    uploadedFile.status = 'Uploading';
 
     return uploadedFile;
+  }
+
+  // Handle upload errors by updating file status to Error
+  private handleUploadError(files: File[], department: any) {
+    const fileNames = files.map(f => f.name);
+    const updatedFiles = department.files.map((file: any) => {
+      if (fileNames.includes(file.name) && file.status === 'Uploading') {
+        return { ...file, status: 'Error' };
+      }
+      return file;
+    });
+
+    const payload = { files: updatedFiles };
+    this._store.dispatch(
+      new Departments.UpdateDepartment(department.department_id, payload)
+    );
+
+    this._snack.open('Upload failed. Please try again.', 'OK', { duration: 5000 });
   }
 
   // constantly observes if specific department contains any file with property 'error', if so:  informs user with snackbar, removes file and actualizes department's state

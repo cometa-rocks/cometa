@@ -288,7 +288,7 @@ def addVariable(context, variable_name, result, encrypted=False, save_to_step_re
 # check if encrypted
 def returnDecrypted(value):
     # encrypted string start
-
+    value = str(value)
     if value.startswith(ENCRYPTION_START):
         value = decrypt(value)
         # append value to be masked in logger
@@ -480,14 +480,11 @@ def done(*_args, **_kwargs):
                             # Then use lambda to avoid re.sub interpreting escape sequences
                             safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
                             kwargs[parameter] = re.sub(pattern, lambda m: safe_value, parameter_value)
-
-                        # logger.debug(f"parameter_value {parameter_value}")
                         parameter_value = parameter_value.replace(("$%s" % variable_name), returnDecrypted(env_var["variable_value"]))
-                        # logger.debug(f"parameter_value {parameter_value} after replace")
 
                     # Assign back parameter_value value to kwargs[parameter] which will be passed in the step parameter
                     kwargs[parameter] = parameter_value
-                    # logger.debug(f"kwargs[parameter] {kwargs[parameter]}")
+                            
                     # replace job parameters
                     for (
                         parameter_key

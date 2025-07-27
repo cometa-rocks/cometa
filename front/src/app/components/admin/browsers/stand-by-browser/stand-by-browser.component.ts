@@ -26,7 +26,6 @@ import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
 import { StandByBrowserHeaderComponent } from './stand-by-browser-header /stand-by-browser-header.component';
-
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { SlicePipe } from '@angular/common';
@@ -141,6 +140,15 @@ export class StandByBrowserComponent{
     }
   }
 
-
+  hasValue(data: any): boolean {
+    if (Array.isArray(data)) {
+      return data.length > 0;
+    } else if (typeof data === 'object' && data !== null) {
+      return Object.keys(data).length > 0;
+    } else if (typeof data === 'string') {
+      return data.trim().length > 0;
+    }
+    return !!data;
+  }
 
 }
