@@ -545,7 +545,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._api.getContainersList().subscribe((containers: any[]) => { // Changed type to any[] to avoid import issues
       this.runningMobiles = containers.filter(c => c.service_status === 'Running');
       // Debug: Log the runningMobiles array
-      console.log('[DEBUG] fetchRunningMobiles - runningMobiles:', this.runningMobiles);
+
       this._cdr.detectChanges();
     });
   }
@@ -560,12 +560,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const value = textarea.value;
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = value.split('"')[0].trim().toLowerCase();
-    console.log('[DEBUG] onStepTextareaClick prefix:', prefix);
     const activatedAction = this.actions.find(action => {
       const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
       return actionPrefix === prefix;
     });
-    console.log('[DEBUG] onStepTextareaClick activatedAction:', activatedAction?.action_name);
     if (activatedAction) {
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
       stepFormGroup.patchValue({ step_action: activatedAction.action_name });
@@ -940,13 +938,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Ignore focus events during autocomplete selection to prevent interference
     if (this.isAutocompleteSelectionInProgress) {
-      console.log('Ignoring focus event during autocomplete selection, index:', index);
+
       return;
     }
     
     // Set the current focused step index for the shared autocomplete
     this.currentFocusedStepIndex = index;
-    console.log('onTextareaFocus - Setting currentFocusedStepIndex to:', index);
+
     
     // Inform parent of focus (without showing documentation)
     this.sendTextareaFocusToParent(true, index, false);
@@ -979,12 +977,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = text.split('"')[0].trim().toLowerCase();
-    console.log('[DEBUG] onTextareaFocus prefix:', prefix);
-    const activatedAction = this.actions.find(action => {
-      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
-      return actionPrefix === prefix;
-    });
-    console.log('[DEBUG] onTextareaFocus activatedAction:', activatedAction?.action_name);
+          const activatedAction = this.actions.find(action => {
+        const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+        return actionPrefix === prefix;
+      });
     if (activatedAction) {
       // Context: immediately after this.stepsForm.at(index).patchValue
       this.stepsForm.at(index).patchValue({
@@ -1279,9 +1275,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.removeLinkIcon(textarea, index);
     }
 
-    // Update documentation automatically when step content changes
-    // This ensures documentation always reflects the original step (without quote modifications)
-    this.loadStepDocumentation(index);
+    // Only update documentation if it's currently visible and the step action has changed
+    // This prevents clearing documentation when user modifies content between quotes
+    const currentStepAction = this.stepsForm.at(index).get('step_action')?.value;
+    const previousStepAction = this.stepsForm.at(index).get('step_action')?.value;
+    
+    // Only reload documentation if the step action has actually changed
+    // or if documentation is visible but not yet loaded
+    if (this.stepVisible[index] && (!this.stepsDocumentation[index] || 
+        this.stepsDocumentation[index].description === 'No documentation found for this step')) {
+      this.loadStepDocumentation(index);
+    }
+    
+
 
 
 
@@ -1409,7 +1415,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     let targetIndex = this.currentFocusedStepIndex ?? index;
     
     // Debug logging
-    console.log('selectFirstVariable - currentFocusedStepIndex:', this.currentFocusedStepIndex, 'index:', index, 'targetIndex:', targetIndex);
+
     
     // Validate that the target index is within bounds
     if (targetIndex < 0 || targetIndex >= this.stepsForm.length) {
@@ -1432,7 +1438,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // If we found a focused textarea, use its index instead
     if (actuallyFocusedIndex !== -1) {
-      console.log('Found actually focused textarea at index:', actuallyFocusedIndex, 'using this instead of:', targetIndex);
+      
       targetIndex = actuallyFocusedIndex;
     } else {
       console.warn('No focused textarea found, using targetIndex:', targetIndex);
@@ -1510,7 +1516,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       // Reset the flag after autocomplete selection is complete
       setTimeout(() => {
         this.isAutocompleteSelectionInProgress = false;
-        console.log('Autocomplete selection completed, flag reset');
+    
       }, 100);
     });
   }
@@ -1869,7 +1875,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       // Double-check that the correct textarea is still focused
       const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
       if (currentFocusedTextarea === textarea) {
-        console.log('Opening autocomplete for textarea at index:', stepIndex);
+    
         
         // Reset autocomplete filtering to show all actions for new steps
         const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
@@ -1888,7 +1894,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   addEmpty(index: number = -1, openAutocomplete: boolean = false) {
-    console.log('addEmpty called with index:', index, 'openAutocomplete:', openAutocomplete);
+
     
     const template = this._fb.group({
       enabled: [true],
@@ -1912,7 +1918,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._cdr.detectChanges();
     
     const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
-    console.log('addEmpty - stepIndex calculated:', stepIndex, 'total steps:', this.stepsForm.length);
+
     
     // Focus and open autocomplete with proper timing
     setTimeout(() => {
@@ -1923,7 +1929,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         if (textarea) {
           // Set the current focused step index right before focusing
           this.currentFocusedStepIndex = stepIndex;
-          console.log('addEmpty - Setting currentFocusedStepIndex to:', stepIndex, 'in ViewChildren path');
+  
           textarea.focus();
           
           // Open autocomplete if requested
@@ -1938,7 +1944,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         if (textarea) {
           // Set the current focused step index right before focusing
           this.currentFocusedStepIndex = stepIndex;
-          console.log('addEmpty - Setting currentFocusedStepIndex to:', stepIndex, 'in fallback path');
+  
           textarea.focus();
           
           // Open autocomplete if requested
@@ -2612,8 +2618,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const parts = text.split('"');
     const actionPart = parts[0].trim();
     
-    console.log('[DEBUG] extractOriginalActionName - stepContent:', text);
-    console.log('[DEBUG] extractOriginalActionName - actionPart:', actionPart);
+
     
     return actionPart;
   }
@@ -2785,13 +2790,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
     const stepType = this.stepsForm.at(index)?.get('step_type')?.value;
     
-    console.log('[DEBUG] loadStepDocumentation - stepContent:', stepContent);
-    console.log('[DEBUG] loadStepDocumentation - stepType:', stepType);
-    console.log('[DEBUG] loadStepDocumentation - total actions available:', this.actions.length);
-    
     // Detect if it's a mobile step based on content if stepType is not set correctly
     const isMobile = stepType === 'MOBILE' || this.isMobileStep(stepContent);
-    console.log('[DEBUG] loadStepDocumentation - isMobile:', isMobile);
     
     if (isMobile) {
       // Extract action name from step content for mobile steps (original without quote modifications)
@@ -2799,61 +2799,36 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       if (text) {
         // Get the part before the first quote (action name)
         const prefix = text.split('"')[0].trim().toLowerCase();
-        console.log('[DEBUG] loadStepDocumentation mobile prefix:', prefix);
         
         // Try to find the action by matching the prefix
         let activatedAction = this.actions.find(action => {
           const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
-          console.log('[DEBUG] loadStepDocumentation comparing:', prefix, 'with', actionPrefix);
           return actionPrefix === prefix;
         });
         
         // If not found by exact prefix match, try a more flexible search
         if (!activatedAction) {
-          console.log('[DEBUG] loadStepDocumentation - trying flexible search');
           activatedAction = this.actions.find(action => {
             // Check if the action name contains the prefix or vice versa
             const actionName = action.action_name.toLowerCase();
             const actionPrefix = actionName.split('"')[0].trim();
-            console.log('[DEBUG] loadStepDocumentation flexible comparing:', prefix, 'with', actionPrefix);
             return actionPrefix === prefix || actionName.includes(prefix) || prefix.includes(actionPrefix);
           });
         }
         
         // If still not found, try searching in the full action name
         if (!activatedAction) {
-          console.log('[DEBUG] loadStepDocumentation - trying full action name search');
           activatedAction = this.actions.find(action => {
             const actionName = action.action_name.toLowerCase();
-            console.log('[DEBUG] loadStepDocumentation full search comparing:', prefix, 'with full action:', actionName);
             return actionName.includes(prefix);
           });
         }
         
-        // Debug: log all mobile actions to see what's available
-        if (!activatedAction) {
-          console.log('[DEBUG] loadStepDocumentation - all available actions:');
-          this.actions.forEach(action => {
-            if (action.action_name.toLowerCase().includes('mobile')) {
-              console.log('[DEBUG] Mobile action found:', action.action_name);
-            }
-          });
-        }
-        
-        console.log('[DEBUG] loadStepDocumentation activatedAction:', activatedAction?.action_name);
-        
         if (activatedAction) {
-          console.log('[DEBUG] loadStepDocumentation - Using fallback for mobile action:', activatedAction.action_name);
-          console.log('[DEBUG] loadStepDocumentation - activatedAction:', activatedAction);
-          console.log('[DEBUG] loadStepDocumentation - action description:', activatedAction.description);
-          
           // Use fallback directly since the API doesn't exist
           if (activatedAction.description && activatedAction.description.trim()) {
             const rawDesc = activatedAction.description.replace(/<br\s*\/?>/gi, '');
-            console.log('[DEBUG] loadStepDocumentation - rawDesc:', rawDesc);
             const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
-            console.log('[DEBUG] loadStepDocumentation - parsed description:', descriptionText);
-            console.log('[DEBUG] loadStepDocumentation - parsed examples:', examplesText);
             
             this.stepsDocumentation[index] = {
               description: descriptionText || 'Documentation loaded from action description',
@@ -2861,14 +2836,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
             };
           } else {
             // Generate documentation based on action name for mobile steps
-            console.log('[DEBUG] loadStepDocumentation - No description, generating mobile documentation');
             const { description: descriptionText, examples: examplesText } = this.generateMobileDocumentation(activatedAction.action_name);
             this.stepsDocumentation[index] = {
               description: descriptionText,
               examples: examplesText
             };
           }
-          console.log('[DEBUG] loadStepDocumentation - Final documentation set:', this.stepsDocumentation[index]);
           this._cdr.detectChanges();
         } else {
           this.stepsDocumentation[index] = {
@@ -2886,10 +2859,22 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       // For non-mobile steps, extract documentation using parseStepDocumentation
       if (stepContent.trim()) {
         // Find action by matching the original step structure (before quote modifications)
-        const action = this.actions.find(a => {
+        let action = this.actions.find(a => {
           // Check if the step content contains the action name (original structure)
           return stepContent.toLowerCase().includes(a.action_name.toLowerCase());
         });
+        
+        // If not found, try more flexible matching for browser/URL actions
+        if (!action) {
+          const stepLower = stepContent.toLowerCase();
+          action = this.actions.find(a => {
+            const actionLower = a.action_name.toLowerCase();
+            // Check for browser-related keywords
+            return (stepLower.includes('startbrowser') && actionLower.includes('startbrowser')) ||
+                   (stepLower.includes('url') && actionLower.includes('url')) ||
+                   (stepLower.includes('browser') && actionLower.includes('browser'));
+          });
+        }
         
         if (action) {
           // Clean HTML breaks and parse documentation
@@ -2900,6 +2885,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
             examples: examplesText || 'No examples available'
           };
         } else {
+
+          
           this.stepsDocumentation[index] = {
             description: 'No documentation found for this step',
             examples: 'No examples available'
