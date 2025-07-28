@@ -2825,29 +2825,6 @@ export class EditFeature implements OnInit, OnDestroy {
   }
   
   loadBackupFiles() {
-    // const featureId = this.data.feature.feature_id;
-    // //Check if feature is not new
-    // if (featureId && featureId > 0) {
-    //   //Set up the pipe work to get the backup files
-    //   this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
-    //     map(response => response.files),
-    //     catchError(error => {
-    //       this._snackBar.open('Failed to load backup files', 'OK', { duration: 5000 });
-    //       return of([]);
-    //     })
-    //   );
-    //   //Subscribe to the backup files and get both filenames and contents
-    //   this.backupFiles$.subscribe((files: BackupFile[]) => {
-    //     this.files = files.map(file => file.filename);
-    //     this.fileContents = files.map(file => file.content);
-    //     //modify the files array to remove the _meta.json files and make the dates and time pretty
-    //     this.prettyFiles = this.files
-    //     this.prettyFiles = this.cleanNames(this.files);
-    //   });
-    // } else {
-    //   this.backupFiles$ = of([]);
-    //   this.files = [];
-    // }
     const featureId = this.data.feature.feature_id;
 
     //checking if feature is not new
@@ -2996,16 +2973,17 @@ export class EditFeature implements OnInit, OnDestroy {
       // Extract date components
       const [_, year, month, day, hour, minute, second] = dateParts;
       
-      // Create date object
-      // month is -1 because jan = 0.
-      const dateTimeObj = new Date(
+      // Create date object treating the timestamp as UTC (server time)
+      // Use Date.UTC() to create a UTC timestamp, then convert to Date object
+      // This ensures the backup timestamp is interpreted as UTC, not local time
+      const dateTimeObj = new Date(Date.UTC(
         parseInt(year), 
         parseInt(month) - 1, 
         parseInt(day), 
         parseInt(hour), 
         parseInt(minute), 
         parseInt(second)
-      );
+      ));
       
       // Ensure valid date was created
       if (isNaN(dateTimeObj.getTime())) {
@@ -3048,6 +3026,56 @@ export class EditFeature implements OnInit, OnDestroy {
       }
     });
     this.updatedFields.clear();
+  }
+
+
+  deleteBackup() {
+
+    //confirmation popup like in deletefeatureafterdialog
+
+    const selectedValue = this.selectedFile.value;    
+    if (!selectedValue) {
+      this._snackBar.open('Please select a backup file to delete', 'OK', { duration: 3000 });
+      return;
+    }
+    
+    const deleteDialog = this._dialog.open(AreYouSureDialog, {
+      data: {
+        title: 'Delete Backup File',
+        message: 'Are you sure you want to delete this backup file?',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+      },
+    });
+    deleteDialog.afterClosed().subscribe(result => {
+      if(result){
+        // Clear previous visual feedback
+        this.clearVisualFeedback();
+        
+        // Modify selectedValue <yyyy/mm/dd hh:mm:ss> to match file name like <feature_id>_<feature_name>_<yyyy-mm-dd>_<hh-mm-ss>
+        const featureName = this.feature.getValue().feature_name.replace(/ /g, '-');
+        let baseFileName = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}`;
+        baseFileName = this.sanitizeFileNames(baseFileName);
+    
+        // Backend handles file extensions, just send the base filename
+        this._api.deleteBackupFile(this.featureId, baseFileName).subscribe({
+          next: (response) => {
+            this.logger.msg('4', `Backup deleted successfully: ${baseFileName}`, 'Backup');
+            this._snackBar.open('Backup file deleted successfully', 'OK', { duration: 3000 });
+            
+            // Refresh backup files list
+            this.loadBackupFiles();
+            
+            // Clear selection
+            this.selectedFile.setValue(null);
+          },
+          error: (error) => {
+            this.logger.msg('2', `Error deleting backup file: ${error}`, 'Backup');
+            this._snackBar.open('Error deleting backup file', 'OK', { duration: 5000 });
+          }
+        });
+      }
+    });
   }
 
   restoreFeature() {

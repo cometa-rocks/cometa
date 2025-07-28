@@ -113,6 +113,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^get_backup_files_content/(?P<feature_id>[0-9]+)/', views.get_backup_files_content),
+    url(r'^delete_backup_file/(?P<feature_id>[0-9]+)/(?P<filename>[^/]+)/', views.delete_backup_file),
     url(r'^purge_backup_files/', views.purge_backup_files),
     url(r'^parseBrowsers/', views.parseBrowsers),
     # url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),

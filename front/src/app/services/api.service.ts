@@ -988,6 +988,11 @@ export class ApiService {
     return this._http.post(`${this.api}container_service/`,body);
   }
 
+  deleteBackupFile(featureId: number, filename: string) {
+    console.log("Deleting backup file:", filename);
+    return this._http.delete(`${this.base}delete_backup_file/${featureId}/${filename}/`);
+  }
+
   /**
    * Gets a list of backup files for a specific feature
    * @param featureId The ID of the feature to get backups for

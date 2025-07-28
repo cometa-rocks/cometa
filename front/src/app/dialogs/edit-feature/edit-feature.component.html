@@ -924,16 +924,14 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <!-- Feature History -->
+      <!-- Feature Backups -->
       <mat-expansion-panel *ngIf="data.mode === 'edit'"> 
         <mat-expansion-panel-header>
           <mat-panel-title>
-          <span>Feature History</span>
+          <span>Feature Backups</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
-        <ng-template matExpansionPanelContent>
-        <p>Feature History</p>
-        
+        <ng-template matExpansionPanelContent>        
 
         <div *ngIf="prettyFiles.length === 0">
           No backup files available for this feature.
@@ -961,14 +959,9 @@
           <button color="primary" (click)="restoreFeature()" mat-stroked-button>
             Restore Feature
           </button>
-          <button color="primary" mat-stroked-button>
-            Save to Git
-          </button>
-          <button color="primary" mat-stroked-button>
-            Copy Feature
-          </button>
-          <button color="primary" (click)="deleteFeatureAfterDialog(featureId)" mat-stroked-button>
-            Delete Feature
+          <!-- This button will call method deleteBackup, and pass the value from mat-form-field selected file -->
+          <button type="button" color="warn" [disabled]="getButtonsDisabledState()" (click)="deleteBackup()" mat-stroked-button>
+            Delete Backup
           </button>
         </div>
         </ng-template>

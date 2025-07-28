@@ -4349,6 +4349,21 @@ def get_backup_files_content(request, feature_id):
 
     return JsonResponse({'files': file_contents})
 
+@csrf_exempt
+def delete_backup_file(request, feature_id, filename):
+    logger.debug(f"Deleting backup file {filename}.json and {filename}_meta.json for feature {feature_id}")
+    # Build the path to the feature's backup directory
+    backups_dir = os.path.abspath(os.path.join(settings.BASE_DIR, '../../code/backups/features/'))
+    file_path = os.path.join(backups_dir, filename + '.json')
+    file_path_meta = os.path.join(backups_dir, filename + '_meta.json')
+    try:
+        os.remove(file_path)
+        os.remove(file_path_meta)
+    except Exception as e:
+        logger.error(f"Error deleting backup file: {e}")
+        return JsonResponse({'error': 'Failed to delete backup file'}, status=500)
+    return JsonResponse({'success': True}, status=200)
+
 def extract_date_from_filename(filename):
     TIMESTAMP_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})")
     return TIMESTAMP_PATTERN.search(filename).group(1)
