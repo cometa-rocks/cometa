@@ -146,6 +146,9 @@ export class ModifyEmulatorDialogComponent {
       this.installedApks = [];
     }
     
+    // Clear any previously selected APKs
+    this.selectedApks = [];
+    
     // Log for debugging
     this.logger.msg("1", "Installed APKs loaded:", "modify-emulator", {
       count: this.installedApks.length,
@@ -181,9 +184,9 @@ export class ModifyEmulatorDialogComponent {
 
   isApkSelected(apk: any): boolean {
     // Check if APK is selected for installation
-    const isSelected = this.selectedApks.some(selected => selected.name === apk.name);
+    const isSelected = this.selectedApks.some(selected => selected.id === apk.id);
     // Check if APK is already installed
-    const isInstalled = this.installedApks.some(installed => installed.name === apk.name);
+    const isInstalled = this.installedApks.some(installed => installed.id === apk.id);
     
     return isSelected || isInstalled;
   }
@@ -235,7 +238,6 @@ export class ModifyEmulatorDialogComponent {
               },
               error: (error) => {
                 console.error('Error installing APKs:', error);
-                this.snack.open("Error installing one or more APKs", "OK");
                 this.isSaving = false;
                 this._cdr.detectChanges();
               }
@@ -273,7 +275,6 @@ export class ModifyEmulatorDialogComponent {
           },
           error: (error) => {
             console.error('Error installing APKs:', error);
-            this.snack.open("Error installing one or more APKs", "OK");
             this.isSaving = false;
             this._cdr.detectChanges();
           }
@@ -303,13 +304,37 @@ export class ModifyEmulatorDialogComponent {
           this._cdr.detectChanges();
           return response;
         } else {
-          this.snack.open(response.message, 'OK');
-          throw new Error(response.message);
+          // Check if the error is due to APK already being installed
+          const errorMessage = response.message || 'Unknown error occurred';
+          if (errorMessage.toLowerCase().includes('already installed') || 
+              errorMessage.toLowerCase().includes('already exists')) {
+            this.snack.open(`APK is already installed in the mobile`, 'OK');
+            // Still return success since the APK is already there
+            return response;
+          } else {
+            this.snack.open(errorMessage, 'OK');
+            throw new Error(errorMessage);
+          }
         }
       }),
       catchError(error => {
         console.error('An error occurred while installing APK', error);
-        this.snack.open('Failed to install APK', 'OK');
+        
+        // Check if it's a network error or server error
+        let errorMessage = 'Failed to install APK';
+        if (error.status === 0) {
+          errorMessage = 'Network error: Unable to connect to server';
+        } else if (error.status >= 500) {
+          errorMessage = 'Server error: Please try again later';
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snack.open(errorMessage, 'OK', {
+          panelClass: 'high-z-index-snackbar'
+        });
         return throwError(() => error);
       })
     );
@@ -376,17 +401,32 @@ export class ModifyEmulatorDialogComponent {
 
   importClipboard(androidVersion: string) {
     navigator.clipboard.writeText(androidVersion).then(() => {
-    this.isIconActive[androidVersion] = true;
-    this._cdr.detectChanges();
-    setTimeout(() => {
-      this.isIconActive[androidVersion] = false;
-      this._cdr.detectChanges();
-    }, 400);
-    this.snack.open('Text copied to clipboard', 'Close');
-    }).catch(err => {
-      console.error('Error copying: ', err);
-      this.snack.open('Error copying text', 'Close');
+      this.isIconActive[androidVersion] = true;
+      setTimeout(() => {
+        this.isIconActive[androidVersion] = false;
+        this._cdr.detectChanges();
+      }, 3000);
     });
+  }
+
+  openNoVNC(): void {
+    if (this.data.runningContainer && this.data.runningContainer.service_id) {
+      // Check if container is in a valid state for noVNC
+      if (this.data.runningContainer.service_status === 'Stopped' || 
+          this.data.runningContainer.service_status === 'Pausing' || 
+          this.data.runningContainer.service_status === 'Restarting') {
+        this.snack.open('Mobile device is not ready for noVNC connection', 'OK', { duration: 3000 });
+        return;
+      }
+      
+      // Use the same URL format as the main component
+      const complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${this.data.runningContainer.service_id}`;
+      window.open(complete_url, '_blank');
+      
+      this.snack.open('Opening noVNC in a new tab...', 'OK', { duration: 2000 });
+    } else {
+      this.snack.open('Mobile device not available for noVNC', 'OK', { duration: 3000 });
+    }
   }
 
   /**

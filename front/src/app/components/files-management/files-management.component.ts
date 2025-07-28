@@ -56,26 +56,6 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component';
 
 // Interfaces
-interface UploadedFile {
-  id: number;
-  name: string;
-  size?: number;
-  status: "Done" | "Unknown" | "Processing" | "Scanning" | "Encrypting" | "DataDriven" | "Error";
-  is_removed?: boolean;
-  uploaded_by?: {
-    name: string;
-  };
-  created_on?: string;
-  extras?: {
-    ddr?: {
-      'data-driven-ready'?: boolean;
-    };
-  };
-  mime?: string;
-  type?: string;
-  file_type?: string;
-  uploadPath?: string;
-}
 
 // Add interface for sheet information
 interface FileSheetInfo {
@@ -1440,11 +1420,23 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     const statusColumn = this.fileColumns.find(col => col.field === 'status');
     if (statusColumn) {
       this.log.msg('4', 'Updating status column formatter and class for custom columns', 'Init');
-      // Apply formatter for deleted status
+      // Apply formatter for deleted status and uploading status
       statusColumn.formatter = (rowData: UploadedFile) => {
         if (rowData.is_removed) {
           // Use HTML directly to apply the class to the text
           return `<span class="status-deleted">Deleted</span>`;
+        }
+        if (rowData.status === 'Uploading') {
+          // Show a spinner with uploading text for better UX
+          return `<span class="status-uploading"><i class="material-icons status-spinner">autorenew</i> Uploading...</span>`;
+        }
+        if (rowData.status === 'Scanning') {
+          // Show a spinner with scanning text
+          return `<span class="status-scanning"><i class="material-icons status-spinner">autorenew</i> Scanning...</span>`;
+        }
+        if (rowData.status === 'Encrypting') {
+          // Show a spinner with encrypting text
+          return `<span class="status-encrypting"><i class="material-icons status-spinner">autorenew</i> Encrypting...</span>`;
         }
         return rowData.status;
       };

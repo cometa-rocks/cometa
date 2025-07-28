@@ -21,7 +21,7 @@ Author: dph000
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
                 <mat-option [value]="'__ALLDEPARTMENTS__'">
-                  -- Show all Departments --
+                  All Departments
                 </mat-option>
                 <mat-option
                   *ngFor="let dep of user.departments | sortBy: 'department_name'"
