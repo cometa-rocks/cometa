@@ -118,6 +118,13 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                         'container_id': container_service.id,
                         'apk_file': request.data['apk_file']
                     })
+                elif 'apk_file_remove' in request.data:
+                    # APK file removal
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        'type': '[MobileWebSockets] Container APK Update',
+                        'container_id': container_service.id,
+                        'apk_file': request.data['apk_file']
+                    })
                 elif 'action' in request.data:
                     # Container action (start, stop, restart)
                     action = request.data['action']

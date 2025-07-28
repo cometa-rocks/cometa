@@ -340,39 +340,58 @@ export class ModifyEmulatorDialogComponent {
     );
   }
 
-  // Not implementated yet in backend
-  // removeInstalledApk(apk: any): void {
-  //   let updatedApkList = this.data.runningContainer.apk_file.filter(id => id !== apk.id);
-  //   let updateData = { apk_file: apk.id };
+  // Remove installed APK
+  removeInstalledApk(apk: any): void {
+    if (!apk.id) {
+      console.error("APK ID is missing!", apk);
+      return;
+    }
 
-  //   if (!apk.id) {
-  //     console.error("APK ID is missing!", apk);
-  //     return;
-  //   }
+    this.isRemovingApk[apk.id] = true;
 
-  //   this.isRemovingApk[apk.id] = true;
+    let updateData = { apk_file_remove: apk.id };
 
-  //   this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
-  //     (response: any) => {
-  //       if (response && response.containerservice) {
-  //         this.snack.open(`APK "${apk.name}" uninstalled successfully`, 'OK');
-  //         this.data.runningContainer.apk_file = updatedApkList;
-  //         this.installedApks = this.data.uploadedAPKsList.filter(apk =>
-  //           updatedApkList.includes(apk.id)
-  //         );
-  //         this._cdr.detectChanges();
-  //       } else {
-  //         this.isRemovingApk[apk.id] = false;
-  //         this.snack.open(response.message, 'OK');
-  //       }
-  //     },
-  //     error => {
-  //       this.isRemovingApk[apk.id] = false;
-  //       console.error('Error removing APK:', error);
-  //       this.snack.open('Failed to remove APK', 'OK');
-  //     }
-  //   );
-  // }
+    this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe({
+      next: (response: any) => {
+        if (response && response.containerservice) {
+          this.snack.open(`APK "${apk.name}" uninstalled successfully`, 'OK');
+          
+          // Update local data
+          this.data.runningContainer = response.containerservice;
+          
+          // Update installed APKs list
+          this.installedApks = this.data.uploadedAPKsList.filter(apk =>
+            this.data.runningContainer.apk_file.includes(apk.id)
+          );
+          
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message || 'Failed to uninstall APK', 'OK');
+        }
+        this.isRemovingApk[apk.id] = false;
+      },
+      error: (error) => {
+        this.isRemovingApk[apk.id] = false;
+        console.error('Error removing APK:', error);
+        
+        // Enhanced error handling
+        let errorMessage = 'Failed to remove APK';
+        if (error.status === 0) {
+          errorMessage = 'Network error: Unable to connect to server';
+        } else if (error.status >= 500) {
+          errorMessage = 'Server error: Please try again later';
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snack.open(errorMessage, 'OK', {
+          panelClass: 'high-z-index-snackbar'
+        });
+      }
+    });
+  }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     let updateData = { shared: isShared.checked };
