@@ -96,6 +96,7 @@ import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
+import { MatDividerModule } from '@angular/material/divider';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
@@ -121,6 +122,7 @@ import { User } from '@store/actions/user.actions';
     NgIf,
     MatLegacyDialogModule,
     MatExpansionModule,
+    MatDividerModule,
     MatLegacyFormFieldModule,
     MatLegacySelectModule,
     NgFor,
@@ -190,6 +192,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   steps$: Observable<FeatureStep[]>;
 
+  selected_department!: string;
   // next runs an array of next executions
   nextRuns = [];
   // parse error
@@ -297,9 +300,6 @@ export class EditFeature implements OnInit, OnDestroy {
   browserstackBrowsers = new BehaviorSubject<BrowserstackBrowser[]>([]);
 
   // List of default values to be displayed on the feature information selectors
-  selected_department;
-  selected_application;
-  selected_environment;
   department;
   variables!: VariablePair[];
 
@@ -563,19 +563,49 @@ export class EditFeature implements OnInit, OnDestroy {
     this.environments$ = this._store.selectSnapshot(EnvironmentsState);
     // Initialize the values selected by default on the mat selector
     // Selected the department where the user is currently at or the first available department, only used when creating a new testcase
-    this.selected_department =
-      route.length > 0 ? route[0].name : this.departments$[0].department_name;
-    this.selected_application = this.applications$[0].app_name;
-    this.selected_environment = this.environments$[0].environment_name;
+    // Set default values in the form instead of using selected_* variables
+    const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0].department_name;
+    const defaultApplication = this.applications$[0].app_name;
+    const defaultEnvironment = this.environments$[0].environment_name;
     
     // Add reactive behavior for notification controls
     this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
-      if (!sendNotificationEnabled) {
+      if (sendNotificationEnabled) {
+        // When send_notification is enabled, automatically check both child options
+        this.featureForm.get('send_mail').setValue(true, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(true, { emitEvent: false });
+      } else {
         // When send_notification is disabled, also disable child options
         this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
         this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
       }
     });
+
+    // Add reactive behavior for child notification controls
+    // When both child options are unchecked, also uncheck the parent
+    const sendMailControl = this.featureForm.get('send_mail');
+    const sendTelegramControl = this.featureForm.get('send_telegram_notification');
+    
+    // Subscribe to both child controls
+    sendMailControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+    
+    sendTelegramControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+  }
+
+  // Update parent notification state based on child checkboxes
+  private updateParentNotificationState(): void {
+    const sendMailValue = this.featureForm.get('send_mail').value;
+    const sendTelegramValue = this.featureForm.get('send_telegram_notification').value;
+    
+    // If both child options are unchecked, uncheck the parent
+    if (!sendMailValue && !sendTelegramValue) {
+      this.featureForm.get('send_notification').setValue(false, { emitEvent: false });
+    }
+
   }
 
   // Save the state of the expansion panel - Now generic for all features
@@ -1027,15 +1057,69 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Open variables popup, only if a environment is selected (see HTML)
   openStartEmulatorScreen() {
-    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
-    const departmentId = this.departments$.find(
-      dep =>
-        dep.department_name === this.featureForm.get('department_name').value
-    ).department_id;
+    // Check if form values are properly set
+    const departmentName = this.featureForm.get('department_name').value;
+    const environmentName = this.featureForm.get('environment_name').value;
+    
+    if (!departmentName || !environmentName) {
+      this._snackBar.open('Please select both department and environment first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department is available
+    if (!this.department) {
+      this._snackBar.open('Please select a department first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department has files property
+    if (!this.department.files) {
+      this._snackBar.open('No files available for this department', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
+    
+    // Check if departments array is available
+    if (!this.departments$ || this.departments$.length === 0) {
+      this._snackBar.open('No departments available', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Find department ID from departments array
+    const selectedDepartment = this.departments$.find(
+      dep => dep.department_name === this.featureForm.get('department_name').value
+    );
+    
+    if (!selectedDepartment) {
+      this._snackBar.open('Department not found', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     this._dialog
       .open(MobileListComponent, {
         data: {
-          department_id: departmentId,
+          department_id: selectedDepartment.department_id,
           uploadedAPKsList: uploadedAPKsList
         },
         panelClass: 'mobile-emulator-panel',
@@ -1259,6 +1343,15 @@ export class EditFeature implements OnInit, OnDestroy {
 
   /**
    * Check if edit feature form has different values from original object
+   * 
+   * Note: This method was causing issues where the form was being marked as dirty
+   * when opening the edit dialog without making any changes. The issue was caused by:
+   * 1. The notification subscription in the constructor that was modifying form values
+   * 2. Setting form values without using { emitEvent: false } which triggered change events
+   * 
+   * The fix involved:
+   * 1. Moving the notification subscription to ngOnInit after form initialization
+   * 2. Using { emitEvent: false } when setting form values in edit mode
    */
   hasChanged(): boolean {
     // Retrieve original feature data, when mode is `new` it will only have `feature_id: 0`
@@ -1528,15 +1621,31 @@ export class EditFeature implements OnInit, OnDestroy {
           day_week: this.featureForm.get('day_week').value
         });
       }
+      // Update disabled state of schedule controls
+      this.updateScheduleControlsState();
     });
 
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {
       // Code for editing feautre
       const featureInfo = this.data.info;
       // Initialize the selected by default application, department and environment
-      this.selected_application = featureInfo.app_name;
-      this.selected_department = featureInfo.department_name;
-      this.selected_environment = featureInfo.environment_name;
+      // Set form values directly instead of using selected_* variables
+      this.featureForm.get('app_name').setValue(featureInfo.app_name, { emitEvent: false });
+      this.featureForm.get('department_name').setValue(featureInfo.department_name, { emitEvent: false });
+      this.featureForm.get('environment_name').setValue(featureInfo.environment_name, { emitEvent: false });
+      
+      // Force initialize department object after setting form value
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === featureInfo.department_name
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
       this.feature.next(featureInfo);
       // Assign observable of department settings
       this.departmentSettings$ = this._store.select(
@@ -1544,7 +1653,7 @@ export class EditFeature implements OnInit, OnDestroy {
       );
       this.browserstackBrowsers.next(featureInfo.browsers);
       this.browsersOriginal = deepClone(featureInfo.browsers);
-      this.featureForm.get('run_now').setValue(featureInfo.schedule !== '');
+      this.featureForm.get('run_now').setValue(featureInfo.schedule !== '', { emitEvent: false });
       if (featureInfo.schedule) {
         const cron_fields = [
           'minute',
@@ -1559,7 +1668,7 @@ export class EditFeature implements OnInit, OnDestroy {
         const cron_values = cronToDisplay.split(' ');
         
         for (let i = 0; i < cron_fields.length; i++) {
-          this.featureForm.get(cron_fields[i]).setValue(cron_values[i]);
+          this.featureForm.get(cron_fields[i]).setValue(cron_values[i], { emitEvent: false });
         }
         
         // Set the timezone dropdown to the original timezone if available
@@ -1588,7 +1697,7 @@ export class EditFeature implements OnInit, OnDestroy {
       // Try to save all possible feature properties in the form using the same property names
       for (const key in featureInfo) {
         if (this.featureForm.get(key) instanceof UntypedFormControl) {
-          this.featureForm.get(key).setValue(featureInfo[key]);
+          this.featureForm.get(key).setValue(featureInfo[key], { emitEvent: false });
         }
       }
       
@@ -1596,7 +1705,7 @@ export class EditFeature implements OnInit, OnDestroy {
       if (featureInfo.telegram_options) {
         const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
         if (telegramOptionsGroup) {
-          telegramOptionsGroup.patchValue(featureInfo.telegram_options);
+          telegramOptionsGroup.patchValue(featureInfo.telegram_options, { emitEvent: false });
         }
       }
       
@@ -1604,7 +1713,7 @@ export class EditFeature implements OnInit, OnDestroy {
       // but send_notification is not explicitly set
       if (featureInfo.send_notification === undefined || featureInfo.send_notification === null) {
         const shouldEnableNotifications = featureInfo.send_mail || featureInfo.send_telegram_notification;
-        this.featureForm.get('send_notification').setValue(shouldEnableNotifications);
+        this.featureForm.get('send_notification').setValue(shouldEnableNotifications, { emitEvent: false });
       }
       
       this.stepsOriginal = this.data.steps;
@@ -1640,6 +1749,87 @@ export class EditFeature implements OnInit, OnDestroy {
         this.focusFormControl('feature_name');
       }, 300); // Delay to ensure input is rendered
     }
+
+    // Add reactive behavior for notification controls AFTER form values are initialized
+    // This prevents the form from being marked as dirty when initializing values
+    this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
+      if (!sendNotificationEnabled) {
+        // When send_notification is disabled, also disable child options
+        this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
+      }
+    });
+
+    // Subscribe to department settings changes to update continue_on_failure state
+    this.departmentSettings$.subscribe(settings => {
+      if (settings) {
+        // Update the department object with new settings
+        if (this.department) {
+          this.department.settings = settings;
+        }
+        this.updateContinueOnFailureState();
+      }
+    });
+
+    // Initialize disabled states
+    this.initializeDisabledStates();
+  }
+
+  /**
+   * Initialize disabled states for form controls to avoid "changed after checked" errors
+   */
+  private initializeDisabledStates() {
+    // Note: Department field is now enabled in all modes to allow user interaction
+    // Previously it was disabled in edit mode, but this prevented user interaction
+
+    // Update schedule controls state
+    this.updateScheduleControlsState();
+
+    // Update continue_on_failure checkbox state
+    this.updateContinueOnFailureState();
+  }
+
+  /**
+   * Update the disabled state of schedule controls based on run_now value
+   */
+  private updateScheduleControlsState() {
+    const scheduleControls = ['minute', 'hour', 'day_month', 'month', 'day_week'];
+    const isScheduleEnabled = this.featureForm.get('run_now').value;
+    
+    scheduleControls.forEach(controlName => {
+      const control = this.featureForm.get(controlName);
+      if (isScheduleEnabled) {
+        control.enable();
+      } else {
+        control.disable();
+      }
+    });
+  }
+
+  /**
+   * Update the disabled state of continue_on_failure checkbox based on department and user settings
+   */
+  private updateContinueOnFailureState() {
+    const control = this.featureForm.get('continue_on_failure');
+    if (!control) return;
+
+    // Check if department settings or user settings disable the checkbox
+    const departmentDisabled = this.department?.settings?.continue_on_failure;
+    const userDisabled = this.user.settings?.continue_on_failure;
+    const isDisabled = departmentDisabled || userDisabled;
+    
+    if (isDisabled) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+  }
+
+  /**
+   * Get the disabled state for buttons based on saving state
+   */
+  getButtonsDisabledState(): boolean {
+    return this.saving$.value;
   }
 
   /**
@@ -1678,15 +1868,60 @@ export class EditFeature implements OnInit, OnDestroy {
       }
     }
 
+    // Set the department form value if we have a selected department
+    let departmentToSet = null;
+    if (this.selected_department) {
+      departmentToSet = this.selected_department;
+      this.featureForm.get('department_name').setValue(this.selected_department, { emitEvent: false });
+    } else {
+      // Fallback: set default department if none is selected
+      const route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+      const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0]?.department_name;
+      if (defaultDepartment) {
+        departmentToSet = defaultDepartment;
+        this.featureForm.get('department_name').setValue(defaultDepartment, { emitEvent: false });
+      }
+    }
+    
+    // Force initialize department object after setting form value
+    if (departmentToSet) {
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === departmentToSet
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
+    }
+
     // Set application and environment from user preferences (these don't have context priority)
+    let appSet = false;
+    let envSet = false;
+    
     this.applications$.find(a => {
-      if (a.app_id == preselectApplication)
-        this.selected_application = a.app_name;
+      if (a.app_id == preselectApplication) {
+        this.featureForm.get('app_name').setValue(a.app_name, { emitEvent: false });
+        appSet = true;
+      }
     });
     this.environments$.find(e => {
-      if (e.environment_id == preselectEnvironment)
-        this.selected_environment = e.environment_name;
+      if (e.environment_id == preselectEnvironment) {
+        this.featureForm.get('environment_name').setValue(e.environment_name, { emitEvent: false });
+        envSet = true;
+      }
     });
+    
+    // Fallback: set default application and environment if none is selected
+    if (!appSet && this.applications$ && this.applications$.length > 0) {
+      this.featureForm.get('app_name').setValue(this.applications$[0].app_name, { emitEvent: false });
+    }
+    if (!envSet && this.environments$ && this.environments$.length > 0) {
+      this.featureForm.get('environment_name').setValue(this.environments$[0].environment_name, { emitEvent: false });
+    }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
       // ... add addition properties here.

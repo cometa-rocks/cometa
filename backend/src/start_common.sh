@@ -13,6 +13,9 @@ python manage.py makemigrations token_authentication
 python manage.py makemigrations notification
 python manage.py migrate
 
+# Create database indexes
+python manage.py create_indexes
+
 # if this is the first time initializing co.meta
 # import basic data
 if [ ! -f "/code/config/.initiated" ]; then

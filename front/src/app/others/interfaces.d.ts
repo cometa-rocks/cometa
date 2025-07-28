@@ -566,6 +566,7 @@ interface Config {
   copyright: string;
   license: string;
   featuresView: FeatureViewItems;
+  mobileView: FeatureViewItems;
   disableAnimations: boolean;
   translations: 'en' | 'de' | any;
   changelog: ChangelogItem[];
@@ -657,7 +658,8 @@ interface UploadedFile {
     | 'Encrypting'
     | 'DataDriven'
     | 'Done'
-    | 'Error';
+    | 'Error'
+    | 'Uploading';
 }
 
 interface Uploader {
@@ -1166,6 +1168,7 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+  checked?: boolean;
 }
 
 interface ContainerServiceResponse {

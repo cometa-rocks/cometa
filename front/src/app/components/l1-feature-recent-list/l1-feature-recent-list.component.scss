@@ -318,3 +318,12 @@
   font-size: 16px;
 }
 
+// Simple and effective header centering
+:host ::ng-deep .mtx-grid table thead th {
+  text-align: center !important;
+}
+
+:host ::ng-deep .mtx-grid table thead th.name {
+  text-align: left !important;
+}
+
