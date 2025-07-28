@@ -83,6 +83,7 @@ import { SortByPipe } from '@pipes/sort-by.pipe';
 import { DepartmentsState } from '@store/departments.state';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { FeaturesState } from '@store/features.state';
+import { StarredService } from '@services/starred.service';
 
 
 @Component({
@@ -141,6 +142,7 @@ export class L1FeatureRecentListComponent implements OnChanges {
     private log: LogService,
     private _fb: UntypedFormBuilder,
     private inputFocusService: InputFocusService,
+    private starredService: StarredService,
 
 
   ) {
@@ -185,6 +187,7 @@ export class L1FeatureRecentListComponent implements OnChanges {
   columns = [
     { header: 'Options', field: 'reference' },
     { header: 'Run', field: 'type' },
+    { header: 'Starred', field: 'starred', sortable: true },
     { header: 'Last run', field: 'date', sortable: true, sort: 'desc' },  
     {
       header: 'Name',
@@ -224,6 +227,9 @@ export class L1FeatureRecentListComponent implements OnChanges {
   );
 
   inputFocus: boolean = false;
+
+  // Map to store starred status for each feature
+  public isStarredMap: Map<number, Observable<boolean>> = new Map();
 
   /**
    * Method to update the disabled state of the department form control
@@ -272,9 +278,21 @@ export class L1FeatureRecentListComponent implements OnChanges {
     this.toggleList('recent') 
   }
 
+  // Initialize starred status for each feature
+  initializeStarredStatus() {
+    if (this.data$?.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature') {
+          this.isStarredMap.set(row.id, this.starredService.isStarred(row.id));
+        }
+      });
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['data$'] && this.data$) {
       this.updateDepartmentControlState();
+      this.initializeStarredStatus();
     }
   }
 
@@ -548,5 +566,11 @@ export class L1FeatureRecentListComponent implements OnChanges {
     }
     this.log.msg('l1-feature-recent.component.ts','Selected Department: '+this.selected_department,'','')
     return this.selected_department
+  }
+
+  // Toggle starred status for a feature
+  toggleStarred(event: Event, featureId: number, featureName: string): void {
+    event.stopPropagation();
+    this._sharedActions.toggleStarred(event, featureId, featureName);
   }
 }

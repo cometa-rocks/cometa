@@ -133,6 +133,20 @@
       line-height: 30px;
     }
   }
+  
+  // Starred column styling - using same CSS as l1-feature-item-list
+  th:nth-child(3), td:nth-child(3) { // Starred column
+    text-align: center !important;
+    width: 50px;
+    min-width: 50px;
+    .mat-icon {
+      color: #666;
+      transition: color 0.2s ease;
+      &.starred {
+        color: #666;
+      }
+    }
+  }
   th:last-of-type,
   td:last-of-type {
     padding-right: 5px;
@@ -145,72 +159,72 @@
     min-width: 50px;
   }
   
-  th:nth-child(3), td:nth-child(3) { // Last run column
+  th:nth-child(4), td:nth-child(4) { // Last run column
     text-align: center !important;
     width: 120px;
     min-width: 120px;
   }
   
-  th:nth-child(4), td:nth-child(4) { // Name column
+  th:nth-child(5), td:nth-child(5) { // Name column
     text-align: left !important;
     min-width: 200px;
   }
   
-  th:nth-child(5), td:nth-child(5) { // Status column
+  th:nth-child(6), td:nth-child(6) { // Status column
     text-align: center !important;
     width: 100px;
     min-width: 100px;
   }
   
-  th:nth-child(6), td:nth-child(6) { // Duration column
+  th:nth-child(7), td:nth-child(7) { // Duration column
     text-align: center !important;
     width: 80px;
     min-width: 80px;
   }
   
-  th:nth-child(7), td:nth-child(7) { // Steps column
+  th:nth-child(8), td:nth-child(8) { // Steps column
     text-align: center !important;
     width: 60px;
     min-width: 60px;
   }
   
-  th:nth-child(8), td:nth-child(8) { // Modified on column
+  th:nth-child(9), td:nth-child(9) { // Modified on column
     text-align: center !important;
     width: 120px;
     min-width: 120px;
   }
   
-  th:nth-child(9), td:nth-child(9) { // ID column
+  th:nth-child(10), td:nth-child(10) { // ID column
     text-align: center !important;
     width: 80px;
     min-width: 80px;
   }
   
-  th:nth-child(10), td:nth-child(10) { // Department column
+  th:nth-child(11), td:nth-child(11) { // Department column
     text-align: center !important;
     width: 120px;
     min-width: 120px;
   }
   
-  th:nth-child(11), td:nth-child(11) { // Application column
+  th:nth-child(12), td:nth-child(12) { // Application column
     text-align: center !important;
     width: 100px;
     min-width: 100px;
   }
   
-  th:nth-child(12), td:nth-child(12) { // Environment column
+  th:nth-child(13), td:nth-child(13) { // Environment column
     text-align: center !important;
     width: 100px;
     min-width: 100px;
   }
   
-  th:nth-child(13), td:nth-child(13) { // Browsers column
+  th:nth-child(14), td:nth-child(14) { // Browsers column
     text-align: center !important;
     width: 100px;
     min-width: 100px;
   }
   
-  th:nth-child(14), td:nth-child(14) { // Schedule column
+  th:nth-child(15), td:nth-child(15) { // Schedule column
     text-align: center !important;
     width: 120px;
     min-width: 120px;
@@ -316,6 +330,15 @@
 
 ::ng-deep .mat-option-text {
   font-size: 16px;
+}
+
+// Starred feature menu styling - using same CSS as l1-feature-item-list
+.feature-options {
+  .star-feature {
+    mat-icon {
+      color: #666;
+    }
+  }
 }
 
 // Simple and effective header centering

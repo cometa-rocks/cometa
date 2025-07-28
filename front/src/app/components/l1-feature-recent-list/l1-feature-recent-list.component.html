@@ -70,6 +70,7 @@ Author: dph000
       [sortDirection] = "'desc'"
       [cellTemplate]="{
         type: runningTpl,
+        starred: starredTpl,
         name: nameTpl,
         status: statusTpl,
         date: dateTpl,
@@ -118,6 +119,18 @@ Author: dph000
   <ng-template #folderIcon>
     <i class="folderIcon"></i>
   </ng-template>
+</ng-template>
+
+<!-- Starred status for features -->
+<ng-template #starredTpl let-row let-index="index" let-col="colDef">
+  <ng-container *ngIf="row.type === 'feature'">
+    <button
+      stopPropagation
+      (click)="toggleStarred($event, row.id, row.name)"
+      mat-icon-button>
+      <mat-icon [class.starred]="isStarredMap.get(row.id) | async">{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
+    </button>
+  </ng-container>
 </ng-template>
 
 <!-- Folder / feature ID -->
@@ -300,6 +313,16 @@ Author: dph000
       <mat-icon>content_copy</mat-icon>
       <span>Clone</span>
     </button>
+    <mat-divider></mat-divider>
+    <!-- Star feature -->
+    <button
+      mat-menu-item
+      (click)="toggleStarred($event, row.id, row.name)"
+      class="star-feature">
+      <mat-icon>{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
+      <span>{{ (isStarredMap.get(row.id) | async) ? 'Starred' : 'Star' }}</span>
+    </button>
+    <mat-divider></mat-divider>
     <!-- Move feature -->
     <button
       (click)="SAmoveFeature(row.reference)"
