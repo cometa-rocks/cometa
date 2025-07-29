@@ -288,7 +288,7 @@ def addVariable(context, variable_name, result, encrypted=False, save_to_step_re
 # check if encrypted
 def returnDecrypted(value):
     # encrypted string start
-
+    value = str(value)
     if value.startswith(ENCRYPTION_START):
         value = decrypt(value)
         # append value to be masked in logger

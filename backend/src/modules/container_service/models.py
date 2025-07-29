@@ -8,6 +8,7 @@ from .service_manager import ServiceManager
 from backend.ee.modules.mobile.models import Mobile
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
+from threading import Thread
 
 from backend.utility.functions import getLogger
 
@@ -34,9 +35,13 @@ service_status = (
         "Running",
     ),
     (
-        "Stopped",
-        "Stopped",
+        "Deleting",
+        "Deleting",
     ),
+    (
+        "Stopped",
+        "Stopped",
+    )
 )
 
 
@@ -51,7 +56,7 @@ class ContainerService(models.Model):
     in_use =models.BooleanField(default=False) # mobile_id
     service_id = models.TextField(blank=False, unique=True)
     service_status = models.CharField(
-        choices=service_status, max_length=15, default="Exited"
+        choices=service_status, max_length=15, default="Running"
     )
     service_type = models.CharField(
         choices=service_type, max_length=15, default="Emulator"
@@ -101,14 +106,19 @@ class ContainerService(models.Model):
                     labels=self.labels if self.labels else {},
                     devices_time_zone=self.devices_time_zone if self.devices_time_zone else '',
                 )
-                
-            service_details = service_manager.create_service()
-            if "error" in service_details:
-                raise ValidationError(service_details["error"])
-            self.service_id = service_details["Id"]
-            self.service_status = "Running"
-            self.information = service_details
-   
+            try:
+                service_details = service_manager.create_service()
+                if "error" in service_details:
+                    raise ValidationError(service_details["error"])
+                self.service_id = service_details["Id"]
+                self.service_status = "Running"
+                self.information = service_details
+            except Exception as e:
+                service_id = service_details.get("Id", None)
+                if service_id:
+                    service_manager.delete_service(service_name_or_id=service_id)
+                logger.error(f"Failed to create container: {e}")
+                raise ValidationError(f"Failed to create container: {e}")
             return super(ContainerService, self).save()
 
         else:
@@ -155,12 +165,28 @@ class ContainerService(models.Model):
                     
 
     def delete(self, *args, **kwargs):
-        service_manager = ServiceManager()
-        result, message = service_manager.delete_service(
-            service_name_or_id=self.service_id
-        )
-        if not result:
-            return False
-        # Perform delete and return true
+        # Store the service_id before deletion for async processing
+        service_id = self.service_id
+        
+        # Perform the database deletion first
         super(ContainerService, self).delete()
+        
+        # Run service deletion in background thread to avoid blocking
+        def delete_service_async():
+            try:
+                service_manager = ServiceManager()
+                result, message = service_manager.delete_service(
+                    service_name_or_id=service_id
+                )
+                if not result:
+                    logger.warning(f"Failed to delete service {service_id}: {message}")
+                else:
+                    logger.info(f"Successfully deleted service {service_id}")
+            except Exception as e:
+                logger.error(f"Error deleting service {service_id}: {e}")
+        
+        # Start background thread for service deletion
+        thread = Thread(target=delete_service_async, daemon=True)
+        thread.start()
+        
         return True
