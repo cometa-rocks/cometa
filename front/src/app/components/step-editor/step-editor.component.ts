@@ -932,7 +932,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   onTextareaFocus(event: FocusEvent, index: number): void {
     // Validate index is within bounds
     if (index < 0 || index >= this.stepsForm.length) {
-      console.warn('Invalid step index in onTextareaFocus:', index);
       return;
     }
     
@@ -1419,7 +1418,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Validate that the target index is within bounds
     if (targetIndex < 0 || targetIndex >= this.stepsForm.length) {
-      console.warn('Target index out of bounds, using fallback index:', targetIndex, '->', index);
       targetIndex = index;
     }
     
@@ -1440,8 +1438,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (actuallyFocusedIndex !== -1) {
       
       targetIndex = actuallyFocusedIndex;
-    } else {
-      console.warn('No focused textarea found, using targetIndex:', targetIndex);
     }
     
     // Set a flag to prevent focus events from interfering during autocomplete selection
@@ -1887,8 +1883,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         if (trigger && !trigger.panelOpen) {
           trigger.openPanel();
         }
-      } else {
-        console.warn('Focus changed, not opening autocomplete');
       }
     }, 150); // Increased delay to ensure focus is stable
   }
@@ -2024,11 +2018,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   drop(event: CdkDragDrop<string[]>) {
-    // if (this.stepVisible.length > 0) {
-    //   this.stepVisible = this.stepVisible.map(() => false);
-    // } else {
-    //   console.warn('stepVisible está vacío');
-    // }
     const panel = document.querySelector('.stepContainer');
     if (panel) {
       this.renderer.removeChild(document.body, panel);
