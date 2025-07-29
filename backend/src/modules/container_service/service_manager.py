@@ -109,7 +109,7 @@ class KubernetesServiceManager:
         except ApiException as e:
             logger.debug(f"Exception occurred while deleting service: {e}")
 
-    def create_service(self,configuration):
+    def create_service(self, configuration):
         try:
             self.__create_pod_and_wait_to_running()
             if not self.__create_pod_url():
@@ -127,9 +127,9 @@ class KubernetesServiceManager:
                         'State':{
                             'Running':pod.status.phase
                         }
-                     
                 }
         except Exception:
+            self.delete_service(service_name_or_id=configuration['Id'])
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
             traceback.print_exc()
             return False      
@@ -137,11 +137,19 @@ class KubernetesServiceManager:
     def delete_service(self, service_name_or_id):
         try:
             self.__delete_pod(pod_id = service_name_or_id)
-            self.__delete_pod_url(pod_url_id = service_name_or_id)
-            return True, "Container removed"
         except Exception as e:
             traceback.print_exc()
             return False, str(e)
+
+        try:
+            self.__delete_pod_url(pod_url_id = service_name_or_id)
+        except Exception as e:
+            traceback.print_exc()
+            return False, str(e)
+
+        return True, "Container removed"
+
+    
 
 class DockerServiceManager:
     deployment_type = "docker"
