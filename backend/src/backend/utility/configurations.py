@@ -94,6 +94,11 @@ default_cometa_configurations = {
     "USE_COMETA_BROWSER_IMAGES": True,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",
+    # Set the maximum number of standby browsers, this is used too many number of the browser keep running in the background
+    "COMETA_TEST_CONTAINER_MAXIMUM_STANDBY": 2,
+    # This is used to limit the number of browsers running in the background
+    # Set the maximum number of browsers running in the background, set the maximum number that deployment server can handle
+    "COMETA_TEST_CONTAINER_MAXIMUM_RUNNING": 10, 
     # having password hardcoded does not create a security issue, because this communication is internal
     # this can be always changed to a more secure password
     "COMETA_BROWSER_VNC_PASSWORD":"secret",
