@@ -151,9 +151,11 @@ Author: dph000
         >
       </div>
       <!-- Feature ID -->
+
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
       <ng-container>
         <div
+          stopPropagation
           class="star-feature-in-feature"
           [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
           matTooltipPosition="above">
@@ -165,9 +167,16 @@ Author: dph000
       <div 
         class="notification-icons-container" 
         [ngClass]="{'with-star': (isStarred$ | async)}"
-        *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification">
+        *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification || true">
+        
+        <!-- edit-feature-button -->
+        <button stopPropagation mat-icon-button (click)="_sharedActions.openEditFeature(item.id, 'edit')" matTooltip="Edit {{ item.name }}" matTooltipPosition="above" class="edit-feature-button">
+          <mat-icon class="edit-feature-icon">edit</mat-icon>
+        </button>
+        
         <!-- Email notification icon -->
         <div
+          stopPropagation
           *ngIf="item.reference?.send_mail && item.reference?.email_address && item.reference?.email_address.length > 0"
           class="notification-icon email-notification"
           [matTooltip]="getEmailTooltip()"
@@ -177,6 +186,7 @@ Author: dph000
         
         <!-- Telegram notification icon -->
         <div
+          stopPropagation
           *ngIf="item.reference?.send_telegram_notification"
           class="notification-icon telegram-notification"
           [matTooltip]="getTelegramTooltip()"
@@ -184,6 +194,8 @@ Author: dph000
           <mat-icon class="notification-icon-material">chat</mat-icon>
         </div>
       </div>
+
+
 
       <!-- Feature ID -->
       <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
@@ -199,9 +211,6 @@ Author: dph000
           </p>
         </ng-container>
       </div>
-
-
-
 
       <!-- Feature browser -->
       <div class="browser" *ngIf="item.browsers[0] as browser">
