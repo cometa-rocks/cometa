@@ -46,6 +46,27 @@ def upload_file_to_appium_container(context, container_service_details_Id, file_
     return file_name
 
 
+"""
+Performs a swipe gesture (e.g., up, down, left, right) on a mobile UI element, using the given selector and offset values.
+
+Parameters:
+    context: The Behave context object, which holds the test state and the mobile driver.
+    selector: The XPath selector string used to locate the target element on the mobile screen.
+    x_offset: The horizontal distance (in pixels) to swipe from the element's center. Positive values swipe right, negative values swipe left.
+    y_offset: The vertical distance (in pixels) to swipe from the element's center. Positive values swipe down, negative values swipe up.
+    direction: A string indicating the swipe direction (e.g., "up", "down", "left", "right"). Used for logging and reporting.
+
+How it works:
+    1. Sets the step type to "MOBILE" and logs the initiation of the swipe action.
+    2. Uses waitSelector to find the element by XPath. If multiple elements are found, it selects the first one.
+    3. Calculates the center coordinates of the element to start the swipe from its middle.
+    4. Uses the W3C Actions API (ActionChains) to perform the swipe gesture from the center by the specified offsets.
+    5. Logs the completion of the swipe action.
+
+Example Usage:
+    perform_swipe(context, "//button[@id='next']", 0, -200, "up")
+    # This would swipe up (200 pixels) on the element with id "next".
+"""
 def perform_swipe(context, selector, x_offset, y_offset, direction):
     """
     Generic swipe function to swipe in a given direction.
