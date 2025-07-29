@@ -9,7 +9,7 @@ from backend.ee.modules.mobile.models import Mobile
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
 from threading import Thread
-
+from datetime import datetime
 from backend.utility.functions import getLogger
 
 logger = getLogger()
@@ -54,6 +54,7 @@ class ContainerService(models.Model):
     image_name =  models.CharField(max_length=50,blank=True, null=True, default="")# mobile_id
     image_version =models.CharField(max_length=15, blank=True, null=True,default="") # mobile_id
     in_use =models.BooleanField(default=False) # mobile_id
+    since_in_use = models.DateTimeField(blank=True, null=True, default=None)
     service_id = models.TextField(blank=False, unique=True)
     service_status = models.CharField(
         choices=service_status, max_length=15, default="Running"
@@ -93,6 +94,10 @@ class ContainerService(models.Model):
     
     def save(self, *args, **kwargs):
         service_manager = ServiceManager()
+
+        if self.in_use:
+            self.since_in_use = datetime.now()
+        
         if not self.id:
             if self.service_type == "Emulator":
                 # Perform delete and return true
