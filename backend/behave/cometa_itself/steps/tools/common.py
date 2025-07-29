@@ -7,11 +7,15 @@ from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException, InvalidSelectorException, WebDriverException
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import (
+    InvalidSelectorException,
+    NoSuchElementException,
+    WebDriverException,
+    TimeoutException,
+    ElementClickInterceptedException
+)
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 import time, requests, json, os, datetime, sys, subprocess, re, shutil, random, string
 
 sys.path.append("/opt/code/behave_django")
