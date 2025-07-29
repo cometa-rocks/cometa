@@ -93,7 +93,15 @@ export class L1TreeViewComponent implements OnInit {
   }
 
   draw() {
-    const boundries = d3.select('#tree-view').node().getBoundingClientRect();
+    // Check if the tree-view element exists before proceeding
+    // This prevents "Cannot read properties of null (reading 'getBoundingClientRect')" errors
+    const treeViewElement = d3.select('#tree-view').node();
+    if (!treeViewElement) {
+      console.warn('Tree view element not found, skipping draw operation');
+      return;
+    }
+    
+    const boundries = treeViewElement.getBoundingClientRect();
     // viewer width and height
     const width = boundries.width;
     const height = boundries.height;
@@ -179,11 +187,18 @@ export class L1TreeViewComponent implements OnInit {
 
     function centerNode(source) {
       const t = d3.zoomTransform(parent.node());
-      const boundries = d3
+      const selectedNode = d3
         .selectAll('g')
         .filter(d => (d ? d.id == source.id : false))
-        .node()
-        .getBBox();
+        .node();
+      
+      // Check if the node exists before calling getBBox
+      if (!selectedNode) {
+        console.warn('Node not found for centering, skipping center operation');
+        return;
+      }
+      
+      const boundries = selectedNode.getBBox();
       let x = -source.y0;
       let y = -source.x0;
       x = x * t.k + width / 2 - margins.left - boundries.width / 2;
@@ -361,7 +376,17 @@ export class L1TreeViewComponent implements OnInit {
       if (data) {
         this.viewingData = data;
         d3.select('svg').remove();
-        this.draw();
+        
+        // Ensure the tree-view element exists before drawing
+        setTimeout(() => {
+          const treeViewElement = document.getElementById('tree-view');
+          if (treeViewElement) {
+            this.draw();
+          } else {
+            console.warn('Tree view element not found, retrying in 100ms');
+            setTimeout(() => this.draw(), 100);
+          }
+        }, 0);
       }
     });
   }

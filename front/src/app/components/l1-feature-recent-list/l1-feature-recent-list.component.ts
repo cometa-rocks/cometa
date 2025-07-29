@@ -180,6 +180,7 @@ export class L1FeatureRecentListComponent {
    * The format is due to mtx-grid. To see more go to https://ng-matero.github.io/extensions/components/data-grid/overview
    */
   columns = [
+    { header: 'Options', field: 'reference' },
     { header: 'Run', field: 'type' },
     { header: 'Last run', field: 'date', sortable: true, sort: 'desc' },  
     {
@@ -199,7 +200,6 @@ export class L1FeatureRecentListComponent {
     { header: 'Environment', field: 'environment', sortable: true },
     { header: 'Browsers', field: 'browsers', sortable: true },
     { header: 'Schedule', field: 'schedule', sortable: true },
-    { header: 'Options', field: 'reference' },
   ];
   // Mtx-grid row selection checkbox options
   multiSelectable = true;
