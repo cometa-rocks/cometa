@@ -163,15 +163,35 @@ h2, h3{
     
     .disabled-view {
       opacity: 0.5;
-      pointer-events: none;
+      pointer-events: auto; // Changed from 'none' to 'auto' to allow tooltips
       cursor: not-allowed;
+      position: relative; // Ensure proper positioning for tooltips
       
       &:after {
         filter: grayscale(100%);
       }
+      
+      // Prevent clicks but allow hover for tooltips
+      &:hover {
+        pointer-events: auto;
+        opacity: 0.7; // Slightly increase opacity on hover for better visibility
+      }
+      
+      // Ensure tooltip is always visible when hovering
+      &:hover::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
     }
   }
 }
+
 
 .dialog-footer {
   position: relative;
@@ -2392,4 +2412,9 @@ mat-slide-toggle {
 
 :host::ng-deep .exec-feature-loading {
   margin: 0 auto;
+}
+
+// Mtx-grid toolbar styles for better column layout
+::ng-deep .mtx-grid-toolbar {
+  padding: 8px 0 !important;
 }

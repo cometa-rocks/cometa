@@ -2,14 +2,16 @@ import {
   Component,
   ChangeDetectionStrategy,
   OnInit,
-  Inject,
   Input,
+  Inject
 } from '@angular/core';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog as MatModernDialog } from '@angular/material/dialog';
 import { LogOutputComponent } from '@dialogs/log-output/log-output.component';
 import { ApiService } from '@services/api.service';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { VideoComponent } from '@dialogs/video/video.component';
 import { Store } from '@ngxs/store';
 import { ResultsState } from '@store/results.state';
 import {
@@ -27,6 +29,7 @@ import { FeaturesState } from '@store/features.state';
 import { SafeUrl, DomSanitizer } from '@angular/platform-browser';
 import { API_BASE } from 'app/tokens';
 import { Observable, fromEvent } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { CustomSelectors } from '@others/custom-selectors';
 import { KEY_CODES } from '@others/enums';
 import { WebSockets } from '@store/actions/results.actions';
@@ -54,6 +57,7 @@ export class FeatureActionsComponent implements OnInit {
   csvLink$: Observable<SafeUrl>;
   isRunning: boolean = false;
   isRunButtonDisabled: boolean = false;
+  isVideoDialogOpen: boolean = false;
 
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
@@ -63,13 +67,15 @@ export class FeatureActionsComponent implements OnInit {
 
   constructor(
     private _dialog: MatDialog,
+    private _modernDialog: MatModernDialog,
     private _api: ApiService,
     private _store: Store,
     private _snack: MatSnackBar,
     private _ac: ActivatedRoute,
     private _sanitizer: DomSanitizer,
     public _sharedActions: SharedActionsService,
-    @Inject(API_BASE) private _api_base: string
+    @Inject(API_BASE) private _api_base: string,
+    private _http: HttpClient
   ) {
     // Get feature id from URL params
     this.featureId$ = this._ac.paramMap.pipe(
@@ -140,6 +146,7 @@ export class FeatureActionsComponent implements OnInit {
     // - E: Edit test
     // - S: Schedule test
     // - N: Toggle notifications
+    // - V: View latest video
     // Only if no dialog is opened and no modifier keys are pressed
     const isAnyDialogOpened =
       document.querySelectorAll('.mat-dialog-container').length > 0;
@@ -177,6 +184,9 @@ export class FeatureActionsComponent implements OnInit {
         case KEY_CODES.N:
           this.toggleNotification();
           break;
+        case KEY_CODES.V:
+          this.viewLatestVideo();
+          break;
         default:
           hotkeyFound = false;
       }
@@ -186,6 +196,7 @@ export class FeatureActionsComponent implements OnInit {
 
   downloadCSV() {
     this.csvLink$.pipe(
+      untilDestroyed(this),
       // tap allows you to execute functions or actions every time a value is output to the data stream
       tap(link => {
         if (!link) {
@@ -207,6 +218,7 @@ export class FeatureActionsComponent implements OnInit {
 
   downloadPDF() {
     this.pdfLink$.pipe(
+      untilDestroyed(this),
       tap(link => {
         if (!link) {
            this._snack.open('PDF link is not available');
@@ -274,6 +286,7 @@ export class FeatureActionsComponent implements OnInit {
         this._api
           .runFeature(featureStore.feature_id, false)
           .pipe(
+            untilDestroyed(this),
             filter(json => !!json.success),
             switchMap(res =>
               this._store
@@ -331,5 +344,70 @@ export class FeatureActionsComponent implements OnInit {
       : this._store.dispatch(
           new WebSockets.AddNotificationID(featureStore.feature_id)
         );
+  }
+
+  viewLatestVideo() {
+    if (this.isVideoDialogOpen) {
+      return;
+    }
+
+    this.isVideoDialogOpen = true;
+    
+    const params = {
+      feature_id: this.getFeatureId().toString(),
+      archived: 'false',
+      page: '1',
+      size: '1'
+    };
+
+    this._http.get<{results: any[]}>(`/backend/api/feature_results_by_featureid/`, { params })
+      .pipe(
+        untilDestroyed(this),
+        map(res => res.results?.[0]),
+        tap(result => {
+          if (!result) {
+            this._snack.open('No test results found', 'OK');
+            this.isVideoDialogOpen = false;
+          }
+        }),
+        filter(result => !!result),
+        map(result => ({
+          result,
+          videoUrl: result.video_url || result.mobile?.[0]?.video_recording
+        })),
+        tap(({ videoUrl }) => {
+          if (!videoUrl) {
+            this._snack.open('No video available', 'OK');
+            this.isVideoDialogOpen = false;
+          }
+        }),
+        filter(({ videoUrl }) => !!videoUrl),
+        switchMap(({ result, videoUrl }) =>
+          this._sharedActions.loadingObservable(
+            this._sharedActions.checkVideo(videoUrl),
+            'Loading video'
+          ).pipe(
+            map(() => ({ result, videoUrl })),
+            catchError(() => {
+              this._snack.open('Error loading video', 'OK');
+              this.isVideoDialogOpen = false;
+              return [];
+            })
+          )
+        )
+      )
+      .subscribe({
+        next: ({ result, videoUrl }) => {
+          const dialogRef = this._modernDialog.open(VideoComponent, {
+            backdropClass: 'video-player-backdrop',
+            panelClass: 'video-player-panel',
+            data: { result, video_url: videoUrl }
+          });
+          
+          dialogRef.afterClosed().subscribe(() => {
+            this.isVideoDialogOpen = false;
+          });
+        }
+      });
   }
 }

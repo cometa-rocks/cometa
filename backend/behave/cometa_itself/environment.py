@@ -425,12 +425,15 @@ def before_all(context):
         
         response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
                              data=json.dumps(container_configuration))
+        
+        response_data = response.json()
+        logger.debug(f"Browser creation response data: {response_data}")
         if response.status_code not in [200, 201]:
-            raise Exception("Error while starting browser, Please contact administrator")    
+            raise Exception(response_data['message'])
 
         logger.debug(response.json())
-        if not response or not response.json()['success'] == True:
-            raise Exception("Error while starting browser, Please contact administrator")    
+        if response_data['success'] == False:
+            raise Exception(response_data['message'])    
         
         # service_id = response.json()['containerservice']['hostname']
         data = response.json()['containerservice']
