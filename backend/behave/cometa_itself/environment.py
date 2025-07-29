@@ -1181,8 +1181,10 @@ def after_step(context, step):
         context.counters["index"] += 1
     else:
         context.counters["index"] += context.jumpLoopIndex + 1
-        # update total value
-        context.counters["total"] += context.executedStepsInLoop
+        # FIXED: Remove the incorrect total update that was causing the counting issue
+        # The total should not be incremented by executedStepsInLoop as this creates
+        # a mismatch between total steps and actual step counts
+        # context.counters["total"] += context.executedStepsInLoop
     # if step was executed successfully update the OK counter
     if step_error is None:
         context.counters["ok"] += 1
