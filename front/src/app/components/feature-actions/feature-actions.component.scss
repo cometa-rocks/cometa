@@ -119,6 +119,36 @@
   background-position: center;
 }
 
+.video {
+  height: 30px;
+  width: 30px;
+  border: 1px solid black;
+  border-radius: 50%;
+  opacity: 0.7;
+  transform: scale(1) rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  position: relative;
+  
+  &::before {
+    content: "videocam";
+    font-family: 'Material Icons';
+    font-size: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: black;
+  }
+  
+  &:hover {
+    transform: scale(1.1) rotate(10deg);
+  }
+}
+
 .more {
   height: 32px;
   width: 30px;
