@@ -286,10 +286,24 @@
           "title": "Step-by-Step Documentation View - #6600",
           "description": "Documentation section improved with a new column displaying individual documentation for each step."
         },
+        { 
+          "title": "Improved Information Editing with Profile  - #6600",
+          "description": "The edit feature in the Information section now takes Profile Settings into account for better context-aware updates."
+        },
+        {
+          "title": "Mobile Step Editor with Dropdowns - #6600",
+          "description": "Step editor now includes dropdown menus for mobile steps, making step selection easier and more user-friendly."
+        },
+        {
+          "title": "Step-by-Step Documentation View - #6600",
+          "description": "Documentation section improved with a new column displaying individual documentation for each step."
+
+        },
         {
           "title": "View latest recording icon in feature actions - #6627",
           "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
         }
+
       ]
     },
     {
