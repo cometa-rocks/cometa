@@ -38,6 +38,7 @@ import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { LetDirective } from '../../directives/ng-let.directive';
 import {
   NgIf,
+  NgFor,
   NgClass,
   NgSwitch,
   NgSwitchCase,
@@ -53,6 +54,7 @@ import { StarredService } from '@services/starred.service';
   standalone: true,
   imports: [
     NgIf,
+    NgFor,
     LetDirective,
     MatLegacyTooltipModule,
     NgClass,
@@ -86,7 +88,7 @@ export class L1FeatureItemListComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private log: LogService,
     private cdr: ChangeDetectorRef,
-    private starredService: StarredService
+    private starredService: StarredService,
   ) {}
 
   // Receives the item from the parent component
@@ -115,6 +117,7 @@ export class L1FeatureItemListComponent implements OnInit {
   isAnyFeatureRunning$: Observable<boolean>;
   departmentFolders$: Observable<Folder[]>;
   isStarred$: Observable<boolean>;
+  lastFeatureResult$: Observable<FeatureResult>;
   
 
   // NgOnInit
@@ -133,11 +136,39 @@ export class L1FeatureItemListComponent implements OnInit {
     ).pipe(
       tap(status => {
         if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled' || status === 'stopped') {
-          this.isButtonDisabled = false;
+          // Update feature information from backend when feature completes
+          // This ensures the total steps, execution time, and date are refreshed
+          this._store.dispatch(new Features.UpdateFeature(this.feature_id));
           this.cdr.detectChanges();
         }
       })
     );
+
+    // Subscribe to feature updates to refresh the item data
+    this.feature$.subscribe(feature => {
+      // Get the latest feature result directly from the API to ensure we have the most recent data
+      this._api.getFeatureResultsByFeatureId(this.feature_id, {
+        archived: false,
+        page: 1,
+        size: 1,
+      }).subscribe({
+        next: (response: any) => {
+          if (response && response.results && response.results.length > 0) {
+            const latestResult = response.results[0];
+            
+            // Update the item with the latest feature result information
+            this.item.total = latestResult.total || 0;
+            this.item.time = latestResult.execution_time || 0;
+            this.item.date = latestResult.result_date || null;
+            
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error('Error fetching feature results:', err);
+        }
+      });
+    });
 
     // Nos aseguramos de que el observable esté suscrito
     this.featureStatus$.subscribe();
@@ -485,6 +516,104 @@ export class L1FeatureItemListComponent implements OnInit {
     }
     
     return tooltip;
+  }
+
+  /**
+   * Get network login tooltip text
+   */
+  getNetworkLoginTooltip(): string {
+    console.log(this.item.reference);
+    return 'Network logging enabled. This feature will record network responses and analyze vulnerable headers.';
+  }
+
+  /**
+   * Get generate dataset tooltip text
+   */
+  getGenerateDatasetTooltip(): string {
+    return 'Dataset generation enabled for this feature';
+  }
+
+  /**
+   * Get browsers tooltip text
+   */
+  getBrowsersTooltip(): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return 'No browsers selected';
+    }
+    
+    // Group browsers by type
+    const browsersByType = new Map<string, any[]>();
+    
+    this.item.browsers.forEach(browser => {
+      const browserType = browser.browser;
+      if (!browsersByType.has(browserType)) {
+        browsersByType.set(browserType, []);
+      }
+      browsersByType.get(browserType)!.push(browser);
+    });
+    
+    // Build organized tooltip text
+    const tooltipLines: string[] = [];
+    
+    browsersByType.forEach((browsers, browserType) => {
+      if (browsers.length === 1) {
+        // Single version
+        const version = browsers[0].browser_version || 'latest';
+        tooltipLines.push(`${browserType} ${version}`);
+      } else {
+        // Multiple versions
+        const versions = browsers.map(browser => browser.browser_version || 'latest').join(', ');
+        tooltipLines.push(`${browserType} (${versions})`);
+      }
+    });
+    
+    return tooltipLines.join('\n');
+  }
+
+  /**
+   * Get unique browser types (grouped by browser name to avoid duplicates)
+   */
+  getUniqueBrowsers(): any[] {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return [];
+    }
+    
+    // Group browsers by browser type and return unique ones
+    const uniqueBrowsers = new Map<string, any>();
+    
+    this.item.browsers.forEach(browser => {
+      const browserType = browser.browser;
+      if (!uniqueBrowsers.has(browserType)) {
+        uniqueBrowsers.set(browserType, browser);
+      }
+    });
+    
+    return Array.from(uniqueBrowsers.values());
+  }
+
+  /**
+   * Get tooltip for unique browser showing all versions
+   */
+  getUniqueBrowserTooltip(browserType: string): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return '';
+    }
+    
+    // Get all browsers of this type
+    const browsersOfType = this.item.browsers.filter(browser => browser.browser === browserType);
+    
+    if (browsersOfType.length === 1) {
+      return `${browserType} ${browsersOfType[0].browser_version || ''}`.trim();
+    } else {
+      // Multiple versions of the same browser
+      const versions = browsersOfType.map(browser => browser.browser_version || 'latest').join(', ');
+      return `${browserType} (${versions})`;
+    }
+  }
+
+  // Track function for browser icons to optimize rendering
+  trackBrowser(index: number, browser: any): string {
+    return browser.browser + browser.browser_version + browser.os + browser.os_version;
   }
 
 }

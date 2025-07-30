@@ -156,6 +156,50 @@
   .browser {
     color: #546e7a;
     margin-top: 10px;
+    
+    .browser-icons {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 8px;
+      margin-bottom: 6px;
+      align-items: center;
+      overflow-x: auto;
+      
+      .my-icons {
+        width: 20px;
+        height: 20px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: inline-block;
+        vertical-align: middle;
+        border-radius: 4px;
+        padding: 3px;
+        background-color: rgba(255, 255, 255, 0.9);
+        transition: all 0.2s ease;
+        border: 1px solid rgba(84, 110, 122, 0.15);
+        flex-shrink: 0;
+        
+        &:hover {
+          background-color: rgba(255, 255, 255, 1);
+          transform: scale(1.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+      }
+    }
+    
+    span {
+      font-weight: 500;
+      color: #455a64;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      display: inline-block;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(84, 110, 122, 0.1);
+    }
   }
 }
 

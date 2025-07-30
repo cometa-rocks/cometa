@@ -90,9 +90,17 @@
       >
     </div>
     <div class="feature-id">ID: {{ feat.feature_id }}</div>
-    <div class="browser" *ngIf="feat.browsers[0] as browser">
-      <i class="my-icons" [ngClass]="browser.browser"></i>
-      {{ browser | browserComboText }}
+    <div class="browser" *ngIf="feat.browsers && feat.browsers.length > 0">
+      <div class="browser-icons">
+        <i
+          class="my-icons"
+          [matTooltip]="browser | browserComboText"
+          matTooltipPosition="above"
+          *ngFor="let browser of feat.browsers; trackBy: trackBrowser"
+          [ngClass]="browser.browser"></i>
+      </div>
+      <span *ngIf="feat.browsers.length === 1">{{ feat.browsers[0] | browserComboText }}</span>
+      <span *ngIf="feat.browsers.length > 1">{{ feat.browsers.length }} browsers</span>
     </div>
     <button
       matTooltip="Feature options"

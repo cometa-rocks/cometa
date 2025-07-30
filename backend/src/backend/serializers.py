@@ -322,7 +322,7 @@ class FeatureTreeSerializer(serializers.ModelSerializer, FeatureMixin):
 class FeatureHasSubFeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     class Meta:
         model = Feature
-        fields = ('feature_id', 'feature_name', 'depends_on_others')
+        fields = ('feature_id', 'feature_name', 'depends_on_others', 'network_logging', 'generate_dataset')
     
     def to_representation(self, feature):
         uses_steps = Step.objects.filter(feature_id=feature.feature_id).exclude(belongs_to=feature.feature_id).order_by('belongs_to').distinct('belongs_to').values_list('belongs_to', flat=True)
@@ -352,6 +352,8 @@ class FeatureHasSubFeatureSerializer(serializers.ModelSerializer, FeatureMixin):
             "name": feature.feature_name,
             "id": feature.feature_id,
             "depends_on_others": feature.depends_on_others,
+            "network_logging": feature.network_logging,
+            "generate_dataset": feature.generate_dataset,
             "children": childrens
         }
 

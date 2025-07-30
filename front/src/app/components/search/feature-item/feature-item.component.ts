@@ -121,4 +121,9 @@ export class FeatureItemComponent implements OnInit {
   }
 
   @Input() feature_id: number;
+
+  // Track function for browser icons to optimize rendering
+  trackBrowser(index: number, browser: any): string {
+    return browser.browser + browser.browser_version + browser.os + browser.os_version;
+  }
 }
