@@ -174,9 +174,11 @@
   .steps {
     margin-top: 10px;
     margin-left: 10px;
+    display: flex;
+    align-items: center;
     .stepsFolder {
-      display: flex;
-      align-items: center;
+      // display: flex;
+      // align-items: center;
       .folderDomain {
         font-size: 20px;
         color: #767676;
@@ -185,8 +187,11 @@
   }
   .exec_time {
     color: #767676;
-    font-size: 14px;
-    letter-spacing: 0.5px;
+    font-size: 13px;
+    
+    &.no-results {
+      color: #5d6d7e;
+    }
   }
   .browser {
     color: #546e7a;
@@ -194,6 +199,57 @@
     margin-left: 10px;
     font-size: 14px;
     letter-spacing: 0.5px;
+    
+    .browser-content {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .browser-icons {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0; // Remove bottom margin to align with text
+      
+      .browser-icon-container {
+        position: relative;
+        margin-right: -8px; // Creates overlap effect
+        
+        &:last-child {
+          margin-right: 8px; // Add space between icons and text
+        }
+        
+        .my-icons {
+          background-size: contain !important;
+          background-repeat: no-repeat !important;
+          background-position: center !important;
+          display: inline-block !important;
+          vertical-align: middle !important;
+          z-index: 1 !important;
+          position: relative !important;
+        }
+      }
+    }
+    
+    // Browser-specific icon styles at component level
+    .my-icons {
+      &.chrome {
+        background-image: url(^assets/chrome.svg) !important;
+      }
+      &.firefox {
+        background-image: url(^assets/firefox.svg) !important;
+      }
+      &.MicrosoftEdge,
+      &.edge {
+        background-image: url(^assets/icons/edge.svg) !important;
+      }
+      &.safari {
+        background-image: url(^assets/icons/safari.svg) !important;
+      }
+      &.ie {
+        background-image: url(^assets/icons/ie.svg) !important;
+      }
+    }
   }
 }
 
@@ -480,7 +536,7 @@ input {
 .feature-options {
   .star-feature {
     mat-icon {
-      color: #666;
+      color: $star-feature-icon-color;
     }
 
     &:hover mat-icon {
@@ -495,8 +551,44 @@ input {
   left: 19px;
   bottom: 13px;
   i {
-    color: #666;
-    font-size: 18px;
+    color: $star-feature-icon-color;
+    font-size: 16px;
+  }
+  
+  // Show question mark cursor when starred
+  &:has(i:not(:empty)) {
+    cursor: help;
+  }
+  
+  // Alternative approach for browsers that don't support :has
+  &.starred {
+    cursor: help;
+  }
+}
+
+// Edit feature button - now uses same styling as notification icons
+.edit-feature-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 14px;
+    transition: color 0.2s ease;
+    color: $edit-feature-icon-color;
+  }
+
+  &:hover mat-icon {
+    color: darken($edit-feature-icon-color, 5%);
   }
 }
 
@@ -504,14 +596,14 @@ input {
 .notification-icons-container {
   display: flex;
   position: absolute;
-  left: 19px; // Same position as star
+  left: 16px; // Same position as star
   bottom: 9px;
-  gap: 8px; // Space between icons
+  gap: 5px; // Space between icons
   align-items: center;
   
   // When star is present, move to the right
   &.with-star {
-    left: 47px; // Position after star (19px + 18px star width + 10px gap)
+    left: 43px;
   }
 }
 
@@ -530,11 +622,37 @@ input {
     width: 14px;
     height: 14px;
     line-height: 14px;
-    color: #666;
+    color: $edit-feature-icon-color;
   }
 
   &:hover .notification-icon-material {
-    color: #333;
+    color: $disabled-slide-toggle;
+  }
+
+  // Network login icon specific styling
+  &.network-login {
+    .notification-icon-material {
+      font-size: 15px;
+      width: 16px;
+      color: $star-feature-icon-color;
+    }
+
+    &:hover .notification-icon-material {
+      color: $disabled-slide-toggle; 
+    }
+  }
+
+  // Generate dataset icon specific styling
+  &.generate-dataset {
+    .notification-icon-material {
+      font-size: 15px;
+      width: 16px;
+      color: $star-feature-icon-color; 
+    }
+
+    &:hover .notification-icon-material {
+      color: $disabled-slide-toggle; 
+    }
   }
 }
 
@@ -565,6 +683,35 @@ input {
     max-width: 200px;
   }
 
+  .edit-feature-icon {
+    font-size: 14px;
+    color: $edit-feature-icon-color;
+  }
+
+  // Edit button styling
+  button[mat-icon-button] {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      line-height: 15px;
+      transition: color 0.2s ease;
+    }
+
+    &:hover mat-icon {
+      color: darken($edit-feature-icon-color, 20%);
+    }
+  }
+
   .star-button {
     width: 28px;
     height: 28px;
@@ -574,7 +721,7 @@ input {
     
     &.starred {
       mat-icon {
-        color: #666;
+        color: $star-feature-icon-color;
       }
     } 
 
@@ -584,7 +731,7 @@ input {
       height: 20px;
       line-height: 20px;
       transition: color 0.2s ease;
-      color: #666;
+      color: $star-feature-icon-color;
     }
 
     &:hover {
@@ -638,6 +785,22 @@ input {
 
 .clipboard-icon {
   font-size: 14px;
-  color: #555;
+  color: $edit-feature-icon-color;
   opacity: 0.8;
+}
+
+// Icon container for text labels
+.icon-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  .icon-text {
+    font-size: 12px;
+    color: $star-feature-icon-color;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    font-weight: normal;
+  }
 }
