@@ -17,7 +17,7 @@ from .serializers import ContainerServiceSerializer
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
-from backend.utility.config_handler import get_cometa_socket_url
+from backend.utility.config_handler import get_cometa_socket_url, get_all_cometa_environments
 import os, requests, traceback
 import time
 from datetime import datetime, timedelta
@@ -25,7 +25,8 @@ from django.views.decorators.csrf import csrf_exempt
 import threading
 from threading import Thread
 import json
-
+from backend.utility.configurations import ConfigurationManager
+import requests
 
 logger = getLogger()
 
@@ -91,7 +92,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                         "id": int(kwargs["pk"]),
                         "department_id__in": [x['department_id'] for x in request.session["user"]["departments"]],
                         "shared": True
-                    }
+                    } 
                     container_service = ContainerService.objects.filter(**shared_filters).first()
                 
                 if not container_service:
@@ -161,8 +162,40 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     # @require_permissions("manage_house_keeping_logs")
     def create(self, request, *args, **kwargs):
         request.data["created_by"] = request.session["user"]["user_id"]        
-        response = super().create(request, args, kwargs)
         
+        # check for container which are in use for more than 3hrs
+        in_use_containers = ContainerService.objects.filter(in_use=True, since_in_use__lt=datetime.now()-timedelta(hours=3))
+        for container in in_use_containers:
+            container.delete()
+            logger.info(f"Deleted in use container {container.id} to make space for new container")
+        
+        standby_containers = ContainerService.objects.filter(in_use=False).order_by('created_on')
+        maximum_standby_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_STANDBY", "2"))
+        # Check if the maximum number of containers is reached
+        if len(standby_containers) >= maximum_standby_containers:
+            for i in range(len(standby_containers)+1-maximum_standby_containers):
+                standby_container = standby_containers[i]
+                standby_container.delete()
+                logger.info(f"Deleted standby container {standby_container.id} to make space for new container")
+
+        total_running_containers = ContainerService.objects.all().count()
+        maximum_running_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_RUNNING", "10"))
+        # Check if the maximum number of containers is reached
+        if total_running_containers > maximum_running_containers:
+            return self.response_manager.response(dict_data={"success": False, "message": "Maximum number of containers reached, please wait for some resources to be freed up"})
+
+        response = super().create(request, args, kwargs)
+        # Above create method takes some time to create the container, so we need to check again if the maximum number of containers is reached
+        # Check again if in between the creation of the container the maximum number of containers is reached by some other thread
+        total_running_containers = ContainerService.objects.all().count()
+        if total_running_containers > maximum_running_containers:
+            logger.error(f"Maximum number of containers reached, deleting container {response.data['id']}")
+            container_service = ContainerService.objects.filter(id=response.data['id']).first()
+            container_service.delete()
+            return self.response_manager.response(dict_data={"success": False, "message": "Maximum number of containers reached, please wait for some resources to be freed up"})
+
+        logger.debug("Container created, Updating socket")
+
         # Send WebSocket notification for container creation
         try:
             container_data = response.data
@@ -204,6 +237,8 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
             # Start deletion in background thread
             def delete_container():
                 try:
+                    container.service_status = "Deleting"
+                    container.save()
                     container.delete()
                     logger.debug("Container Deleted by thread")
 
@@ -349,43 +384,63 @@ import json
 # #########
 @csrf_exempt
 def get_running_browser(request):
-        response_manager = ResponseManager("ContainerService")
-        data = json.loads(request.body)
-        
-        image_name=data['image_name']
-        image_version=data['image_version']
-        filters = {'service_type':'Browser', 'image_name': image_name, 'image_version': image_version, 'in_use':False}
-        container_service = ContainerService.objects.filter(**filters).first()
-        
-        if container_service:
-                        
-            def create_container_service(data):
-                # Remove labels as this container will be used by some other test excution
-                new_data = data.copy()
-                new_data['labels'] = {}
-                ContainerService.objects.create(**new_data)
-                logger.debug("Standby container created")
+        try:
+            response_manager = ResponseManager("ContainerService")
+            data = json.loads(request.body)
+            
+            image_name=data['image_name']
+            image_version=data['image_version']
+            filters = {'service_type':'Browser', 'image_name': image_name, 'image_version': image_version, 'in_use':False}
+            container_service = ContainerService.objects.filter(**filters).first()
+            
+            # This function is used to centralize the validation create the container service
+            def call_create_container_service(data):
+                return requests.post(f'http://localhost:{get_all_cometa_environments().get("DJANGO_SERVER_PORT")}/api/container_service/', json=data)
+            
+            new_data = data.copy()
+            new_data['shared'] = False
+
+            if container_service:
+                            
+                def create_container_service(data):
+                    # Remove labels as this container will be used by some other test excution
+                    new_data['labels'] = {}
+                    response = call_create_container_service(new_data)
+                    if response.status_code == 201:
+                        logger.debug("Standby container created")
+                    else:
+                        logger.error(f"Failed to create standby container: {response.text}")
+                    logger.debug("Standby container created")
+                    
+                logger.debug("Starting a thread to start the standby container")
+                # Create a new thread and start it
+                thread = Thread(target=create_container_service, args=(data,))
+                thread.daemon = True
+                thread.start()    
+            
+                logger.debug("Updating container state to in_use=True")
+                container_service.in_use = True
+                # Update labels to already running tests
+                container_service.labels = data.get("labels",{})
+                container_service.save()
+                serializer = ContainerServiceSerializer(container_service, many=False)
+                return response_manager.get_response(serializer.data)
+            
+            else:            
+                logger.debug("Requested container configuration did not find will use recent one")
+                # Start a container with requested configuration
+                new_data['in_use'] = True
+                response = call_create_container_service(new_data)
+                if response.status_code == 201:
+                    logger.debug("Standby container created")
+                    return response_manager.response(dict_data={"success": True, 
+                                                                "message": "Standby container created", 
+                                                                'containerservice': response.json()})
+                else:
+                    logger.error(f"Failed to create standby container: {response.json()}")
+                    return response_manager.response(dict_data=response.json())
                 
-            logger.debug("Starting a thread to start the standby container")
-            # Create a new thread and start it
-            thread = Thread(target=create_container_service, args=(data,))
-            thread.daemon = True
-            thread.start()    
-         
-            logger.debug("Updating container state to in_use=True")
-            container_service.in_use = True
-            # Update labels to already running tests
-            container_service.labels = data.get("labels",{})
-            container_service.save()
-            serializer = ContainerServiceSerializer(container_service, many=False)
-            return response_manager.get_response(serializer.data)
-        
-        else:            
-            logger.debug("Requested container configuration did not find will use recent one")
-            # Start a container with requested configuration
-            container_service = ContainerService.objects.create(**data)
-            logger.debug("Updating container state to in_use=True")
-            container_service.in_use = True
-            container_service.save()
-            serializer = ContainerServiceSerializer(container_service, many=False)
-            return response_manager.created_response(serializer.data)    
+        except Exception as e:
+            logger.error(f"Error in get_running_browser: {str(e)}")
+            return response_manager.response(dict_data={"success": False, 
+                                                        "message": "Error while starting browser, Please contact administrator"})
