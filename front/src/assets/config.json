@@ -1,6 +1,5 @@
 {
-
-  "version": "3.0.81",
+  "version": "3.0.82",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -242,6 +241,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.82",
+      "date": "2025-07-28",
+      "features": [
+        {
+          "title": "Add functionality to uninstall APKs - #6583",
+          "description": "Add functionality to uninstall APKs from the mobile list."
+        }
+      ]
+    },
+    {
       "version": "3.0.81",
       "date": "2025-07-28",
       "features": [
@@ -251,7 +260,7 @@
         }
       ]
     },
-    {
+	  {
       "version": "3.0.80",
       "date": "2025-07-28",
       "features": [
@@ -291,8 +300,8 @@
 
         },
         {
-            "title": "View latest recording icon in feature actions - #6627",
-            "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
+          "title": "View latest recording icon in feature actions - #6627",
+          "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
         }
 
       ]
