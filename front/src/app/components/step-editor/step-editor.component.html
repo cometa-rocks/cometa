@@ -61,6 +61,17 @@
     <div class="desktop">Status</div>
     <div class="mobile"><i></i></div>
   </div>
+  <div class="actions">
+    <div class="desktop">Actions</div>
+    <div class="mobile"><i></i></div>
+    <i 
+      class="documentation-icon material-icons"
+      [matTooltip]="'Toggle all step documentation'"
+      matTooltipPosition="above"
+      (click)="toggleAllDocumentation()">
+      {{ areAllDocumentationVisible() ? 'visibility_off' : 'visibility' }}
+    </i>
+  </div>
 </div>
 <!-- Right click menu -->
 <context-menu menuClass="step-contect-menu" #basicMenu>
@@ -240,26 +251,24 @@
             class="step_content"
             tabindex="0"
             (focusout)="onStepFocusOut($event)"
-            (keydown.esc)="onStepEscape($event)"
-            (keydown.Tab)="onTextareaTab(i)">
+            (keydown.esc)="onStepEscape($event)">
             <div 
                 *ngIf="isApiCallStep(i) && !isEditingApiCall(i)"
                 class="collapsed-api-call"
                 (click)="expandApiCall(i)">
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
+            <!-- Textarea with autocomplete enabled -->
             <textarea
+              *ngIf="!disableStepAutocomplete"
               #stepTextarea
-              *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
-              (click)="
-                stepVariableData['currentStepIndex'] === i
-                  ? (stepVariableData.currentStepIndex = i)
-                  : (stepVariableData.currentStepIndex = null)"
+              (click)="onStepTextareaClick($event, i, 0)"
               (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
               (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
               (keydown.enter)="onTextareaEnter($event, i)"
+              (keydown.Tab)="onTextareaTab($event, i)"
               (keydown.control.arrowup)="insertStep($event, i)"
               (keydown.control.arrowdown)="insertStep($event, i)"
               (keydown.alt.control.arrowup)="copyStep($event, i)"
@@ -272,6 +281,62 @@
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
+
+            <!-- Textarea with autocomplete disabled -->
+            <textarea
+              *ngIf="disableStepAutocomplete"
+              #stepTextarea
+              (input)="onStepChange($event, i); autoGrowTextarea($event)"
+              (blur)="fixStep($event, i)"
+              (click)="onStepTextareaClick($event, i, 0)"
+              (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
+              (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+              (keydown.enter)="onTextareaEnter($event, i)"
+              (keydown.Tab)="onTextareaTab($event, i)"
+              (keydown.control.arrowup)="insertStep($event, i)"
+              (keydown.control.arrowdown)="insertStep($event, i)"
+              (keydown.alt.control.arrowup)="copyStep($event, i)"
+              (keydown.alt.control.arrowdown)="copyStep($event, i)"
+              class="code"
+              spellcheck="false"
+              autocomplete="off"
+              formControlName="step_content"
+              placeholder="Step Code"
+              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
+            </textarea>
+            <!-- Absolutely positioned custom dropdown: shows APKs if type is 'package', otherwise mobiles -->
+            <div *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
+                 #dropdownRef
+                 stopPropagation
+                 class="mobile-inline-dropdown custom-dropdown"
+                 tabindex="0"
+                 (keydown)="onDropdownKeydown($event)">
+              <ul class="dropdown-list">
+                <li class="dropdown-placeholder" disabled>
+                  {{ mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile' }}
+                </li>
+                <ng-container *ngIf="true; else mobileOptions">
+                  <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
+                    <li *ngFor="let apk of appPackages; let idx = index"
+                        #dropdownOptionRef
+                        class="dropdown-option"
+                        [class.active]="dropdownActiveIndex === idx"
+                        (click)="onMobileDropdownSelect(apk)">
+                      {{ apk }}
+                    </li>
+                  </ng-container>
+                  <ng-template #mobileOptions>
+                    <li *ngFor="let mobile of runningMobiles; let idx = index"
+                        #dropdownOptionRef
+                        class="dropdown-option"
+                        [class.active]="dropdownActiveIndex === idx"
+                        (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
+                      {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
+                    </li>
+                  </ng-template>
+                </ng-container>
+              </ul>
+            </div>
             <mat-list
               class="var_name_autoComplete"
               [ngStyle]="{
@@ -348,6 +413,15 @@
             link
           </i>
         </div>
+        <div class="actions-container">
+          <i 
+            class="documentation-icon material-icons"
+            [matTooltip]="'Toggle step documentation'"
+            matTooltipPosition="above"
+            (click)="toggleStepDocumentation(i)">
+            {{ stepVisible[i] ? 'visibility_off' : 'visibility' }}
+          </i>
+        </div>
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
           <button 
@@ -404,8 +478,7 @@
           </button>
         </mat-menu>
       </div>
-      <div *ngIf="!showHideStepDocumentation">
-        <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
+      <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
           
           <div class="containerFather">
             <div class="fake-drop">
@@ -419,6 +492,8 @@
             <div class="fake-screenshot">
             </div>
             <div class="fake-compare">
+            </div>
+            <div class="fake-actions">
             </div>
             <div class="stepDescriptionExample">
               <p class="stepDescriptionPar">
@@ -448,7 +523,7 @@
               <div class="contentCopy">
                 <a
                   class="linkTo"
-                  href="https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+                  href="https://github.com/cometa-rocks/cometa_documentation/blob/main/docs/user/cometa_actions.md"
                   target="_blank"
                   rel="Link cometa documentation"
                   matTooltip="Open Cometa documentation"
@@ -459,19 +534,9 @@
                   </i>
                 </a>
               </div>
-              <div class="contentCopy">
-                <div class="containerVisibility" (click)="sendTextareaFocusToParent(false, i)">
-                  <i
-                    class="material-icons visibility_offIcon"
-                    matTooltip="Hide the step documentation"
-                    matTooltipPosition="above">
-                    visibility_off
-                  </i>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
+
       </div>
     </ng-container>
   </ng-container>
@@ -527,19 +592,6 @@
     </mat-menu>
   </div>
   <div class="right">
-    <button
-      type="button"
-      color="primary"
-      (click)="toggleShowHideDoc()"
-      mat-stroked-button
-      class="remove_all"
-      matTooltip="{{ showHideStepDocumentation ? 'Show the step documentation' : 'Hide the step documentation' }}"
-      matTooltipPosition="above">
-      <span class="button-content">
-        <i class="material-icons icon-left">{{ showHideStepDocumentation ? 'visibility' : 'visibility_off' }}</i>
-        <span>Documentation</span>
-      </span>
-    </button>
     <button
       type="button"
       color="primary"
