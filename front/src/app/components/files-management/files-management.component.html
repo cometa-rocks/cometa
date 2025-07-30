@@ -159,14 +159,9 @@
         </button>
     </div>
     
-    <!-- No Data Message -->
-    <div *ngIf="!file_data[row.id]?.isLoading && (!file_data[row.id]?.file_data || file_data[row.id]?.file_data.length === 0)" class="no-data-message">
-      <p>No data found for this file. The file may be empty or in an unsupported format.</p>
-    </div>
-
-    <!-- Data Grid - Only shown when we have data and not loading -->
+    <!-- Data Grid - Always show when not loading -->
     <mtx-grid
-      *ngIf="!file_data[row.id]?.isLoading && file_data[row.id]?.file_data && file_data[row.id]?.file_data.length > 0"
+      *ngIf="!file_data[row.id]?.isLoading"
       [data]="file_data[row.id]?.file_data"
       [columns]="file_data[row.id]?.columns"
       [sortOnFront]="true"

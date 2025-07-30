@@ -171,6 +171,8 @@ class ExcelGridHandler:
         Returns:
             List[str]: List of JSON string records
         """
+        if df.empty:
+            return []
         return df.to_json(orient='records', lines=True).splitlines()
     
     def create_data_batches(self, json_data: List[str], batch_size: int = 100) -> List[Dict[str, Any]]:
