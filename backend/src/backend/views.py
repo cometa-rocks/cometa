@@ -2763,7 +2763,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Retrieve feature model fields
         fields = feature._meta.get_fields()
         # Make some exceptions
-        exceptions = ['feature_id', 'schedule', 'telegram_options']
+        exceptions = ['feature_id', 'schedule', 'telegram_options', 'created_by_id']
         # Iterate over each field of model
         for field in fields:
             # Check if the field exists in data payload
@@ -2779,6 +2779,12 @@ class FeatureViewSet(viewsets.ModelViewSet):
         """
         feature.last_edited_id = request.session['user']['user_id']
         feature.last_edited_date = timezone.now()
+
+        """
+        Set created_by for new features
+        """
+        if int(featureId) == 0:  # New feature or clone
+            feature.created_by_id = request.session['user']['user_id']
 
         """
         Save submitted feature steps

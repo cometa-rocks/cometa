@@ -625,9 +625,15 @@
           <!-- Mobile list view selector -->
           <div class="mobile-view-header">
             <div class="view-selector">
+              <!-- Disabled tree view with working tooltip -->
               <div
                 matRipple
                 matTooltip="Tree view is not available in this modality"
+                matTooltipPosition="above"
+                matTooltipClass="disabled-tooltip"
+                [matTooltipShowDelay]="500"
+                [matTooltipHideDelay]="0"
+                (click)="handleDisabledViewClick('tree')"
                 [class.selected]="mobileViewWith === 'tree'"
                 [class.disabled]="true"
                 class="tree view disabled-view">
@@ -1016,7 +1022,7 @@
                   </div>
                   <div class="mobiles">
                     <!-- Iterate over shared containers list -->
-                    <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackByContainerId">
+                    <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackBySharedContainerId">
                       <div *ngLet="container.service_status == 'Running' as isRunning">
                         <!-- Shared device details -->
                         <div class="mobile-details-shared">
@@ -1168,6 +1174,7 @@
                     [columnMovable]="columnMovable"
                     [showColumnMenuHeader]="true"
                     [columnMenuHeaderText]="'Columns Settings'"
+                    (columnChange)="saveMobileColumnSettings($event)"
                     [cellTemplate]="{
                       actions: actionsTpl,
                       mobile_image_name: mobileNameTpl,
@@ -1209,6 +1216,7 @@
                       [columnMovable]="columnMovable"
                       [showColumnMenuHeader]="true"
                       [columnMenuHeaderText]="'Columns Settings'"
+                      (columnChange)="saveSharedMobileColumnSettings($event)"
                       [cellTemplate]="{
                         actions: sharedActionsTpl,
                         mobile_image_name: sharedMobileNameTpl,
@@ -1526,6 +1534,18 @@
     </button>
 
     <mat-menu #sharedEmulatorOptions="matMenu">
+      <!-- noVNC -->
+      <button
+        *ngIf="row.isRunning"
+        (click)="noVNCMobile(row.runningContainer, row)"
+        class="novncMenu"
+        [disabled]="row.runningContainer.service_status !== 'Running'"
+        [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
+        mat-menu-item>
+        <mat-icon>phone_iphone</mat-icon>
+        <span>noVNC</span>
+      </button>
+      
       <!-- Inspect -->
       <button
         *ngIf="row.isRunning"
@@ -1538,21 +1558,10 @@
           <mat-icon class="mobile-icon">phone_iphone</mat-icon>
           <mat-icon class="arrow-icon">forward</mat-icon>
         </div> -->
-        <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+        <mat-icon class="mobile-icon">developer_mode</mat-icon>
         <span>Inspect</span>
       </button>
 
-      <!-- noVNC -->
-      <button
-        *ngIf="row.isRunning"
-        (click)="noVNCMobile(row.runningContainer, row)"
-        class="novncMenu"
-        [disabled]="row.runningContainer.service_status !== 'Running'"
-        [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
-        mat-menu-item>
-        <mat-icon>developer_mode</mat-icon>
-        <span>noVNC</span>
-      </button>
 
       <mat-divider></mat-divider>
 

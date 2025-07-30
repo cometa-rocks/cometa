@@ -1,5 +1,5 @@
 {
-  "version": "3.0.79",
+  "version": "3.0.81",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -241,6 +241,26 @@
   ],
   "changelog": [
     {
+      "version": "3.0.81",
+      "date": "2025-07-28",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6633",
+          "description": "Enhanced Tree View with tooltips and snackbar feedback, and enabled saving table column configuration for mobile mode."
+        }
+      ]
+    },
+    {
+      "version": "3.0.80",
+      "date": "2025-07-28",
+      "features": [
+        {
+          "title": "Starred features in recent list - #6575",
+          "description": "Added starred features to the recent list. You can now star features to easily access them later."
+        }
+      ]
+    },
+    {
       "version": "3.0.79",
       "date": "2025-07-27",
       "features": [
@@ -255,6 +275,11 @@
         {
           "title": "Step-by-Step Documentation View - #6600",
           "description": "Documentation section improved with a new column displaying individual documentation for each step."
+
+        },
+        {
+            "title": "View latest recording icon in feature actions - #6627",
+            "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
         }
       ]
     },
