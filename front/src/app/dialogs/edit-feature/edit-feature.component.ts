@@ -1288,8 +1288,12 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
     }
     else if (KeyPressed === KEY_CODES.F) {
-      const continueOnFailure = this.featureForm.get('continue_on_failure').value;
-      this.featureForm.get('continue_on_failure').setValue(!continueOnFailure);
+      // Check if continue_on_failure is disabled before allowing toggle
+      const continueOnFailureControl = this.featureForm.get('continue_on_failure');
+      if (!continueOnFailureControl.disabled) {
+        const continueOnFailure = continueOnFailureControl.value;
+        continueOnFailureControl.setValue(!continueOnFailure);
+      }
     }
     else if (KeyPressed === KEY_CODES.H) {
       const needHelp = this.featureForm.get('need_help').value;
@@ -1303,8 +1307,12 @@ export class EditFeature implements OnInit, OnDestroy {
           this.featureForm.get('send_notification').setValue(!sendNotification);
         }
         else if (KeyPressed === KEY_CODES.R) {
-          const video = this.featureForm.get('video').value;
-          this.featureForm.get('video').setValue(!video);
+          // Check if video is disabled before allowing toggle
+          const videoControl = this.featureForm.get('video');
+          if (!videoControl.disabled) {
+            const video = videoControl.value;
+            videoControl.setValue(!video);
+          }
         }
         else if (KeyPressed === KEY_CODES.N) {
           const networkLogging = this.featureForm.get('network_logging').value;
@@ -1522,6 +1530,10 @@ export class EditFeature implements OnInit, OnDestroy {
           
           if (this.department) {
             this.fileUpload.validateFileUploadStatus(this.department);
+            // Update disabled states when department changes
+            this.initializeDisabledStates();
+            // Force change detection to update visual state
+            this.cdr.markForCheck();
           }
           this.cdr.detectChanges();
         });
@@ -1773,6 +1785,11 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Initialize disabled states
     this.initializeDisabledStates();
+    
+    // Force change detection after initializing disabled states
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   /**
@@ -1787,6 +1804,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Update continue_on_failure checkbox state
     this.updateContinueOnFailureState();
+
+    // Update video checkbox state
+    this.updateVideoState();
   }
 
   /**
@@ -1814,8 +1834,8 @@ export class EditFeature implements OnInit, OnDestroy {
     if (!control) return;
 
     // Check if department settings or user settings disable the checkbox
-    const departmentDisabled = this.department?.settings?.continue_on_failure;
-    const userDisabled = this.user.settings?.continue_on_failure;
+    const departmentDisabled = this.department?.settings?.continue_on_failure === true;
+    const userDisabled = this.user.settings?.continue_on_failure === true;
     const isDisabled = departmentDisabled || userDisabled;
     
     if (isDisabled) {
@@ -1823,6 +1843,32 @@ export class EditFeature implements OnInit, OnDestroy {
     } else {
       control.enable();
     }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Update the disabled state of video checkbox based on user settings
+   */
+  private updateVideoState() {
+    const control = this.featureForm.get('video');
+    if (!control) return;
+
+    // Check if user settings disable the video checkbox
+    // Use the same logic as in user component: check if recordVideo property exists, then check recordVideo value
+    const userDisabled = this.user.settings?.hasOwnProperty('recordVideo') 
+      ? this.user.settings?.recordVideo === true 
+      : false;
+    
+    if (userDisabled) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
   }
 
   /**
