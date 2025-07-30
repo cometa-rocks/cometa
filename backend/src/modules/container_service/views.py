@@ -92,7 +92,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                         "id": int(kwargs["pk"]),
                         "department_id__in": [x['department_id'] for x in request.session["user"]["departments"]],
                         "shared": True
-                    }
+                    } 
                     container_service = ContainerService.objects.filter(**shared_filters).first()
                 
                 if not container_service:
@@ -114,6 +114,13 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                     })
                 elif 'apk_file' in request.data:
                     # APK file update
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        'type': '[MobileWebSockets] Container APK Update',
+                        'container_id': container_service.id,
+                        'apk_file': request.data['apk_file']
+                    })
+                elif 'apk_file_remove' in request.data:
+                    # APK file removal
                     requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                         'type': '[MobileWebSockets] Container APK Update',
                         'container_id': container_service.id,
@@ -162,6 +169,13 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     # @require_permissions("manage_house_keeping_logs")
     def create(self, request, *args, **kwargs):
         request.data["created_by"] = request.session["user"]["user_id"]        
+        
+        # check for container which are in use for more than 3hrs
+        in_use_containers = ContainerService.objects.filter(in_use=True, since_in_use__lt=datetime.now()-timedelta(hours=3))
+        for container in in_use_containers:
+            container.delete()
+            logger.info(f"Deleted in use container {container.id} to make space for new container")
+        
         standby_containers = ContainerService.objects.filter(in_use=False).order_by('created_on')
         maximum_standby_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_STANDBY", "2"))
         # Check if the maximum number of containers is reached
@@ -172,7 +186,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                 logger.info(f"Deleted standby container {standby_container.id} to make space for new container")
 
         total_running_containers = ContainerService.objects.all().count()
-        maximum_running_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_RUNNING", "5"))
+        maximum_running_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_RUNNING", "10"))
         # Check if the maximum number of containers is reached
         if total_running_containers > maximum_running_containers:
             return self.response_manager.response(dict_data={"success": False, "message": "Maximum number of containers reached, please wait for some resources to be freed up"})
