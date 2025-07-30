@@ -143,17 +143,24 @@ Author: dph000
       <div class="steps">
         <!-- Feature total amount of steps, execution time and date of execution -->
         <i class="my-icons clipboard"></i>
-        <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
-          <ng-container *ngIf="item.date as date">{{
-            item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
-          }}</ng-container></span
-        >
+        <span class="exec_time" *ngIf="item.total > 0 || item.time > 0 || item.date">
+          {{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
+          <ng-container *ngIf="item.date as date">
+            <span [matTooltip]="'schedule.last-run' | translate" matTooltipPosition="above">{{
+              item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
+            }}</span>
+          </ng-container>
+        </span>
+        <span class="exec_time no-results" *ngIf="!item.total && !item.time && !item.date">
+          No results yet. Run the feature to see results.
+        </span>
       </div>
       <!-- Feature ID -->
+
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
       <ng-container>
         <div
+          stopPropagation
           class="star-feature-in-feature"
           [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
           matTooltipPosition="above">
@@ -165,9 +172,16 @@ Author: dph000
       <div 
         class="notification-icons-container" 
         [ngClass]="{'with-star': (isStarred$ | async)}"
-        *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification">
+        *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification || true">
+        
+        <!-- edit-feature-button -->
+        <button stopPropagation mat-icon-button (click)="_sharedActions.openEditFeature(item.id, 'edit')" matTooltip="Edit {{ item.name }}" matTooltipPosition="above" class="edit-feature-button">
+          <mat-icon class="edit-feature-icon">edit</mat-icon>
+        </button>
+        
         <!-- Email notification icon -->
         <div
+          stopPropagation
           *ngIf="item.reference?.send_mail && item.reference?.email_address && item.reference?.email_address.length > 0"
           class="notification-icon email-notification"
           [matTooltip]="getEmailTooltip()"
@@ -177,13 +191,36 @@ Author: dph000
         
         <!-- Telegram notification icon -->
         <div
+          stopPropagation
           *ngIf="item.reference?.send_telegram_notification"
           class="notification-icon telegram-notification"
           [matTooltip]="getTelegramTooltip()"
           matTooltipPosition="above">
           <mat-icon class="notification-icon-material">chat</mat-icon>
         </div>
+
+        <!-- network login icon -->
+        <div
+          stopPropagation
+          *ngIf="item.reference?.network_logging"
+          class="notification-icon network-login"
+          [matTooltip]="getNetworkLoginTooltip()"
+          matTooltipPosition="above">
+          <mat-icon class="notification-icon-material">network_check</mat-icon>
+        </div>
+
+        <!-- generate dataset icon -->
+        <div
+          stopPropagation
+          *ngIf="item.reference?.generate_dataset"
+          class="notification-icon generate-dataset"
+          [matTooltip]="getGenerateDatasetTooltip()"
+          matTooltipPosition="above"> 
+          <mat-icon class="notification-icon-material">storage</mat-icon>
+        </div>
       </div>
+
+
 
       <!-- Feature ID -->
       <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
@@ -200,13 +237,24 @@ Author: dph000
         </ng-container>
       </div>
 
-
-
-
-      <!-- Feature browser -->
-      <div class="browser" *ngIf="item.browsers[0] as browser">
-        <i class="my-icons" [ngClass]="browser.browser"></i>
-        <span>{{ browser | browserComboText }}</span>
+      <!-- Feature browsers -->
+      <div class="browser" *ngIf="item.browsers && item.browsers.length > 0">
+        <div class="browser-content">
+          <div class="browser-icons">
+            <div class="browser-icon-container" *ngFor="let browser of getUniqueBrowsers(); let i = index">
+              <i
+                class="my-icons"
+                [matTooltip]="getUniqueBrowserTooltip(browser.browser)"
+                matTooltipPosition="above"
+                [ngClass]="browser.browser"></i>
+            </div>
+          </div>
+          <span *ngIf="item.browsers.length === 1">{{ item.browsers[0] | browserComboText }}</span>
+          <span 
+            *ngIf="item.browsers.length > 1" 
+            [matTooltip]="getBrowsersTooltip()"
+            matTooltipPosition="above">{{ item.browsers.length }} browsers</span>
+        </div>
       </div>
       <div class="schedule-container">
         <div class="schedule-data">
@@ -215,7 +263,7 @@ Author: dph000
               <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
                     matTooltipPosition="above">
                 <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
-                <span>Schedule:&nbsp;</span>
+                <span class="schedule-text">Schedule:&nbsp;</span>
                 <span>{{ item.original_cron || item.schedule }}</span>
               </span>
             </ng-container>
