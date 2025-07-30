@@ -1,5 +1,5 @@
 {
-  "version": "3.0.84",
+  "version": "3.0.83",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -241,19 +241,13 @@
   ],
   "changelog": [
     {
-      "version": "3.0.84",
+      "version": "3.0.83",
       "date": "2025-07-29",
       "features": [
         {
           "title": "Fast Icons for Email, Telegram Status, and Quick Feature Editing - #6641",
           "description": "Fast icons will provide quick visual cues for email status, Telegram activity, and easy feature editing."
-        }
-      ]
-    },
-    {
-      "version": "3.0.83",
-      "date": "2025-07-29",
-      "features": [
+        },
         {
           "title": "Documented step editor shortcuts - #6640",
           "description": "Documented step editor shortcuts in the help section."
@@ -306,22 +300,9 @@
           "title": "Step-by-Step Documentation View - #6600",
           "description": "Documentation section improved with a new column displaying individual documentation for each step."
         },
-        { 
-          "title": "Improved Information Editing with Profile  - #6600",
-          "description": "The edit feature in the Information section now takes Profile Settings into account for better context-aware updates."
-        },
         {
-          "title": "Mobile Step Editor with Dropdowns - #6600",
-          "description": "Step editor now includes dropdown menus for mobile steps, making step selection easier and more user-friendly."
-        },
-        {
-          "title": "Step-by-Step Documentation View - #6600",
-          "description": "Documentation section improved with a new column displaying individual documentation for each step."
-
-        },
-        {
-          "title": "View latest recording icon in feature actions - #6627",
-          "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
+            "title": "View latest recording icon in feature actions - #6627",
+            "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
         }
 
       ]
