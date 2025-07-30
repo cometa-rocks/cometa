@@ -26,6 +26,13 @@
     0 3px 1px -2px $table-low-shadow,
     0 2px 2px 0 $table-medium-shadow,
     0 1px 5px 0 $table-high-shadow;
+  
+  // Force header alignment with maximum specificity
+  thead th,
+  thead tr th {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
   thead tr {
     height: 55px;
     z-index: 10;
@@ -35,14 +42,15 @@
       font-weight: bold;
       color: $column-header-dark;
       z-index: 4 !important;
-      text-align: center;
+      text-align: center !important;
       vertical-align: middle;
+      padding-left: 25px;
       &:not(:first-child):not(:last-child):hover {
         background-color: $high-black-opaque;
       }
       &.name {
         border-right: none !important;
-        text-align: left;
+        text-align: left !important;
       }
       mat-icon {
         display: none;
@@ -76,6 +84,7 @@
     text-align: center;
     vertical-align: middle;
     padding: 8px 5px;
+    
     &.name {
       text-align: left;
       border-right: none !important;
@@ -95,6 +104,7 @@
     .time {
       color: $text-pink;
       font-weight: 500;
+      text-align: center;
     }
   }
   th,
@@ -107,6 +117,9 @@
   th:first-of-type,
   td:first-of-type {
     padding-left: 5px;
+    text-align: center !important;
+    width: 60px;
+    min-width: 60px;
     &.running {
       width: 40px;
       &.disabled {
@@ -120,9 +133,101 @@
       line-height: 30px;
     }
   }
+  
+  // Starred column styling - using same CSS as l1-feature-item-list
+  th:nth-child(3), td:nth-child(3) { // Starred column
+    text-align: center !important;
+    width: 50px;
+    min-width: 50px;
+    .mat-icon {
+      color: #666;
+      transition: color 0.2s ease;
+      &.starred {
+        color: #666;
+      }
+    }
+  }
   th:last-of-type,
   td:last-of-type {
     padding-right: 5px;
+  }
+  
+  // Specific column alignments for headers and cells
+  th:nth-child(2), td:nth-child(2) { // Run column
+    text-align: center !important;
+    width: 50px;
+    min-width: 50px;
+  }
+  
+  th:nth-child(4), td:nth-child(4) { // Last run column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  th:nth-child(5), td:nth-child(5) { // Name column
+    text-align: left !important;
+    min-width: 200px;
+  }
+  
+  th:nth-child(6), td:nth-child(6) { // Status column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(7), td:nth-child(7) { // Duration column
+    text-align: center !important;
+    width: 80px;
+    min-width: 80px;
+  }
+  
+  th:nth-child(8), td:nth-child(8) { // Steps column
+    text-align: center !important;
+    width: 60px;
+    min-width: 60px;
+  }
+  
+  th:nth-child(9), td:nth-child(9) { // Modified on column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  th:nth-child(10), td:nth-child(10) { // ID column
+    text-align: center !important;
+    width: 80px;
+    min-width: 80px;
+  }
+  
+  th:nth-child(11), td:nth-child(11) { // Department column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
+  }
+  
+  th:nth-child(12), td:nth-child(12) { // Application column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(13), td:nth-child(13) { // Environment column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(14), td:nth-child(14) { // Browsers column
+    text-align: center !important;
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  th:nth-child(15), td:nth-child(15) { // Schedule column
+    text-align: center !important;
+    width: 120px;
+    min-width: 120px;
   }
 }
 
@@ -209,6 +314,14 @@
   height: 43px;
 }
 
+// Improve options button alignment
+:host ::ng-deep .mtx-grid table td:first-of-type button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
 :host::ng-deep .mat-form-field-flex {
   font-size: 12px;
   transform-origin: right;
@@ -217,6 +330,15 @@
 
 ::ng-deep .mat-option-text {
   font-size: 16px;
+}
+
+// Starred feature menu styling - using same CSS as l1-feature-item-list
+.feature-options {
+  .star-feature {
+    mat-icon {
+      color: #666;
+    }
+  }
 }
 
 // Simple and effective header centering
