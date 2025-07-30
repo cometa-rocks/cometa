@@ -136,6 +136,17 @@ export class ApiService {
       .pipe(map(res => res.results));
   }
 
+  // Get Feature Results by Feature ID
+  getFeatureResultsByFeatureId(feature_id: number, params?: any) {
+    return this._http
+      .get<PaginatedResponse<FeatureResult>>(`${this.base}api/feature_results_by_featureid/`, {
+        params: {
+          feature_id: feature_id,
+          ...params
+        }
+      });
+  }
+
   // Remove step result screenshot file
   removeScreenshot(step_result_id: number, type: ScreenshotType) {
     return this._http.post<Success>(`${this.base}removeScreenshot/`, {

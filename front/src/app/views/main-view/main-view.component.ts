@@ -50,6 +50,7 @@ import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
 import { UserState } from '@store/user.state';
+import { Features } from '@store/actions/features.actions';
 
 @UntilDestroy()
 @Component({
@@ -334,12 +335,18 @@ export class MainViewComponent implements OnInit {
               this.originalResults = this.results;
               this.total = res.count;
               this.showPagination = this.total > 0 ? true : false;
-    
+      
               // set latest feature id
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
 
               this.checkIfThereAreFailedSteps();
+              
+              // Update the store to ensure l1-feature-items gets the latest data
+              if (featureId) {
+                this._store.dispatch(new Features.UpdateFeature(featureId));
+                this._store.dispatch(new WebSockets.CleanupFeatureResults(featureId));
+              }
             },
             error: err => {
               console.error(err);
