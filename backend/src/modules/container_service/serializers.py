@@ -31,7 +31,7 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
             'created_by': {'required': True},
             'shared': {'required': True},
             'apk_file': {'required': False},
-            'department_id': {'required': True},
+            'department_id': {'required': False},
         }
 
     def to_representation(self, instance):

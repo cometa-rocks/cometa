@@ -95,7 +95,10 @@
     "regions": "Regions",
     "products": "Products",
     "continue_on_failure": {
-        "tooltip": "This checkbox is disabled because Continue on failure is already enabled on a top item."
+        "tooltip": "This checkbox is disabled. To enable it, go to your Profile Settings and configure the 'Continue on failure' option."
+    },
+    "record_video": {
+        "tooltip": "This checkbox is disabled. To enable it, go to your Profile Settings and configure the 'Record video' option."
     },
     "save": "Marks the current item as saved.",
     "unsave": "Unmarks the current item as saved.",
