@@ -1,5 +1,5 @@
 {
-  "version": "3.0.83",
+  "version": "3.0.84",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.84",
+      "date": "2025-07-29",
+      "features": [
+        {
+          "title": "Fast Icons for Email, Telegram Status, and Quick Feature Editing - #6641",
+          "description": "Fast icons will provide quick visual cues for email status, Telegram activity, and easy feature editing."
+        }
+      ]
+    },
     {
       "version": "3.0.83",
       "date": "2025-07-29",
