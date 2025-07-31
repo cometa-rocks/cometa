@@ -96,6 +96,7 @@ import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
+import { MatDividerModule } from '@angular/material/divider';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
@@ -121,6 +122,7 @@ import { User } from '@store/actions/user.actions';
     NgIf,
     MatLegacyDialogModule,
     MatExpansionModule,
+    MatDividerModule,
     MatLegacyFormFieldModule,
     MatLegacySelectModule,
     NgFor,
@@ -566,12 +568,44 @@ export class EditFeature implements OnInit, OnDestroy {
     const defaultApplication = this.applications$[0].app_name;
     const defaultEnvironment = this.environments$[0].environment_name;
     
-    // Set default values in the form
-    this.featureForm.patchValue({
-      department_name: defaultDepartment,
-      app_name: defaultApplication,
-      environment_name: defaultEnvironment
-    }, { emitEvent: false });
+    // Add reactive behavior for notification controls
+    this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
+      if (sendNotificationEnabled) {
+        // When send_notification is enabled, automatically check both child options
+        this.featureForm.get('send_mail').setValue(true, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(true, { emitEvent: false });
+      } else {
+        // When send_notification is disabled, also disable child options
+        this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
+      }
+    });
+
+    // Add reactive behavior for child notification controls
+    // When both child options are unchecked, also uncheck the parent
+    const sendMailControl = this.featureForm.get('send_mail');
+    const sendTelegramControl = this.featureForm.get('send_telegram_notification');
+    
+    // Subscribe to both child controls
+    sendMailControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+    
+    sendTelegramControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+  }
+
+  // Update parent notification state based on child checkboxes
+  private updateParentNotificationState(): void {
+    const sendMailValue = this.featureForm.get('send_mail').value;
+    const sendTelegramValue = this.featureForm.get('send_telegram_notification').value;
+    
+    // If both child options are unchecked, uncheck the parent
+    if (!sendMailValue && !sendTelegramValue) {
+      this.featureForm.get('send_notification').setValue(false, { emitEvent: false });
+    }
+
   }
 
   // Save the state of the expansion panel - Now generic for all features
@@ -1023,15 +1057,69 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Open variables popup, only if a environment is selected (see HTML)
   openStartEmulatorScreen() {
+    // Check if form values are properly set
+    const departmentName = this.featureForm.get('department_name').value;
+    const environmentName = this.featureForm.get('environment_name').value;
+    
+    if (!departmentName || !environmentName) {
+      this._snackBar.open('Please select both department and environment first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department is available
+    if (!this.department) {
+      this._snackBar.open('Please select a department first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department has files property
+    if (!this.department.files) {
+      this._snackBar.open('No files available for this department', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
-    const departmentId = this.departments$.find(
-      dep =>
-        dep.department_name === this.featureForm.get('department_name').value
-    ).department_id;
+    
+    // Check if departments array is available
+    if (!this.departments$ || this.departments$.length === 0) {
+      this._snackBar.open('No departments available', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Find department ID from departments array
+    const selectedDepartment = this.departments$.find(
+      dep => dep.department_name === this.featureForm.get('department_name').value
+    );
+    
+    if (!selectedDepartment) {
+      this._snackBar.open('Department not found', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     this._dialog
       .open(MobileListComponent, {
         data: {
-          department_id: departmentId,
+          department_id: selectedDepartment.department_id,
           uploadedAPKsList: uploadedAPKsList
         },
         panelClass: 'mobile-emulator-panel',
@@ -1200,8 +1288,12 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
     }
     else if (KeyPressed === KEY_CODES.F) {
-      const continueOnFailure = this.featureForm.get('continue_on_failure').value;
-      this.featureForm.get('continue_on_failure').setValue(!continueOnFailure);
+      // Check if continue_on_failure is disabled before allowing toggle
+      const continueOnFailureControl = this.featureForm.get('continue_on_failure');
+      if (!continueOnFailureControl.disabled) {
+        const continueOnFailure = continueOnFailureControl.value;
+        continueOnFailureControl.setValue(!continueOnFailure);
+      }
     }
     else if (KeyPressed === KEY_CODES.H) {
       const needHelp = this.featureForm.get('need_help').value;
@@ -1215,8 +1307,12 @@ export class EditFeature implements OnInit, OnDestroy {
           this.featureForm.get('send_notification').setValue(!sendNotification);
         }
         else if (KeyPressed === KEY_CODES.R) {
-          const video = this.featureForm.get('video').value;
-          this.featureForm.get('video').setValue(!video);
+          // Check if video is disabled before allowing toggle
+          const videoControl = this.featureForm.get('video');
+          if (!videoControl.disabled) {
+            const video = videoControl.value;
+            videoControl.setValue(!video);
+          }
         }
         else if (KeyPressed === KEY_CODES.N) {
           const networkLogging = this.featureForm.get('network_logging').value;
@@ -1434,6 +1530,10 @@ export class EditFeature implements OnInit, OnDestroy {
           
           if (this.department) {
             this.fileUpload.validateFileUploadStatus(this.department);
+            // Update disabled states when department changes
+            this.initializeDisabledStates();
+            // Force change detection to update visual state
+            this.cdr.markForCheck();
           }
           this.cdr.detectChanges();
         });
@@ -1545,6 +1645,19 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get('app_name').setValue(featureInfo.app_name, { emitEvent: false });
       this.featureForm.get('department_name').setValue(featureInfo.department_name, { emitEvent: false });
       this.featureForm.get('environment_name').setValue(featureInfo.environment_name, { emitEvent: false });
+      
+      // Force initialize department object after setting form value
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === featureInfo.department_name
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
       this.feature.next(featureInfo);
       // Assign observable of department settings
       this.departmentSettings$ = this._store.select(
@@ -1672,6 +1785,11 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Initialize disabled states
     this.initializeDisabledStates();
+    
+    // Force change detection after initializing disabled states
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   /**
@@ -1686,6 +1804,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Update continue_on_failure checkbox state
     this.updateContinueOnFailureState();
+
+    // Update video checkbox state
+    this.updateVideoState();
   }
 
   /**
@@ -1713,8 +1834,8 @@ export class EditFeature implements OnInit, OnDestroy {
     if (!control) return;
 
     // Check if department settings or user settings disable the checkbox
-    const departmentDisabled = this.department?.settings?.continue_on_failure;
-    const userDisabled = this.user.settings?.continue_on_failure;
+    const departmentDisabled = this.department?.settings?.continue_on_failure === true;
+    const userDisabled = this.user.settings?.continue_on_failure === true;
     const isDisabled = departmentDisabled || userDisabled;
     
     if (isDisabled) {
@@ -1722,6 +1843,32 @@ export class EditFeature implements OnInit, OnDestroy {
     } else {
       control.enable();
     }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Update the disabled state of video checkbox based on user settings
+   */
+  private updateVideoState() {
+    const control = this.featureForm.get('video');
+    if (!control) return;
+
+    // Check if user settings disable the video checkbox
+    // Use the same logic as in user component: check if recordVideo property exists, then check recordVideo value
+    const userDisabled = this.user.settings?.hasOwnProperty('recordVideo') 
+      ? this.user.settings?.recordVideo === true 
+      : false;
+    
+    if (userDisabled) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
   }
 
   /**
@@ -1767,17 +1914,60 @@ export class EditFeature implements OnInit, OnDestroy {
       }
     }
 
+    // Set the department form value if we have a selected department
+    let departmentToSet = null;
+    if (this.selected_department) {
+      departmentToSet = this.selected_department;
+      this.featureForm.get('department_name').setValue(this.selected_department, { emitEvent: false });
+    } else {
+      // Fallback: set default department if none is selected
+      const route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+      const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0]?.department_name;
+      if (defaultDepartment) {
+        departmentToSet = defaultDepartment;
+        this.featureForm.get('department_name').setValue(defaultDepartment, { emitEvent: false });
+      }
+    }
+    
+    // Force initialize department object after setting form value
+    if (departmentToSet) {
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === departmentToSet
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
+    }
+
     // Set application and environment from user preferences (these don't have context priority)
+    let appSet = false;
+    let envSet = false;
+    
     this.applications$.find(a => {
       if (a.app_id == preselectApplication) {
         this.featureForm.get('app_name').setValue(a.app_name, { emitEvent: false });
+        appSet = true;
       }
     });
     this.environments$.find(e => {
       if (e.environment_id == preselectEnvironment) {
         this.featureForm.get('environment_name').setValue(e.environment_name, { emitEvent: false });
+        envSet = true;
       }
     });
+    
+    // Fallback: set default application and environment if none is selected
+    if (!appSet && this.applications$ && this.applications$.length > 0) {
+      this.featureForm.get('app_name').setValue(this.applications$[0].app_name, { emitEvent: false });
+    }
+    if (!envSet && this.environments$ && this.environments$.length > 0) {
+      this.featureForm.get('environment_name').setValue(this.environments$[0].environment_name, { emitEvent: false });
+    }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
       // ... add addition properties here.

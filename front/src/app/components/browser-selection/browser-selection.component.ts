@@ -1,6 +1,7 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Output,
   EventEmitter,
   OnInit,
@@ -43,6 +44,7 @@ import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import {
   NgIf,
   NgFor,
@@ -126,7 +128,9 @@ export class BrowserSelectionComponent implements OnInit {
   constructor(
     private _favouritePipe: BrowserFavouritedPipe,
     private _platformSort: PlatformSortPipe,
-    private _store: Store
+    private _store: Store,
+    private snack: MatSnackBar,
+    private _cdr: ChangeDetectorRef,
   ) {}
 
   testing_cloud = new UntypedFormControl('browserstack');
@@ -374,6 +378,25 @@ export class BrowserSelectionComponent implements OnInit {
 
     return JSON.stringify(obj);
   }
+
+  
+  importClipboard(androidVersion: any) {
+    if(androidVersion) {
+        let browser_details = androidVersion.browser + ":" + androidVersion.browser_version;
+        navigator.clipboard.writeText(browser_details).then(() => {
+        this._cdr.detectChanges();
+        setTimeout(() => {
+          this._cdr.detectChanges();
+        }, 400);
+        this.snack.open(`Browser ${browser_details} copied to clipboard`, 'Close');
+        }).catch(err => {
+          console.error('Error copying: ', err);
+          this.snack.open('Error copying text', 'Close');
+        });
+    }
+  }
+
+
 
   // List of timezone supported by selenoid refer https://aerokube.com/selenoid/latest/#_per_session_time_zone_timezone
   // This list to come from DB

@@ -7,11 +7,15 @@ from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException, InvalidSelectorException, WebDriverException
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import (
+    InvalidSelectorException,
+    NoSuchElementException,
+    WebDriverException,
+    TimeoutException,
+    ElementClickInterceptedException
+)
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 import time, requests, json, os, datetime, sys, subprocess, re, shutil, random, string
 
 sys.path.append("/opt/code/behave_django")
@@ -464,12 +468,42 @@ def send_step_screen_shot_details(feature_id, feature_result_id, user_id, browse
     logger.debug(f"response : {response} {response.text}")
 
 def click_element_by_css(context, selector):
-    elem = waitSelector(context, "css", selector)
-    for el in elem:
-        if el.is_displayed():
-            el.click()
+    start_time = time.time()
+    elements = waitSelector(context, "css", selector)
+    element = elements[0]
+    step_timeout = context.step_data.get('timeout', 30)
+
+    # 1. Wait for the element to be displayed using EC.visibility_of
+    elapsed = time.time() - start_time
+    remaining_time = max(0.5, step_timeout - elapsed)
+    logger.debug(f"Waiting for element to be displayed, remaining time {remaining_time}")
+    try:
+        wait_displayed = WebDriverWait(context.browser, remaining_time)
+        wait_displayed.until(EC.visibility_of(element))
+    except TimeoutException:
+        raise CometaTimeoutException(f"Element with css selector '{selector}' was not displayed after {remaining_time:.1f} seconds")
+
+    error = None
+    while remaining_time > 0:
+        try:
+            WebDriverWait(context.browser, max(0.5, remaining_time)).until(EC.element_to_be_clickable(element))
+            logger.debug(f"Clicking element '{selector}', remaining time {remaining_time:.1f}s")
+            element.click()
+            return  # success
+        except ElementClickInterceptedException as e:
+            logger.debug(f"Click intercepted on '{selector}', retrying...")
+            error = e
+            time.sleep(0.5)
+        except Exception as e:
+            logger.debug(f"Unhandled exception when clicking '{selector}'")
+            error = e
             break
 
+        elapsed = time.time() - start_time
+        remaining_time = step_timeout - elapsed
+
+    # Raise the last encountered error if retries fail
+    raise error if error else Exception(f"Failed to click element '{selector}' after {step_timeout}s")
 
 def click_element(context, element):
     if element.is_displayed():

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.75",
+  "version": "3.0.85",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,131 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.85",
+      "date": "2025-07-30",
+      "features": [
+        {
+          "title": "Improved feature item/list view - #6644",
+          "description": "Improved feature item/list view, sync with main-view (steps) and enhance browsers icon."
+        },
+        {
+          "title": "Network logging and generate dataset icons - #6644",
+          "description": "Network logging and generate dataset icons added to the feature list."
+        }
+      ]
+    },
+    {
+      "version": "3.0.84",
+      "date": "2025-07-29",
+      "features": [
+        {
+          "title": "Fast Icons for Email, Telegram Status, and Quick Feature Editing - #6641",
+          "description": "Fast icons will provide quick visual cues for email status, Telegram activity, and easy feature editing."
+        }
+      ]
+    },
+    {
+      "version": "3.0.83",
+      "date": "2025-07-29",
+      "features": [
+        {
+          "title": "Documented step editor shortcuts - #6640",
+          "description": "Documented step editor shortcuts in the help section."
+        }
+      ]
+    },
+    {
+      "version": "3.0.82",
+      "date": "2025-07-28",
+      "features": [
+        {
+          "title": "Add functionality to uninstall APKs - #6583",
+          "description": "Add functionality to uninstall APKs from the mobile list."
+        }
+      ]
+    },
+    {
+      "version": "3.0.81",
+      "date": "2025-07-28",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6633",
+          "description": "Enhanced Tree View with tooltips and snackbar feedback, and enabled saving table column configuration for mobile mode."
+        }
+      ]
+    },
+	  {
+      "version": "3.0.80",
+      "date": "2025-07-28",
+      "features": [
+        {
+          "title": "Starred features in recent list - #6575",
+          "description": "Added starred features to the recent list. You can now star features to easily access them later."
+        }
+      ]
+    },
+    {
+      "version": "3.0.79",
+      "date": "2025-07-27",
+      "features": [
+        { 
+          "title": "Improved Information Editing with Profile  - #6600",
+          "description": "The edit feature in the Information section now takes Profile Settings into account for better context-aware updates."
+        },
+        {
+          "title": "Mobile Step Editor with Dropdowns - #6600",
+          "description": "Step editor now includes dropdown menus for mobile steps, making step selection easier and more user-friendly."
+        },
+        {
+          "title": "Step-by-Step Documentation View - #6600",
+          "description": "Documentation section improved with a new column displaying individual documentation for each step."
+        },
+        {
+            "title": "View latest recording icon in feature actions - #6627",
+            "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
+        }
+
+      ]
+    },
+    {
+      "version": "3.0.78",
+      "date": "2025-07-22",
+      "features": [
+        {
+          "title": "Step editor improvements - #6608",
+          "description": "Fixed issue on step editor preventing step list from being displayed when adding a new step above."
+        },
+        {
+          "title": "Improvements to Recent Component and Feature Editing",
+          "description": "Changes made to the Recent component and Feature view. It now displays whether the feature sends notifications and if it is connected to Telegram. Checkboxes and buttons are now better organized in the Edit Feature section."
+        }
+      ]
+    },
+    {
+      "version": "3.0.77",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "File uploading status - #6594",
+          "description": "Upgraded 'Status' label in file section to show current status of the file when uploading."
+        }
+      ]
+    },
+    {
+      "version": "3.0.76",
+      "date": "2025-07-18",
+      "features": [
+        {
+          "title": "Enhance APK installation messages - #6580",
+          "description": "Enhanced APK installation messages to provide more detailed information about the installation process."
+        },
+        {
+          "title": "Snackbar visual improvement - #6580",
+          "description": "Fixed issue snackbar displayed behind the edit mobile dialog."
+        }
+      ]
+    },
     {
       "version": "3.0.75",
       "date": "2025-07-14",

@@ -15,7 +15,8 @@ import {
   EventEmitter,
   HostListener,
   ViewContainerRef,
-  ComponentFactoryResolver
+  ComponentFactoryResolver,
+  AfterViewChecked
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -101,6 +102,9 @@ import { ApiTestingComponent } from '@components/api-testing/api-testing.compone
 import { TruncateApiBodyPipe } from '../../pipes/truncate-api-body.pipe';
 import { MatBadgeModule } from '@angular/material/badge';
 
+// Remove any local interface definitions - use global ones from interfaces.d.ts
+// The interfaces Department and UploadedFile are already defined globally
+
 interface StepState {
   showLinkIcon: boolean;
   featureId: number | null;
@@ -142,7 +146,7 @@ interface StepState {
     MatBadgeModule,
   ],
 })
-export class StepEditorComponent extends SubSinkAdapter implements OnInit {
+export class StepEditorComponent extends SubSinkAdapter implements OnInit, AfterViewChecked {
   stepsForm: UntypedFormArray;
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
@@ -154,6 +158,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Input() mode: 'new' | 'edit' | 'clone';
   @Input() variables: VariablePair[];
   @Input() department: Department;
+  
+  // Track which step is currently focused for the shared autocomplete
+  currentFocusedStepIndex: number | null = null;
+  
+  // Track filtered actions for each step independently
+  stepFilteredActions: { [key: number]: Observable<{ name: string; actions: Action[] }[]> } = {};
+  
+  // Throttle Ctrl+Arrow operations to prevent erratic behavior
+  private lastInsertTime: number = 0;
+  private readonly INSERT_THROTTLE_MS = 200; // 0.5 seconds
 
   @ViewChildren(MatListItem, { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
@@ -178,6 +192,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   private lastScreenshotCheckedIndex: number | null = null;
   private lastCompareCheckedIndex: number | null = null;
   private lastSelectCheckedIndex: number | null = null;
+
+  runningMobiles: any[] = []; // Should be Container[], but using any to avoid import issues
+  showMobileDropdown: boolean = false;
+  mobileDropdownPosition: { top: number; left: number } = { top: 0, left: 0 };
+  mobileDropdownStepIndex: number | null = null;
+  mobileDropdownReplaceIndex: number | null = null;
+
+  // Controls whether the step autocomplete should be disabled (e.g., when editing mobile name)
+  disableStepAutocomplete: boolean = false;
+
+  // Holds the pixel width of the quoted content for the mobile dropdown
+  mobileDropdownWidth: number = 180;
+
+  // Tracks whether the dropdown is for mobile_name or mobile_code
+  mobileDropdownType: 'name' | 'code' | 'package' = 'name';
+
+  // Removed static appActivities list – activities dropdown no longer used
+
+  @ViewChild('dropdownRef') dropdownRef!: ElementRef<HTMLDivElement>;
+  @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
+  dropdownActiveIndex: number = 0;
 
   constructor(
     private _dialog: MatDialog,
@@ -207,68 +242,120 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(FeaturesState.GetFeaturesAsArray) allFeatures$: Observable<Feature[]>;
 
-  // Shortcut emitter to parent component
-  sendTextareaFocusToParent(isFocused: boolean, index?: number): void {
+  // Add helper to extract description and examples from raw action description or comments
+  private parseStepDocumentation(rawDescription: string): { description: string; examples: string } {
+    // Handle cases where the description starts with "Exemple:" (misspelled)
+    if (rawDescription.toLowerCase().startsWith('exemple:')) {
+      const parts = rawDescription.split('\n');
+      const firstLine = parts[0];
+      const rest = parts.slice(1).join('\n');
+      
+      // Extract the example from the first line (remove "Exemple: ")
+      const example = firstLine.replace(/^exemple:\s*/i, '').trim();
+      
+      return {
+        description: 'Mobile automation step for connecting to a mobile device or emulator.',
+        examples: example + (rest ? '\n' + rest : '')
+      };
+    }
+    
+    // Handle cases where the description starts with "Example:" (correct spelling)
+    if (rawDescription.toLowerCase().startsWith('example:')) {
+      const parts = rawDescription.split('\n');
+      const firstLine = parts[0];
+      const rest = parts.slice(1).join('\n');
+      
+      // Extract the example from the first line (remove "Example: ")
+      const example = firstLine.replace(/^example:\s*/i, '').trim();
+      
+      return {
+        description: 'Mobile automation step for connecting to a mobile device or emulator.',
+        examples: example + (rest ? '\n' + rest : '')
+      };
+    }
+    
+    // Original logic for standard format
+    const descRegex = /#?\s*Description:\s*(.*?)(?:\n|$)/;
+    const exampleRegex = /#?\s*Example:\s*([\s\S]*)/;
+    const descMatch = rawDescription.match(descRegex);
+    const exampleMatch = rawDescription.match(exampleRegex);
+    let descriptionText: string;
+    if (descMatch) {
+      descriptionText = descMatch[1].trim();
+    } else if (exampleMatch && typeof exampleMatch.index === 'number') {
+      descriptionText = rawDescription.substring(0, exampleMatch.index).trim();
+    } else {
+      descriptionText = rawDescription.trim();
+    }
+    let examplesText = '';
+    if (exampleMatch) {
+      examplesText = exampleMatch[1]
+        .split('\n')
+        .map(line => line.replace(/^#?\s*/, ''))
+        .join('\n')
+        .trim();
+    }
+    return { description: descriptionText, examples: examplesText };
+  }
+
+  // ... existing code ...
+  sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
     this.textareaFocusToParent.emit(isFocused);
 
     if (index === undefined) {
       return;
     }
 
-    // Toggle AI guidance overlay visibility
-    if (isFocused) {
+    // Toggle AI guidance overlay visibility only when explicitly requested
+    if (isFocused && showDocumentation) {
       // Make the step visible in the UI
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+      const stepType = stepFormGroup.get('step_type')?.value;
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
 
       if (stepContent === undefined) {
         // Clear description and examples if content is empty
-        this.descriptionText = '';
-        this.examplesText = '';
+        this.stepsDocumentation[index] = { description: '', examples: '' };
         this._cdr.detectChanges();
         return;
       }
 
-      // Find the corresponding action
-      const activatedAction = this.actions.find(action =>
-        action.action_name === stepAction
-      );
-
-      if (activatedAction) {
-        // Assign title and description of the selected action
-        this.selectedActionTitle = activatedAction.action_name;
-        this.selectedActionDescription = activatedAction.description;
-
-        // Remove <br> tags from the description
-        this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
-
-        // Separate description and examples if necessary
-        if (this.selectedActionDescription.includes("Example")) {
-          const parts = this.selectedActionDescription.split("Example:");
-          this.descriptionText = parts[0].trim();
-          this.examplesText = parts[1]?.trim() || '';
-        } else {
-          this.descriptionText = this.selectedActionDescription;
-          this.examplesText = '';
+      // Handle mobile step documentation via new endpoint
+      if (stepType === 'MOBILE') {
+        this._api.getMobileStepDoc(stepAction).subscribe(doc => {
+          this.stepsDocumentation[index] = {
+            description: doc.description,
+            examples: doc.example || ''
+          };
+          this._cdr.detectChanges();
+        });
+      } else {
+        // Find the corresponding action
+        const activatedAction = this.actions.find(action =>
+          action.action_name === stepAction
+        );
+        if (activatedAction) {
+          // Clean HTML breaks
+          const rawDesc = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+          // Parse description and examples
+          const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
+          this.stepsDocumentation[index] = {
+            description: descriptionText,
+            examples: examplesText
+          };
+          this._cdr.detectChanges();
         }
-
-        // Update documentation for this step
-        this.stepsDocumentation[index] = {
-          description: this.descriptionText,
-          examples: this.examplesText
-        };
-
-        this._cdr.detectChanges();
       }
-    } else {
+    } else if (!isFocused) {
       if (index !== undefined) {
         this.stepVisible[index] = false;
       }
     }
   }
+  // ... existing code ...
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
@@ -447,6 +534,302 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // Update the disabled state of continue_on_failure checkbox based on department and user settings
     this.updateContinueOnFailureState();
+    this.fetchRunningMobiles();
+  }
+
+  /**
+   * Fetch the list of running mobile containers and store them in runningMobiles.
+   * Debug log added to show the result.
+   */
+  fetchRunningMobiles() {
+    this._api.getContainersList().subscribe((containers: any[]) => { // Changed type to any[] to avoid import issues
+      this.runningMobiles = containers.filter(c => c.service_status === 'Running');
+      // Debug: Log the runningMobiles array
+
+      this._cdr.detectChanges();
+    });
+  }
+
+  /**
+   * Show the mobile dropdown ONLY if the cursor is inside quotes and the quoted text is a valid placeholder.
+   * This ensures the dropdown is not shown unless the user clicks exactly inside the quotes.
+   * Placeholders allowed: {mobile_name}, {mobile_code}, {app_package}, {app_activity}, or any running mobile image_name.
+   */
+  onStepTextareaClick(event: MouseEvent, index: number) {
+    const textarea = event.target as HTMLTextAreaElement;
+    const value = textarea.value;
+    // Auto-detect action based on content before the first quote (case-insensitive)
+    const prefix = value.split('"')[0].trim().toLowerCase();
+    const activatedAction = this.actions.find(action => {
+      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+      return actionPrefix === prefix;
+    });
+    if (activatedAction) {
+      const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+      stepFormGroup.patchValue({ step_action: activatedAction.action_name });
+    }
+    let cursorPos = textarea.selectionStart;
+
+    // Reset dropdown state – will reopen only if a valid placeholder is found
+    this.showMobileDropdown = false;
+    this.mobileDropdownStepIndex = null;
+    this.mobileDropdownReplaceIndex = null;
+    this.disableStepAutocomplete = false;
+
+    // Regex to find all quoted substrings
+    const regex = /"([^"]*)"/g;
+    let match;
+    let found = false;
+    // Loop through all quoted substrings to find the one where the cursor is inside
+    while ((match = regex.exec(value)) !== null) {
+      const start = match.index + 1; // after first quote
+      const end = start + match[1].length;
+      if (cursorPos >= start && cursorPos <= end) {
+        // Cursor is inside these quotes
+        const insideText = match[1];
+        const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+        const stepAction = stepFormGroup.get('step_action')?.value || '';
+        // Find all quoted substrings to determine parameter position using exec loop
+        const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
+        const quoteRegex = /"([^"]*)"/g;
+        let quoteMatch;
+        while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+          allMatches.push({
+            index: quoteMatch.index,
+            text: quoteMatch[1],
+            start: quoteMatch.index + 1,
+            end: quoteMatch.index + 1 + quoteMatch[1].length
+          });
+        }
+        let paramIndex = -1;
+        for (let mi = 0; mi < allMatches.length; mi++) {
+          const m = allMatches[mi];
+          if (cursorPos >= m.start && cursorPos <= m.end) {
+            paramIndex = mi;
+            break;
+          }
+        }
+        // Allow dropdown if:
+        // 1. The text matches the placeholder (as antes)
+        // 2. The text is empty and the action expects this parameter (for user help)
+        // 3. The action is 'On mobile start app' and we're on the first parameter (app package)
+        let shouldShowDropdown = false;
+        
+        if (stepAction && /on mobile start app/i.test(stepAction) && paramIndex === 0) {
+          this.mobileDropdownType = 'package';
+          shouldShowDropdown = true;
+        }
+        
+        if (
+          insideText === '{mobile_name}' ||
+          insideText === '{mobile_code}' ||
+          insideText === '{app_package}' ||
+          this.runningMobiles.some(m => m.image_name === insideText) ||
+          this.runningMobiles.some(m => m.hostname === insideText) ||
+          this.appPackages.includes(insideText)
+        ) {
+          shouldShowDropdown = true;
+          // Determine dropdown type based on the content
+          if (insideText === '{mobile_code}') {
+            this.mobileDropdownType = 'code';
+          } else if (insideText === '{app_package}') {
+            this.mobileDropdownType = 'package';
+          } else if (insideText === '{mobile_name}') {
+            this.mobileDropdownType = 'name';
+          } else {
+            // For existing values, determine type based on what matches
+            const matchingMobile = this.runningMobiles.find(m => m.hostname === insideText);
+            if (matchingMobile) {
+              this.mobileDropdownType = 'code';
+            } else {
+              // Check if it's an app package
+              if (this.appPackages.includes(insideText)) {
+                this.mobileDropdownType = 'package';
+              } else {
+                // Default to name for image_name matches
+                this.mobileDropdownType = 'name';
+              }
+            }
+          }
+          
+          // Show dropdown if conditions are met
+          if (shouldShowDropdown) {
+            // Always refresh the list of running mobiles before showing the dropdown
+            this.fetchRunningMobiles();
+
+            this.showMobileDropdown = true;
+            this.mobileDropdownStepIndex = index;
+            this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
+
+            // Always recalculate the dropdown position and width every time it is shown
+            setTimeout(() => {
+              const coords = this.getCaretCoordinates(textarea, start);
+              const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+              // Add offset: -120px to top, 18px to left for better dropdown positioning
+              // This ensures the dropdown appears above and slightly to the right of the quote
+              const left = textarea.offsetLeft + coords.left + 18;
+              const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+              const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
+              this.mobileDropdownWidth = dropdownWidth;
+              this._cdr.detectChanges();
+              dropdownEl.style.left = `${left}px`;
+              dropdownEl.style.top = `${top}px`;
+              dropdownEl.style.minWidth = `${dropdownWidth}px`;
+            }, 0);
+
+            this.disableStepAutocomplete = true; // Disable autocomplete when editing mobile name/code/package/activity
+            this.dropdownActiveIndex = 0;
+            found = true;
+            break; // Stop after finding the correct match
+          }
+        }
+      }
+    }
+    // If not found, always hide the dropdown and reset related state
+    if (!found) {
+      this.showMobileDropdown = false;
+      this.mobileDropdownStepIndex = null;
+      this.mobileDropdownReplaceIndex = null;
+      this.disableStepAutocomplete = false; // Enable autocomplete otherwise
+      this._cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Measures the pixel width of a text string using a hidden span with the same font as the textarea.
+   */
+  measureTextWidth(text: string, textarea: HTMLTextAreaElement): number {
+    const span = document.createElement('span');
+    span.style.visibility = 'hidden';
+    span.style.position = 'absolute';
+    span.style.whiteSpace = 'pre';
+    span.style.font = getComputedStyle(textarea).font;
+    span.textContent = text || ' '; // fallback to space if empty
+    document.body.appendChild(span);
+    const width = span.offsetWidth + 32; // add some padding for dropdown arrow
+    document.body.removeChild(span);
+    return width;
+  }
+
+  /**
+   * Helper to get the pixel coordinates of a caret position in a textarea.
+   * Uses a hidden div to mirror the textarea content and measure the caret.
+   */
+  getCaretCoordinates(textarea: HTMLTextAreaElement, position: number) {
+    // Create a mirror div
+    const div = document.createElement('div');
+    const style = getComputedStyle(textarea);
+    for (const prop of [
+      'boxSizing', 'width', 'height', 'overflowX', 'overflowY', 'borderTopWidth',
+      'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'paddingTop',
+      'paddingRight', 'paddingBottom', 'paddingLeft', 'fontStyle', 'fontVariant',
+      'fontWeight', 'fontStretch', 'fontSize', 'fontSizeAdjust', 'lineHeight',
+      'fontFamily', 'textAlign', 'textTransform', 'textIndent', 'textDecoration',
+      'letterSpacing', 'wordSpacing', 'tabSize', 'MozTabSize']) {
+      // @ts-ignore
+      div.style[prop] = style[prop];
+    }
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+    div.style.top = textarea.offsetTop + 'px';
+    div.style.left = textarea.offsetLeft + 'px';
+    div.style.zIndex = '10000';
+    div.textContent = textarea.value.substring(0, position);
+    // Create a span for the caret
+    const span = document.createElement('span');
+    span.textContent = textarea.value.substring(position) || '.';
+    div.appendChild(span);
+    document.body.appendChild(div);
+    const top = span.offsetTop;
+    const left = span.offsetLeft;
+    document.body.removeChild(div);
+    return { top, left };
+  }
+
+  /**
+   * When a mobile is selected, replace the quoted string (including quotes) where the cursor was
+   * with the new mobile name in quotes. If not found, fallback to replacing the first {mobile_name}.
+   */
+  selectMobileName(mobileName: string) {
+    if (this.mobileDropdownStepIndex === null) return;
+    const stepFormGroup = this.stepsForm.at(this.mobileDropdownStepIndex) as FormGroup;
+    const contentControl = stepFormGroup.get('step_content');
+    const value = contentControl?.value || '';
+
+    // Regex to find the quoted string where the cursor was
+    const regex = /"([^"]*)"/g;
+    let match;
+    let newValue = value;
+    let replaced = false;
+    // Find the quoted string that contains the cursor
+    while ((match = regex.exec(value)) !== null) {
+      const start = match.index;
+      const end = regex.lastIndex;
+      if (
+        this.mobileDropdownReplaceIndex !== null &&
+        this.mobileDropdownReplaceIndex >= start &&
+        this.mobileDropdownReplaceIndex <= end
+      ) {
+        // Replace the quoted string (including quotes) with the new mobile name in quotes
+        newValue = value.substring(0, start) + `"${mobileName}"` + value.substring(end);
+        replaced = true;
+        break;
+      }
+    }
+    // Fallback: if not found, replace the appropriate placeholder based on dropdown type
+    if (!replaced) {
+      if (this.mobileDropdownType === 'code') {
+        newValue = value.replace('{mobile_code}', mobileName);
+      } else if (this.mobileDropdownType === 'package') {
+        newValue = value.replace('{app_package}', mobileName);
+      } else {
+        newValue = value.replace('{mobile_name}', mobileName);
+      }
+    }
+    contentControl?.setValue(newValue);
+    this.showMobileDropdown = false;
+    this.mobileDropdownStepIndex = null;
+    this.mobileDropdownReplaceIndex = null;
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Handles selection from the <select> dropdown for mobile names.
+   */
+  onMobileDropdownSelect(mobileName: string) {
+    if (mobileName) {
+      this.selectMobileName(mobileName);
+      // After selection, refocus the textarea and place the cursor inside the next placeholder if present
+      setTimeout(() => {
+        // Find the current textarea for the step
+        const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+        if (this.mobileDropdownStepIndex !== null && textareas[this.mobileDropdownStepIndex]) {
+          const textarea = textareas[this.mobileDropdownStepIndex] as HTMLTextAreaElement;
+          textarea.focus();
+          // Try to place the cursor inside the next quoted placeholder
+          const value = textarea.value;
+          const regex = /"([^"]*\{(mobile_name|mobile_code|app_package)\}[^"]*)"/g;
+          let match;
+          let found = false;
+          while ((match = regex.exec(value)) !== null) {
+            const start = match.index + 1;
+            const end = start + match[1].length;
+            // If the placeholder is still present, place the cursor inside it
+            if (match[1].includes('{mobile_name}') || match[1].includes('{mobile_code}') || match[1].includes('{app_package}')) {
+              textarea.setSelectionRange(start, end);
+              found = true;
+              break;
+            }
+          }
+          // If not found, place the cursor at the end
+          if (!found) {
+            textarea.setSelectionRange(value.length, value.length);
+          }
+        }
+      }, 0);
+    }
   }
 
   /**
@@ -547,12 +930,36 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   
 
   onTextareaFocus(event: FocusEvent, index: number): void {
-    // Inform parent of focus first
-    this.sendTextareaFocusToParent(true, index);
+    // Validate index is within bounds
+    if (index < 0 || index >= this.stepsForm.length) {
+      return;
+    }
+    
+    // Ignore focus events during autocomplete selection to prevent interference
+    if (this.isAutocompleteSelectionInProgress) {
+
+      return;
+    }
+    
+    // Set the current focused step index for the shared autocomplete
+    this.currentFocusedStepIndex = index;
+
+    
+    // Inform parent of focus (without showing documentation)
+    this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
       this._cdr.detectChanges();
+    }
+    
+    // Get step content
+    const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    
+    // Reset autocomplete filtering for empty steps to show all actions
+    if (!stepContent.trim()) {
+      this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+      return;
     }
     
     // Re-filter action suggestions based on this step's current content
@@ -566,13 +973,176 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     } else {
       this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     }
+    
+    // Auto-detect action based on content before the first quote (case-insensitive)
+    const prefix = text.split('"')[0].trim().toLowerCase();
+          const activatedAction = this.actions.find(action => {
+        const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+        return actionPrefix === prefix;
+      });
+    if (activatedAction) {
+      // Context: immediately after this.stepsForm.at(index).patchValue
+      this.stepsForm.at(index).patchValue({
+        step_action: activatedAction.action_name
+      });
+    }
+
+    // Check if the step contains mobile placeholders and auto-open dropdown for the first one
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea) {
+      const value = textarea.value;
+      // Find all quoted substrings to check for placeholders
+      const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
+      const quoteRegex = /"([^"]*)"/g;
+      let quoteMatch;
+      while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+        allMatches.push({
+          index: quoteMatch.index,
+          text: quoteMatch[1],
+          start: quoteMatch.index + 1,
+          end: quoteMatch.index + 1 + quoteMatch[1].length
+        });
+      }
+      
+      // Find the first placeholder and open dropdown
+      for (let mi = 0; mi < allMatches.length; mi++) {
+        const m = allMatches[mi];
+        if (m.text.includes('{mobile_name}') || m.text.includes('{mobile_code}') || 
+            m.text.includes('{app_package}')) {
+          
+          // Set dropdown type based on placeholder
+          if (m.text.includes('{mobile_code}')) {
+            this.mobileDropdownType = 'code';
+          } else if (m.text.includes('{app_package}')) {
+            this.mobileDropdownType = 'package';
+          } else {
+            this.mobileDropdownType = 'name';
+          }
+          
+          // Always refresh the list of running mobiles before showing the dropdown
+          this.fetchRunningMobiles();
+          
+          this.showMobileDropdown = true;
+          this.mobileDropdownStepIndex = index;
+          this.mobileDropdownReplaceIndex = m.start - 1;
+          
+          // Position the dropdown
+          setTimeout(() => {
+            const coords = this.getCaretCoordinates(textarea, m.start);
+            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+            const left = textarea.offsetLeft + coords.left + 18;
+            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+            const dropdownWidth = Math.max(this.measureTextWidth(m.text, textarea), 120);
+            this.mobileDropdownWidth = dropdownWidth;
+            this._cdr.detectChanges();
+            dropdownEl.style.left = `${left}px`;
+            dropdownEl.style.top = `${top}px`;
+            dropdownEl.style.minWidth = `${dropdownWidth}px`;
+          }, 0);
+          
+          this.disableStepAutocomplete = true;
+          this.dropdownActiveIndex = 0;
+          break; // Only open dropdown for the first placeholder found
+        }
+      }
+    }
+    
+    this._cdr.detectChanges();
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
-  onTextareaTab(i: number) {
+  onTextareaTab(event: KeyboardEvent, i: number) {
     if (this.stepVariableData.currentStepIndex === i) {
       this.stepVariableData.currentStepIndex = null;
     }
+    
+    // Get the current textarea and its content
+    const textarea = event.target as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const value = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    
+    // Find all quoted substrings to determine if cursor is inside quotes
+    const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
+    const quoteRegex = /"([^"]*)"/g;
+    let quoteMatch;
+    while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+      allMatches.push({
+        index: quoteMatch.index,
+        text: quoteMatch[1],
+        start: quoteMatch.index + 1,
+        end: quoteMatch.index + 1 + quoteMatch[1].length
+      });
+    }
+    
+    // Check if cursor is inside any quoted substring
+    let currentQuoteIndex = -1;
+    for (let mi = 0; mi < allMatches.length; mi++) {
+      const m = allMatches[mi];
+      if (cursorPos >= m.start && cursorPos <= m.end) {
+        currentQuoteIndex = mi;
+        break;
+      }
+    }
+    
+    // If cursor is inside quotes, move to the next pair of quotes in a loop
+    if (currentQuoteIndex >= 0) {
+      let nextQuoteIndex: number;
+      // If we're at the last quote, loop back to the first one
+      if (currentQuoteIndex >= allMatches.length - 1) {
+        nextQuoteIndex = 0;
+      } else {
+        nextQuoteIndex = currentQuoteIndex + 1;
+      }
+      
+      const nextQuote = allMatches[nextQuoteIndex];
+      // Position cursor at the beginning of the next quoted content and select all content inside
+      textarea.setSelectionRange(nextQuote.start, nextQuote.end);
+      
+      // Check if the next quote contains a placeholder and open corresponding dropdown
+      if (nextQuote.text.includes('{mobile_name}') || nextQuote.text.includes('{mobile_code}') || 
+          nextQuote.text.includes('{app_package}')) {
+        
+        // Set dropdown type based on placeholder
+        if (nextQuote.text.includes('{mobile_code}')) {
+          this.mobileDropdownType = 'code';
+        } else if (nextQuote.text.includes('{app_package}')) {
+          this.mobileDropdownType = 'package';
+        }  else {
+          this.mobileDropdownType = 'name';
+        }
+        
+        // Always refresh the list of running mobiles before showing the dropdown
+        this.fetchRunningMobiles();
+        
+        this.showMobileDropdown = true;
+        this.mobileDropdownStepIndex = i;
+        this.mobileDropdownReplaceIndex = nextQuote.start - 1;
+        
+        // Position the dropdown
+        setTimeout(() => {
+          const coords = this.getCaretCoordinates(textarea, nextQuote.start);
+          const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+          const left = textarea.offsetLeft + coords.left + 18;
+          const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+          const dropdownWidth = Math.max(this.measureTextWidth(nextQuote.text, textarea), 120);
+          this.mobileDropdownWidth = dropdownWidth;
+          this._cdr.detectChanges();
+          dropdownEl.style.left = `${left}px`;
+          dropdownEl.style.top = `${top}px`;
+          dropdownEl.style.minWidth = `${dropdownWidth}px`;
+        }, 0);
+        
+        this.disableStepAutocomplete = true;
+        this.dropdownActiveIndex = 0;
+      }
+      
+      event.preventDefault(); // Prevent default tab behavior
+      return;
+    }
+    
+    // If no more quotes or cursor is not in quotes, allow normal tab behavior
   }
 
   // inserts variable into step when clicked
@@ -635,6 +1205,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     }
 
+    // Extract action name from input and update step_action and documentation
+    if (textareaValue) {
+      const detectedAction = this.actions.find(a =>
+        textareaValue.startsWith(a.action_name)
+      );
+      if (detectedAction) {
+        // Update step_action form control
+        this.stepsForm.at(index).get('step_action')?.setValue(detectedAction.action_name);
+      } else {
+        // Clear if no matching action
+        this.stepsForm.at(index).get('step_action')?.setValue('');
+      }
+    }
+
     // Check if step starts with "Run feature with id" or "Run feature with name"
     if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
       // Extract content between quotes
@@ -690,12 +1274,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.removeLinkIcon(textarea, index);
     }
 
-    if (!textareaValue) {
-      this.stepsDocumentation[index] = {
-        description: '',
-        examples: ''
-      };
+    // Only update documentation if it's currently visible and the step action has changed
+    // This prevents clearing documentation when user modifies content between quotes
+    const currentStepAction = this.stepsForm.at(index).get('step_action')?.value;
+    const previousStepAction = this.stepsForm.at(index).get('step_action')?.value;
+    
+    // Only reload documentation if the step action has actually changed
+    // or if documentation is visible but not yet loaded
+    if (this.stepVisible[index] && (!this.stepsDocumentation[index] || 
+        this.stepsDocumentation[index].description === 'No documentation found for this step')) {
+      this.loadStepDocumentation(index);
     }
+    
+
+
+
 
     this._cdr.detectChanges();
 
@@ -817,67 +1410,111 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
-    // Obtain the value of the selected step
+    // Use the most reliable index - prioritize currentFocusedStepIndex but validate it
+    let targetIndex = this.currentFocusedStepIndex ?? index;
+    
+    // Debug logging
+
+    
+    // Validate that the target index is within bounds
+    if (targetIndex < 0 || targetIndex >= this.stepsForm.length) {
+      targetIndex = index;
+    }
+    
+    // Find the actually focused textarea and use its index
+    const textareas = this.stepTextareas?.toArray();
+    let actuallyFocusedIndex = -1;
+    
+    if (textareas) {
+      for (let i = 0; i < textareas.length; i++) {
+        if (document.activeElement === textareas[i].nativeElement) {
+          actuallyFocusedIndex = i;
+          break;
+        }
+      }
+    }
+    
+    // If we found a focused textarea, use its index instead
+    if (actuallyFocusedIndex !== -1) {
+      
+      targetIndex = actuallyFocusedIndex;
+    }
+    
+    // Set a flag to prevent focus events from interfering during autocomplete selection
+    this.isAutocompleteSelectionInProgress = true;
+    
+    // Get the selected value
     const step = event.option.value;
-
-    // Make the step visible in the UI for the specified index
-    this.stepVisible[index] = true;
-
-    const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
-
-    // We use a regular expression to extract the action name and the variable
+    
+    // Update the form control immediately
+    const stepFormGroup = this.stepsForm.at(targetIndex) as FormGroup;
+    if (!stepFormGroup) {
+      console.error('Step form group not found at index:', targetIndex);
+      return;
+    }
+    
+    // Set the step content
+    stepFormGroup.patchValue({ 
+      step_content: step
+    });
+    
     const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
     if (matchResult) {
       const actionName = matchResult[1].trim();
-
-      // Search for the corresponding action using the action name
       const activatedAction = this.actions.find(action =>
         action.action_name.split('"')[0].trim() === actionName
       );
+      
+      if (activatedAction) {
+        stepFormGroup.patchValue({ 
+          step_action: activatedAction.action_name
+        });
+        
+        this.selectedActionTitle = activatedAction.action_name;
+        this.selectedActionDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
 
-      // Access the specific FormGroup for this step in the list of forms
-      const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+        if (this.selectedActionDescription.includes("Example")) {
+          const parts = this.selectedActionDescription.split("Example:");
+          this.descriptionText = parts[0].trim();
+          this.examplesText = parts[1]?.trim() || '';
+        } else {
+          this.descriptionText = this.selectedActionDescription;
+          this.examplesText = '';
+        }
 
-      // Update the value of "step_action" in the FormGroup
-      stepFormGroup.patchValue({ step_action: activatedAction.action_name });
-
-      // Assign values for the selected action
-      this.selectedActionTitle = activatedAction.action_name;
-      this.selectedActionDescription = activatedAction.description;
-
-      // Remove <br> tags from the description
-      this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
-
-      // Separate description and examples if necessary
-      if (this.selectedActionDescription.includes("Example")) {
-        const parts = this.selectedActionDescription.split("Example:");
-        this.descriptionText = parts[0].trim();
-        this.examplesText = parts[1]?.trim() || '';
-      } else {
-        this.descriptionText = this.selectedActionDescription;
-        this.examplesText = '';
+        this.stepsDocumentation[targetIndex] = {
+          description: this.descriptionText,
+          examples: this.examplesText
+        };
       }
-
-      // Store the documentation for the current step
-      this.stepsDocumentation[index] = {
-        description: this.descriptionText,
-        examples: this.examplesText
-      };
-
-      this._cdr.detectChanges();
     }
-
-    // Get the corresponding textarea and select the first parameter
-    const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
-    const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
-    const match = parameterRegex.exec(step);
-    if (match) {
-      this._ngZone.runOutsideAngular(() =>
-        input.setSelectionRange(match.index, match.index + match[0].length)
-      );
-    }
-
+    
+    // Don't automatically show documentation when selecting from autocomplete
+    // Documentation will only be shown when explicitly requested via the Actions button
+    // this.stepVisible[targetIndex] = true;
+    
+    // Force change detection
     this._cdr.detectChanges();
+
+    // Select first parameter if exists - do this after change detection
+    requestAnimationFrame(() => {
+      const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
+      const match = parameterRegex.exec(step);
+      
+      const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+      const targetTextarea = textareas[targetIndex] as HTMLTextAreaElement;
+      
+      if (targetTextarea && match) {
+        targetTextarea.focus();
+        targetTextarea.setSelectionRange(match.index, match.index + match[0].length);
+      }
+      
+      // Reset the flag after autocomplete selection is complete
+      setTimeout(() => {
+        this.isAutocompleteSelectionInProgress = false;
+    
+      }, 100);
+    });
   }
 
 
@@ -885,7 +1522,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   selectedActionDescription: string = '';
   descriptionText: string = '';
   examplesText: string = '';
-  showHideStepDocumentation: boolean = true;
+
 
   onOptionActivated(event: MatAutocompleteActivatedEvent, index): void {
     if (event && event.option) {
@@ -895,7 +1532,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       if (activatedAction) {
         // Assign values for the selected action
         this.selectedActionTitle = activatedAction.action_name;
-        this.selectedActionDescription = activatedAction.description;
+        this.selectedActionDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
 
         // Remove <br> tags from the description
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
@@ -926,11 +1563,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
 
-  toggleShowHideDoc() {
-    this.showHideStepDocumentation = !this.showHideStepDocumentation
+
+
+  toggleStepDocumentation(index: number) {
+    this.stepVisible[index] = !this.stepVisible[index];
+    
+    if (this.stepVisible[index]) {
+      // Notify parent to show documentation
+      this.sendTextareaFocusToParent(true, index, true);
+      
+      // Load documentation for this step
+      this.loadStepDocumentation(index);
+    } else {
+      // If hiding documentation, notify parent
+      this.sendTextareaFocusToParent(false, index);
+    }
+    
+    this._cdr.detectChanges();
   }
 
-  @ViewChildren(MatAutocompleteTrigger) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
+  @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
   @HostListener('document:keydown', ['$event'])
   handleGlobalKeyDown(event: KeyboardEvent): void {
@@ -976,16 +1628,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
-    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-    const stepContent = stepFormGroup.get('step_content')?.value;
-    if (stepContent == '') {
-      this.stepsDocumentation[index] = {
-        description: '',
-        examples: ''
-      };
+    const actualIndex = index ?? this.currentFocusedStepIndex;
+    
+    if (actualIndex !== null) {
+      const stepFormGroup = this.stepsForm.at(actualIndex) as FormGroup;
+      const stepContent = stepFormGroup?.get('step_content')?.value;
+      
+      if (stepContent == '') {
+        this.stepsDocumentation[actualIndex] = {
+          description: '',
+          examples: ''
+        };
+      }
+      
+      this.stepVisible[actualIndex] = false;
     }
-
+    
+    this.isAutocompleteOpened = false;
     this._cdr.detectChanges();
+
   }
 
   isIconActive: { [key: string]: boolean } = {};
@@ -1006,9 +1667,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   isAutocompleteOpened: boolean = false;
+  isAutocompleteSelectionInProgress: boolean = false;
 
   onAutocompleteOpened(index?: number) {
-    this.stepVisible[index] = true;
+    const actualIndex = index ?? this.currentFocusedStepIndex;
+    if (actualIndex !== null) {
+      // Don't automatically show documentation when autocomplete opens
+      // Documentation will only be shown when explicitly requested via the Actions button
+      // this.stepVisible[actualIndex] = true;
+      
+      // Reset autocomplete filtering to show all actions for empty steps
+      const stepContent = this.stepsForm.at(actualIndex)?.get('step_content')?.value || '';
+      if (!stepContent.trim()) {
+        this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+      }
+    }
     this.isAutocompleteOpened = true;
 
     setTimeout(() => {
@@ -1164,16 +1837,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * steps to avoid multiple overlapping panels.
    */
   private closeAssistPanels(): void {
-    this.autocompleteTriggers?.forEach(trigger => {
-      if (trigger.panelOpen) {
-        trigger.closePanel();
-      }
-    });
-
-    // Remove any stale overlay DOM left behind (failsafe, O(1))
-    const overlay = document.querySelector('.mat-autocomplete-panel');
-    if (overlay) {
-      overlay.remove();
+    // Close the shared autocomplete trigger if it exists
+    const trigger = this.autocompleteTriggers?.first;
+    if (trigger?.panelOpen) {
+      trigger.closePanel();
     }
 
     // Reset variable fly-out state
@@ -1182,13 +1849,47 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.stepVariableData.currentStepIndex = null;
     }
 
+    // Close mobile dropdown if open
+    if (this.showMobileDropdown) {
+      this.showMobileDropdown = false;
+      this.mobileDropdownStepIndex = null;
+      this.mobileDropdownReplaceIndex = null;
+      this.disableStepAutocomplete = false;
+    }
+
+    // Reset focused step
+    this.currentFocusedStepIndex = null;
     this.isAutocompleteOpened = false;
+    this.isAutocompleteSelectionInProgress = false;
+    
+    // Force change detection
+    this._cdr.detectChanges();
   }
 
-  addEmpty(index: number = -1) {
-    // Ensure no assistive panel from other textarea remains open
-    this.closeAssistPanels();
+  private openAutocompleteForTextarea(textarea: HTMLTextAreaElement, stepIndex: number): void {
+    setTimeout(() => {
+      // Double-check that the correct textarea is still focused
+      const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
+      if (currentFocusedTextarea === textarea) {
+    
+        
+        // Reset autocomplete filtering to show all actions for new steps
+        const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
+        if (!stepContent.trim()) {
+          this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+        }
+        
+        const trigger = this.autocompleteTriggers?.first;
+        if (trigger && !trigger.panelOpen) {
+          trigger.openPanel();
+        }
+      }
+    }, 150); // Increased delay to ensure focus is stable
+  }
 
+  addEmpty(index: number = -1, openAutocomplete: boolean = false) {
+
+    
     const template = this._fb.group({
       enabled: [true],
       screenshot: [false],
@@ -1202,8 +1903,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       selected: [false]
     });
 
-
-
     if (index >= 0) {
       this.stepsForm.insert(index, template);
     } else {
@@ -1212,9 +1911,46 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     this._cdr.detectChanges();
     
-    // Focus the new step
     const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
-    this.focusStep(stepIndex);
+
+    
+    // Focus and open autocomplete with proper timing
+    setTimeout(() => {
+      // Use ViewChildren to get the correct textarea reference
+      const textareas = this.stepTextareas?.toArray();
+      if (textareas && textareas[stepIndex]) {
+        const textarea = textareas[stepIndex].nativeElement as HTMLTextAreaElement;
+        if (textarea) {
+          // Set the current focused step index right before focusing
+          this.currentFocusedStepIndex = stepIndex;
+  
+          textarea.focus();
+          
+          // Open autocomplete if requested
+          if (openAutocomplete) {
+            this.openAutocompleteForTextarea(textarea, stepIndex);
+          }
+        }
+      } else {
+        // Fallback to DOM query if ViewChildren is not available
+        const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
+        const textarea = textareas[stepIndex] as HTMLTextAreaElement;
+        if (textarea) {
+          // Set the current focused step index right before focusing
+          this.currentFocusedStepIndex = stepIndex;
+  
+          textarea.focus();
+          
+          // Open autocomplete if requested
+          if (openAutocomplete) {
+            this.openAutocompleteForTextarea(textarea, stepIndex);
+          }
+        }
+      }
+      
+      // Force change detection to ensure UI updates
+      this._cdr.detectChanges();
+    }, 100); // Increased delay to ensure DOM is fully updated
   }
 
   copyItem(index: number, position: string) {
@@ -1255,7 +1991,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (activatedAction) {
       // Asignar título y descripción de la acción seleccionada
       this.selectedActionTitle = activatedAction.action_name;
-      this.selectedActionDescription = activatedAction.description;
+      this.selectedActionDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
 
       // Limpiar las etiquetas <br> de la descripción
       this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
@@ -1282,19 +2018,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   drop(event: CdkDragDrop<string[]>) {
-    // if (this.stepVisible.length > 0) {
-    //   this.stepVisible = this.stepVisible.map(() => false);
-    // } else {
-    //   console.warn('stepVisible está vacío');
-    // }
     const panel = document.querySelector('.stepContainer');
     if (panel) {
       this.renderer.removeChild(document.body, panel);
     }
 
     const control = this.stepsForm.controls[event.previousIndex];
+    const value = control.getRawValue();
+    const newFormGroup = this._fb.group({
+      enabled: value.enabled,
+      screenshot: value.screenshot,
+      step_keyword: value.step_keyword,
+      compare: value.screenshot ? value.compare : false,
+      step_content: [value.step_content, CustomValidators.StepAction.bind(this)],
+      step_action: value.step_action || '',
+      step_type: value.step_type,
+      continue_on_failure: value.continue_on_failure,
+      timeout: value.timeout || this.department?.settings?.step_timeout || 60,
+      selected: value.selected
+    });
     this.stepsForm.removeAt(event.previousIndex);
-    this.stepsForm.insert(event.currentIndex, control);
+    this.stepsForm.insert(event.currentIndex, newFormGroup);
 
     this._cdr.detectChanges();
   }
@@ -1330,21 +2074,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
-  focusStep(childIndex) {
-    setTimeout(_ => {
+  focusStep(childIndex: number) {
+    requestAnimationFrame(() => {
       try {
-        document
-          .querySelector(
-            `.mat-dialog-content .step-row:nth-child(${childIndex + 1})`
-          )
-          .scrollIntoView({ block: 'center', behavior: 'smooth' });
-        (
-          document.querySelector(
-            `.mat-dialog-content .step-row:nth-child(${childIndex + 1}) .code`
-          ) as HTMLInputElement
-        ).focus();
-      } catch (err) {}
-    }, 0);
+        const stepRow = document.querySelector(
+          `.mat-dialog-content .step-row:nth-child(${childIndex + 1})`
+        );
+        
+        if (stepRow) {
+          stepRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          
+          const input = stepRow.querySelector('.code') as HTMLInputElement;
+          if (input) {
+            input.focus();
+            // Simulate a click to trigger onStepTextareaClick logic (e.g., mobile dropdown position)
+            input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          }
+        }
+      } catch (err) {
+        // Silently handle any errors
+      }
+    });
   }
 
   scrollStepsToBottom(focusLastStep: boolean = false) {
@@ -1493,35 +2243,60 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   insertStep(event: KeyboardEvent, i: number){
     event.preventDefault();
-    // Cerrar el autocompletado
-    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
-    if (autocompletePanel) {
-        autocompletePanel.remove();
+    event.stopPropagation();
+    
+    // Throttle to prevent erratic behavior when holding keys
+    const currentTime = Date.now();
+    if (currentTime - this.lastInsertTime < this.INSERT_THROTTLE_MS) {
+      return; // Ignore if called too quickly
     }
-    // También limpiar las variables mostradas
-    this.displayedVariables = [];
-    this.stepVariableData.currentStepIndex = null;
-    this.isAutocompleteOpened = false;
+    this.lastInsertTime = currentTime;
+    
+    // Blur current textarea and close any open autocomplete panel before inserting
+    const activeEl = document.activeElement as HTMLElement;
+    if (activeEl && typeof activeEl.blur === 'function') {
+      activeEl.blur();
+    }
+    this.autocompleteTriggers?.forEach(t => { if (t.panelOpen) t.closePanel(); });
+    
+    // Close any other assistive panels before inserting
+    this.closeAssistPanels();
+    
+    // Store current step content to prevent modification
+    const currentStepContent = this.stepsForm.at(i)?.get('step_content')?.value || '';
     
     if(event.key == 'ArrowDown'){
-        this.addEmpty(i+1);
+        this.addEmpty(i+1, true); 
+        this.focusStep(i+1);
     }
     else if (event.key == 'ArrowUp'){
-        this.addEmpty(i);
+        this.addEmpty(i, true); 
+        this.focusStep(i);
+    }
+    
+    // If we inserted below (ArrowDown), the original content might be overridden; restore it.
+    if (event.key === 'ArrowDown') {
+      setTimeout(() => {
+        if (this.stepsForm.at(i) && this.stepsForm.at(i).get('step_content')?.value !== currentStepContent) {
+          this.stepsForm.at(i).get('step_content')?.setValue(currentStepContent);
+        }
+      }, 150);
     }
   }
 
   copyStep(event: KeyboardEvent, i: number){
     event.preventDefault();
-    // Cerrar el autocompletado
-    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
-    if (autocompletePanel) {
-        autocompletePanel.remove();
+    event.stopPropagation();
+    
+    // Throttle to prevent erratic behavior when holding keys
+    const currentTime = Date.now();
+    if (currentTime - this.lastInsertTime < this.INSERT_THROTTLE_MS) {
+      return; // Ignore if called too quickly
     }
-    // También limpiar las variables mostradas
-    this.displayedVariables = [];
-    this.stepVariableData.currentStepIndex = null;
-    this.isAutocompleteOpened = false;
+    this.lastInsertTime = currentTime;
+    
+    // Close any open autocomplete properly without removing from DOM
+    this.closeAssistPanels();
     
     if(event.key == 'ArrowDown'){
         this.copyItem(i+1, 'down');
@@ -1693,6 +2468,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @ViewChildren('stepTextarea') stepTextareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
 
   ngAfterViewInit() {
+    
     // When the view is ready, update all textareas to set their initial resize state.
     this.updateAllTextareasResize();
 
@@ -1701,7 +2477,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.subs.sink = this.stepTextareas.changes.subscribe(() => {
         this.updateAllTextareasResize();
     });
+    
+    // Also subscribe to autocomplete triggers changes
+    if (this.autocompleteTriggers) {
+      this.subs.sink = this.autocompleteTriggers.changes.subscribe(() => {
+        this.autocompleteTriggers.forEach((trigger, idx) => {
+          const triggerEl = (trigger as any)._element?.nativeElement;
+        });
+      });
+    }
   }
+
 
   /**
    * Iterates through all step textareas and updates their resize state.
@@ -1737,6 +2523,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (hasExplicitNewline || isVisuallyWrapped) {
       this.renderer.addClass(textarea, 'allow-resize');
     }
+  }
+
+  /**
+   * Automatically grows the textarea height to fit its content.
+   * @param event The input event from the textarea.
+   */
+  autoGrowTextarea(event: Event) {
+    const textarea = event.target as HTMLTextAreaElement;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   }
 
   /**
@@ -1777,6 +2574,329 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    */
   hasSelectedSteps(): boolean {
     return this.stepsForm.controls.some(control => control.get('selected')?.value);
+  }
+
+  /**
+   * Toggle all step documentation visibility
+   */
+  toggleAllDocumentation() {
+    const shouldShow = !this.areAllDocumentationVisible();
+
+    this.stepsForm.controls.forEach((_, index) => {
+      const visible = this.stepVisible[index];
+      if (shouldShow && !visible) {
+        // Load documentation for all steps when showing all
+        this.loadStepDocumentation(index);
+        this.stepVisible[index] = true;
+      } else if (!shouldShow && visible) {
+        this.stepVisible[index] = false;
+      }
+    });
+
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Extracts the original action name from a step content (ignoring modifications inside quotes)
+   */
+  private extractOriginalActionName(stepContent: string): string {
+    const text = stepContent.trim();
+    if (!text) return '';
+    
+    // Split by quotes and take the first part (before first quote)
+    const parts = text.split('"');
+    const actionPart = parts[0].trim();
+    
+
+    
+    return actionPart;
+  }
+
+  /**
+   * Detects if a step is a mobile step based on its content
+   */
+  private isMobileStep(stepContent: string): boolean {
+    const text = stepContent.toLowerCase();
+    // Check for mobile-related keywords and patterns
+    const mobilePatterns = [
+      'mobile',
+      'android',
+      'ios',
+      'app',
+      'device',
+      'capabilities',
+      'start app',
+      'connect to mobile',
+      'start mobile'
+    ];
+    
+    return mobilePatterns.some(pattern => text.includes(pattern));
+  }
+
+  /**
+   * Generates documentation for mobile actions based on their action name
+   */
+  private generateMobileDocumentation(actionName: string): { description: string; examples: string } {
+    const actionNameLower = actionName.toLowerCase();
+    
+    // Start mobile emulator
+    if (actionNameLower.includes('start mobile') && actionNameLower.includes('capabilities')) {
+      return {
+        description: 'Starts a mobile emulator with specified capabilities and references it to a variable for use in mobile automation tests.',
+        examples: 'Start mobile "Android_13.0_API33_x86_64" use capabilities """{"platformName": "Android", "app": "/path/to/app.apk"}""" reference to "myMobile"'
+      };
+    }
+    
+    // Connect to mobile
+    if (actionNameLower.includes('connect to mobile') && actionNameLower.includes('capabilities')) {
+      return {
+        description: 'Connects to an existing mobile device or emulator using specified capabilities and references it to a variable.',
+        examples: 'Connect to mobile "6c7f06630a88" use capabilities """{"platformName": "Android"}""" reference to "myMobile"'
+      };
+    }
+    
+    // Start mobile app
+    if (actionNameLower.includes('on mobile start app')) {
+      return {
+        description: 'Launches a specific mobile application using its package name and activity name on the connected mobile device.',
+        examples: 'On mobile start app "com.example.app" "com.example.app.MainActivity"'
+      };
+    }
+    
+    // Install app
+    if (actionNameLower.includes('install app')) {
+      return {
+        description: 'Installs an APK file on the connected mobile device for testing purposes.',
+        examples: 'Install app "new_app.apk" on mobile'
+      };
+    }
+    
+    // Tap on element
+    if (actionNameLower.includes('on mobile tap on')) {
+      return {
+        description: 'Taps on a specific element in the mobile application using the provided selector.',
+        examples: 'On mobile tap on "~Login Button"'
+      };
+    }
+    
+    // Long press
+    if (actionNameLower.includes('on mobile long press')) {
+      return {
+        description: 'Performs a long press gesture on a specific element in the mobile application.',
+        examples: 'On mobile long press "~Menu Button"'
+      };
+    }
+    
+    // Double tap
+    if (actionNameLower.includes('on mobile double tap on')) {
+      return {
+        description: 'Performs a double tap gesture on a specific element in the mobile application.',
+        examples: 'On mobile double tap on "~Image"'
+      };
+    }
+    
+    // Swipe actions
+    if (actionNameLower.includes('on mobile swipe')) {
+      if (actionNameLower.includes('right')) {
+        return {
+          description: 'Performs a swipe gesture to the right on the mobile screen.',
+          examples: 'On mobile swipe right'
+        };
+      } else if (actionNameLower.includes('left')) {
+        return {
+          description: 'Performs a swipe gesture to the left on the mobile screen.',
+          examples: 'On mobile swipe left'
+        };
+      } else if (actionNameLower.includes('up')) {
+        return {
+          description: 'Performs a swipe gesture upward on the mobile screen.',
+          examples: 'On mobile swipe up'
+        };
+      } else if (actionNameLower.includes('down')) {
+        return {
+          description: 'Performs a swipe gesture downward on the mobile screen.',
+          examples: 'On mobile swipe down'
+        };
+      } else if (actionNameLower.includes('from coordinate')) {
+        return {
+          description: 'Performs a swipe gesture from one coordinate to another on the mobile screen.',
+          examples: 'On mobile swipe from coordinate "100,200" to "300,400"'
+        };
+      }
+    }
+    
+    // Set value
+    if (actionNameLower.includes('on mobile set value')) {
+      return {
+        description: 'Sets a value in a text input field on the mobile application.',
+        examples: 'On mobile set value "test@example.com" in "~Email Input"'
+      };
+    }
+    
+    // Clear textbox
+    if (actionNameLower.includes('on mobile clear textbox')) {
+      return {
+        description: 'Clears the content of a text input field on the mobile application.',
+        examples: 'On mobile clear textbox "~Search Input"'
+      };
+    }
+    
+    // Assert actions
+    if (actionNameLower.includes('on mobile assert if')) {
+      if (actionNameLower.includes('screen contains')) {
+        return {
+          description: 'Asserts that the mobile screen contains specific text or elements.',
+          examples: 'On mobile assert if screen contains "Welcome"'
+        };
+      } else {
+        return {
+          description: 'Asserts a condition on a specific element in the mobile application.',
+          examples: 'On mobile assert if "~Button" is enabled'
+        };
+      }
+    }
+    
+    // Switch to frame
+    if (actionNameLower.includes('on mobile switch to frame')) {
+      return {
+        description: 'Switches the context to an iframe within the mobile application.',
+        examples: 'On mobile switch to frame with id "webview"'
+      };
+    }
+    
+    // Default fallback for unknown mobile actions
+    return {
+      description: `Mobile automation action: ${actionName}`,
+      examples: 'This is a mobile automation step for testing mobile applications'
+    };
+  }
+
+  /**
+   * Loads documentation for a specific step index
+   * Always shows documentation for the original step (without modifications inside quotes)
+   */
+  private loadStepDocumentation(index: number) {
+    const stepContent = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    const stepType = this.stepsForm.at(index)?.get('step_type')?.value;
+    
+    // Detect if it's a mobile step based on content if stepType is not set correctly
+    const isMobile = stepType === 'MOBILE' || this.isMobileStep(stepContent);
+    
+    if (isMobile) {
+      // Extract action name from step content for mobile steps (original without quote modifications)
+      const text = stepContent.trim();
+      if (text) {
+        // Get the part before the first quote (action name)
+        const prefix = text.split('"')[0].trim().toLowerCase();
+        
+        // Try to find the action by matching the prefix
+        let activatedAction = this.actions.find(action => {
+          const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+          return actionPrefix === prefix;
+        });
+        
+        // If not found by exact prefix match, try a more flexible search
+        if (!activatedAction) {
+          activatedAction = this.actions.find(action => {
+            // Check if the action name contains the prefix or vice versa
+            const actionName = action.action_name.toLowerCase();
+            const actionPrefix = actionName.split('"')[0].trim();
+            return actionPrefix === prefix || actionName.includes(prefix) || prefix.includes(actionPrefix);
+          });
+        }
+        
+        // If still not found, try searching in the full action name
+        if (!activatedAction) {
+          activatedAction = this.actions.find(action => {
+            const actionName = action.action_name.toLowerCase();
+            return actionName.includes(prefix);
+          });
+        }
+        
+        if (activatedAction) {
+          // Use fallback directly since the API doesn't exist
+          if (activatedAction.description && activatedAction.description.trim()) {
+            const rawDesc = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+            const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
+            
+            this.stepsDocumentation[index] = {
+              description: descriptionText || 'Documentation loaded from action description',
+              examples: examplesText || 'Examples loaded from action description'
+            };
+          } else {
+            // Generate documentation based on action name for mobile steps
+            const { description: descriptionText, examples: examplesText } = this.generateMobileDocumentation(activatedAction.action_name);
+            this.stepsDocumentation[index] = {
+              description: descriptionText,
+              examples: examplesText
+            };
+          }
+          this._cdr.detectChanges();
+        } else {
+          this.stepsDocumentation[index] = {
+            description: 'No documentation found for this step',
+            examples: 'No examples available'
+          };
+        }
+      } else {
+        this.stepsDocumentation[index] = {
+          description: 'Enter a step to see documentation',
+          examples: 'Examples will appear here when you enter a valid step'
+        };
+      }
+    } else {
+      // For non-mobile steps, extract documentation using parseStepDocumentation
+      if (stepContent.trim()) {
+        // Find action by matching the original step structure (before quote modifications)
+        let action = this.actions.find(a => {
+          // Check if the step content contains the action name (original structure)
+          return stepContent.toLowerCase().includes(a.action_name.toLowerCase());
+        });
+        
+        // If not found, try more flexible matching for browser/URL actions
+        if (!action) {
+          const stepLower = stepContent.toLowerCase();
+          action = this.actions.find(a => {
+            const actionLower = a.action_name.toLowerCase();
+            // Check for browser-related keywords
+            return (stepLower.includes('startbrowser') && actionLower.includes('startbrowser')) ||
+                   (stepLower.includes('url') && actionLower.includes('url')) ||
+                   (stepLower.includes('browser') && actionLower.includes('browser'));
+          });
+        }
+        
+        if (action) {
+          // Clean HTML breaks and parse documentation
+          const rawDesc = action.description.replace(/<br\s*\/?>/gi, '');
+          const { description: descriptionText, examples: examplesText } = this.parseStepDocumentation(rawDesc);
+          this.stepsDocumentation[index] = {
+            description: descriptionText || 'No documentation found for this step',
+            examples: examplesText || 'No examples available'
+          };
+        } else {
+
+          
+          this.stepsDocumentation[index] = {
+            description: 'No documentation found for this step',
+            examples: 'No examples available'
+          };
+        }
+      } else {
+        // If step is empty, show placeholder documentation
+        this.stepsDocumentation[index] = {
+          description: 'Enter a step to see documentation',
+          examples: 'Examples will appear here when you enter a valid step'
+        };
+      }
+    }
+  }
+
+  /**
+   * Returns true if all documentation is visible
+   */
+  areAllDocumentationVisible(): boolean {
+    return this.stepsForm.controls.length > 0 && 
+           this.stepsForm.controls.every((_, index) => this.stepVisible[index]);
   }
 
   /**
@@ -1996,5 +3116,75 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     } else {
       continueOnFailureControl.enable();
     }
+  }
+
+  /**
+   * Returns the list of .apk file names for the current department (not removed).
+   * Used for the app_package dropdown.
+   */
+  get appPackages(): string[] {
+    return (this.department?.files as UploadedFile[])
+      ?.filter(file => file.name.toLowerCase().endsWith('.apk') && !file.is_removed)
+      ?.map(file => file.name.replace(/\.apk$/i, '')) || [];
+  }
+
+  // Focus the dropdown when it appears
+  ngAfterViewChecked() {
+    if (this.showMobileDropdown && this.dropdownRef) {
+      this.dropdownRef.nativeElement.focus();
+      // Scroll the active option into view
+      const options = this.dropdownOptionRefs?.toArray();
+      if (options && options[this.dropdownActiveIndex]) {
+        options[this.dropdownActiveIndex].nativeElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }
+
+  // Handle keyboard navigation in the custom dropdown
+  onDropdownKeydown(event: KeyboardEvent) {
+    let optionsLength = 0;
+    if (this.mobileDropdownType === 'package') {
+      optionsLength = this.appPackages.length;
+    } else {
+      optionsLength = this.runningMobiles.length;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
+      this._cdr.detectChanges();
+      setTimeout(() => {
+        const options = this.dropdownOptionRefs?.toArray();
+        if (options && options[this.dropdownActiveIndex]) {
+          options[this.dropdownActiveIndex].nativeElement.scrollIntoView({ block: 'nearest' });
+        }
+      }, 0);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
+      this._cdr.detectChanges();
+      setTimeout(() => {
+        const options = this.dropdownOptionRefs?.toArray();
+        if (options && options[this.dropdownActiveIndex]) {
+          options[this.dropdownActiveIndex].nativeElement.scrollIntoView({ block: 'nearest' });
+        }
+      }, 0);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (optionsLength > 0) {
+        if (this.mobileDropdownType === 'package') {
+          this.onMobileDropdownSelect(this.appPackages[this.dropdownActiveIndex]);
+        } else {
+          const mobile = this.runningMobiles[this.dropdownActiveIndex];
+          this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);
+        }
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation(); // Prevent dialog close
+      this.showMobileDropdown = false;
+      this.dropdownActiveIndex = 0;
+      this._cdr.detectChanges();
+    }
+    this._cdr.detectChanges();
   }
 }

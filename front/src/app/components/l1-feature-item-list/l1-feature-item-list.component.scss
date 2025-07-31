@@ -495,8 +495,82 @@ input {
   left: 19px;
   bottom: 13px;
   i {
+    color: $star-feature-icon-color;
+    font-size: 16px;
+  }
+  
+  // Show question mark cursor when starred
+  &:has(i:not(:empty)) {
+    cursor: help;
+  }
+  
+  // Alternative approach for browsers that don't support :has
+  &.starred {
+    cursor: help;
+  }
+}
+
+// Edit feature button - now uses same styling as notification icons
+.edit-feature-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 14px;
+    transition: color 0.2s ease;
+    color: $edit-feature-icon-color;
+  }
+
+  &:hover mat-icon {
+    color: darken($edit-feature-icon-color, 5%);
+  }
+}
+
+// Notification icons container
+.notification-icons-container {
+  display: flex;
+  position: absolute;
+  left: 19px; // Same position as star
+  bottom: 9px;
+  gap: 8px; // Space between icons
+  align-items: center;
+  
+  // When star is present, move to the right
+  &.with-star {
+    left: 47px; // Position after star (19px + 18px star width + 10px gap)
+  }
+}
+
+// Notification icons
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: all 0.2s ease;
+  cursor: help;
+
+  .notification-icon-material {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
     color: #666;
-    font-size: 18px;
+  }
+
+  &:hover .notification-icon-material {
+    color: #333;
   }
 }
 
@@ -527,6 +601,35 @@ input {
     max-width: 200px;
   }
 
+  .edit-feature-icon {
+    font-size: 14px;
+    color: $edit-feature-icon-color;
+  }
+
+  // Edit button styling
+  button[mat-icon-button] {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      line-height: 15px;
+      transition: color 0.2s ease;
+    }
+
+    &:hover mat-icon {
+      color: darken($edit-feature-icon-color, 20%);
+    }
+  }
+
   .star-button {
     width: 28px;
     height: 28px;
@@ -536,7 +639,7 @@ input {
     
     &.starred {
       mat-icon {
-        color: #666;
+        color: $star-feature-icon-color;
       }
     } 
 
@@ -546,7 +649,7 @@ input {
       height: 20px;
       line-height: 20px;
       transition: color 0.2s ease;
-      color: #666;
+      color: $star-feature-icon-color;
     }
 
     &:hover {
@@ -600,6 +703,22 @@ input {
 
 .clipboard-icon {
   font-size: 14px;
-  color: #555;
+  color: $edit-feature-icon-color;
   opacity: 0.8;
+}
+
+// Icon container for text labels
+.icon-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  .icon-text {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    font-weight: normal;
+  }
 }

@@ -109,7 +109,7 @@ class KubernetesServiceManager:
         except ApiException as e:
             logger.debug(f"Exception occurred while deleting service: {e}")
 
-    def create_service(self,configuration):
+    def create_service(self, configuration):
         try:
             self.__create_pod_and_wait_to_running()
             if not self.__create_pod_url():
@@ -127,9 +127,9 @@ class KubernetesServiceManager:
                         'State':{
                             'Running':pod.status.phase
                         }
-                     
                 }
         except Exception:
+            self.delete_service(service_name_or_id=configuration['Id'])
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
             traceback.print_exc()
             return False      
@@ -137,11 +137,19 @@ class KubernetesServiceManager:
     def delete_service(self, service_name_or_id):
         try:
             self.__delete_pod(pod_id = service_name_or_id)
-            self.__delete_pod_url(pod_url_id = service_name_or_id)
-            return True, "Container removed"
         except Exception as e:
             traceback.print_exc()
             return False, str(e)
+
+        try:
+            self.__delete_pod_url(pod_url_id = service_name_or_id)
+        except Exception as e:
+            traceback.print_exc()
+            return False, str(e)
+
+        return True, "Container removed"
+
+    
 
 class DockerServiceManager:
     deployment_type = "docker"
@@ -378,14 +386,265 @@ class DockerServiceManager:
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
 
+        # Check if emulator is ready
+        try:
+            exit_code, output = container.exec_run("adb devices")
+            if exit_code != 0:
+                return False, "Unable to check emulator status. Please ensure ADB is available."
+            
+            # Parse the output properly
+            lines = output.decode('utf-8').strip().split('\n')
+            if len(lines) < 2:  # Should have header + at least one device
+                return False, "No emulator device found. Please wait for the emulator to start."
+            
+            # Check the specific device status (skip header line)
+            device_found = False
+            for line in lines[1:]:
+                if line.strip():  # Skip empty lines
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        device_found = True
+                        device_status = parts[1].strip()
+                        if device_status == 'offline':
+                            logger.info(f"APK installation skipped - Emulator device offline")
+                            return False, "Emulator is still starting up. Please wait a moment and try again."
+                        elif device_status != 'device':
+                            logger.info(f"APK installation skipped - Emulator in unexpected state: {device_status}")
+                            return False, f"Emulator is in unexpected state: {device_status}. Please restart the emulator."
+            
+            if not device_found:
+                logger.info(f"APK installation skipped - No emulator device detected")
+                return False, "No emulator device detected. Please ensure the emulator is running."
+            
+            # Check if system is fully booted
+            exit_code, output = container.exec_run("adb shell getprop sys.boot_completed")
+            if exit_code != 0 or output.strip() != b"1":
+                logger.info(f"APK installation skipped - Android system still booting")
+                return False, "Android system is still booting. Please wait a moment and try again."
+            
+            # Check if package service is available
+            exit_code, output = container.exec_run("adb shell pm list packages -3")
+            if exit_code != 0:
+                if b"Can't find service: package" in output:
+                    logger.info(f"APK installation skipped - Package service not ready")
+                    return False, "Android package service is not ready yet. Please wait a moment and try again."
+                else:
+                    logger.warning(f"APK installation skipped - Package service error: {output.decode('utf-8').strip()}")
+                    return False, f"Error checking package service: {output.decode('utf-8').strip()}"
+                
+        except Exception as e:
+            return False, f"Error checking emulator status: {str(e)}"
+
         command = f"adb install \"/tmp/{apk_file_name}\""
 
         # Run the tar extraction command in the container
         exit_code, output = container.exec_run(command)
         if exit_code == 0:
-            return True, f"App {apk_file_name} installed in the mobile container {service_name_or_id}"
+            # Extract package name from the installed APK
+            package_name = self._extract_package_name(service_name_or_id, apk_file_name)
+            if package_name:
+                return True, f"App {apk_file_name} installed with package {package_name}", package_name
+            else:
+                return True, f"App {apk_file_name} installed in the mobile container {service_name_or_id}", None
         else:
             return False, f"Error while installing app in the mobile container {service_name_or_id}\n{output}"
+
+    def _extract_package_name(self, service_name_or_id, apk_file_name):
+        """
+        Extract package name from APK file using aapt
+        """
+        try:
+            container = self.docker_client.containers.get(service_name_or_id)
+            
+            # Use aapt to extract package information
+            command = f"aapt dump badging \"/tmp/{apk_file_name}\" | grep package:\ name"
+            exit_code, output = container.exec_run(command)
+            
+            if exit_code == 0:
+                output_str = output.decode('utf-8').strip()
+                # Parse: package: name='com.example.app'
+                if "package: name='" in output_str:
+                    package_name = output_str.split("'")[1] if "'" in output_str else None
+                    logger.info(f"Extracted package name: {package_name} from {apk_file_name}")
+                    return package_name
+                else:
+                    logger.warning(f"Could not parse package name from output: {output_str}")
+                    return None
+            else:
+                logger.warning(f"Failed to extract package name from {apk_file_name}: {output.decode('utf-8')}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error extracting package name from {apk_file_name}: {str(e)}")
+            return None
+
+    def _get_package_name_from_filename(self, apk_file_name):
+        """
+        Extract package name from APK filename using common patterns
+        """
+        # Remove .apk extension
+        name_without_ext = apk_file_name.replace('.apk', '')
+        
+        # Common patterns for package names in filenames
+        possible_package_names = []
+        
+        # Pattern 1: com.example.app_123 -> com.example.app
+        if '_' in name_without_ext:
+            parts = name_without_ext.split('_')
+            if len(parts) > 1:
+                possible_package_names.append(parts[0])
+        
+        # Pattern 2: com.example.app-v123 -> com.example.app
+        if '-' in name_without_ext:
+            parts = name_without_ext.split('-')
+            if len(parts) > 1:
+                possible_package_names.append(parts[0])
+        
+        # Pattern 3: com.example.app -> com.example.app (no version)
+        if '.' in name_without_ext and '_' not in name_without_ext and '-' not in name_without_ext:
+            possible_package_names.append(name_without_ext)
+        
+        return possible_package_names
+
+    def _find_package_by_filename(self, service_name_or_id, apk_file_name):
+        """
+        Find package name by searching through installed packages and matching by filename
+        This is a fallback method when package name is not stored
+        """
+        try:
+            container = self.docker_client.containers.get(service_name_or_id)
+            
+            # Get list of all installed packages
+            command = "adb shell pm list packages -3 -f"
+            exit_code, output = container.exec_run(command)
+            
+            if exit_code == 0:
+                output_str = output.decode('utf-8').strip()
+                lines = output_str.split('\n')
+                
+                logger.info(f"Searching for APK '{apk_file_name}' in {len(lines)} installed packages")
+                
+                # Search for the APK filename in the package list
+                # Format: package:/data/app/com.example.app-1/base.apk=com.example.app
+                for line in lines:
+                    if apk_file_name in line:
+                        # Extract package name from the line
+                        if '=' in line:
+                            package_name = line.split('=')[1].strip()
+                            logger.info(f"Found package name '{package_name}' for APK '{apk_file_name}'")
+                            return package_name
+                
+                # If exact match not found, try partial match
+                logger.info(f"Exact match not found, trying partial match for '{apk_file_name}'")
+                
+                # Remove file extension for partial matching
+                apk_name_without_ext = apk_file_name.replace('.apk', '')
+                
+                for line in lines:
+                    if apk_name_without_ext in line:
+                        if '=' in line:
+                            package_name = line.split('=')[1].strip()
+                            logger.info(f"Found package name '{package_name}' for APK '{apk_file_name}' (partial match)")
+                            return package_name
+                
+                # If still not found, try to extract from the filename itself
+                # Many APK filenames contain the package name
+                logger.info(f"Trying to extract package name from filename '{apk_file_name}'")
+                
+                # Common patterns for package names in filenames
+                possible_package_names = self._get_package_name_from_filename(apk_file_name)
+                
+                # Check if any of these possible package names are actually installed
+                for possible_package in possible_package_names:
+                    # Check if this package is actually installed
+                    check_command = f"adb shell pm list packages | grep {possible_package}"
+                    check_exit_code, check_output = container.exec_run(check_command)
+                    
+                    if check_exit_code == 0:
+                        package_name = check_output.decode('utf-8').strip().replace('package:', '')
+                        logger.info(f"Found package name '{package_name}' for APK '{apk_file_name}' (extracted from filename)")
+                        return package_name
+                
+                logger.warning(f"Could not find package name for APK '{apk_file_name}' in installed packages")
+                logger.info(f"Available packages: {lines[:5]}...")  # Show first 5 packages for debugging
+                return None
+            else:
+                logger.warning(f"Failed to list installed packages: {output.decode('utf-8')}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error finding package by filename for {apk_file_name}: {str(e)}")
+            return None
+
+    def uninstall_apk(self, service_name_or_id, package_name):
+        """
+        Uninstall APK from the mobile container using package name
+        """
+        container = self.docker_client.containers.get(service_name_or_id)
+
+        # Check if emulator is ready (same checks as install_apk)
+        try:
+            exit_code, output = container.exec_run("adb devices")
+            if exit_code != 0:
+                return False, "Unable to check emulator status. Please ensure ADB is available."
+            
+            # Parse the output properly
+            lines = output.decode('utf-8').strip().split('\n')
+            if len(lines) < 2:  # Should have header + at least one device
+                return False, "No emulator device found. Please wait for the emulator to start."
+            
+            # Check the specific device status (skip header line)
+            device_found = False
+            for line in lines[1:]:
+                if line.strip():  # Skip empty lines
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        device_found = True
+                        device_status = parts[1].strip()
+                        if device_status == 'offline':
+                            logger.info(f"APK uninstallation skipped - Emulator device offline")
+                            return False, "Emulator is still starting up. Please wait a moment and try again."
+                        elif device_status != 'device':
+                            logger.info(f"APK uninstallation skipped - Emulator in unexpected state: {device_status}")
+                            return False, f"Emulator is in unexpected state: {device_status}. Please restart the emulator."
+            
+            if not device_found:
+                logger.info(f"APK uninstallation skipped - No emulator device detected")
+                return False, "No emulator device detected. Please ensure the emulator is running."
+            
+            # Check if system is fully booted
+            exit_code, output = container.exec_run("adb shell getprop sys.boot_completed")
+            if exit_code != 0 or output.strip() != b"1":
+                logger.info(f"APK uninstallation skipped - Android system still booting")
+                return False, "Android system is still booting. Please wait a moment and try again."
+            
+            # Check if package service is available
+            exit_code, output = container.exec_run("adb shell pm list packages -3")
+            if exit_code != 0:
+                if b"Can't find service: package" in output:
+                    logger.info(f"APK uninstallation skipped - Package service not ready")
+                    return False, "Android package service is not ready yet. Please wait a moment and try again."
+                else:
+                    logger.warning(f"APK uninstallation skipped - Package service error: {output.decode('utf-8').strip()}")
+                    return False, f"Error checking package service: {output.decode('utf-8').strip()}"
+                
+        except Exception as e:
+            return False, f"Error checking emulator status: {str(e)}"
+
+        # Check if package is installed
+        command = f"adb shell pm list packages | grep {package_name}"
+        exit_code, output = container.exec_run(command)
+        if exit_code != 0:
+            return False, f"Package {package_name} is not installed on the device"
+
+        # Uninstall the package
+        command = f"adb uninstall {package_name}"
+        exit_code, output = container.exec_run(command)
+        
+        if exit_code == 0:
+            return True, f"Package {package_name} uninstalled successfully from the mobile container {service_name_or_id}"
+        else:
+            return False, f"Error while uninstalling package {package_name} from the mobile container {service_name_or_id}\n{output}"
 
 
     def inspect_service(self,service_name_or_id):
@@ -421,6 +680,59 @@ class ServiceManager(service_manager):
 
     def install_apk(self, service_name_or_id, apk_file_name, *args, **kwargs):
         return super().install_apk(service_name_or_id, apk_file_name, *args, **kwargs)
+
+    def uninstall_apk(self, service_name_or_id, package_name, *args, **kwargs):
+        return super().uninstall_apk(service_name_or_id, package_name, *args, **kwargs)
+
+    def uninstall_apk_simple(self, service_name_or_id, apk_file_name):
+        """
+        Simple method to uninstall APK by trying common package name patterns
+        This is a fallback when package name is not known
+        """
+        container = self.docker_client.containers.get(service_name_or_id)
+        
+        # Get possible package names from filename
+        possible_package_names = self._get_package_name_from_filename(apk_file_name)
+        
+        # Add the filename without extension as a possibility
+        name_without_ext = apk_file_name.replace('.apk', '')
+        if name_without_ext not in possible_package_names:
+            possible_package_names.append(name_without_ext)
+        
+        logger.info(f"Trying to uninstall APK '{apk_file_name}' with possible package names: {possible_package_names}")
+        
+        # Try each possible package name
+        for package_name in possible_package_names:
+            try:
+                logger.info(f"Trying to uninstall package: {package_name}")
+                
+                # Check if package is installed
+                check_command = f"adb shell pm list packages | grep {package_name}"
+                exit_code, output = container.exec_run(check_command)
+                
+                if exit_code == 0:
+                    # Package is installed, try to uninstall it
+                    uninstall_command = f"adb uninstall {package_name}"
+                    exit_code, output = container.exec_run(uninstall_command)
+                    
+                    if exit_code == 0:
+                        logger.info(f"Successfully uninstalled package: {package_name}")
+                        return True, f"Successfully uninstalled package: {package_name}"
+                    else:
+                        logger.warning(f"Failed to uninstall package {package_name}: {output.decode('utf-8')}")
+                else:
+                    logger.info(f"Package {package_name} is not installed")
+                    
+            except Exception as e:
+                logger.error(f"Error trying to uninstall package {package_name}: {str(e)}")
+        
+        return False, f"Could not uninstall APK '{apk_file_name}'. Tried package names: {possible_package_names}"
+
+    def _find_package_by_filename(self, service_name_or_id, apk_file_name, *args, **kwargs):
+        return super()._find_package_by_filename(service_name_or_id, apk_file_name, *args, **kwargs)
+
+    def _get_package_name_from_filename(self, apk_file_name, *args, **kwargs):
+        return super()._get_package_name_from_filename(apk_file_name, *args, **kwargs)
 
     def inspect_service(self, service_name_or_id,  *args, **kwargs):
         return super().inspect_service(service_name_or_id,  *args, **kwargs)
