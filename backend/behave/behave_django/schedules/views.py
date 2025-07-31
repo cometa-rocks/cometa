@@ -48,8 +48,6 @@ def run_test(request):
     logger.info('Running Test')
 
     # get data sent from django
-    json_path = request.POST["json_path"] # file path that contains the necessary information about the feature
-    logger.debug("Feature JSON path: {}".format(json_path))
     feature_run = request.POST['feature_run'] # feature_run id that will contain the feature_results
     logger.debug('Feature run id: {}'.format(feature_run))
     X_SERVER = request.POST['HTTP_X_SERVER'] # where the request is coming from
@@ -112,8 +110,7 @@ def run_test(request):
         environment_variables['CONNECTION_URL'] = connection_url
         # Add the current browser to the thread pool
         job = django_rq.enqueue(
-            run_browser, 
-            json_path, 
+            run_browser,  
             environment_variables, 
             browser=browser, 
             feature_id=feature_id, 

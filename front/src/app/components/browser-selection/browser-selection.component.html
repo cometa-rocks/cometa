@@ -153,7 +153,7 @@
               [matTooltip]="'tooltips.latest_browser' | translate"
               [matTooltipDisabled]="version.browser_version !== 'latest'"
               class="version"
-              *ngFor="let version of browser.value | versionSort | addLatest">
+              *ngFor="let version of browser.value | versionSort |  addLatest">
               <div class="join">
                 <mat-checkbox
                   (change)="handleCheckbox(version, $event.checked)"
@@ -169,6 +169,7 @@
                         {{ version.browser_version }}
                       </div>
                     </div>
+                    
                   </ng-container>
                   <ng-template #onlyVersion>
                     {{ version?.browser_version | titlecase | formatVersion }}
@@ -201,6 +202,12 @@
                   />
                 </div>
               </div>
+              <i
+                    (click)="importClipboard(version)"
+                    class="material-icons copyClipboardIcon"
+                    [color]="primary">
+                    content_copy
+              </i>
               <i
                 class="favourite"
                 (click)="toggleFavourite(version)"

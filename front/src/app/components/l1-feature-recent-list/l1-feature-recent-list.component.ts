@@ -15,8 +15,11 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   Output,
+  SimpleChanges,
   ViewChild,
+  ViewEncapsulation,
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -80,6 +83,7 @@ import { SortByPipe } from '@pipes/sort-by.pipe';
 import { DepartmentsState } from '@store/departments.state';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { FeaturesState } from '@store/features.state';
+import { StarredService } from '@services/starred.service';
 
 
 @Component({
@@ -124,7 +128,7 @@ import { FeaturesState } from '@store/features.state';
     SortByPipe  
   ],
 })
-export class L1FeatureRecentListComponent {
+export class L1FeatureRecentListComponent implements OnChanges {
   
   featureForm: UntypedFormGroup;
 
@@ -138,6 +142,7 @@ export class L1FeatureRecentListComponent {
     private log: LogService,
     private _fb: UntypedFormBuilder,
     private inputFocusService: InputFocusService,
+    private starredService: StarredService,
 
 
   ) {
@@ -182,6 +187,7 @@ export class L1FeatureRecentListComponent {
   columns = [
     { header: 'Options', field: 'reference' },
     { header: 'Run', field: 'type' },
+    { header: 'Starred', field: 'starred', sortable: true },
     { header: 'Last run', field: 'date', sortable: true, sort: 'desc' },  
     {
       header: 'Name',
@@ -222,6 +228,22 @@ export class L1FeatureRecentListComponent {
 
   inputFocus: boolean = false;
 
+  // Map to store starred status for each feature
+  public isStarredMap: Map<number, Observable<boolean>> = new Map();
+
+  /**
+   * Method to update the disabled state of the department form control
+   */
+  updateDepartmentControlState() {
+    const departmentControl = this.featureForm.get('department_name');
+    if (departmentControl) {
+      if (this.data$?.mode === 'edit') {
+        departmentControl.disable();
+      } else {
+        departmentControl.enable();
+      }
+    }
+  }
 
   /**
    * Global functions
@@ -249,8 +271,29 @@ export class L1FeatureRecentListComponent {
       // get the preselected department from localStorage, userpreferences or first of list
       this.log.msg('l1-feature-recent.component.ts','Initializing selected_department as the preselected department','','')
       this.selected_department = this.getPreselectedDepartment();
+      // Set the form control value to sync with selected_department
+      this.featureForm.patchValue({ department_name: this.selected_department });
     } 
+    
     this.toggleList('recent') 
+  }
+
+  // Initialize starred status for each feature
+  initializeStarredStatus() {
+    if (this.data$?.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature') {
+          this.isStarredMap.set(row.id, this.starredService.isStarred(row.id));
+        }
+      });
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data$'] && this.data$) {
+      this.updateDepartmentControlState();
+      this.initializeStarredStatus();
+    }
   }
 
   // Checks whether the clicked row is a feature or a folder and opens it
@@ -451,6 +494,8 @@ export class L1FeatureRecentListComponent {
   }
 
   onDepartmentChange() {
+    // Get the selected value from the form control
+    this.selected_department = this.featureForm.get('department_name')?.value;
     this._sharedActions.setSelectedDepartment(this.selected_department);
     //When switching options in the dropdown, we update the UI and call FutureState to sort by the new option.
     if(this.selected_department == this.showAllDepartments){
@@ -521,5 +566,11 @@ export class L1FeatureRecentListComponent {
     }
     this.log.msg('l1-feature-recent.component.ts','Selected Department: '+this.selected_department,'','')
     return this.selected_department
+  }
+
+  // Toggle starred status for a feature
+  toggleStarred(event: Event, featureId: number, featureName: string): void {
+    event.stopPropagation();
+    this._sharedActions.toggleStarred(event, featureId, featureName);
   }
 }
