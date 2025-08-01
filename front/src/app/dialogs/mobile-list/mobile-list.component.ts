@@ -256,10 +256,13 @@ export class MobileListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     this.cleanupSubscriptions();
-    this.cleanupMobileState();
+    this.resetComponentState(); // Use the new reset method instead of cleanupMobileState
     this.departments = this.user.departments;
     this.isDialog = this.data?.department_id ? true : false;
-    this.sharedMobileContainers = [];
+    
+    // Load saved column settings
+    this.getSavedMobileColumnSettings();
+    this.getSavedSharedMobileColumnSettings();
     
 
 
@@ -1018,6 +1021,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
     }
 
     this.containersSubscription = this._api.getContainersList().subscribe((containers: Container[]) => {
+      // Clear shared containers first to prevent any duplication
+      this.sharedMobileContainers = [];
+      
       // Actualizar contenedores compartidos
       const currentSharedContainers = containers.filter(container =>
         container.shared &&
@@ -1304,6 +1310,12 @@ export class MobileListComponent implements OnInit, OnDestroy {
     return container.id;
   }
 
+  // Enhanced trackBy function for shared containers to prevent duplication
+  trackBySharedContainerId(index: number, container: Container): string {
+    // Use a combination of container ID and created_by to ensure uniqueness
+    return `${container.id}_${container.created_by}_${container.department_id}`;
+  }
+
   // Check if container has installed APKs
   hasInstalledApks(container: Container): boolean {
     return container?.apk_file && Array.isArray(container.apk_file) && container.apk_file.length > 0;
@@ -1386,16 +1398,17 @@ export class MobileListComponent implements OnInit, OnDestroy {
     localStorage.setItem('mobileView.with', view);
     this.mobileViewWithLocal = view;
     
-    // Only clear cache when switching to table view to ensure fresh data
-    if (view === 'list') {
-      this.clearTableDataCache();
-    }
+    // Clear shared containers immediately to prevent duplication issues
+    this.sharedMobileContainers = [];
     
-
+    // Clear all caches when switching views to ensure fresh data
+    this.clearTableDataCache();
+    
+    // Force immediate change detection
+    this._cdr.detectChanges();
     
     // Force comprehensive change detection
     setTimeout(() => {
-
       this.forceUpdate();
     }, 0);
     
@@ -1522,6 +1535,121 @@ export class MobileListComponent implements OnInit, OnDestroy {
     });
     
     return JSON.stringify(dataToHash);
+  }
+
+  /**
+   * Saves mobile table column settings to localStorage
+   * @param event Column change event from mtx-grid
+   */
+  saveMobileColumnSettings(event: any[]) {
+    this.logger.msg('1', 'Saving mobile table column settings...', 'mobile-list', event);
+
+    // Add missing keys for next reload
+    event.forEach(column => {
+      // Get default properties for current column
+      const defaultProperties = this.mobileTableColumns.find(
+        defaultColumn => defaultColumn.header === column.label
+      );
+      // Concat current column values with default properties and also add hide property
+      Object.assign(column, defaultProperties, { hide: !column.show });
+    });
+    
+    // Save to localStorage
+    localStorage.setItem('co_mobile_table_columns', JSON.stringify(event));
+
+    // Refresh columns
+    this.mobileTableColumns = event;
+    
+    // Clear cache to force table refresh
+    this.clearTableDataCache();
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Saves shared mobile table column settings to localStorage
+   * @param event Column change event from mtx-grid
+   */
+  saveSharedMobileColumnSettings(event: any[]) {
+    this.logger.msg('1', 'Saving shared mobile table column settings...', 'mobile-list', event);
+
+    // Add missing keys for next reload
+    event.forEach(column => {
+      // Get default properties for current column
+      const defaultProperties = this.sharedMobileTableColumns.find(
+        defaultColumn => defaultColumn.header === column.label
+      );
+      // Concat current column values with default properties and also add hide property
+      Object.assign(column, defaultProperties, { hide: !column.show });
+    });
+    
+    // Save to localStorage
+    localStorage.setItem('co_shared_mobile_table_columns', JSON.stringify(event));
+
+    // Refresh columns
+    this.sharedMobileTableColumns = event;
+    
+    // Clear cache to force table refresh
+    this.clearTableDataCache();
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Gets saved mobile table column settings from localStorage or uses default
+   */
+  getSavedMobileColumnSettings() {
+    this.logger.msg('1', 'Getting saved mobile table column settings...', 'mobile-list');
+
+    // Check if co_mobile_table_columns exists in localStorage, if so import it into columns else use default
+    const savedColumns = JSON.parse(localStorage.getItem('co_mobile_table_columns'));
+    if (savedColumns) {
+      this.mobileTableColumns = savedColumns;
+    }
+  }
+
+  /**
+   * Gets saved shared mobile table column settings from localStorage or uses default
+   */
+  getSavedSharedMobileColumnSettings() {
+    this.logger.msg('1', 'Getting saved shared mobile table column settings...', 'mobile-list');
+
+    // Check if co_shared_mobile_table_columns exists in localStorage, if so import it into columns else use default
+    const savedColumns = JSON.parse(localStorage.getItem('co_shared_mobile_table_columns'));
+    if (savedColumns) {
+      this.sharedMobileTableColumns = savedColumns;
+    }
+  }
+
+  /**
+   * Completely resets the component state to prevent duplication issues
+   */
+  private resetComponentState(): void {
+    this.logger.msg('1', 'Resetting component state to prevent duplication issues', 'mobile-list');
+    
+    // Clear all containers
+    this.sharedMobileContainers = [];
+    this.runningMobiles = [];
+    
+    // Clear all caches
+    this.clearTableDataCache();
+    
+    // Clear all state objects
+    this.selectedApps = {};
+    this.isIconActive = {};
+    this.showDetails = {};
+    this.sharedDetails = {};
+    
+    // Force change detection
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Handles clicks on disabled view options
+   * @param viewType The type of view that was clicked
+   */
+  handleDisabledViewClick(viewType: string): void {
+    if (viewType === 'tree') {
+      this.snack.open('Tree view is not available in this modality', 'OK', { duration: 3000 });
+    }
   }
 
 }

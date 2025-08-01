@@ -420,12 +420,15 @@ def before_all(context):
         
         response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
                              data=json.dumps(container_configuration))
+        
+        response_data = response.json()
+        logger.debug(f"Browser creation response data: {response_data}")
         if response.status_code not in [200, 201]:
-            raise Exception("Error while starting browser, Please contact administrator")    
+            raise Exception(response_data['message'])
 
         logger.debug(response.json())
-        if not response or not response.json()['success'] == True:
-            raise Exception("Error while starting browser, Please contact administrator")    
+        if response_data['success'] == False:
+            raise Exception(response_data['message'])    
         
         # service_id = response.json()['containerservice']['hostname']
         data = response.json()['containerservice']
@@ -785,12 +788,11 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
-    files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
-    file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
-
-    meta_file_path = f"{files_path}/features/{file_name}_meta.json"
-    feature_file_path = f"{files_path}/features/{file_name}.feature"
-    feature_json_file_path = f"{files_path}/features/{file_name}.json"
+    files_path = os.environ['FOLDERPATH']
+    file_name = os.environ['FEATURE_NAME']
+    meta_file_path = os.environ['JSON_FILE']
+    feature_file_path = os.environ['FEATURE_FILE']
+    feature_json_file_path = os.environ['FEATURE_JSON_FILE']
     xmlFilePath = f"{files_path}/junit_reports/TESTS-features.{file_name}.xml"
 
     logger.debug("Adding path to temp files for housekeeping")

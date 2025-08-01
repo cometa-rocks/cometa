@@ -86,7 +86,7 @@ export class ModifyDepartmentComponent {
       continue_on_failure: [
         {
           value: this.department.settings.continue_on_failure,
-          disabled: this.account?.settings?.continue_on_failure,
+          disabled: this.account?.settings?.continue_on_failure === false,
         },
       ],
       step_timeout: [
