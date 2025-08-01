@@ -2840,10 +2840,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   /**
    * Validates that all mobile references in steps are still valid
-   * @returns Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string}>}>
+   * @returns Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>}>
    */
-  private async validateMobileReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string}>}> {
-    const errors: Array<{stepIndex: number, stepContent: string, error: string}> = [];
+  private async validateMobileReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>}> {
+    const errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}> = [];
     
     // Get current steps
     let currentSteps = [];
@@ -2876,6 +2876,8 @@ export class EditFeature implements OnInit, OnDestroy {
       
       while ((match = quoteRegex.exec(content)) !== null) {
         const quotedText = match[1];
+        const quoteStart = match.index + 1; // Position after opening quote
+        const quoteEnd = match.index + 1 + quotedText.length; // Position at closing quote
         
         // Skip empty quotes
         if (!quotedText || quotedText.trim() === '') {
@@ -2897,17 +2899,24 @@ export class EditFeature implements OnInit, OnDestroy {
         // Check if it's an actual mobile code (hostname)
         const mobileWithHostname = allMobiles.find(m => m.hostname === quotedText);
         if (mobileWithHostname) {
+          console.log(`Step ${index + 1}: "${quotedText}" - Found mobile with hostname, status: ${mobileWithHostname.service_status}`);
           if (mobileWithHostname.service_status === 'Running') {
+            console.log(`Step ${index + 1}: "${quotedText}" - Mobile is running, skipping validation`);
             continue; // Valid running mobile code
           } else {
             // Mobile exists but is not running
+            console.log(`Step ${index + 1}: "${quotedText}" - Mobile exists but not running, adding error`);
             errors.push({
               stepIndex: index + 1,
               stepContent: step.step_content,
-              error: `Mobile code "${quotedText}" is not running. Please start the mobile or select a different one.`
+              error: `Mobile code "${quotedText}" is not running. Please start the mobile or select a different one.`,
+              quoteStart: quoteStart,
+              quoteEnd: quoteEnd
             });
             continue;
           }
+        } else {
+          console.log(`Step ${index + 1}: "${quotedText}" - No mobile found with hostname: ${quotedText}`);
         }
         
         // Check if it's an actual mobile name (image_name)
@@ -2920,7 +2929,9 @@ export class EditFeature implements OnInit, OnDestroy {
             errors.push({
               stepIndex: index + 1,
               stepContent: step.step_content,
-              error: `Mobile name "${quotedText}" is not running. Please start the mobile or select a different one.`
+              error: `Mobile name "${quotedText}" is not running. Please start the mobile or select a different one.`,
+              quoteStart: quoteStart,
+              quoteEnd: quoteEnd
             });
             continue;
           }
@@ -2941,26 +2952,57 @@ export class EditFeature implements OnInit, OnDestroy {
           continue;
         }
         
+        // Only validate if this looks like it could be a mobile code, mobile name, or app package
+        // Check if the quoted text is in a position that suggests it's a mobile parameter
+        const beforeQuote = content.substring(0, match.index);
+        
+        // Check if this is after "mobile" (for mobile_code or mobile_name)
+        const isAfterMobile = /mobile\s*"[^"]*"\s*$/i.test(beforeQuote) || /mobile\s*$/i.test(beforeQuote);
+        
+        // Check if this is after "package" or "app" (for app_package)
+        const isAfterPackage = /package\s*"[^"]*"\s*$/i.test(beforeQuote) || /app\s*"[^"]*"\s*$/i.test(beforeQuote) || /package\s*$/i.test(beforeQuote) || /app\s*$/i.test(beforeQuote);
+        
+        // Debug logs
+        console.log(`Step ${index + 1}: "${quotedText}" - beforeQuote: "${beforeQuote}" - isAfterMobile: ${isAfterMobile}, isAfterPackage: ${isAfterPackage}`);
+        
+        // Only validate if it's after mobile, package, or app keywords
+        if (!isAfterMobile && !isAfterPackage) {
+          console.log(`Step ${index + 1}: "${quotedText}" - Skipping validation (not after mobile/package/app)`);
+          continue;
+        }
+        
         // If we get here, it's potentially an invalid mobile reference
-        // Only flag it if it looks like it could be a mobile reference
+        // Determine the type of mobile reference based on context and content
         let errorType = 'mobile reference';
-        let suggestion = '';
+        let suggestion = 'Please select a valid mobile from the dropdown.';
         let shouldFlag = false;
         
-        // Check if it looks like a mobile code (usually contains numbers and letters, 6+ characters)
-        if (/^[a-zA-Z0-9_-]+$/.test(quotedText) && quotedText.length >= 6) {
-          errorType = 'mobile code';
-          suggestion = 'Please select a valid mobile from the dropdown.';
+        // Check if it looks like a mobile code (usually contains numbers and letters, 1+ characters)
+        if (/^[a-zA-Z0-9_-]+$/.test(quotedText) && quotedText.length >= 1) {
+          if (isAfterMobile) {
+            // For mobile parameters, prefer mobile name for longer text or text that looks more like a name
+            if (quotedText.length > 8 || /^[a-zA-Z]+$/.test(quotedText)) {
+              errorType = 'mobile name';
+            } else {
+              errorType = 'mobile code';
+            }
+            suggestion = 'Please select a valid mobile from the dropdown.';
+          } else if (isAfterPackage) {
+            errorType = 'app package';
+            suggestion = 'Please select a valid APK from the dropdown.';
+          }
           shouldFlag = true;
         }
         // Check if it looks like a mobile name (usually contains spaces or special characters)
-        else if ((quotedText.includes(' ') || quotedText.includes('-') || quotedText.includes('_')) && quotedText.length > 3) {
-          errorType = 'mobile name';
-          suggestion = 'Please select a valid mobile from the dropdown.';
+        else if ((quotedText.includes(' ') || quotedText.includes('-') || quotedText.includes('_')) && quotedText.length > 1) {
+          if (isAfterMobile) {
+            errorType = 'mobile name';
+            suggestion = 'Please select a valid mobile from the dropdown.';
+          }
           shouldFlag = true;
         }
         // Check if it looks like an app package (usually contains dots)
-        else if (quotedText.includes('.') && quotedText.length > 5) {
+        else if (quotedText.includes('.') && quotedText.length > 1) {
           errorType = 'app package';
           suggestion = 'Please select a valid APK from the dropdown.';
           shouldFlag = true;
@@ -2970,7 +3012,9 @@ export class EditFeature implements OnInit, OnDestroy {
           errors.push({
             stepIndex: index + 1,
             stepContent: step.step_content,
-            error: `Invalid ${errorType}: "${quotedText}" - This mobile/package is no longer available. ${suggestion}`
+            error: `Invalid ${errorType}: "${quotedText}" - This mobile/package is no longer available. ${suggestion}`,
+            quoteStart: quoteStart,
+            quoteEnd: quoteEnd
           });
         }
       }
@@ -2986,7 +3030,7 @@ export class EditFeature implements OnInit, OnDestroy {
    * Shows a dialog with mobile validation errors and allows user to navigate to problematic steps
    * @param errors Array of validation errors
    */
-  private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string}>): Promise<void> {
+  private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<void> {
     const errorMessages = errors.map(err => 
       `Step ${err.stepIndex}: ${err.error}`
     ).join('\n\n');
@@ -3013,6 +3057,27 @@ export class EditFeature implements OnInit, OnDestroy {
       
       // Focus on the step with error
       this.stepEditor.focusStep(firstError.stepIndex - 1);
+      
+      // Select the problematic text if we have position information
+      if (firstError.quoteStart !== undefined && firstError.quoteEnd !== undefined) {
+        setTimeout(() => {
+          const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
+          if (textarea) {
+            textarea.setSelectionRange(firstError.quoteStart, firstError.quoteEnd);
+            textarea.focus();
+            
+            // If this is a mobile code error, automatically open the mobile dropdown
+            const selectedText = textarea.value.substring(firstError.quoteStart, firstError.quoteEnd);
+            if (selectedText && /^[a-zA-Z0-9_-]+$/.test(selectedText) && selectedText.length >= 6) {
+              // This looks like a mobile code, trigger the dropdown
+              setTimeout(() => {
+                // Call the step editor's method to check and show mobile dropdown
+                this.stepEditor.checkAndShowMobileDropdown(textarea, firstError.stepIndex - 1, firstError.quoteStart);
+              }, 200);
+            }
+          }
+        }, 100);
+      }
       
       // Show a snackbar to indicate the error
       this._snackBar.open(
