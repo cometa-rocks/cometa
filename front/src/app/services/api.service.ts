@@ -1076,5 +1076,20 @@ export class ApiService {
     }>(`${this.base}data_driven/${runId}/all_features/`);
   }
 
+  /**
+   * Fetch description and example for a mobile step from backend
+   * @param step The step pattern for which to retrieve documentation
+   */
+  getMobileStepDoc(step: string): Observable<{ description: string; example: string }> {
+    return this._http
+      .get<{ success: boolean; description: string; example: string }>(
+        `${this.api}mobile_step_doc/`,
+        { params: { step } }
+      )
+      .pipe(
+        map(res => ({ description: res.description, example: res.example }))
+      );
+  }
+
 
 }

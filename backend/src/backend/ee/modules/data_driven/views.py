@@ -695,9 +695,18 @@ def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs, lock
     origin = request.META.get('HTTP_COMETA_ORIGIN', 'MANUAL')
     logger.info(f"[DATA-DRIVEN THREAD] Starting Data Driven Test {user['name']} (ID: {user['user_id']}) - Run: {ddr.run_id}, Origin: {origin}, Rows: {len(rows)}")
     
+    # When user have added column execute_parallel_tests=True in datadriven, 
+    # it will count for total test defined to run in parallel, and execute them in parallel
+    count_of_parallel_tests = 0
+    for row in rows:
+        execute_parallel_tests = row.data.get('co_execute_parallel', None) == "True"
+        if execute_parallel_tests:
+            count_of_parallel_tests += 1
+    max_workers = count_of_parallel_tests if count_of_parallel_tests > 0 else 1
+
     try:
         # This executes one row data at a time with selected browsers 
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             
             for row in rows:
