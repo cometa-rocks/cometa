@@ -67,6 +67,10 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import {
+  SimpleAlertData,
+  SimpleAlertDialog,
+} from '@dialogs/simple-alert/simple-alert.component';
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
@@ -2087,6 +2091,13 @@ export class EditFeature implements OnInit, OnDestroy {
         return; // User chose to rename the feature
       }
     }
+
+    // Validate mobile references in steps before saving
+    const validationResult = await this.validateMobileReferences();
+    if (!validationResult.isValid) {
+      await this.showMobileValidationError(validationResult.errors);
+      return;
+    }
     
     // Get current steps from Store
     let currentSteps = [];
@@ -2827,4 +2838,188 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Validates that all mobile references in steps are still valid
+   * @returns Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string}>}>
+   */
+  private async validateMobileReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string}>}> {
+    const errors: Array<{stepIndex: number, stepContent: string, error: string}> = [];
+    
+    // Get current steps
+    let currentSteps = [];
+    if (this.stepEditor) {
+      currentSteps = this.stepEditor.getSteps();
+    } else {
+      const featureId = this.data.mode === 'clone' ? 0 : this.data.feature.feature_id;
+      currentSteps = this._store.selectSnapshot(CustomSelectors.GetFeatureSteps(featureId));
+    }
+
+    // Get current mobile containers and app packages
+    const containers = await this._api.getContainersList().toPromise();
+    const runningMobiles = containers.filter(c => c.service_status === 'Running');
+    const allMobiles = containers; // Include all mobiles for reference
+    
+    // Get app packages from department files
+    const appPackages = (this.department?.files as any[])
+      ?.filter(file => file.name.toLowerCase().endsWith('.apk') && !file.is_removed)
+      ?.map(file => file.name.replace(/\.apk$/i, '')) || [];
+
+    // Check each step for mobile references
+    currentSteps.forEach((step, index) => {
+      if (!step.step_content || !step.enabled) return;
+
+      const content = step.step_content;
+      
+      // Find all quoted strings in the step
+      const quoteRegex = /"([^"]*)"/g;
+      let match;
+      
+      while ((match = quoteRegex.exec(content)) !== null) {
+        const quotedText = match[1];
+        
+        // Skip empty quotes
+        if (!quotedText || quotedText.trim() === '') {
+          continue;
+        }
+        
+        // Check if this is a system variable (starts with { and ends with })
+        if (quotedText.startsWith('{') && quotedText.endsWith('}')) {
+          // These are system variables, so they're always valid
+          continue;
+        }
+        
+        // Check if this is a mobile placeholder
+        if (quotedText === '{mobile_code}' || quotedText === '{mobile_name}' || quotedText === '{app_package}') {
+          // These are placeholders, so they're always valid
+          continue;
+        }
+        
+        // Check if it's an actual mobile code (hostname)
+        const mobileWithHostname = allMobiles.find(m => m.hostname === quotedText);
+        if (mobileWithHostname) {
+          if (mobileWithHostname.service_status === 'Running') {
+            continue; // Valid running mobile code
+          } else {
+            // Mobile exists but is not running
+            errors.push({
+              stepIndex: index + 1,
+              stepContent: step.step_content,
+              error: `Mobile code "${quotedText}" is not running. Please start the mobile or select a different one.`
+            });
+            continue;
+          }
+        }
+        
+        // Check if it's an actual mobile name (image_name)
+        const mobileWithImageName = allMobiles.find(m => m.image_name === quotedText);
+        if (mobileWithImageName) {
+          if (mobileWithImageName.service_status === 'Running') {
+            continue; // Valid running mobile name
+          } else {
+            // Mobile exists but is not running
+            errors.push({
+              stepIndex: index + 1,
+              stepContent: step.step_content,
+              error: `Mobile name "${quotedText}" is not running. Please start the mobile or select a different one.`
+            });
+            continue;
+          }
+        }
+        
+        // Check if it's an actual app package
+        if (appPackages.includes(quotedText)) {
+          continue; // Valid app package
+        }
+        
+        // Only check for mobile-like references if the step contains mobile-related actions
+        const stepAction = step.step_action || '';
+        const isMobileStep = /mobile|app|package|activity/i.test(stepAction) || 
+                           /mobile|app|package|activity/i.test(content);
+        
+        if (!isMobileStep) {
+          // This step doesn't seem to be related to mobile actions, skip validation
+          continue;
+        }
+        
+        // If we get here, it's potentially an invalid mobile reference
+        // Only flag it if it looks like it could be a mobile reference
+        let errorType = 'mobile reference';
+        let suggestion = '';
+        let shouldFlag = false;
+        
+        // Check if it looks like a mobile code (usually contains numbers and letters, 6+ characters)
+        if (/^[a-zA-Z0-9_-]+$/.test(quotedText) && quotedText.length >= 6) {
+          errorType = 'mobile code';
+          suggestion = 'Please select a valid mobile from the dropdown.';
+          shouldFlag = true;
+        }
+        // Check if it looks like a mobile name (usually contains spaces or special characters)
+        else if ((quotedText.includes(' ') || quotedText.includes('-') || quotedText.includes('_')) && quotedText.length > 3) {
+          errorType = 'mobile name';
+          suggestion = 'Please select a valid mobile from the dropdown.';
+          shouldFlag = true;
+        }
+        // Check if it looks like an app package (usually contains dots)
+        else if (quotedText.includes('.') && quotedText.length > 5) {
+          errorType = 'app package';
+          suggestion = 'Please select a valid APK from the dropdown.';
+          shouldFlag = true;
+        }
+        
+        if (shouldFlag) {
+          errors.push({
+            stepIndex: index + 1,
+            stepContent: step.step_content,
+            error: `Invalid ${errorType}: "${quotedText}" - This mobile/package is no longer available. ${suggestion}`
+          });
+        }
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors: errors
+    };
+  }
+
+  /**
+   * Shows a dialog with mobile validation errors and allows user to navigate to problematic steps
+   * @param errors Array of validation errors
+   */
+  private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string}>): Promise<void> {
+    const errorMessages = errors.map(err => 
+      `Step ${err.stepIndex}: ${err.error}`
+    ).join('\n\n');
+
+    // Create a simple dialog with just OK button
+    const dialogRef = this._dialog.open(SimpleAlertDialog, {
+      width: '600px',
+      data: {
+        title: 'Mobile Validation Error',
+        message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`
+      } as SimpleAlertData
+    });
+
+    await dialogRef.afterClosed().toPromise();
+    
+    // Navigate to the first error after dialog is closed
+    const firstError = errors[0];
+    if (firstError && this.stepEditor) {
+      // Open the Steps panel if it's not already open
+      const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
+      if (stepsPanel && !stepsPanel.expanded) {
+        stepsPanel.open();
+      }
+      
+      // Focus on the step with error
+      this.stepEditor.focusStep(firstError.stepIndex - 1);
+      
+      // Show a snackbar to indicate the error
+      this._snackBar.open(
+        `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`, 
+        'OK', 
+        { duration: 8000 }
+      );
+    }
+  }
 }
