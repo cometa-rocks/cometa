@@ -315,26 +315,30 @@
                 <li class="dropdown-placeholder" disabled>
                   {{ mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile' }}
                 </li>
-                <ng-container *ngIf="true; else mobileOptions">
-                  <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
-                    <li *ngFor="let apk of appPackages; let idx = index"
-                        #dropdownOptionRef
-                        class="dropdown-option"
-                        [class.active]="dropdownActiveIndex === idx"
-                        (click)="onMobileDropdownSelect(apk)">
-                      {{ apk }}
-                    </li>
-                  </ng-container>
-                  <ng-template #mobileOptions>
-                    <li *ngFor="let mobile of runningMobiles; let idx = index"
-                        #dropdownOptionRef
-                        class="dropdown-option"
-                        [class.active]="dropdownActiveIndex === idx"
-                        (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
-                      {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
-                    </li>
-                  </ng-template>
+                <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
+                  <li *ngFor="let apk of appPackages; let idx = index"
+                      #dropdownOptionRef
+                      class="dropdown-option"
+                      [class.active]="dropdownActiveIndex === idx"
+                      (click)="onMobileDropdownSelect(apk)">
+                    {{ apk }}
+                  </li>
+                  <li *ngIf="!appPackages || appPackages.length === 0" class="dropdown-option disabled" disabled>
+                    No app packages available
+                  </li>
                 </ng-container>
+                <ng-template #mobileOptions>
+                  <li *ngFor="let mobile of runningMobiles; let idx = index"
+                      #dropdownOptionRef
+                      class="dropdown-option"
+                      [class.active]="dropdownActiveIndex === idx"
+                      (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
+                    {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
+                  </li>
+                  <li *ngIf="!runningMobiles || runningMobiles.length === 0" class="dropdown-option disabled" disabled>
+                    {{ mobileDropdownType === 'code' ? 'No mobile codes available' : 'No mobile names available' }}
+                  </li>
+                </ng-template>
               </ul>
             </div>
             <mat-list
