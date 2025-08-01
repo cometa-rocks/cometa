@@ -89,7 +89,7 @@
   <div class="cell status" *ngLet="row.status == 'Success' as passed">
 
     <div *ngIf="!(canChangeResultStatus$ | async)"
-      class="status-box {{row.status==='Success'?'success':row.status==='Failed'?'failed':'canceled'}}"
+      class="status-box {{row.status==='Success'?'passed':row.status==='Failed'?'failed':'canceled'}}"
       #statusBar
       stopPropagation
       >
@@ -97,7 +97,7 @@
     </div>
     <div
       *ngIf="canChangeResultStatus$ | async"
-      class="status-box {{row.status==='Success'?'success':row.status==='Failed'?'failed':'canceled'}}"
+      class="status-box {{row.status==='Success'?'passed':row.status==='Failed'?'failed':'canceled'}}"
       #statusBar
       stopPropagation
       [matMenuTriggerFor]="runStatus"
