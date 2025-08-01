@@ -2974,7 +2974,6 @@ export class EditFeature implements OnInit, OnDestroy {
         // If we get here, it's potentially an invalid mobile reference
         // Determine the type of mobile reference based on context and content
         let errorType = 'mobile reference';
-        let suggestion = 'Please select a valid mobile from the dropdown.';
         let shouldFlag = false;
         
         // Check if it looks like a mobile code (usually contains numbers and letters, 1+ characters)
@@ -2986,10 +2985,8 @@ export class EditFeature implements OnInit, OnDestroy {
             } else {
               errorType = 'mobile code';
             }
-            suggestion = 'Please select a valid mobile from the dropdown.';
           } else if (isAfterPackage) {
             errorType = 'app package';
-            suggestion = 'Please select a valid APK from the dropdown.';
           }
           shouldFlag = true;
         }
@@ -2997,14 +2994,12 @@ export class EditFeature implements OnInit, OnDestroy {
         else if ((quotedText.includes(' ') || quotedText.includes('-') || quotedText.includes('_')) && quotedText.length > 1) {
           if (isAfterMobile) {
             errorType = 'mobile name';
-            suggestion = 'Please select a valid mobile from the dropdown.';
           }
           shouldFlag = true;
         }
         // Check if it looks like an app package (usually contains dots)
         else if (quotedText.includes('.') && quotedText.length > 1) {
           errorType = 'app package';
-          suggestion = 'Please select a valid APK from the dropdown.';
           shouldFlag = true;
         }
         
@@ -3012,7 +3007,7 @@ export class EditFeature implements OnInit, OnDestroy {
           errors.push({
             stepIndex: index + 1,
             stepContent: step.step_content,
-            error: `Invalid ${errorType}: "${quotedText}" - This mobile/package is no longer available. ${suggestion}`,
+            error: `Invalid ${errorType}: "${quotedText}" - This mobile/package is no longer available.`,
             quoteStart: quoteStart,
             quoteEnd: quoteEnd
           });
@@ -3036,10 +3031,13 @@ export class EditFeature implements OnInit, OnDestroy {
     ).join('\n\n');
 
     // Create a simple dialog with just OK button
+    const errorCount = errors.length;
+    const dialogTitle = errorCount === 1 ? 'Mobile Validation Error' : `Mobile Validation Errors (${errorCount} found)`;
+    
     const dialogRef = this._dialog.open(SimpleAlertDialog, {
       width: '600px',
       data: {
-        title: 'Mobile Validation Error',
+        title: dialogTitle,
         message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`
       } as SimpleAlertData
     });
@@ -3079,9 +3077,14 @@ export class EditFeature implements OnInit, OnDestroy {
         }, 100);
       }
       
-      // Show a snackbar to indicate the error
+      // Show a snackbar to indicate the errors
+      const errorCount = errors.length;
+      const snackbarMessage = errorCount === 1 
+        ? `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`
+        : `${errorCount} steps have invalid mobile references. Please update them.`;
+      
       this._snackBar.open(
-        `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`, 
+        snackbarMessage, 
         'OK', 
         { duration: 8000 }
       );
