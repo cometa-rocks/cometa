@@ -2898,14 +2898,11 @@ export class EditFeature implements OnInit, OnDestroy {
         
         // Check if it's an actual mobile code (hostname)
         const mobileWithHostname = allMobiles.find(m => m.hostname === quotedText);
-        if (mobileWithHostname) {
-          console.log(`Step ${index + 1}: "${quotedText}" - Found mobile with hostname, status: ${mobileWithHostname.service_status}`);
-          if (mobileWithHostname.service_status === 'Running') {
-            console.log(`Step ${index + 1}: "${quotedText}" - Mobile is running, skipping validation`);
+        if (mobileWithHostname) {          
+          if (mobileWithHostname.service_status === 'Running') {            
             continue; // Valid running mobile code
           } else {
-            // Mobile exists but is not running
-            console.log(`Step ${index + 1}: "${quotedText}" - Mobile exists but not running, adding error`);
+            // Mobile exists but is not running            
             errors.push({
               stepIndex: index + 1,
               stepContent: step.step_content,
@@ -2915,8 +2912,6 @@ export class EditFeature implements OnInit, OnDestroy {
             });
             continue;
           }
-        } else {
-          console.log(`Step ${index + 1}: "${quotedText}" - No mobile found with hostname: ${quotedText}`);
         }
         
         // Check if it's an actual mobile name (image_name)
@@ -2962,12 +2957,9 @@ export class EditFeature implements OnInit, OnDestroy {
         // Check if this is after "package" or "app" (for app_package)
         const isAfterPackage = /package\s*"[^"]*"\s*$/i.test(beforeQuote) || /app\s*"[^"]*"\s*$/i.test(beforeQuote) || /package\s*$/i.test(beforeQuote) || /app\s*$/i.test(beforeQuote);
         
-        // Debug logs
-        console.log(`Step ${index + 1}: "${quotedText}" - beforeQuote: "${beforeQuote}" - isAfterMobile: ${isAfterMobile}, isAfterPackage: ${isAfterPackage}`);
         
         // Only validate if it's after mobile, package, or app keywords
         if (!isAfterMobile && !isAfterPackage) {
-          console.log(`Step ${index + 1}: "${quotedText}" - Skipping validation (not after mobile/package/app)`);
           continue;
         }
         
