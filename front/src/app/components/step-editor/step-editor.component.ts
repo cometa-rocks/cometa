@@ -199,8 +199,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   mobileDropdownStepIndex: number | null = null;
   mobileDropdownReplaceIndex: number | null = null;
 
-  // Controls whether the step autocomplete should be disabled (e.g., when editing mobile name)
-  disableStepAutocomplete: boolean = false;
+
 
   // Holds the pixel width of the quoted content for the mobile dropdown
   mobileDropdownWidth: number = 180;
@@ -574,7 +573,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.showMobileDropdown = false;
     this.mobileDropdownStepIndex = null;
     this.mobileDropdownReplaceIndex = null;
-    this.disableStepAutocomplete = false;
 
     // Only show dropdown if clicking directly on a placeholder text
     this.checkAndShowMobileDropdown(textarea, index, cursorPos);
@@ -685,7 +683,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
             dropdownEl.style.minWidth = `${dropdownWidth}px`;
           }, 0);
 
-          this.disableStepAutocomplete = true; // Disable autocomplete when editing mobile name/code/package/activity
+
           this.dropdownActiveIndex = 0;
           found = true;
           break; // Stop after finding the correct match
@@ -698,7 +696,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.showMobileDropdown = false;
       this.mobileDropdownStepIndex = null;
       this.mobileDropdownReplaceIndex = null;
-      this.disableStepAutocomplete = false; // Enable autocomplete otherwise
+
       this._cdr.detectChanges();
     }
   }
@@ -1087,7 +1085,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           dropdownEl.style.minWidth = `${dropdownWidth}px`;
         }, 0);
         
-        this.disableStepAutocomplete = true;
+
         this.dropdownActiveIndex = 0;
       }
       
@@ -1807,7 +1805,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.showMobileDropdown = false;
       this.mobileDropdownStepIndex = null;
       this.mobileDropdownReplaceIndex = null;
-      this.disableStepAutocomplete = false;
+
     }
 
     // Reset focused step
