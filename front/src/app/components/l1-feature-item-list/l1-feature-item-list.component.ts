@@ -5,10 +5,10 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take, Subject, takeUntil } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -46,6 +46,7 @@ import {
   LowerCasePipe,
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
+import '../../utils/api-debug-utils';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -78,7 +79,7 @@ import { StarredService } from '@services/starred.service';
     LowerCasePipe,
   ],
 })
-export class L1FeatureItemListComponent implements OnInit {
+export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   constructor(
     private _router: NavigationService,
     private _store: Store,
@@ -105,6 +106,9 @@ export class L1FeatureItemListComponent implements OnInit {
   running$: Observable<boolean>;
   private lastClickTime: number = 0;
   private readonly CLICK_DEBOUNCE_TIME: number = 1000; // 1 second debounce time
+  private destroy$ = new Subject<void>();
+  public isRefreshingData: boolean = false;
+  private lastDataUpdate: number = 0; // Track the last time data was updated
 
   /**
    * Global variables
@@ -117,20 +121,17 @@ export class L1FeatureItemListComponent implements OnInit {
   isAnyFeatureRunning$: Observable<boolean>;
   departmentFolders$: Observable<Folder[]>;
   isStarred$: Observable<boolean>;
-  lastFeatureResult$: Observable<FeatureResult>;
   
 
   // NgOnInit
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
-
-
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
     );
 
-    // Subscribe to the status message comming from NGXS
+    // Subscribe to the status message coming from NGXS
     this.featureStatus$ = this._store.select(
       CustomSelectors.GetFeatureStatus(this.feature_id)
     ).pipe(
@@ -141,37 +142,14 @@ export class L1FeatureItemListComponent implements OnInit {
           this._store.dispatch(new Features.UpdateFeature(this.feature_id));
           this.cdr.detectChanges();
         }
-      })
+      }),
+      takeUntil(this.destroy$)
     );
 
-    // Subscribe to feature updates to refresh the item data
-    this.feature$.subscribe(feature => {
-      // Get the latest feature result directly from the API to ensure we have the most recent data
-      this._api.getFeatureResultsByFeatureId(this.feature_id, {
-        archived: false,
-        page: 1,
-        size: 1,
-      }).subscribe({
-        next: (response: any) => {
-          if (response && response.results && response.results.length > 0) {
-            const latestResult = response.results[0];
-            
-            // Update the item with the latest feature result information
-            this.item.total = latestResult.total || 0;
-            this.item.time = latestResult.execution_time || 0;
-            this.item.date = latestResult.result_date || null;
-            
-            this.cdr.detectChanges();
-          }
-        },
-        error: (err) => {
-          console.error('Error fetching feature results:', err);
-        }
-      });
-    });
-
     // Nos aseguramos de que el observable esté suscrito
-    this.featureStatus$.subscribe();
+    this.featureStatus$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe();
 
     // También actualizamos el estado cuando el feature deja de estar en ejecución
     this.featureRunning$ = this._store.select(
@@ -184,11 +162,14 @@ export class L1FeatureItemListComponent implements OnInit {
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
-      })
+      }),
+      takeUntil(this.destroy$)
     );
 
     // Nos aseguramos de que el observable esté suscrito
-    this.featureRunning$.subscribe();
+    this.featureRunning$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe();
 
     this.canEditFeature$ = this._store.select(
       CustomSelectors.HasPermission('edit_feature', this.feature_id)
@@ -203,11 +184,120 @@ export class L1FeatureItemListComponent implements OnInit {
 
     this.departmentFolders$ = this._store.select(CustomSelectors.GetDepartmentFolders())
 
-    this._sharedActions.filterState$.subscribe(isActive => {
+    this._sharedActions.filterState$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(isActive => {
       this.finder = isActive;
     });
 
     this.isStarred$ = this.starredService.isStarred(this.feature_id);
+
+    // Actualizar datos del feature si no están disponibles
+    this.updateFeatureDataIfNeeded();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Actualiza los datos del feature solo si es necesario y no se han actualizado recientemente
+   */
+  private updateFeatureDataIfNeeded(): void {
+    // Solo actualizar si no hay datos o si los datos están desactualizados
+    if (!this.item.total && !this.item.time && !this.item.date) {
+      this.refreshFeatureData();
+    } else {
+      // También actualizar si han pasado más de 5 minutos desde la última actualización
+      // para asegurar que los datos estén actualizados después de borrar resultados
+      const lastUpdate = this.lastDataUpdate || 0;
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000; // 5 minutos en milisegundos
+      
+      if (now - lastUpdate > fiveMinutes) {
+        this.refreshFeatureData();
+      }
+    }
+  }
+
+  /**
+   * Refresca los datos del feature desde la API de manera controlada
+   */
+  private refreshFeatureData(): void {
+    // Evitar múltiples llamadas simultáneas
+    if (this.isRefreshingData) {
+      return;
+    }
+
+    this.isRefreshingData = true;
+
+    this._api.getFeatureResultsByFeatureId(this.feature_id, {
+      archived: false,
+      page: 1,
+      size: 1,
+    }).pipe(
+      takeUntil(this.destroy$),
+      take(1) // Solo tomar la primera respuesta
+    ).subscribe({
+      next: (response: any) => {
+        if (response && response.results && response.results.length > 0) {
+          const latestResult = response.results[0];
+          
+          // Actualizar solo si los datos son diferentes
+          if (this.item.total !== latestResult.total || 
+              this.item.time !== latestResult.execution_time || 
+              this.item.date !== latestResult.result_date) {
+            
+            this.item.total = latestResult.total || 0;
+            this.item.time = latestResult.execution_time || 0;
+            this.item.date = latestResult.result_date || null;
+            
+            this.cdr.detectChanges();
+          }
+        } else {
+          // Si no hay resultados, limpiar los datos
+          this.item.total = 0;
+          this.item.time = 0;
+          this.item.date = null;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching feature results:', err);
+      },
+      complete: () => {
+        this.isRefreshingData = false;
+        this.lastDataUpdate = Date.now(); // Update the last data update time
+      }
+    });
+  }
+
+  /**
+   * Método público para refrescar datos (puede ser llamado desde el template o eventos externos)
+   */
+  public refreshData(): void {
+    this.refreshFeatureData();
+  }
+
+  /**
+   * Listener para detectar cuando la página se vuelve visible (después de navegar de vuelta)
+   */
+  @HostListener('window:focus')
+  onWindowFocus(): void {
+    // Actualizar datos cuando la ventana vuelve a tener foco (después de navegar de vuelta)
+    this.updateFeatureDataIfNeeded();
+  }
+
+  /**
+   * Listener para detectar cuando el documento se vuelve visible
+   */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    if (!document.hidden) {
+      // Actualizar datos cuando el documento se vuelve visible
+      this.updateFeatureDataIfNeeded();
+    }
   }
 
   async goLastRun() {
@@ -296,7 +386,9 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
   folderGoToFolder(folder_id: number, folderNameBoolean: boolean){
-    this.departmentFolders$.subscribe(
+    this.departmentFolders$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
       alldepartments => {
         const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, folder_id, '', folderNameBoolean);
 
@@ -312,7 +404,7 @@ export class L1FeatureItemListComponent implements OnInit {
     );
   }
 
-  findFolderAndNavigate(departments: any[], folder_id: number, path: string, folderNameBoolean): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+  findFolderAndNavigate(departments: any[], folder_id: number, path: string, folderNameBoolean: boolean): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
     for (const department of departments) {
       for (const folder of department.folders) {
 
@@ -362,7 +454,9 @@ export class L1FeatureItemListComponent implements OnInit {
     const department_id = this.item.reference.department_id;
     path += `:${department_id}`;
 
-    this.departmentFolders$.subscribe(
+    this.departmentFolders$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
       alldepartments => {
         const { result, folderName, foldersToOpen } = this.findAndNavigate(alldepartments, feature_id, path);
         if (result && folderNameBoolean) {
@@ -470,7 +564,8 @@ export class L1FeatureItemListComponent implements OnInit {
     this.starredService.toggleStarred(this.feature_id);
     this.starredService.starredChanges$.pipe(
       filter(event => event?.featureId === this.feature_id),
-      take(1)
+      take(1),
+      takeUntil(this.destroy$)
     ).subscribe(event => {
       this._snackBar.open(
         event?.action === 'add' 
