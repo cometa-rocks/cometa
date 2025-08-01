@@ -583,7 +583,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   /**
    * Checks if the cursor is on a mobile placeholder and shows dropdown only if clicking on placeholder text
    */
-  private checkAndShowMobileDropdown(textarea: HTMLTextAreaElement, index: number, cursorPos: number) {
+  public checkAndShowMobileDropdown(textarea: HTMLTextAreaElement, index: number, cursorPos: number) {
     const value = textarea.value;
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
     const stepAction = stepFormGroup.get('step_action')?.value || '';

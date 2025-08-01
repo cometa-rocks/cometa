@@ -16,7 +16,7 @@ export interface SimpleAlertData {
   template: `
     <h2 mat-dialog-title>{{ data?.title }}</h2>
     <mat-dialog-content>
-      <span>{{ data?.message }}</span>
+      <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: 0;">{{ data?.message }}</pre>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-stroked-button color="primary" [mat-dialog-close]="true">
