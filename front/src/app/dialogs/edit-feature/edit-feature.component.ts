@@ -200,6 +200,8 @@ export class EditFeature implements OnInit, OnDestroy {
   featureAge: string = '';
   selectedFile = new UntypedFormControl();
   selected_department!: string;
+  lastEditTimestamp: string = '';
+  lastEditRelativeTime: string = '';
   // next runs an array of next executions
   nextRuns = [];
   // parse error
@@ -2904,6 +2906,9 @@ export class EditFeature implements OnInit, OnDestroy {
           // Generate pretty file names
           this.prettyFiles = this.cleanNames(this.files);
           
+          // Get the most recent backup timestamp for last edit display
+          this.getMostRecentBackupTimestamp();
+          
           // Log backup file count
           this.logger.msg('4', `Loaded ${this.prettyFiles.length} backup files`, 'Backup');
         } catch (error) {
@@ -2960,22 +2965,26 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   getHowLongAgo(file: string) {
+    const result = this.parseDateAndCalculateTime(file);
+    if (result) {
+      this.featureAge = `From ${result.relativeTime}`;
+    } else {
+      this.featureAge = 'Unknown date';
+    }
+  }
+
+  // Utility method to parse date and calculate time difference
+  private parseDateAndCalculateTime(file: string): { timestamp: string; relativeTime: string; dateObj: Date } | null {
     try {
-      // Parse the date string that is in the format 'YYYY/MM/DD HH:MM:SS'
       const dateParts = file.match(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
-      console.log("Date parts:", dateParts);
       if (!dateParts) {
         this.logger.msg('2', `Failed to parse date from string: ${file}`, 'Date parsing');
-        this.featureAge = 'Unknown date';
-        return;
+        return null;
       }
       
-      // Extract date components
       const [_, year, month, day, hour, minute, second] = dateParts;
       
       // Create date object treating the timestamp as UTC (server time)
-      // Use Date.UTC() to create a UTC timestamp, then convert to Date object
-      // This ensures the backup timestamp is interpreted as UTC, not local time
       const dateTimeObj = new Date(Date.UTC(
         parseInt(year), 
         parseInt(month) - 1, 
@@ -2985,11 +2994,9 @@ export class EditFeature implements OnInit, OnDestroy {
         parseInt(second)
       ));
       
-      // Ensure valid date was created
       if (isNaN(dateTimeObj.getTime())) {
         this.logger.msg('2', `Invalid date created from: ${file}`, 'Date parsing');
-        this.featureAge = 'Unknown date';
-        return;
+        return null;
       }
       
       const currentDateTime = new Date();
@@ -3001,19 +3008,58 @@ export class EditFeature implements OnInit, OnDestroy {
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-      // Build output string
-      let output = 'From ';
-      if (days > 1) output += `${days} days `;
-      else if (days == 1) output += `${days} day `;
-      else if (hours > 0) output += `${hours} hours `;
-      else if (minutes > 0) output += `${minutes} minutes `;
-      else if (seconds > 0) output += `${seconds} seconds `;
-      else output += 'moments '; // Handle case where difference is less than a second
-      output += 'ago';
-      this.featureAge = output;
+      // Build relative time string
+      let relativeTime = '';
+      if (days === 1) relativeTime = `${days} day ago`;
+      else if (days > 1) relativeTime = `${days} days ago`;
+      else if (hours === 1) relativeTime = `${hours} hour ago`;
+      else if (hours > 1) relativeTime = `${hours} hours ago`;
+      else if (minutes === 1) relativeTime = `${minutes} minute ago`;
+      else if (minutes > 1) relativeTime = `${minutes} minutes ago`;
+      else if (seconds > 30) relativeTime = `${seconds} seconds ago`;
+      else relativeTime = 'just now';
+      
+      return {
+        timestamp: file,
+        relativeTime,
+        dateObj: dateTimeObj
+      };
     } catch (error) {
-      this.logger.msg('2', `Error calculating time difference: ${error}`, 'Date parsing');
-      this.featureAge = 'Unknown date';
+      this.logger.msg('2', `Error parsing date and calculating time: ${error}`, 'Date parsing');
+      return null;
+    }
+  }
+
+  getMostRecentBackupTimestamp() {
+    try {
+      if (!this.prettyFiles || this.prettyFiles.length === 0) {
+        this.lastEditTimestamp = '';
+        this.lastEditRelativeTime = '';
+        return;
+      }
+
+      // Sort backup files by timestamp (most recent first)
+      const sortedFiles = [...this.prettyFiles].sort((a, b) => {
+        const dateA = new Date(a.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1-$2-$3'));
+        const dateB = new Date(b.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1-$2-$3'));
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      const mostRecentFile = sortedFiles[0];
+      const result = this.parseDateAndCalculateTime(mostRecentFile);
+      
+      if (result) {
+        this.lastEditTimestamp = result.timestamp;
+        this.lastEditRelativeTime = result.relativeTime;
+      } else {
+        this.lastEditTimestamp = '';
+        this.lastEditRelativeTime = '';
+      }
+      
+    } catch (error) {
+      this.logger.msg('2', `Error getting most recent backup timestamp: ${error}`, 'Backup timestamp');
+      this.lastEditTimestamp = '';
+      this.lastEditRelativeTime = '';
     }
   }
   

@@ -974,6 +974,10 @@
       matTooltipPosition="after"
       *ngIf="(feature | async)?.last_edited as edition">
       <b>Last edit by:</b> {{ edition.name }}
+      <div *ngIf="lastEditTimestamp" class="last-edit-timestamp">
+        <b>Last edited:</b> {{ lastEditTimestamp }} 
+        <span class="relative-time">({{ lastEditRelativeTime }})</span>
+      </div>
     </div>
   </mat-dialog-content>
   <mat-dialog-actions>
