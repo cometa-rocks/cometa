@@ -260,7 +260,6 @@
             </div>
             <!-- Textarea with autocomplete enabled -->
             <textarea
-              *ngIf="!disableStepAutocomplete"
               #stepTextarea
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
@@ -281,66 +280,6 @@
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
-
-            <!-- Textarea with autocomplete disabled -->
-            <textarea
-              *ngIf="disableStepAutocomplete"
-              #stepTextarea
-              (input)="onStepChange($event, i); autoGrowTextarea($event)"
-              (blur)="fixStep($event, i)"
-              (click)="onStepTextareaClick($event, i, 0)"
-              (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
-              (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
-              (keydown.enter)="onTextareaEnter($event, i)"
-              (keydown.Tab)="onTextareaTab($event, i)"
-              (keydown.control.arrowup)="insertStep($event, i)"
-              (keydown.control.arrowdown)="insertStep($event, i)"
-              (keydown.alt.control.arrowup)="copyStep($event, i)"
-              (keydown.alt.control.arrowdown)="copyStep($event, i)"
-              class="code"
-              spellcheck="false"
-              autocomplete="off"
-              formControlName="step_content"
-              placeholder="Step Code"
-              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
-            </textarea>
-            <!-- Absolutely positioned custom dropdown: shows APKs if type is 'package', otherwise mobiles -->
-            <div *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
-                 #dropdownRef
-                 stopPropagation
-                 class="mobile-inline-dropdown custom-dropdown"
-                 tabindex="0"
-                 (keydown)="onDropdownKeydown($event)">
-              <ul class="dropdown-list">
-                <li class="dropdown-placeholder" disabled>
-                  {{ mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile' }}
-                </li>
-                <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
-                  <li *ngFor="let apk of appPackages; let idx = index"
-                      #dropdownOptionRef
-                      class="dropdown-option"
-                      [class.active]="dropdownActiveIndex === idx"
-                      (click)="onMobileDropdownSelect(apk)">
-                    {{ apk }}
-                  </li>
-                  <li *ngIf="!appPackages || appPackages.length === 0" class="dropdown-option disabled" disabled>
-                    No app packages available
-                  </li>
-                </ng-container>
-                <ng-template #mobileOptions>
-                  <li *ngFor="let mobile of runningMobiles; let idx = index"
-                      #dropdownOptionRef
-                      class="dropdown-option"
-                      [class.active]="dropdownActiveIndex === idx"
-                      (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
-                    {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
-                  </li>
-                  <li *ngIf="!runningMobiles || runningMobiles.length === 0" class="dropdown-option disabled" disabled>
-                    {{ mobileDropdownType === 'code' ? 'No mobile codes available' : 'No mobile names available' }}
-                  </li>
-                </ng-template>
-              </ul>
-            </div>
             <mat-list
               class="var_name_autoComplete"
               [ngStyle]="{
