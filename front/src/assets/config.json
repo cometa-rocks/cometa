@@ -1,5 +1,5 @@
 {
-  "version": "3.0.85",
+  "version": "3.0.86",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.86",
+      "date": "2025-08-01",
+      "features": [
+        {
+          "title": "Step editor improvements - #6650",
+          "description": "Step editor improvements, fixed issue with dropdown and add alert message when invalid mobile/package is selected."
+        }
+      ]
+    },
     {
       "version": "3.0.85",
       "date": "2025-07-30",
