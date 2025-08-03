@@ -574,6 +574,7 @@ def normalize_variable_step(context, variable_name, variable):
     send_step_details(context, f'Normalized value of {variable_name} stored in {variable}')
     addTestRuntimeVariable(context, variable, normalized_value, save_to_step_report=True)
     
+
     
 # Step to parse a value to a specific type and store the result in a new variable
 # Example:
@@ -613,7 +614,5 @@ def parse_value_to_type(context, value: str, target_type: str, variable: str):
         raise TypeError(f"Unsupported target type: {target_type}")
     
     addTestRuntimeVariable(context, variable, str(new_value), save_to_step_report=True)
-    
-    
     
     
