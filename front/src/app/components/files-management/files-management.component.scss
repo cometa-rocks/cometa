@@ -681,6 +681,12 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  
+  // Error status styling
+  .status-error {
+    color: #f44336;
+    font-weight: 500;
+  }
 }
 
 
