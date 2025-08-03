@@ -47,6 +47,7 @@ import { ConfigState } from '@store/config.state';
 import { DepartmentsState } from '@store/departments.state';
 import { FeaturesState } from '@store/features.state';
 import { DataDriven } from '@store/actions/datadriven.actions';
+import { Departments } from '@store/actions/departments.actions';
 import { AvailableFilesPipe } from '@pipes/available-files.pipe';
 import { HumanizeBytesPipe } from '@pipes/humanize-bytes.pipe';
 import { SortByPipe } from '@pipes/sort-by.pipe';
@@ -1250,39 +1251,71 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         if (response && response.success) {
           this.log.msg('4', `File deleted successfully: ${file.name}`, 'Delete');
           
-          // Update the department's file list
+          // Mark file as removed in the store
           if (this.department && this.department.files) {
-            const fileIndex = this.department.files.findIndex(f => f.id === file.id);
-            if (fileIndex > -1) {
-              // Mark as removed
-              this.department.files[fileIndex].is_removed = true;
-              this.cdRef.markForCheck();
+            const updatedFiles = this.department.files.map(f => 
+              f.id === file.id ? { ...f, is_removed: true } : f
+            );
+            
+            // Update the department in the store with the modified files
+            this._store.dispatch(new Departments.UpdateDepartment(this.department.department_id, {
+              files: updatedFiles
+            }));
+            
+            // Show success message
+            this._snackBar.open(`File "${file.name}" deleted successfully`, 'OK', { 
+              duration: 5000,
+              panelClass: ['file-management-custom-snackbar']
+            });
+            
+            // Reload results
+            this.getResults();
+          }
+        } else {
+          // Check if the error is because file was already deleted
+          const errorMsg = response?.error || 'Error deleting file';
+          if (errorMsg.includes('does not exist')) {
+            // File was already deleted, just mark it in the store
+            if (this.department && this.department.files) {
+              const updatedFiles = this.department.files.map(f => 
+                f.id === file.id ? { ...f, is_removed: true } : f
+              );
               
-              // Show success message
-              this._snackBar.open(`File "${file.name}" deleted successfully`, 'OK', { 
-                duration: 5000,
-                panelClass: ['file-management-custom-snackbar']
-              });
-              
-              // Reload results
-              this.getResults();
+              // Update the department in the store
+              this._store.dispatch(new Departments.UpdateDepartment(this.department.department_id, {
+                files: updatedFiles
+              }));
             }
+          } else {
+            this._snackBar.open(errorMsg, 'OK', { 
+              duration: 5000,
+              panelClass: ['file-management-custom-snackbar']
+            });
+          }
+        }
+      },
+      error: (error) => {
+        this.log.msg('2', `Error deleting file: ${file.name}`, 'Delete', error);
+        
+        // If error is 404 or "does not exist", treat as already deleted
+        if (error?.status === 404 || error?.error?.error?.includes('does not exist')) {
+          if (this.department && this.department.files) {
+            this.department = {
+              ...this.department,
+              files: this.department.files.map(f => 
+                f.id === file.id ? { ...f, is_removed: true } : f
+              )
+            };
+            this.cdRef.markForCheck();
           }
         } else {
           this._snackBar.open('Error deleting file', 'OK', { 
             duration: 5000,
             panelClass: ['file-management-custom-snackbar']
-            });
-          }
-        },
-      error: (error) => {
-        this.log.msg('2', `Error deleting file: ${file.name}`, 'Delete', error);
-        this._snackBar.open('Error deleting file', 'OK', { 
-          duration: 5000,
-          panelClass: ['file-management-custom-snackbar']
-        });
+          });
         }
-      });
+      }
+    });
   }
 
   onFileDownloaded(file: UploadedFile): void {
@@ -1473,4 +1506,5 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       data: { fileId: file.id }
     });
   }
+
 }
