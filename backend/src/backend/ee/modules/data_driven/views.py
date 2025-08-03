@@ -699,7 +699,7 @@ def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs, lock
     # it will count for total test defined to run in parallel, and execute them in parallel
     count_of_parallel_tests = 0
     for row in rows:
-        execute_parallel_tests = row.data.get('co_execute_parallel', None) == "True"
+        execute_parallel_tests = row.data.get('co_execute_parallel', "").lower() == "true"    
         if execute_parallel_tests:
             count_of_parallel_tests += 1
     max_workers = count_of_parallel_tests if count_of_parallel_tests > 0 else 1
