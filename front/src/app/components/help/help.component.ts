@@ -88,13 +88,19 @@ export class HelpComponent {
     { position: 12, key: 'CTRL+ALT+UP/DOWN', description: 'Textarea: Copy the step above or below of the reference step' },
   ];
 
+  // Step Editor
+
+  ShortStepEditor: Shortcut[] = [
+    { position: 1, key: 'SHIFT', description: 'Checkbox: Hold Shift and click another checkbox to select all checkboxes between the first and the second click.' },
+  ];
+
   // Administration
   ShortAdministration: Shortcut[] = [
     { position: 10, key: 'CTRL+ENTER', description: 'Button: OK/CREATE/MODIFY' },
   ];
 
   columns: MtxGridColumn[] = [
-    { header: 'Shortcut', field: 'key' },
+    { header: 'Shortcut', field: 'key', class: 'shortcut-key' },
     { header: 'Description', field: 'description' },
   ];
 
@@ -104,6 +110,7 @@ export class HelpComponent {
   listCreateEditFeature = this.ShortCreateEditFeature;
   listAdministration = this.ShortAdministration;
   listCreateFolder = this.ShortCreateFolder;
+  listStepEditor = this.ShortStepEditor;
 
   trackByName(index: number, item: any) {
     return item.name;

@@ -1161,7 +1161,6 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
 
     return features
 
-
 # Checks if the selected browser is valid using the array of available browsers
 # for the selected cloud, it also tries to repair the selected browser object
 def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
@@ -1272,6 +1271,33 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     if feature.department_id not in userDepartments:
         return {'success': False, 'error': 'Provided Feature ID does not exist..'}
 
+    browsers_provided_by_datadriven = [v for v in additional_variables if v['variable_name'] == 'co_browser']
+
+    if len(browsers_provided_by_datadriven) > 0:
+        browser_and_version = browsers_provided_by_datadriven[0].get('variable_value').split(':')
+        if len(browser_and_version) == 2:
+            browser = browser_and_version[0]
+            version = browser_and_version[1]
+        else:
+            browser = browser_and_version[0]
+            version = "latest"
+
+        # set default browsers for the feature
+        feature.browsers =  [
+            {
+                "os": "Generic",
+                "cloud": "local",
+                "device": None,
+                "browser": browser,
+                "os_version": "Selenium",
+                "real_mobile": False,
+                "browser_version": version,
+                "selectedTimeZone": "Etc/UTC"
+            }
+        ] 
+        logger.info(f"Feature {feature.feature_id} will be run with browsers provided by datadriven settings \n {json.dumps(feature.browsers, indent=4)} ")
+
+    # check if feature has any browsers
     if len(feature.browsers) == 0:
         return {
             'success': False,
@@ -1334,16 +1360,16 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # update feature info
     feature.info = fRun
 
-    # Make sure feature files exist - only create if missing to prevent step duplication
-    feature_path = get_feature_path(feature)['fullPath']
-    if not os.path.exists(feature_path + '.feature'):
-        logger.info(f"Feature files missing for {feature_id}, creating them...")
-        steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-        feature.save(steps=list(steps))
-    else:
-        # Files exist, just save feature metadata without regenerating steps
-        feature.save(dontSaveSteps=True)
-    json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
+    # # Make sure feature files exist - only create if missing to prevent step duplication
+    # feature_path = get_feature_path(feature)['fullPath']
+    # if not os.path.exists(feature_path + '.feature'):
+    #     logger.info(f"Feature files missing for {feature_id}, creating them...")
+    #     steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+    #     feature.save(steps=list(steps))
+    # else:
+    #     # Files exist, just save feature metadata without regenerating steps
+    #     feature.save(dontSaveSteps=True)
+    # json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
     frs = []
@@ -1440,7 +1466,6 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             logger.info(f"Telegram notification data prepared for feature {feature.feature_id}, chat_id: {telegram_chat_id}")
     
     datum = {
-        'json_path': json_path,
         'feature_run': fRun.run_id,
         'HTTP_PROXY_USER': json.dumps(user),
         'HTTP_X_SERVER': request.META.get("HTTP_X_SERVER", "none"),
@@ -1464,6 +1489,30 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         }
     except Exception as e:
         return {'success': False, 'error': str(e)}
+
+@csrf_exempt
+@require_permissions("run_feature")
+def generateFeatureFile(request, *args, **kwargs):
+    # This api method should be called from behave container to make sure that feature file is generated
+    # Before running the test, because housekeeping running in behave after test cleans the feature test files
+    # Useful when running the the parallel tests in datadriven
+
+    # Verify body can be parsed as JSON
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Unable to parse request body.'})
+    try:
+        feature_id = data.get('feature_id', None)
+        feature_result_id = data.get('feature_result_id', None)
+        feature = Feature.objects.get(pk=feature_id)
+        # generate feature file, kwargs is empty as we are not passing any steps
+        response = generate_feature_test_file_and_save_steps(feature=feature, kwargs={'save_steps': False}, new_feature=True, feature_result_id=feature_result_id)
+        return JsonResponse(response, status=200 if response.get("success") else 400)
+    except Feature.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Feature not found.'}, status=400)
+    except Exception as err:
+        return JsonResponse({'success': False, 'error': str(err)}, status=500)
 
 
 @csrf_exempt
@@ -1517,6 +1566,7 @@ def GetSteps(request, feature_id):
 @csrf_exempt
 def GetInfo(request):
     return JsonResponse({'version': version})
+
 
 
 @csrf_exempt
@@ -3121,10 +3171,10 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save with steps
             steps = data['steps']['steps_content'] or []
             feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps)
+            result = feature.save(steps=steps, backup_feature_info=True)
         else:
             # Save without steps
-            result = feature.save()  
+            result = feature.save(backup_feature_info=True)  
 
         # Only process telegram_options if feature save was successful and feature exists in database
         if result['success'] and 'telegram_options' in data and feature.feature_id is not None:
