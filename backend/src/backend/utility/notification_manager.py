@@ -68,72 +68,49 @@ class TelegramNotificationManger:
                 logger.warning(f"Telegram notifications globally disabled")
                 return False
             
-            # Check if there are any subscriptions for this feature
-            from backend.ee.modules.notification.models import TelegramSubscription
-            from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+            # Check if feature has Telegram notifications enabled
+            feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
+            logger.debug(f"Feature Telegram enabled setting: {feature_telegram_enabled}")
+            if not feature_telegram_enabled:
+                logger.debug(f"Telegram notifications disabled for feature {feature_result.feature_id.feature_id}")
+                return False
             
-            # Get active subscriptions and validate them
-            subscriptions = TelegramSubscription.objects.filter(
-                feature_id=feature_result.feature_id.feature_id,
-                is_active=True
+            # Get or create telegram options for this feature
+            telegram_options, created = FeatureTelegramOptions.objects.get_or_create(
+                feature=feature_result.feature_id,
+                defaults={
+                    'include_department': False,
+                    'include_application': False,
+                    'include_environment': False,
+                    'include_feature_name': False,
+                    'include_datetime': False,
+                    'include_execution_time': False,
+                    'include_browser_timezone': False,
+                    'include_browser': False,
+                    'include_overall_status': False,
+                    'include_step_results': False,
+                    'include_pixel_diff': False,
+                    'include_feature_url': False,
+                    'include_failed_step_details': False,
+                    'attach_pdf_report': False,
+                    'attach_screenshots': False,
+                    'custom_message': '',
+                    'send_on_error': False,
+                    'do_not_use_default_template': False,
+                    'check_maximum_notification_on_error_telegram': False,
+                    'maximum_notification_on_error_telegram': 3,
+                    'number_notification_sent_telegram': 0,
+                    'override_telegram_settings': False,
+                    'override_bot_token': '',
+                    'override_chat_ids': '',
+                    'override_message_thread_id': None
+                }
             )
-            
-            logger.info(f"Found {subscriptions.count()} active subscriptions for feature {feature_result.feature_id.feature_id}")
-            
-            # Validate each subscription before sending
-            valid_subscriptions = []
-            for subscription in subscriptions:
-                if TelegramSubscriptionManager.validate_subscription(
-                    subscription.user_id, 
-                    subscription.feature_id
-                ):
-                    valid_subscriptions.append(subscription)
-                    logger.debug(f"Subscription {subscription.id} is valid for user {subscription.user_id}")
-                else:
-                    # Deactivate invalid subscription
-                    subscription.is_active = False
-                    subscription.save()
-                    logger.info(f"Deactivated invalid subscription {subscription.id}")
-            
-            subscriptions = valid_subscriptions
-            logger.info(f"After validation: {len(subscriptions)} valid subscriptions")
-            
-            # Check if this was executed from Telegram by looking for telegram notification data
-            is_telegram_execution = False
-            telegram_chat_id = None
-            telegram_user_id = None
-            
-            # Check if feature_result has telegram notification data
-            # This would be passed from runFeature through environment.py
-            logger.debug(f"Checking for telegram_notification attribute on feature_result")
-            logger.debug(f"Has telegram_notification attribute: {hasattr(feature_result, 'telegram_notification')}")
-            if hasattr(feature_result, 'telegram_notification'):
-                logger.debug(f"telegram_notification value: {getattr(feature_result, 'telegram_notification', None)}")
-            
-            if hasattr(feature_result, 'telegram_notification') and feature_result.telegram_notification:
-                telegram_data = feature_result.telegram_notification
-                if isinstance(telegram_data, dict):
-                    telegram_chat_id = telegram_data.get('telegram_chat_id')
-                    telegram_user_id = telegram_data.get('telegram_user_id')
-                    if telegram_chat_id:
-                        is_telegram_execution = True
-                        logger.info(f"Found telegram execution for feature {feature_result.feature_id.feature_id}, user {telegram_user_id}, chat_id: {telegram_chat_id}")
-            
-            if not subscriptions and not is_telegram_execution:
-                # Fall back to old method - check if feature has Telegram notifications enabled
-                feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
-                logger.debug(f"No subscriptions found. Feature Telegram enabled setting: {feature_telegram_enabled}")
-                if not feature_telegram_enabled:
-                    logger.debug(f"Telegram notifications disabled for feature {feature_result.feature_id.feature_id}")
-                    return False
-            
-            # Get telegram options for this feature (do NOT create with all False defaults)
-            telegram_options = self._get_telegram_options(feature_result.feature_id.feature_id)
             
             # Check maximum notification logic (similar to email implementation)
             should_send_notification = True
             
-            if telegram_options and telegram_options.check_maximum_notification_on_error_telegram:
+            if telegram_options.check_maximum_notification_on_error_telegram:
                 logger.debug("Checking for maximum Telegram notifications on error")
                 
                 # Check if current feature_result is successful
@@ -158,16 +135,15 @@ class TelegramNotificationManger:
                 # Maximum notification check is disabled, reset counter
                 telegram_options.number_notification_sent_telegram = 0
             
-            # Save telegram options to persist counter changes (if they exist)
-            if telegram_options:
-                telegram_options.save()
+            # Save telegram options to persist counter changes
+            telegram_options.save()
             
             if not should_send_notification:
                 logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
                 return True  # Return True because this is expected behavior, not an error
             
             # Determine bot token and chat IDs based on override settings
-            if telegram_options and telegram_options.override_telegram_settings:
+            if telegram_options.override_telegram_settings:
                 logger.debug("Using override Telegram settings for this feature")
                 
                 # Use override bot token if provided, otherwise fall back to global
@@ -203,68 +179,33 @@ class TelegramNotificationManger:
                     logger.warning("Global bot token not configured")
                     return False
                 
-                # Get chat IDs from subscriptions or telegram execution
-                if is_telegram_execution and telegram_chat_id:
-                    # For telegram executions, always send to the chat that initiated it
-                    logger.info(f"Using Telegram execution chat_id: {telegram_chat_id}")
-                    chat_ids = [telegram_chat_id]
-                elif subscriptions:
-                    # Filter subscriptions based on notification type and result
-                    if feature_result.success:
-                        # For successful tests, only get subscriptions that include 'on_success'
-                        filtered_subscriptions = [
-                            sub for sub in subscriptions 
-                            if 'on_success' in sub.notification_types
-                        ]
-                    else:
-                        # For failed tests, only get subscriptions that include 'on_failure'
-                        filtered_subscriptions = [
-                            sub for sub in subscriptions 
-                            if 'on_failure' in sub.notification_types
-                        ]
-                    
-                    # Use subscription-based chat IDs
-                    logger.debug("Using subscription-based chat IDs with notification type filtering")
-                    chat_ids = [sub.chat_id for sub in filtered_subscriptions]
-                    logger.debug(f"Found {len(chat_ids)} subscribed chat IDs after filtering: {chat_ids}")
-                else:
-                    # Fall back to department chat IDs (old method)
-                    logger.debug("No subscriptions found, falling back to department chat IDs")
-                    try:
-                        department = Department.objects.get(department_id=feature_result.feature_id.department_id)
-                        department_settings = department.settings or {}
-                        department_chat_ids = department_settings.get('telegram_chat_ids', '')
-                        logger.debug(f"Department chat IDs: {department_chat_ids}")
-                    except Department.DoesNotExist:
-                        logger.warning(f"Department {feature_result.feature_id.department_id} not found")
-                        return False
-                    
-                    if not department_chat_ids or not department_chat_ids.strip():
-                        logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
-                        return False
-                    
-                    # Parse chat IDs
-                    chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
-                    if not chat_ids:
-                        logger.warning("No valid Telegram chat IDs found")
-                        return False
+                # Get department chat IDs - need to fetch Department object manually since Feature doesn't have FK
+                try:
+                    department = Department.objects.get(department_id=feature_result.feature_id.department_id)
+                    department_settings = department.settings or {}
+                    department_chat_ids = department_settings.get('telegram_chat_ids', '')
+                    logger.debug(f"Department chat IDs: {department_chat_ids}")
+                except Department.DoesNotExist:
+                    logger.warning(f"Department {feature_result.feature_id.department_id} not found")
+                    return False
+                
+                if not department_chat_ids or not department_chat_ids.strip():
+                    logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
+                    return False
+                
+                # Parse chat IDs
+                chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
+                if not chat_ids:
+                    logger.warning("No valid Telegram chat IDs found")
+                    return False
                 
                 # No thread ID for department-level chats
                 message_thread_id = None
             
             logger.info(f"Found {len(chat_ids)} chat IDs to send notifications to")
             
-            # Build message based on feature telegram settings and options
-            feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
-            
-            if telegram_options and feature_telegram_enabled:
-                # Feature has telegram enabled AND has options - use configured message
-                logger.debug("Feature has telegram enabled, building message using FeatureTelegramOptions configuration")
-                message = self._build_message(feature_result, telegram_options)
-            else:
-                # Either no options exist OR telegram is disabled for the feature - use default message
-                logger.debug(f"Using default message (telegram_enabled={feature_telegram_enabled}, has_options={telegram_options is not None})")
-                message = self._build_subscription_default_message(feature_result)
+            # Build message
+            message = self._build_message(feature_result, telegram_options)
             logger.debug("Message built successfully")
             
             # Check if message should be sent (could be None if send_on_error is true and test passed)
@@ -277,7 +218,7 @@ class TelegramNotificationManger:
             screenshot_files = []
             try:
                 # Check PDF attachment setting from the already fetched telegram_options
-                if telegram_options and telegram_options.attach_pdf_report:
+                if telegram_options.attach_pdf_report:
                     pdf_file_path = self._get_pdf_report()
                     if pdf_file_path:
                         logger.debug(f"PDF report obtained: {pdf_file_path}")
@@ -287,7 +228,7 @@ class TelegramNotificationManger:
                     logger.debug("PDF attachment disabled in telegram options")
                 
                 # Try to get screenshots if feature has screenshot attachment enabled
-                if telegram_options and telegram_options.attach_screenshots:
+                if telegram_options.attach_screenshots:
                     screenshot_files = self._get_screenshots(feature_result.feature_result_id)
                     if screenshot_files:
                         logger.debug(f"Screenshots obtained: {len(screenshot_files)} files")
@@ -369,169 +310,6 @@ class TelegramNotificationManger:
             logger.error(f"Error sending Telegram notification: {str(e)}")
             return False
     
-    def _get_telegram_options(self, feature_id):
-        """
-        Get telegram options for a feature without creating defaults
-        
-        Args:
-            feature_id: The feature ID
-            
-        Returns:
-            FeatureTelegramOptions instance or None if not found
-        """
-        try:
-            return FeatureTelegramOptions.objects.get(feature_id=feature_id)
-        except FeatureTelegramOptions.DoesNotExist:
-            logger.debug(f"No FeatureTelegramOptions found for feature {feature_id}")
-            return None
-    
-    def _extract_common_feature_data(self, feature_result):
-        """
-        Extract commonly used data to avoid repetition across message builders
-        
-        Args:
-            feature_result: The feature result object
-            
-        Returns:
-            dict: Common data used in message building
-        """
-        # Status information
-        data = {
-            'status_emoji': "✅" if feature_result.success else "❌",
-            'status_text': "PASSED" if feature_result.success else "FAILED",
-            'success': feature_result.success
-        }
-        
-        # Feature URL
-        DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
-        if DOMAIN:
-            data['feature_url'] = f"https://{DOMAIN}/#/{feature_result.department_name}/{feature_result.app_name}/{feature_result.feature_id.feature_id}"
-        else:
-            data['feature_url'] = None
-        
-        # Browser information
-        data['browser_info'] = None
-        if hasattr(feature_result, 'browser') and feature_result.browser:
-            browser_info = feature_result.browser
-            if isinstance(browser_info, dict):
-                data['browser_info'] = {
-                    'name': browser_info.get('browser', 'Unknown'),
-                    'version': browser_info.get('browser_version', 'Unknown'),
-                    'os': browser_info.get('os', 'Unknown OS'),
-                    'os_version': browser_info.get('os_version', ''),
-                    'timezone': browser_info.get('selectedTimeZone', 'UTC')
-                }
-        
-        return data
-    
-    def _build_telegram_execution_message(self, feature_result):
-        """
-        Build a simple completion message for features executed from Telegram
-        Note: Consider using _build_subscription_default_message() instead for consistency
-        """
-        try:
-            # Extract common data
-            common_data = self._extract_common_feature_data(feature_result)
-            status_text = "Completed Successfully" if common_data['success'] else "Failed"
-            
-            message_parts = [
-                f"{common_data['status_emoji']} *Test Run {status_text}*",
-                "",
-                f"*Feature:* {feature_result.feature_name}",
-                f"*ID:* {feature_result.feature_id.feature_id}",
-                f"*Result ID:* {feature_result.feature_result_id}",
-                f"*Finished at:* {feature_result.end_date.strftime('%Y-%m-%d %H:%M:%S UTC') if feature_result.end_date else 'Unknown'}",
-                "",
-                f"*Test Results:*",
-                f"• Total: {feature_result.total}",
-                f"• Passed: {feature_result.ok} ✅",
-                f"• Failed: {feature_result.fails} ❌",
-                f"• Skipped: {feature_result.skipped} ⏭️",
-            ]
-            
-            # Add browser information
-            if common_data['browser_info']:
-                browser_display = f"{common_data['browser_info']['name']} {common_data['browser_info']['version']}"
-                message_parts.append(f"• Browser: {browser_display}")
-            
-            # Add execution time if available
-            if feature_result.execution_time:
-                message_parts.append(f"• Duration: {feature_result.execution_time} seconds")
-            
-            # Add link to view full results
-            if common_data['feature_url']:
-                message_parts.extend(["", f"🔗 [View Detailed Results]({common_data['feature_url']})"])
-            
-            return "\n".join(message_parts)
-            
-        except Exception as e:
-            logger.error(f"Error building telegram execution message: {str(e)}")
-            # Fallback to very basic message
-            common_data = self._extract_common_feature_data(feature_result)
-            return f"{common_data['status_emoji']} Test Complete: {feature_result.feature_name} - {common_data['status_text']}"
-    
-    def _build_subscription_default_message(self, feature_result):
-        """
-        Build a default message for subscription-based notifications
-        Provides essential information without requiring customization
-        """
-        try:
-            # Extract common data
-            common_data = self._extract_common_feature_data(feature_result)
-            
-            # Escape special Markdown characters in text fields
-            def escape_markdown(text):
-                if not text:
-                    return ""
-                return str(text).replace('*', '\\*').replace('_', '\\_').replace('`', '\\`').replace('[', '\\[').replace(']', '\\]')
-            
-            message_parts = [
-                f"{common_data['status_emoji']} *Test Execution Complete*",
-                "",
-                f"🧪 *Feature:* {escape_markdown(feature_result.feature_name)} (ID: {feature_result.feature_id.feature_id})",
-                f"🏢 *Department:* {escape_markdown(feature_result.department_name)}",
-                f"📱 *Application:* {escape_markdown(feature_result.app_name)}",
-                f"🌍 *Environment:* {escape_markdown(feature_result.environment_name)}",
-            ]
-            
-            # Add browser information if available
-            if common_data['browser_info']:
-                browser_display = f"{common_data['browser_info']['name']} {common_data['browser_info']['version']}"
-                message_parts.append(f"🌐 *Browser:* {escape_markdown(browser_display)}")
-            
-            message_parts.extend([
-                "",
-                f"📊 *Results:*",
-                f"• Total Steps: {feature_result.total}",
-                f"• Passed: {feature_result.ok}",
-                f"• Failed: {feature_result.fails}",
-                f"• Skipped: {feature_result.skipped}",
-                "",
-                f"🎯 *Status:* {common_data['status_text']}",
-            ])
-            
-            # Add failed step details if test failed
-            if not feature_result.success and feature_result.fails > 0:
-                failed_steps = self._get_failed_steps(feature_result.feature_result_id)
-                if failed_steps and len(failed_steps) <= 3:  # Show up to 3 failed steps
-                    message_parts.extend(["", "❌ *Failed Steps:*"])
-                    for i, step in enumerate(failed_steps[:3], 1):
-                        # Escape special Markdown characters in step name
-                        step_name = step['name'].replace('*', '\\*').replace('_', '\\_').replace('`', '\\`').replace('[', '\\[').replace(']', '\\]')
-                        message_parts.append(f"{i}. Step {step['sequence']}: {step_name}")
-            
-            # Add link to view full results
-            if common_data['feature_url']:
-                message_parts.extend(["", f"🔗 [View Full Results]({common_data['feature_url']})"])
-            
-            return "\n".join(message_parts)
-            
-        except Exception as e:
-            logger.error(f"Error building subscription default message: {str(e)}")
-            # Fallback to very basic message
-            status_emoji = "✅" if feature_result.success else "❌"
-            return f"{status_emoji} Test Complete: {feature_result.feature_name} - {'PASSED' if feature_result.success else 'FAILED'}"
-    
     def _build_message(self, feature_result, telegram_options):
         """
         Build a formatted Telegram message from feature result data based on user configuration
@@ -545,9 +323,6 @@ class TelegramNotificationManger:
         """
         try:
             logger.debug(f"Using telegram options for feature {feature_result.feature_id.feature_id}")
-            
-            # Extract common data early
-            common_data = self._extract_common_feature_data(feature_result)
             
             # Check if we should send notification based on error setting
             if telegram_options.send_on_error and feature_result.success:
@@ -597,7 +372,8 @@ class TelegramNotificationManger:
                     message_parts.append("")  # Add blank line after custom message
             
             # Status line with emoji
-            message_parts.append(f"{common_data['status_emoji']} Test Execution Complete")
+            status_emoji = "✅" if feature_result.success else "❌"
+            message_parts.append(f"{status_emoji} Test Execution Complete")
             message_parts.append("")  # Add blank line after status
             
             # Basic Information section
@@ -612,8 +388,11 @@ class TelegramNotificationManger:
                 basic_info_parts.append(f"🧪 Feature: {feature_result.feature_name}")
             
             # Add feature URL (only if enabled)
-            if telegram_options.include_feature_url and common_data['feature_url']:
-                basic_info_parts.append(f"🔗 Open in Co.meta: {common_data['feature_url']}")
+            if telegram_options.include_feature_url:
+                DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+                if DOMAIN:
+                    feature_url = f"https://{DOMAIN}/#/{feature_result.department_name}/{feature_result.app_name}/{feature_result.feature_id.feature_id}"
+                    basic_info_parts.append(f"🔗 Open in Co.meta: {feature_url}")
             
             if basic_info_parts:
                 message_parts.extend(basic_info_parts)
@@ -633,7 +412,8 @@ class TelegramNotificationManger:
                 message_parts.append(utc_formatted)
                 
                 # Add browser selected timezone
-                browser_timezone = common_data['browser_info']['timezone'] if common_data['browser_info'] else 'UTC'
+                browser_info = feature_result.browser
+                browser_timezone = browser_info.get('selectedTimeZone', 'UTC') if browser_info else 'UTC'
                 
                 # Only add browser timezone if it's different from UTC
                 if browser_timezone != 'UTC':
@@ -653,19 +433,28 @@ class TelegramNotificationManger:
             if telegram_options.include_browser_timezone or telegram_options.include_browser:
                 message_parts.append("🌐 Browser Details:")
                 
-                if telegram_options.include_browser and common_data['browser_info']:
+                if telegram_options.include_browser:
+                    # Extract browser information from feature_result.browser
+                    browser_info = feature_result.browser
+                    browser_name = browser_info.get('browser', 'Unknown Browser') if browser_info else 'Unknown Browser'
+                    browser_version = browser_info.get('browser_version', 'Unknown Version') if browser_info else 'Unknown Version'
+                    os_name = browser_info.get('os', 'Unknown OS') if browser_info else 'Unknown OS'
+                    os_version = browser_info.get('os_version', '') if browser_info else ''
+                    
                     # Format browser display name (e.g., "Chrome 136", "Edge 135")
-                    browser_display = f"{common_data['browser_info']['name']} {common_data['browser_info']['version']}"
-                    if common_data['browser_info']['os'] != 'Unknown OS':
-                        if common_data['browser_info']['os_version']:
-                            browser_display += f" on {common_data['browser_info']['os']} {common_data['browser_info']['os_version']}"
+                    browser_display = f"{browser_name} {browser_version}"
+                    if os_name != 'Unknown OS':
+                        if os_version:
+                            browser_display += f" on {os_name} {os_version}"
                         else:
-                            browser_display += f" on {common_data['browser_info']['os']}"
+                            browser_display += f" on {os_name}"
                     
                     message_parts.append(f"• Browser: {browser_display}")
                 
-                if telegram_options.include_browser_timezone and common_data['browser_info']:
-                    browser_timezone = common_data['browser_info']['timezone']
+                if telegram_options.include_browser_timezone:
+                    # Extract timezone information from feature_result.browser
+                    browser_info = feature_result.browser
+                    browser_timezone = browser_info.get('selectedTimeZone', 'UTC') if browser_info else 'UTC'
                     message_parts.append(f"• Timezone: {browser_timezone}")
                 
                 message_parts.append("")  # Add blank line after browser details
@@ -717,7 +506,8 @@ class TelegramNotificationManger:
                 final_details.append(f"⏱️ Execution Time: {execution_time_str}")
             
             if telegram_options.include_overall_status:
-                final_details.append(f"🎯 Overall Status: {common_data['status_text']}")
+                overall_status = "PASSED" if feature_result.success else "FAILED"
+                final_details.append(f"🎯 Overall Status: {overall_status}")
             
             if final_details:
                 message_parts.extend(final_details)
@@ -729,8 +519,8 @@ class TelegramNotificationManger:
         except Exception as e:
             logger.error(f"Error building Telegram message: {str(e)}")
             # Fallback to basic message
-            common_data = self._extract_common_feature_data(feature_result)
-            return f"{common_data['status_emoji']} *Test Execution Complete*\n\n🧪 *Feature:* {feature_result.feature_name}\n🎯 *Status:* {common_data['status_text']}"
+            status_emoji = "✅" if feature_result.success else "❌"
+            return f"{status_emoji} <b>Test Execution Complete</b>\n\n🧪 <b>Feature:</b> {feature_result.feature_name}\n🎯 <b>Status:</b> {'PASSED' if feature_result.success else 'FAILED'}"
 
     def _get_pdf_report(self):
         """
@@ -1003,9 +793,9 @@ class TelegramNotificationManger:
         payload = {
             'chat_id': chat_id,
             'text': message,
-            'parse_mode': 'Markdown'
+            'parse_mode': 'HTML'
         }
-
+        
         # Add message thread ID if provided
         if message_thread_id is not None:
             payload['message_thread_id'] = message_thread_id
@@ -1024,15 +814,6 @@ class TelegramNotificationManger:
                 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request error sending Telegram message to chat ID {chat_id}: {str(e)}")
-            # Try to get error details from response
-            try:
-                error_data = e.response.json()
-                logger.error(f"Telegram API error details: {error_data}")
-            except:
-                try:
-                    logger.error(f"Response text: {e.response.text}")
-                except:
-                    pass
             return False
         except json.JSONDecodeError as e:
             logger.error(f"JSON decode error for Telegram response (chat ID {chat_id}): {str(e)}")

@@ -171,12 +171,12 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
         request.data["created_by"] = request.session["user"]["user_id"]        
         
         # check for container which are in use for more than 3hrs
-        in_use_containers = ContainerService.objects.filter(in_use=True, service_type="Browser", since_in_use__lt=datetime.now()-timedelta(hours=3))
+        in_use_containers = ContainerService.objects.filter(in_use=True, since_in_use__lt=datetime.now()-timedelta(hours=3))
         for container in in_use_containers:
             container.delete()
             logger.info(f"Deleted in use container {container.id} to make space for new container")
         
-        standby_containers = ContainerService.objects.filter(in_use=False, service_type="Browser").order_by('created_on')
+        standby_containers = ContainerService.objects.filter(in_use=False).order_by('created_on')
         maximum_standby_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_STANDBY", "2"))
         # Check if the maximum number of containers is reached
         if len(standby_containers) >= maximum_standby_containers:
@@ -185,7 +185,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                 standby_container.delete()
                 logger.info(f"Deleted standby container {standby_container.id} to make space for new container")
 
-        total_running_containers = ContainerService.objects.filter(in_use=False, service_type="Browser").count()
+        total_running_containers = ContainerService.objects.all().count()
         maximum_running_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_RUNNING", "10"))
         # Check if the maximum number of containers is reached
         if total_running_containers > maximum_running_containers:
@@ -194,7 +194,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
         response = super().create(request, args, kwargs)
         # Above create method takes some time to create the container, so we need to check again if the maximum number of containers is reached
         # Check again if in between the creation of the container the maximum number of containers is reached by some other thread
-        total_running_containers = ContainerService.objects.filter(in_use=False, service_type="Browser").count()
+        total_running_containers = ContainerService.objects.all().count()
         if total_running_containers > maximum_running_containers:
             logger.error(f"Maximum number of containers reached, deleting container {response.data['id']}")
             container_service = ContainerService.objects.filter(id=response.data['id']).first()

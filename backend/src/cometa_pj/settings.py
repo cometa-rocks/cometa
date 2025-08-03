@@ -145,10 +145,7 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(os.path.dirname(__file__), '../templates/pdf'),
-            os.path.join(os.path.dirname(__file__), '../templates')
-        ],
+        'DIRS': [os.path.join(os.path.dirname(__file__), '../templates/pdf')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
