@@ -309,7 +309,7 @@ interface BrowserResult {
 interface Department {
   department_id: number;
   department_name: string;
-  files?: [];
+  files?: UploadedFile[];
   slug?: string;
   settings?: any;
   users?: IAccount[];
