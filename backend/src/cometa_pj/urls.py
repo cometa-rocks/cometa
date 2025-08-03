@@ -106,6 +106,7 @@ urlpatterns = [
     url(r'^bulk_file_schedules/', views.GetBulkFileSchedules),
     url(r'^validateCron/', views.ValidateCron),
     url(r'^exectest/', views.runTest),
+    url(r'^generateFeatureFile/', views.generateFeatureFile),
     url(r'^exec_batch/', views.runBatch),
     url(r'^info/', views.GetInfo),
     url(r'^migrateScreenshots', views.MigrateScreenshots),
