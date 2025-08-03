@@ -30,8 +30,6 @@ class AuthenticationMiddleware:
         public_routes = [
             '/api/authproviders/',
             '/integrations/v2/execute',
-            '/telegram/webhook/',
-            '/auth/telegram/',
         ]
         public_route_found = len([x for x in public_routes if request.get_full_path().startswith(x)]) > 0
         if public_route_found:
@@ -47,7 +45,7 @@ class AuthenticationMiddleware:
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
-                if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)|(.*\.ngrok-free\.app)$', HTTP_HOST):
+                if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
                     HTTP_HOST = get_config("FRONT_SERVER_HOST", "cometa_front")
 
                 # make a request to cometa_front to get info about the logged in user
@@ -110,10 +108,7 @@ class AuthenticationMiddleware:
 
     def createSession(self, request): # create the object user inside request sessions
         REMOTE_USER = self.user_info.get('email', None)
-        
-        # Track session creation time for OAuth validation
-        request.session['session_created_at'] = timezone.now().isoformat()
-        
+
         # if REMOTE_USER is none check if HTTP_HOST is "cometa.local" and REMOTE_ADDR startswith 172
         if REMOTE_USER == None:
             HTTP_HOST = request.META.get('HTTP_HOST', '')
@@ -258,18 +253,6 @@ class AuthenticationMiddleware:
         return True
     
     def logout(self, request):
-        # Get user ID before deleting session
-        user_data = request.session.get('user', {})
-        user_id = user_data.get('user_id')
-        
-        # Clean up Telegram subscriptions
-        if user_id:
-            try:
-                from backend.ee.modules.notification.managers import TelegramSubscriptionManager
-                TelegramSubscriptionManager.deactivate_user_subscriptions(user_id)
-            except Exception as e:
-                logger.warning(f"Error cleaning up Telegram data on logout: {str(e)}")
-        
         # delete the user from the session
         del request.session['user']
 

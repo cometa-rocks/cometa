@@ -357,12 +357,7 @@ if [[ "${NORESTART:-FALSE}" == "FALSE" && "${SERVE:-FALSE}" == "FALSE" ]]; then
 	# #########################################
 	cp -f /code/front/src/server_starting.html /usr/local/apache2/htdocs/welcome.html
 	cp -r /code/front/src/assets /usr/local/apache2/htdocs/
-	# Add conditional define for ngrok mode
-	if [ "${COMETA_USE_NGROK}" = "true" ]; then
-		httpd -f /usr/local/apache2/cometa_conf/httpd.conf -D COMETA_USE_NGROK -k restart
-	else
-		httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
-	fi
+	httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
 fi
 
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
@@ -379,12 +374,7 @@ if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# Restart apache server
 	# #########################################
 	# This path is provided so that we do not override the apache conf directory
-	# Add conditional define for ngrok mode
-	if [ "${COMETA_USE_NGROK}" = "true" ]; then
-		httpd -f /usr/local/apache2/cometa_conf/httpd.conf -D COMETA_USE_NGROK -k restart
-	else
-		httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
-	fi
+	httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
 
 	find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log /usr/local/apache2/angular_serve.logs
 fi

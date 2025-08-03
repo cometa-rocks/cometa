@@ -250,11 +250,6 @@ def before_all(context):
     # logger.debug(context.VARIABLES)
     # job parameters if executed using schedule step
     context.PARAMETERS = os.environ["PARAMETERS"]
-    # telegram notification data if executed from telegram
-    telegram_env = os.environ.get("telegram_notification", "{}")
-    context.telegram_notification = json.loads(telegram_env)
-    if telegram_env != "{}":
-        logger.info(f"Telegram notification data loaded: {context.telegram_notification}")
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ["BROWSER_INFO"])
     # get the connection URL for the browser
@@ -923,22 +918,12 @@ def after_all(context):
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
     
     import threading       
-    # Store context data for thread access
-    telegram_notification_data = getattr(context, 'telegram_notification', {})
-    download_dir = context.downloadDirectoryOutsideSelenium
-    temp_files = context.tempfiles
-    
+    # FIXME This code seems not working need to verify
     def clean_up_and_notification():
         
         notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
         headers = {'Host': 'cometa.local'}
         logger.debug(f"Sending notification request on URL : {notifications_url}")
-        
-        # If this was a telegram execution, pass the telegram notification data
-        if telegram_notification_data and telegram_notification_data.get('telegram_chat_id'):
-            headers['X-Telegram-Notification'] = json.dumps(telegram_notification_data)
-            logger.info(f"Including telegram notification data for chat_id: {telegram_notification_data.get('telegram_chat_id')}")
-        
         response = requests.get(notifications_url, headers=headers)
         
   
@@ -953,14 +938,14 @@ def after_all(context):
             logger.error(f"Notification request failed with status {response.status_code}: {response.text}")
     
         # remove download folder if no files where downloaded during the testcase
-        downloadedFiles = glob.glob(download_dir + "/*")
+        downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
         if len(downloadedFiles) == 0:
-            if os.path.exists(download_dir):
-                os.rmdir(download_dir)
+            if os.path.exists(context.downloadDirectoryOutsideSelenium):
+                os.rmdir(context.downloadDirectoryOutsideSelenium)
 
         # do some cleanup and remove all the temp files generated during the feature
-        logger.debug("Cleaning temp files: {}".format(pformat(temp_files)))
-        for tempfile in set(temp_files):
+        logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
+        for tempfile in set(context.tempfiles):
             try:
                 os.remove(tempfile)
             except Exception as err:
