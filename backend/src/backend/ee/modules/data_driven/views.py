@@ -433,9 +433,30 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                     # No saved columns, extract from data
                     original_columns = list(first_data.keys())
                     column_headers = {}
-                    for original_col in original_columns:
-                        cleaned_header = DataFrameUtils.clean_header_for_display(original_col)
-                        column_headers[original_col] = cleaned_header
+                    
+                    # Check if file is DDR to decide on column display
+                    is_ddr = file.extras.get('ddr', {}).get('data-driven-ready', False)
+                    
+                    if file.file_type == 'datadriven':
+                        # For files uploaded via data-driven component, ALWAYS show normalized headers
+                        # This ensures consistent lowercase_with_underscores format regardless of DDR status
+                        for field_name in original_columns:
+                            column_headers[field_name] = field_name
+                    else:
+                        # For files uploaded via feature component, try to use original column names
+                        original_column_order = file.extras.get('original_column_order', [])
+                        if original_column_order:
+                            # Map normalized names back to original names
+                            for idx, original_col in enumerate(original_columns):
+                                # Find matching original column by position or name similarity
+                                if idx < len(original_column_order):
+                                    column_headers[original_col] = original_column_order[idx]
+                                else:
+                                    column_headers[original_col] = original_col
+                        else:
+                            # Fallback: use the column names as-is
+                            for original_col in original_columns:
+                                column_headers[original_col] = original_col
                     
                     response_data['columns_ordered'] = original_columns
                     response_data['column_headers'] = column_headers
@@ -570,11 +591,36 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                 if column_order:
                     file.column_order = column_order
                     logger.info(f"Updated column order for file {file_id}: {column_order}")
+                    
+                    # For Excel files with sheets, also update sheet-specific column order
+                    if is_excel and sheet_name:
+                        if 'sheet_columns' not in file.extras:
+                            file.extras['sheet_columns'] = {}
+                        
+                        # Store sheet-specific column order
+                        file.extras['sheet_columns'][sheet_name] = {
+                            'columns_ordered': column_order,
+                            'column_headers': {col: col for col in column_order},  # Will be updated on next fetch
+                            'original_columns': column_order
+                        }
+                        logger.info(f"Updated sheet-specific column order for file {file_id}, sheet '{sheet_name}'")
                 
-                # Update file extras to ensure it's marked as data-driven-ready
-                file.extras['ddr'] = {
-                    'data-driven-ready': True
-                }
+                # Check if the file is actually DDR based on the column names
+                is_ddr = False
+                if column_order:
+                    # Check normalized column names for DDR fields
+                    normalized_columns = [DataFrameUtils.normalize_column_name(col) for col in column_order]
+                    is_ddr = 'feature_id' in normalized_columns or 'feature_name' in normalized_columns
+                else:
+                    # Fall back to checking the first row of data
+                    if file_data_rows and len(file_data_rows) > 0:
+                        first_row_keys = list(file_data_rows[0].keys())
+                        is_ddr = 'feature_id' in first_row_keys or 'feature_name' in first_row_keys
+                
+                # Update file extras with correct DDR status
+                if 'ddr' not in file.extras:
+                    file.extras['ddr'] = {}
+                file.extras['ddr']['data-driven-ready'] = is_ddr
                 file.save()
                 
                 logger.info(f"Successfully updated both database and file: {file.name}")
