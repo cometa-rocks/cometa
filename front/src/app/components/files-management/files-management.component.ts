@@ -371,6 +371,16 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             // Use HTML directly to apply the class to the text
             return `<span class="status-deleted">Deleted</span>`;
           }
+          // Only show error details if the actual status is 'Error'
+          // This prevents stale error data from showing when status is 'Done'
+          if (rowData.status === 'Error' && rowData.error) {
+            // For DDR-specific errors, show a more user-friendly message
+            if (rowData.error.status === 'NOT_DDR_FILE') {
+              return `<span class="status-error" title="${rowData.error.description}">Error: Not DDR Ready</span>`;
+            }
+            // For other errors, show the error status or a generic message
+            return `<span class="status-error" title="${rowData.error.description || 'Upload failed'}">Error: ${rowData.error.status || 'Upload Failed'}</span>`;
+          }
           return rowData.status;
         },
         class: (rowData: UploadedFile, colDef?: MtxGridColumn) => {
@@ -2243,11 +2253,12 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         this.file_data[fileId].params.size = preservedPageSize; // Preserve page size
       }
       
-      // Store the sheet name in the file object for the API call
-      (file as any).selectedSheet = sheetName;
+      // Create a copy of the file object to avoid modifying the store directly
+      // This prevents the "Cannot add property selectedSheet, object is not extensible" error
+      const fileCopy = { ...file, selectedSheet: sheetName };
       
       // Reload the file data with the new sheet
-      this.getFileData(file);
+      this.getFileData(fileCopy);
     } else {
       this.log.msg('2', `Cannot find original file with ID ${fileId} to reload sheet data`, 'Sheets');
       // Remove loading state if we can't proceed
@@ -2257,19 +2268,19 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   }
   
 
-  // Add helper to check if a file has multiple sheets
-  hasMultipleSheets(fileId: number): boolean {
-    return this.file_data[fileId]?.sheets?.names?.length > 1;
-  }
-
   // Add helper to get sheet names for a file
   getSheetNames(fileId: number): string[] {
-    return this.file_data[fileId]?.sheets?.names || [];
+    // If sheet names are loaded, return them
+    if (this.file_data[fileId]?.sheets?.names?.length > 0) {
+      return this.file_data[fileId].sheets.names;
+    }
+    // Otherwise return a default sheet name so the UI is always visible
+    return ['Sheet1'];
   }
 
   // Add helper to get current sheet for a file
   getCurrentSheet(fileId: number): string {
-    return this.file_data[fileId]?.sheets?.current || '';
+    return this.file_data[fileId]?.sheets?.current || 'Sheet1';
   }
   
   // Clear file error message
