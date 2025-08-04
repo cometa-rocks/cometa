@@ -273,61 +273,6 @@
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
 
-            <!-- Textarea with autocomplete disabled -->
-            <textarea
-              *ngIf="disableStepAutocomplete"
-              #stepTextarea
-              (input)="onStepChange($event, i); autoGrowTextarea($event)"
-              (blur)="fixStep($event, i)"
-              (click)="onStepTextareaClick($event, i, 0)"
-              (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
-              (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
-              (keydown.enter)="onTextareaEnter($event, i)"
-              (keydown.Tab)="onTextareaTab($event, i)"
-              (keydown.control.arrowup)="insertStep($event, i)"
-              (keydown.control.arrowdown)="insertStep($event, i)"
-              (keydown.alt.control.arrowup)="copyStep($event, i)"
-              (keydown.alt.control.arrowdown)="copyStep($event, i)"
-              class="code"
-              spellcheck="false"
-              autocomplete="off"
-              formControlName="step_content"
-              placeholder="Step Code"
-              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
-            </textarea>
-            <!-- Absolutely positioned custom dropdown: shows APKs if type is 'package', otherwise mobiles -->
-            <div *ngIf="showMobileDropdown && mobileDropdownStepIndex === i"
-                 #dropdownRef
-                 stopPropagation
-                 class="mobile-inline-dropdown custom-dropdown"
-                 tabindex="0"
-                 (keydown)="onDropdownKeydown($event)">
-              <ul class="dropdown-list">
-                <li class="dropdown-placeholder" disabled>
-                  {{ mobileDropdownType === 'package' ? 'Select an APK' : 'Select a mobile' }}
-                </li>
-                <ng-container *ngIf="true; else mobileOptions">
-                  <ng-container *ngIf="mobileDropdownType === 'package'; else mobileOptions">
-                    <li *ngFor="let apk of appPackages; let idx = index"
-                        #dropdownOptionRef
-                        class="dropdown-option"
-                        [class.active]="dropdownActiveIndex === idx"
-                        (click)="onMobileDropdownSelect(apk)">
-                      {{ apk }}
-                    </li>
-                  </ng-container>
-                  <ng-template #mobileOptions>
-                    <li *ngFor="let mobile of runningMobiles; let idx = index"
-                        #dropdownOptionRef
-                        class="dropdown-option"
-                        [class.active]="dropdownActiveIndex === idx"
-                        (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
-                      {{ mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name }}
-                    </li>
-                  </ng-template>
-                </ng-container>
-              </ul>
-            </div>
             <mat-list
               class="var_name_autoComplete"
               [ngStyle]="{
@@ -368,117 +313,116 @@
             /> -->
             <input matInput type="hidden" formControlName="step_action" />
           </div>
-        </div>
-        <div class="status-container">
-          <i
-            *ngIf="step.get('step_content').errors?.invalidStep"
-            class="invalid-sign"
-            matTooltip="Invalid step definition"
-            matTooltipPosition="above">
-            <div class="little-icon">
-              <i class="material-icons">error</i>
-            </div>
-          </i>
-          <i
-            *ngIf="step.get('timeout').errors?.max"
-            class="invalid-sign"
-            matTooltip="Step timeout is invalid, maximum value for timeout is 7200."
-            matTooltipPosition="above">
-            <div class="little-icon">
-              <i class="material-icons">watch_later</i>
-            </div>
-          </i>
-          <ng-container *ngIf="importsSteps$ | async as importedSteps">
+          </div>
+          <div class="status-container">
             <i
-              *ngIf="
-                importedSteps.length > 0 && step.value.step_content
-                  | checkDuplicate: importedSteps
-              "
-              class="duplicate-step-sign"
-              matTooltip="This step definition has been found inside an import"
-              matTooltipPosition="above">  
+              *ngIf="step.get('step_content').errors?.invalidStep"
+              class="invalid-sign"
+              matTooltip="Invalid step definition"
+              matTooltipPosition="above">
               <div class="little-icon">
-                <i class="material-icons">pin</i>
+                <i class="material-icons">error</i>
               </div>
             </i>
-          </ng-container>
-          <i 
-            class="feature-link-sign material-icons"
-            [style.display]="step.get('step_content').value?.includes('Run feature with') ? 'flex' : 'none'"
-            [style.opacity]="stepStates[i]?.showLinkIcon && stepStates[i]?.featureId ? '1' : '0.5'"
-            [matTooltip]="(stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? ('step_editor.feature_link_tooltip' | translate) : ('step_editor.feature_link_not_found' | translate)"
-            matTooltipPosition="above"
-            (click)="navigateToFeature(stepStates[i]?.featureId)">
-            link
-          </i>
-        </div>
-        <div class="actions-container">
-          <i 
-            class="documentation-icon material-icons"
-            [matTooltip]="'Toggle step documentation'"
-            matTooltipPosition="above"
-            (click)="toggleStepDocumentation(i)">
-            {{ stepVisible[i] ? 'visibility_off' : 'visibility' }}
-          </i>
-        </div>
-        <!-- Step Options Menu -->
-        <mat-menu class="step-options-menu" #stepOptions="matMenu">
-          <button 
-            type="button"
-            mat-menu-item stopPropagation>
-            <ng-container
-              *ngLet="
-                (_editFeature.departmentSettings$ | async)
-                  ?.continue_on_failure ||
-                _editFeature.featureForm.value.continue_on_failure ||
-                user.settings?.continue_on_failure as disabled
-              ">
-              <mat-checkbox
-                matTooltipPosition="before"
-                [matTooltip]="'continue_on_failure.tooltip' | translate"
-                [matTooltipDisabled]="!disabled"
-                color="primary"
-                formControlName="continue_on_failure"
-                >Continue on failure</mat-checkbox
-              >
+            <i
+              *ngIf="step.get('timeout').errors?.max"
+              class="invalid-sign"
+              matTooltip="Step timeout is invalid, maximum value for timeout is 7200."
+              matTooltipPosition="above">
+              <div class="little-icon">
+                <i class="material-icons">watch_later</i>
+              </div>
+            </i>
+            <ng-container *ngIf="importsSteps$ | async as importedSteps">
+              <i
+                *ngIf="
+                  importedSteps.length > 0 && step.value.step_content
+                    | checkDuplicate: importedSteps
+                "
+                class="duplicate-step-sign"
+                matTooltip="This step definition has been found inside an import"
+                matTooltipPosition="above">  
+                <div class="little-icon">
+                  <i class="material-icons">pin</i>
+                </div>
+              </i>
             </ng-container>
-          </button>
-          <button
-            type="button"
-            class="custom-timeout"
-            mat-menu-item
-            stopPropagation
-            [matTooltip]="
-              (step.get('step_content').value.match('I (can )?sleep')
-                ? 'tooltips.step_timeout_ignored'
-                : 'tooltips.step_timeout'
-              ) | translate
-            "
-            matTooltipPosition="left">
-            <span>Customize timeout:</span>
-            <input
-              formControlName="timeout"
-              min="0"
-              max="7205"
-              maxlength="4"
-              type="number"
-              [attr.disabled]="
-                step.get('step_content').value.match('I (can )?sleep')
-              " />
-            <span>seconds</span>
-          </button>
-          <button
-            type="button"
-            mat-menu-item
-            (click)="deleteStep(i)"
-            [matTooltip]="'tooltips.step_delete' | translate"
-            matTooltipPosition="left">
-            <mat-icon color="warn">delete</mat-icon>Delete
-          </button>
-        </mat-menu>
-      </div>
-      <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
-          
+            <i 
+              class="feature-link-sign material-icons"
+              [style.display]="step.get('step_content').value?.includes('Run feature with') ? 'flex' : 'none'"
+              [style.opacity]="stepStates[i]?.showLinkIcon && stepStates[i]?.featureId ? '1' : '0.5'"
+              [matTooltip]="(stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? ('step_editor.feature_link_tooltip' | translate) : ('step_editor.feature_link_not_found' | translate)"
+              matTooltipPosition="above"
+              (click)="navigateToFeature(stepStates[i]?.featureId)">
+              link
+            </i>
+          </div>
+          <div class="actions-container">
+            <i 
+              class="documentation-icon material-icons"
+              [matTooltip]="'Toggle step documentation'"
+              matTooltipPosition="above"
+              (click)="toggleStepDocumentation(i)">
+              {{ stepVisible[i] ? 'visibility_off' : 'visibility' }}
+            </i>
+          </div>
+          <!-- Step Options Menu -->
+          <mat-menu class="step-options-menu" #stepOptions="matMenu">
+            <button 
+              type="button"
+              mat-menu-item stopPropagation>
+              <ng-container
+                *ngLet="
+                  (_editFeature.departmentSettings$ | async)
+                    ?.continue_on_failure ||
+                  _editFeature.featureForm.value.continue_on_failure ||
+                  user.settings?.continue_on_failure as disabled
+                ">
+                <mat-checkbox
+                  matTooltipPosition="before"
+                  [matTooltip]="'continue_on_failure.tooltip' | translate"
+                  [matTooltipDisabled]="!disabled"
+                  color="primary"
+                  formControlName="continue_on_failure"
+                  >Continue on failure</mat-checkbox
+                >
+              </ng-container>
+            </button>
+            <button
+              type="button"
+              class="custom-timeout"
+              mat-menu-item
+              stopPropagation
+              [matTooltip]="
+                (step.get('step_content').value.match('I (can )?sleep')
+                  ? 'tooltips.step_timeout_ignored'
+                  : 'tooltips.step_timeout'
+                ) | translate
+              "
+              matTooltipPosition="left">
+              <span>Customize timeout:</span>
+              <input
+                formControlName="timeout"
+                min="0"
+                max="7205"
+                maxlength="4"
+                type="number"
+                [attr.disabled]="
+                  step.get('step_content').value.match('I (can )?sleep')
+                " />
+              <span>seconds</span>
+            </button>
+            <button
+              type="button"
+              mat-menu-item
+              (click)="deleteStep(i)"
+              [matTooltip]="'tooltips.step_delete' | translate"
+              matTooltipPosition="left">
+              <mat-icon color="warn">delete</mat-icon>Delete
+            </button>
+          </mat-menu>
+        </div>
+        <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
           <div class="containerFather">
             <div class="fake-drop">
             </div>
