@@ -3179,7 +3179,7 @@ export class EditFeature implements OnInit, OnDestroy {
     this.clearVisualFeedback();
     
     //modify selectedValue <yyy/mm/dd hh:mm:ss> to match file name like <feature_id>_<feature_name>_<yyyy-mm-dd>_<hh-mm-ss>.json
-    const featureName = this.feature.getValue().feature_name.replace(/ /g, '-');
+    const featureName = this.sanitizeFeatureName(this.feature.getValue().feature_name);
     let selectedFileNameSteps = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}.json`;
     let selectedFileNameFeature = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}_meta.json`;
     console.log("Selected file name steps before sanitization:", selectedFileNameSteps);
@@ -3282,6 +3282,21 @@ export class EditFeature implements OnInit, OnDestroy {
     } else {
       this._snackBar.open('No changes detected', 'OK', { duration: 3000 });
     }
+  }
+
+  /**
+   * Sanitize feature name for file naming by replacing spaces with hyphens
+   * while preserving existing hyphens and avoiding double hyphens
+   */
+  private sanitizeFeatureName(featureName: string): string {
+    if (!featureName) return '';
+    
+    // Replace spaces with hyphens, but be careful not to create double hyphens
+    return featureName
+      .trim()
+      .replace(/\s+/g, '-')  // Replace one or more spaces with a single hyphen
+      .replace(/-+/g, '-')   // Replace multiple consecutive hyphens with a single hyphen
+      .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
   }
 
   /**
