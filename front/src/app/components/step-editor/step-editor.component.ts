@@ -1888,7 +1888,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   addEmpty(index: number = -1, openAutocomplete: boolean = false) {
-
+    // Store the original focused step index before inserting
+    const originalFocusedIndex = this.currentFocusedStepIndex;
     
     const template = this._fb.group({
       enabled: [true],
@@ -1913,6 +1914,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
 
+    // Deselect the current step first (simulate manual deselection)
+    if (originalFocusedIndex !== null) {
+      this.currentFocusedStepIndex = null;
+      this._cdr.detectChanges();
+    }
     
     // Focus and open autocomplete with proper timing
     setTimeout(() => {
@@ -1921,10 +1927,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       if (textareas && textareas[stepIndex]) {
         const textarea = textareas[stepIndex].nativeElement as HTMLTextAreaElement;
         if (textarea) {
-          // Set the current focused step index right before focusing
-          this.currentFocusedStepIndex = stepIndex;
-  
-          textarea.focus();
+          // Simulate a click on the textarea to trigger the focus event properly
+          // This will call onTextareaFocus which sets currentFocusedStepIndex
+          textarea.click();
           
           // Open autocomplete if requested
           if (openAutocomplete) {
@@ -1936,10 +1941,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
         const textarea = textareas[stepIndex] as HTMLTextAreaElement;
         if (textarea) {
-          // Set the current focused step index right before focusing
-          this.currentFocusedStepIndex = stepIndex;
-  
-          textarea.focus();
+          // Simulate a click on the textarea to trigger the focus event properly
+          textarea.click();
           
           // Open autocomplete if requested
           if (openAutocomplete) {
