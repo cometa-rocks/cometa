@@ -3117,6 +3117,7 @@ export class EditFeature implements OnInit, OnDestroy {
         element.classList.remove('field-updated');
       }
     });
+    console.log("Cleared visual feedback for fields:", this.updatedFields);
     this.updatedFields.clear();
   }
 
@@ -3197,6 +3198,14 @@ export class EditFeature implements OnInit, OnDestroy {
     const restoredSteps = JSON.parse(this.fileContents[indexofSteps]);
     const restoredFeature = JSON.parse(this.fileContents[indexofFeature]);
 
+    // Check if steps have changed
+    const currentSteps = this.stepEditor ? this.stepEditor.getSteps() : [];
+    const stepsChanged = this.areStepsDifferent(currentSteps, restoredSteps);
+    
+    if (stepsChanged) {
+      this.updatedFields.add('steps');
+    }
+
     // Update steps with visual feedback
     if (this.stepEditor) {
       // If StepEditor is available (panel is expanded), update it directly
@@ -3214,7 +3223,6 @@ export class EditFeature implements OnInit, OnDestroy {
         if (this.featureForm.get(key).value !== restoredFeature[key]) {
           const element = document.querySelector(`[formcontrolname="${key}"]`);
           if (element) {
-            element.classList.add('field-updated');
             this.updatedFields.add(key);
           }
           // Update the form value
@@ -3222,6 +3230,99 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     });
+    
+    // Create user-friendly change messages
+    const changeMessages: string[] = [];
+    this.updatedFields.forEach(field => {
+      if (field === 'steps') {
+        changeMessages.push('Steps updated');
+      } else {
+        // Map field names to user-friendly names
+        const fieldDisplayNames: { [key: string]: string } = {
+          'feature_name': 'Feature name',
+          'description': 'Description',
+          'department_name': 'Department',
+          'app_name': 'Application',
+          'environment_name': 'Environment',
+          'depends_on_others': 'Depends on other feature',
+          'need_help': 'Need help',
+          'continue_on_failure': 'Continue on failure',
+          'send_notification': 'Send notification on finish',
+          'send_mail': 'Email notification',
+          'send_telegram_notification': 'Telegram notification',
+          'video': 'Record video',
+          'network_logging': 'Network logging',
+          'generate_dataset': 'Generate dataset',
+          'email_address': 'Email addresses',
+          'email_cc_address': 'Email CC addresses',
+          'email_bcc_address': 'Email BCC addresses',
+          'email_subject': 'Email subject',
+          'email_body': 'Email body',
+          'send_mail_on_error': 'Send email on error',
+          'check_maximum_notification_on_error': 'Maximum notifications on error',
+          'maximum_notification_on_error': 'Maximum notifications count',
+          'do_not_use_default_template': 'Do not use default template',
+          'attach_pdf_report_to_email': 'Attach PDF report to email',
+          'run_now': 'Schedule enabled',
+          'minute': 'Schedule minute',
+          'hour': 'Schedule hour',
+          'day_month': 'Schedule day of month',
+          'month': 'Schedule month',
+          'day_week': 'Schedule day of week'
+        };
+        
+        const displayName = fieldDisplayNames[field] || field;
+        changeMessages.push(`${displayName} updated`);
+      }
+    });
+    
+    // Show snackbar with changes
+    if (changeMessages.length > 0) {
+      this._snackBar.open('Feature restored! Updated Elements: ' + changeMessages.join(', '), 'OK', { duration: 10000 });
+    } else {
+      this._snackBar.open('No changes detected', 'OK', { duration: 3000 });
+    }
+  }
+
+  /**
+   * Compare two step arrays to determine if they are meaningfully different
+   * This method handles edge cases that JSON.stringify comparison might miss
+   */
+  private areStepsDifferent(currentSteps: any[], restoredSteps: any[]): boolean {
+    // Handle null/undefined cases
+    if (!currentSteps && !restoredSteps) return false;
+    if (!currentSteps || !restoredSteps) return true;
+    
+    // Check length first
+    if (currentSteps.length !== restoredSteps.length) return true;
+    
+    // If both arrays are empty, they're the same
+    if (currentSteps.length === 0 && restoredSteps.length === 0) return false;
+    
+    // Normalize and compare each step
+    for (let i = 0; i < currentSteps.length; i++) {
+      const currentStep = currentSteps[i];
+      const restoredStep = restoredSteps[i];
+      
+      // Compare step content (normalize whitespace and trim)
+      const currentContent = currentStep?.step_content?.trim() || '';
+      const restoredContent = restoredStep?.step_content?.trim() || '';
+      
+      if (currentContent !== restoredContent) {
+        return true;
+      }
+      
+      // Compare other important properties if they exist
+      if (currentStep?.step_type !== restoredStep?.step_type) {
+        return true;
+      }
+      
+      if (currentStep?.step_order !== restoredStep?.step_order) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   sanitizeFileNames(fileContent: string) {
