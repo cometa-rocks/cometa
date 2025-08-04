@@ -83,6 +83,13 @@ def getFileContent(file: File, sheet_name=None):
     try:
         # Use the new excel handler
         excel_handler = create_excel_handler(targetPath)
+        
+        # Check all sheets for DDR status if not already done
+        if 'ddr_sheets' not in file.extras:
+            ddr_check = excel_handler.check_all_sheets_ddr_status()
+            file.extras['ddr_sheets'] = ddr_check.get('ddr_sheets', [])
+            file.extras['sheet_details'] = ddr_check.get('sheet_details', {})
+        
         result = excel_handler.process_file(sheet_name=sheet_name)
         
         # Update file metadata
@@ -91,6 +98,11 @@ def getFileContent(file: File, sheet_name=None):
         
         # Set the data-driven ready status in the file extras
         file.extras['ddr'] = result['ddr_status']
+        
+        # Store original column order for display purposes
+        if 'original_column_order' in result['metadata']:
+            file.extras['original_column_order'] = result['metadata']['original_column_order']
+        
         file.save()
 
         # Determine the sheet name to use for FileData objects
@@ -152,6 +164,7 @@ class UploadFile():
             "file": FileSerializer(self.file, many=False).data
         })
 
+
         # check if file already exists
         if os.path.exists(self.finalPath):
             logger.error("File already exists ... will not save.")
@@ -171,6 +184,24 @@ class UploadFile():
         # check for virus
         try:
             self.virusScan()
+            
+            # Check if this is supposed to be a DDR file (based on file_type)
+            if self.file_type == 'datadriven':
+                # Do a quick DDR check before encryption
+                ddr_validation_result = self.quickDDRCheckWithReason()
+                if not ddr_validation_result['is_ddr']:
+                    self.file.status = "Error"
+                    self.sendWebsocket({
+                        "type": "[Files] Error",
+                        "file": FileSerializer(self.file, many=False).data,
+                        "error": {
+                            "status": "NOT_DDR_FILE",
+                            "description": ddr_validation_result['reason']
+                        }
+                    })
+                    self.deleteFile(self.tempFile.temporary_file_path())
+                    return None
+            
             self.encrypt()
         except Exception as err:
             self.sendWebsocket({
@@ -347,10 +378,48 @@ class UploadFile():
     def sanitize(self, filename: str):
         return re.sub(r'[^A-Za-z0-9\.]', '-', filename)
     
+    def quickDDRCheckWithReason(self):
+        """Quick check if file has feature_id or feature_name columns in any sheet"""
+        logger.debug(f"Quick DDR check for file {self.tempFile.name}")
+        tempFilePath = self.tempFile.temporary_file_path()
+        
+        try:
+            excel_handler = create_excel_handler(tempFilePath)
+            ddr_result = excel_handler.check_all_sheets_ddr_status()
+            
+            if ddr_result.get('error'):
+                return {
+                    'is_ddr': False,
+                    'reason': ddr_result['error']
+                }
+            
+            is_ddr = ddr_result['is_ddr_ready']
+            ddr_sheets = ddr_result['ddr_sheets']
+            
+            if is_ddr:
+                logger.info(f"File is DDR-ready. DDR sheets: {', '.join(ddr_sheets)}")
+                reason = None
+            else:
+                reason = ddr_result['reason']
+                logger.debug(f"File not DDR-ready: {reason}")
+            
+            return {
+                'is_ddr': is_ddr,
+                'reason': reason,
+                'ddr_sheets': ddr_sheets
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in DDR validation: {str(e)}", exc_info=True)
+            return {
+                'is_ddr': False,
+                'reason': f"File validation error: {str(e)}"
+            }
+    
     def check_data_driven(self):
         logger.debug(f"Checking if file {self.tempFile.name} is data-driven ready ...")
         self.file.status = "DataDriven"
-        # send a websocket about the processing being done.
+        # Send WebSocket update for data-driven checking
         self.sendWebsocket({
             "type": "[Files] Checking Data Driven",
             "file": FileSerializer(self.file, many=False).data
