@@ -46,7 +46,6 @@ import {
   LowerCasePipe,
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
-import '../../utils/api-debug-utils';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
