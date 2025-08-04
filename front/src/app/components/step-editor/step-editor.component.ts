@@ -1931,6 +1931,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           // This will call onTextareaFocus which sets currentFocusedStepIndex
           textarea.click();
           
+          // Also explicitly focus to ensure autocomplete opens
+          textarea.focus();
+          
           // Open autocomplete if requested
           if (openAutocomplete) {
             this.openAutocompleteForTextarea(textarea, stepIndex);
@@ -1943,6 +1946,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         if (textarea) {
           // Simulate a click on the textarea to trigger the focus event properly
           textarea.click();
+          
+          // Also explicitly focus to ensure autocomplete opens
+          textarea.focus();
           
           // Open autocomplete if requested
           if (openAutocomplete) {
