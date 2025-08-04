@@ -144,6 +144,12 @@ urlpatterns = [
     url(r'^cometausage/', views.CometaUsage),
     url(r'^api/chat/completion/', ai_chat.chat_completion),
     url(r'^health', views.health_check),
+    # Telegram authentication callback
+    url(r'^auth/telegram/(?P<token>[a-zA-Z0-9_-]+)/$', views.telegram_auth_callback, name='telegram_auth_callback'),
+    # Telegram post-OAuth callback
+    url(r'^telegram/complete/$', views.telegram_auth_complete, name='telegram_auth_complete'),
+    # Telegram auth success page
+    url(r'^telegram/success/$', views.telegram_auth_success, name='telegram_auth_success'),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 
