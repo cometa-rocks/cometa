@@ -61,12 +61,19 @@
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
+  &.odd-row {
+    background-color: white;
+  }
+  &.even-row {
+    background-color: #f3f7fc;
+  }
 }
 
 .first-block {
   display: flex;
   flex-direction: row;
-  flex: 0 0 auto;
+  flex: 1;
+  width: 100%;
 }
 
 .second-block {
@@ -82,20 +89,18 @@
   position: relative;
   min-height: 45px;
   // height: 50px; /* setting height to have correct size in FF browser - RRO  */
-  // flex-direction: column; //  Removed RRO because multi-line
+  flex-direction: column;
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
-  @include for-tablet-portrait-up {
-    flex-direction: row;
-  }
   &.disabled {
     opacity: 0.5;
   }
   .step-extras {
     display: flex;
+    flex: 0 0 auto;
     @include for-tablet-portrait-up {
-      flex: 0 360px;
+      flex: 0 0 360px;
     }
   }
   ::ng-deep mat-checkbox {
@@ -117,29 +122,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
-    // Firefox
-    @-moz-document url-prefix() {
-      margin-left: 120px;
-      margin-right: 40px;
-    }
-
-    // Safari
-    @media not all and (min-resolution: 0.001dpcm) {
-      @supports (-webkit-appearance:none) {
-        .your-element {
-          margin-left: 135px;
-          margin-right: 40px;
-        }
-      }
-    }
-    
-
-    // Edge
-    @supports (-ms-ime-align:auto) {
-      margin-left: 135px;
-      margin-right: 40px;
-    }
+    flex-shrink: 0;
 
     &::ng-deep {
       .mat-select {
@@ -178,12 +161,6 @@
     &:hover {
       opacity: 0.9;
     }
-  }
-  &.odd-row {
-    background-color: white;
-  }
-  &.even-row {
-    background-color: #f3f7fc;
   }
   .index {
     @include for-tablet-portrait-up {
@@ -612,10 +589,10 @@
   border-top: 1px $blue solid;
   border-bottom: 1px $blue solid;
   border-radius: 4px;
-  padding: 15px 0 15px 0;
+  padding: 15px 0;
   margin-top: 10px;
   margin-bottom: 10px;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity .3s ease-in-out;
 }
 
 .stepContainerDocumentation.ng-transition {
