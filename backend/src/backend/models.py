@@ -860,6 +860,10 @@ class Feature(models.Model):
         self.email_bcc_address = [email.strip() for email in self.email_bcc_address if email.strip()]
         # create backup only if feature is being modified
         if not new_feature:
+            # # We don't want to backup feature info if feature is being updated by backend api calls
+            # # backup should only be created if feature is being created or modified by the user
+            # if kwargs.get('backup_feature_info', False)==True:
+            #   backup_feature_info(self)
             try:
                 original_feature = Feature.objects.get(pk=self.feature_id)
                 # Get current steps from database for comparison
@@ -922,7 +926,7 @@ class Feature(models.Model):
             logger.debug(f"Saving steps received from Front: {steps}")
             
             # Create .feature
-            response = create_feature_file(self, steps, featureFileName)
+            response = generate_feature_test_file_and_save_steps(self, kwargs, new_feature)
             logger.debug("Feature file created")
             # check if infinite loop was found
             if not response['success']:
