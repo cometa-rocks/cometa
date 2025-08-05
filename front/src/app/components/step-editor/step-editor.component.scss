@@ -109,7 +109,7 @@
     }
     flex: 0 0 35px;
     text-align: center;
-    padding: 0 15px;
+    padding: 0 8px;
     position: relative;
     padding-top: 10px;
     &.enable, &.more-vert {
@@ -975,60 +975,1030 @@ textarea {
   }
 }
 
-.custom-dropdown {
-  position: absolute;
-  background: white;
-  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-  min-width: 220px;
-  max-width: 420px;
-  max-height: 130px;
-  overflow-y: auto;
-  z-index: 3000;
-  padding: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  transition: box-shadow 0.2s;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-.dropdown-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.dropdown-placeholder {
-  color: rgba(0, 0, 0, 0.38);
-  padding: 12px 20px 8px 20px;
-  font-weight: 500;
-  background-color: rgba(0, 0, 0, 0.04);
-  user-select: none;
-  pointer-events: none;
-  border-bottom: 1px solid rgba(0,0,0,0.07);
-}
-.dropdown-option {
-  padding: 10px 20px;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  color: #222;
-  font-size: 15px;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  transition: background 0.18s, color 0.18s;
-}
-.dropdown-option:hover,
-.dropdown-option.active {
-  background: #f5f7fa;
-  color: #1976d2;
-}
-.dropdown-option.selected {
-  background: #e3f2fd;
-  color: #1976d2;
-  font-weight: 500;
-}
 
-.custom-dropdown:focus {
-  outline: none;
-}
+
+// Mobile-friendly styles for step editor
+// @media (max-width: 768px) {
+//   :host {
+//     // Ensure full width on mobile
+//     width: 100%;
+//     overflow-x: auto;
+//   }
+
+//   .headers {
+//     // Make headers more compact on mobile
+//     padding: 4px 0 8px 0;
+//     line-height: 32px;
+    
+//     .index {
+//       flex: 0 0 16px;
+//       font-size: 12px;
+//     }
+    
+//     .enable, .screenshot, .compare, .select-step {
+//       flex: 0 0 60px;
+//       font-size: 11px;
+      
+//       .desktop {
+//         display: none;
+//       }
+      
+//       .mobile {
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+        
+//         i {
+//           font-size: 16px;
+//           color: $blue;
+//         }
+//       }
+//     }
+    
+//     .more-vert {
+//       flex: 0 0 20px;
+//       display: flex;
+//       flex-direction: column;
+//       align-items: center;
+//       gap: 4px;
+//     }
+    
+//     .warnings {
+//       flex: 0 0 60px;
+//       font-size: 11px;
+//     }
+    
+//     .actions {
+//       flex: 0 0 60px;
+//       font-size: 11px;
+//     }
+    
+//     .step {
+//       display: none; // Hide step description header on mobile
+//     }
+//   }
+
+//   .step-row {
+//     // Make step rows more compact and mobile-friendly
+//     min-height: 40px;
+//     padding: 4px 0;
+//     display: flex;
+//     flex-direction: column; // Stack elements vertically on mobile
+    
+//     .father-block {
+//       display: flex;
+//       flex-direction: column; // Stack elements vertically on mobile
+//       width: 100%;
+      
+//       .first-block {
+//         display: flex;
+//         flex-direction: column; // Stack elements vertically on mobile
+//         flex: 1; // Take remaining space
+//         width: 100%;
+        
+//         // Container for move-row, more-vert-step, and step-extras in one row
+//         .step-controls-row {
+//           display: flex;
+//           flex-direction: row;
+//           align-items: center;
+//           gap: 4px;
+//           padding: 4px 0;
+          
+//           .move-row {
+//             flex: 0 0 20px;
+//             background-size: 20px;
+//             background-position-x: 10px;
+//             background-position-y: 19px;
+//             visibility: visible;
+//           }
+          
+//           .more-vert-step {
+//             flex: 0 0 30px;
+//             min-width: 30px;
+//             min-height: 30px;
+//           }
+          
+//           .step-extras {
+//             flex: 1;
+//             flex-direction: row;
+//             align-items: center;
+//             gap: 2px; // Consistent gap between elements
+//             justify-content: flex-start;
+            
+//             .index {
+//               flex: 0 0 16px;
+//               line-height: 16px;
+//               font-size: 11px;
+//               color: $blue;
+//               font-weight: bold;
+//               text-align: center;
+//               display: flex;
+//               align-items: center;
+//               justify-content: center;
+//               height: 100%;
+//             }
+            
+//             ::ng-deep mat-checkbox {
+//               flex: 0 0 33px;
+//             }
+            
+//             // Prefix moved to step_content
+//           }
+//         }
+        
+//         .step_content {
+//           padding: 6px 4px;
+//           margin: 10px;
+//           display: flex;
+//           flex-direction: row;
+//           align-items: flex-start;
+//           gap: 8px;
+          
+//           .prefix {
+//             flex: 0 0 50px;
+//             height: 28px;
+//             margin: 0;
+//             display: flex;
+//             align-items: center;
+            
+//             &::ng-deep {
+//               .mat-select {
+//                 min-width: 40px;
+                
+//                 .mat-select-value {
+//                   font-size: 13px;
+//                   padding: 0 2px;
+//                 }
+//               }
+              
+//               .mat-select-panel {
+//                 min-width: 50px !important;
+                
+//                 .mat-option {
+//                   font-size: 10px;
+//                   height: 28px;
+//                   padding: 0 8px;
+//                 }
+//               }
+//             }
+//           }
+          
+//           .code {
+//             flex: 1;
+//             font-size: 13px;
+//             line-height: 18px;
+//             min-height: 18px;
+            
+//             &.allow-resize {
+//               height: 80px;
+//             }
+//           }
+//         }
+//       }
+      
+//       // Status and actions containers - keep them at the bottom
+//       .status-container,
+//       .actions-container {
+//         flex: 0 0 60px;
+//         height: 40px;
+//         min-height: 40px;
+        
+//         .invalid-sign,
+//         .duplicate-step-sign,
+//         .feature-link-sign,
+//         .documentation-icon {
+//           width: 18px;
+//           height: 18px;
+//           margin: 0 2px;
+//           font-size: 14px;
+//         }
+//       }
+//     }
+    
+//     .move-row {
+//       flex: 0 0 24px;
+//       background-size: 20px;
+//       background-position-x: 10px;
+//       background-position-y: 19px;
+//       visibility: visible; // Always show on mobile
+//     }
+//   }
+
+//   // Mobile-specific improvements for autocomplete
+//   .var_name_autoComplete {
+//     max-height: 100px; // Smaller max height on mobile
+//     font-size: 13px;
+    
+//     .mat-list-item {
+//       height: 28px;
+      
+//       .variable-wrapper {
+//         font-size: 13px;
+//       }
+//     }
+//   }
+
+//   // Mobile-friendly autocomplete panel
+//   ::ng-deep .mat-autocomplete-panel {
+//     max-height: 200px; // Smaller max height on mobile
+    
+//     .mat-optgroup {
+//       .mat-optgroup-label {
+//         font-size: 12px;
+//         padding: 6px 12px;
+//       }
+      
+//       .mat-option {
+//         font-size: 13px;
+//         height: 32px;
+//         padding: 0 12px 0 24px;
+//       }
+//     }
+//   }
+
+//   // Mobile-friendly dropdown
+//   .custom-dropdown {
+//     max-height: 100px;
+//     font-size: 13px;
+    
+//     .dropdown-option {
+//       padding: 8px 16px;
+//       min-height: 32px;
+//       font-size: 13px;
+//     }
+//   }
+
+//   // Mobile-friendly documentation
+//   .stepContainerDocumentation {
+//     padding: 10px 0;
+//     margin-top: 8px;
+//     margin-bottom: 8px;
+    
+//     .stepDescription {
+//       font-size: 13px;
+//       letter-spacing: 0.5px;
+//     }
+    
+//     .columnOfIcons {
+//       flex: 0 0 60px;
+//       gap: 6px;
+//     }
+//   }
+
+//   // Mobile-friendly buttons
+//   .button-actions {
+//     margin-top: 15px;
+//     flex-direction: column;
+//     gap: 10px;
+    
+//     .left, .right {
+//       justify-content: center;
+      
+//       button {
+//         font-size: 13px;
+//         padding: 8px 16px;
+//         min-height: 36px;
+//       }
+//     }
+//   }
+
+//   // Mobile-friendly context menu
+//   ::ng-deep .step-contect-menu {
+//     .mat-menu-item {
+//       height: 36px !important;
+//       line-height: 36px !important;
+//       font-size: 13px !important;
+      
+//       mat-icon {
+//         font-size: 18px !important;
+//         width: 18px !important;
+//         height: 18px !important;
+//       }
+//     }
+//   }
+
+//   // Mobile-friendly tooltips
+//   ::ng-deep .mat-tooltip {
+//     font-size: 12px !important;
+//     max-width: 200px !important;
+//   }
+
+//   // Mobile-friendly form controls
+//   .custom-timeout input {
+//     width: 40px;
+//     font-size: 12px;
+//     padding: 4px;
+//   }
+
+//   // Mobile-friendly textarea improvements
+//   textarea.code {
+//     // Better touch interaction on mobile
+//     -webkit-tap-highlight-color: transparent;
+//     touch-action: manipulation;
+    
+//     // Improve text selection on mobile
+//     -webkit-user-select: text;
+//     -moz-user-select: text;
+//     -ms-user-select: text;
+//     user-select: text;
+//   }
+
+//   // Mobile-friendly drag and drop
+//   .step-row {
+//     // Improve touch interaction for drag and drop
+//     touch-action: pan-y;
+    
+//     &:active {
+//       transform: scale(0.98);
+//       transition: transform 0.1s ease;
+//     }
+//   }
+
+//   // Mobile-friendly scroll improvements
+//   .DragDropContainer {
+//     // Smooth scrolling on mobile
+//     -webkit-overflow-scrolling: touch;
+//     scroll-behavior: smooth;
+//   }
+
+//   // Mobile-friendly focus states
+//   .step_content:focus-within {
+//     outline: 2px solid $blue;
+//     outline-offset: 2px;
+//     border-radius: 4px;
+//   }
+
+//   // Mobile-friendly checkbox improvements
+//   ::ng-deep mat-checkbox {
+//     // Better touch targets on mobile
+//     .mat-checkbox-inner-container {
+//       width: 18px;
+//       height: 18px;
+//     }
+    
+//     .mat-checkbox-frame {
+//       border-width: 2px;
+//     }
+//   }
+
+//   // Mobile-friendly select improvements
+//   ::ng-deep .mat-select {
+//     // Better touch interaction
+//     .mat-select-trigger {
+//       min-height: 36px;
+//       margin-top: -10px;
+//     }
+//   }
+
+//   // Mobile-friendly menu improvements
+//   ::ng-deep .mat-menu-panel {
+//     max-height: 300px;
+    
+//     .mat-menu-item {
+//       min-height: 36px;
+//       padding: 0 16px;
+//     }
+//   }
+
+//   // Mobile-friendly dialog improvements
+//   ::ng-deep .mat-dialog-container {
+//     padding: 16px;
+//     margin: 8px;
+//     border-radius: 8px;
+//   }
+
+//   // Mobile-friendly snackbar improvements
+//   ::ng-deep .mat-snack-bar-container {
+//     margin: 8px;
+//     border-radius: 8px;
+//   }
+// }
+
+// // Extra small mobile devices (phones)
+// @media (max-width: 480px) {
+//   .headers {
+//     .enable, .screenshot, .compare, .select-step, .warnings, .actions {
+//       flex: 0 0 50px;
+//       font-size: 10px;
+//     }
+    
+//     .index {
+//       flex: 0 0 14px;
+//       font-size: 10px;
+//     }
+//   }
+
+//   .step-row {
+//     .father-block {
+//       .first-block {
+//         .step-controls-row {
+//           .move-row {
+//             flex: 0 0 20px;
+//             background-size: 16px;
+//             background-position-x: 10px;
+//             background-position-y: 19px;
+//           }
+          
+//           .more-vert-step {
+//             flex: 0 0 20px;
+//             min-width: 22px;
+//             min-height: 25px;
+//           }
+          
+//           .step-extras {
+//             gap: 1px; // Consistent gap for extra small screens
+            
+//             .index {
+//               flex: 0 0 5px;
+//               font-size: 10px;
+//             }
+            
+//             ::ng-deep mat-checkbox {
+//               flex: 0 0 34px;
+//             }
+            
+//             // Prefix moved to step_content
+//           }
+//         }
+        
+//         .step_content {
+//           padding: 6px 4px;
+//           margin: 10px;
+          
+//           .code {
+//             font-size: 13px;
+//             line-height: 18px;
+//             min-height: 18px;
+//           }
+//         }
+//       }
+      
+//       .status-container,
+//       .actions-container {
+//         flex: 0 0 50px;
+//         height: 36px;
+//         min-height: 36px;
+        
+//         .invalid-sign,
+//         .duplicate-step-sign,
+//         .feature-link-sign,
+//         .documentation-icon {
+//           width: 18px;
+//           height: 18px;
+//           font-size: 12px;
+//         }
+//       }
+//     }
+//   }
+
+//   // Even smaller text for very small screens
+//   .stepContainerDocumentation {
+//     .stepDescription {
+//       font-size: 12px;
+//     }
+//   }
+
+//   .button-actions {
+//     .left, .right {
+//       button {
+//         font-size: 12px;
+//         padding: 6px 12px;
+//         min-height: 32px;
+//       }
+//     }
+//   }
+// }
+
+// // Landscape orientation adjustments for mobile
+// @media (max-width: 768px) and (orientation: landscape) {
+//   .headers {
+//     padding: 2px 0 4px 0;
+//     line-height: 28px;
+//   }
+
+//   .step-row {
+//     min-height: 36px;
+//     padding: 2px 0;
+    
+//     .step_content {
+//       padding: 6px 4px;
+      
+//       .code {
+//         line-height: 18px;
+//         min-height: 18px;
+//       }
+//     }
+//   }
+
+//   .stepContainerDocumentation {
+//     padding: 8px 0;
+//     margin-top: 6px;
+//     margin-bottom: 6px;
+//   }
+// }
+
+// // High DPI mobile devices
+// @media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+//   .step-row {
+//     .move-row {
+//       background-size: 24px; // Slightly larger for high DPI
+//     }
+//   }
+// }
+
+// // Mobile devices with notches
+// @media (max-width: 768px) {
+//   :host {
+//     // Safe area handling for devices with notches
+//     padding-left: env(safe-area-inset-left);
+//     padding-right: env(safe-area-inset-right);
+//   }
+// }
+
+// // Mobile-specific classes
+// .step-row.mobile-device {
+//   // Enhanced touch targets for mobile
+//   .step-extras {
+//     ::ng-deep mat-checkbox {
+//       .mat-checkbox-inner-container {
+//         width: 18px;
+//         height: 18px;
+//       }
+//     }
+//   }
+  
+//   // Better touch interaction for drag handle
+//   .move-row {
+//     min-width: 25px;
+//     min-height: 44px;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//   }
+  
+//   // Enhanced button touch targets
+//   .more-vert-step {
+//     min-width: 44px;
+//     min-height: 44px;
+    
+//     mat-icon {
+//       font-size: 20px;
+//       width: 20px;
+//       height: 20px;
+//     }
+//   }
+  
+//   // Better textarea interaction on mobile
+//   .step_content {
+//     .code {
+//       // Prevent zoom on iOS when focusing
+//       font-size: 16px;
+      
+//       // Better touch interaction
+//       -webkit-tap-highlight-color: transparent;
+//       touch-action: manipulation;
+//     }
+//   }
+  
+//   // Enhanced status and action containers
+//   .status-container,
+//   .actions-container {
+//     .invalid-sign,
+//     .duplicate-step-sign,
+//     .feature-link-sign,
+//     .documentation-icon {
+//       min-width: 44px;
+//       min-height: 44px;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//     }
+//   }
+  
+//   // Mobile documentation formatting
+//   .stepContainerDocumentation {
+//     padding: 12px 8px;
+//     margin: 8px 0;
+//     border-radius: 8px;
+    
+//     .containerFather {
+//       flex-direction: column;
+//       gap: 12px;
+//     }
+    
+//     .stepDescriptionExample {
+//       flex: 1;
+//       padding: 0 8px;
+      
+//       .stepDescriptionPar {
+//         margin-bottom: 12px;
+        
+//         .bluetext {
+//           font-weight: bold;
+//           color: $blue;
+//           font-size: 14px;
+//         }
+        
+//         .stepDescriptionParText {
+//           font-size: 13px;
+//           line-height: 1.4;
+//           color: #333;
+//           margin-top: 4px;
+//           display: block;
+//         }
+//       }
+//     }
+    
+//     .stepDocumentationIcons {
+//       text-align: center;
+//       margin-bottom: 8px;
+      
+//       .stepByStep {
+//         font-size: 12px;
+//         font-weight: bold;
+//         color: $blue;
+//         margin: 0;
+//       }
+//     }
+    
+//     .columnOfIcons {
+//       display: flex;
+//       justify-content: center;
+//       gap: 16px;
+//       padding: 8px 0;
+      
+//       .contentCopy {
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         width: 40px;
+//         height: 40px;
+//         border-radius: 50%;
+//         background-color: white;
+//         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        
+//         .copyClipboardIcon,
+//         .linkToSteps {
+//           font-size: 18px;
+//           color: $blue;
+//           margin-top: 5px;
+//         }
+        
+//         &.active {
+//           background-color: $blue;
+          
+//           .copyClipboardIcon {
+//             color: white;
+//           }
+//         }
+//       }
+//     }
+    
+//     // Hide fake columns in mobile
+//     .fake-drop,
+//     .fake-dots,
+//     .fake-hash,
+//     .fake-enable,
+//     .fake-screenshot,
+//     .fake-compare,
+//     .fake-actions {
+//       display: none;
+//     }
+//   }
+  
+//   // Mobile status and actions containers with margin-top
+//   .mobile-status-container,
+//   .mobile-actions-container {
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     height: 64px;
+//     position: relative;
+//     flex: 0 0 46px;
+//     min-height: 64px;
+//     margin-top: 10px;
+
+//     .invalid-sign,
+//     .duplicate-step-sign,
+//     .feature-link-sign,
+//     .documentation-icon {
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//       width: 24px;
+//       height: 24px;
+//       cursor: pointer;
+//       position: relative;
+//       font-size: 16px;
+//       color: $blue;
+//       margin-left: -5px;
+//     }
+//   }
+// }
+
+// // Desktop containers styling
+// .desktop-status-container,
+// .desktop-actions-container {
+//   display: flex;
+//   align-items: center;
+// }
+
+// // Landscape orientation specific styles
+// .step-row.landscape {
+//   .step-extras {
+//     flex-direction: row;
+//     gap: 8px;
+//     align-items: center;
+    
+//     .index {
+//       flex: 0 0 20px;
+//     }
+    
+//     ::ng-deep mat-checkbox {
+//       flex: 0 0 28px;
+//     }
+    
+//     .prefix {
+//       flex: 0 0 70px;
+//       height: 36px;
+//     }
+//   }
+  
+//   .step_content {
+//     padding: 6px 8px;
+    
+//     .code {
+//       font-size: 15px;
+//       line-height: 22px;
+//     }
+//   }
+// }
+
+// // Mobile-specific data attributes
+// textarea[data-mobile="true"] {
+//   // Prevent zoom on iOS
+//   font-size: 16px;
+  
+//   // Better touch interaction
+//   -webkit-tap-highlight-color: transparent;
+//   touch-action: manipulation;
+  
+//   // Improved text selection
+//   -webkit-user-select: text;
+//   -moz-user-select: text;
+//   -ms-user-select: text;
+//   user-select: text;
+// }
+
+// textarea[data-orientation="landscape"] {
+//   // Slightly smaller font in landscape to fit more content
+//   font-size: 15px;
+//   line-height: 20px;
+// }
+
+// // Mobile-friendly autocomplete improvements
+// @media (max-width: 768px) {
+//   ::ng-deep .mat-autocomplete-panel {
+//     // Ensure autocomplete doesn't get cut off on mobile
+//     max-width: calc(100vw - 32px) !important;
+//     left: 16px !important;
+//     right: 16px !important;
+    
+//     .mat-option {
+//       // Better touch targets
+//       min-height: 44px;
+//       padding: 12px 16px;
+      
+//       // Larger text for better readability
+//       font-size: 14px;
+//       line-height: 1.4;
+//     }
+//   }
+  
+//   // Mobile-friendly dropdown positioning
+//   .custom-dropdown {
+//     max-width: calc(100vw - 32px);
+//     left: 16px !important;
+//     right: 16px !important;
+    
+//     .dropdown-option {
+//       min-height: 44px;
+//       padding: 12px 16px;
+//       font-size: 14px;
+//     }
+//   }
+// }
+
+// // Mobile-friendly context menu
+// @media (max-width: 768px) {
+//   ::ng-deep .step-contect-menu {
+//     .mat-menu-panel {
+//       max-width: calc(100vw - 32px);
+//       min-width: 200px;
+      
+//       .mat-menu-item {
+//         min-height: 44px;
+//         padding: 12px 16px;
+//         font-size: 14px;
+        
+//         mat-icon {
+//           font-size: 20px;
+//           width: 20px;
+//           height: 20px;
+//         }
+//       }
+//     }
+//   }
+// }
+
+// // Mobile-friendly tooltips
+// @media (max-width: 768px) {
+//   ::ng-deep .mat-tooltip {
+//     font-size: 12px !important;
+//     max-width: 250px !important;
+//     padding: 8px 12px !important;
+//   }
+// }
+
+// // Mobile-friendly form controls
+// @media (max-width: 768px) {
+//   .custom-timeout input {
+//     width: 50px;
+//     height: 36px;
+//     font-size: 14px;
+//     padding: 8px;
+//     border-radius: 4px;
+//   }
+  
+//   // Better select dropdowns on mobile
+//   ::ng-deep .mat-select-panel {
+//     max-height: 300px;
+    
+//     .mat-option {
+//       min-height: 44px;
+//       padding: 12px 16px;
+//       font-size: 14px;
+//     }
+//   }
+// }
+
+// // Mobile-friendly documentation
+// @media (max-width: 768px) {
+//   .stepContainerDocumentation {
+//     margin: 8px 0;
+//     padding: 12px;
+//     border-radius: 8px;
+    
+//     .stepDescription {
+//       font-size: 14px;
+//       line-height: 1.5;
+      
+//       .stepDescriptionPar {
+//         margin-bottom: 8px;
+//       }
+//     }
+    
+//     .columnOfIcons {
+//       gap: 8px;
+      
+//       .documentation-icon,
+//       .copyClipboardIcon {
+//         font-size: 18px;
+//         width: 36px;
+//         height: 36px;
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//       }
+//     }
+//   }
+// }
+
+// // Mobile-friendly buttons
+// @media (max-width: 768px) {
+//   .button-actions {
+//     padding: 16px;
+    
+//     .left, .right {
+//       button {
+//         min-height: 44px;
+//         padding: 12px 20px;
+//         font-size: 14px;
+//         font-weight: 500;
+//         border-radius: 8px;
+        
+//         .icon-left {
+//           font-size: 18px;
+//           margin-right: 8px;
+//         }
+//       }
+//     }
+//   }
+// }
+
+// // Mobile-friendly drag and drop improvements
+// @media (max-width: 768px) {
+//   .step-row {
+//     // Better visual feedback during drag
+//     &.cdk-drag-preview {
+//       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+//       border-radius: 8px;
+//       transform: rotate(2deg);
+//     }
+    
+//     &.cdk-drag-placeholder {
+//       opacity: 0.3;
+//       background: #f0f0f0;
+//       border: 2px dashed #ccc;
+//       border-radius: 8px;
+//     }
+    
+//     &.cdk-drag-animating {
+//       transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+//     }
+//   }
+// }
+
+// // Mobile-friendly scroll improvements
+// @media (max-width: 768px) {
+//   .DragDropContainer {
+//     // Smooth scrolling with momentum
+//     -webkit-overflow-scrolling: touch;
+//     scroll-behavior: smooth;
+    
+//     // Better scrollbar for mobile
+//     &::-webkit-scrollbar {
+//       width: 6px;
+//     }
+    
+//     &::-webkit-scrollbar-track {
+//       background: rgba(0, 0, 0, 0.05);
+//       border-radius: 3px;
+//     }
+    
+//     &::-webkit-scrollbar-thumb {
+//       background: rgba(0, 0, 0, 0.2);
+//       border-radius: 3px;
+      
+//       &:hover {
+//         background: rgba(0, 0, 0, 0.3);
+//       }
+//     }
+//   }
+// }
+
+// // Mobile-friendly focus states
+// @media (max-width: 768px) {
+//   .step_content:focus-within {
+//     outline: 2px solid $blue;
+//     outline-offset: 2px;
+//     border-radius: 8px;
+//     box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+//   }
+  
+//   // Better focus for interactive elements
+//   .step-row {
+//     .move-row:focus,
+//     .more-vert-step:focus,
+//     .status-container .invalid-sign:focus,
+//     .status-container .duplicate-step-sign:focus,
+//     .status-container .feature-link-sign:focus,
+//     .actions-container .documentation-icon:focus {
+//       outline: 2px solid $blue;
+//       outline-offset: 2px;
+//       border-radius: 4px;
+//     }
+//   }
+// }
+
+// // Mobile-friendly loading states
+// @media (max-width: 768px) {
+//   :host::ng-deep .mat-progress-spinner {
+//     width: 32px !important;
+//     height: 32px !important;
+    
+//     circle {
+//       stroke-width: 3px !important;
+//     }
+//   }
+// }
+
+// // Mobile-friendly disabled states
+// @media (max-width: 768px) {
+//   .step-row.disabled {
+//     opacity: 0.6;
+    
+//     .step_content {
+//       .code {
+//         background-color: rgba(0, 0, 0, 0.05);
+//         color: rgba(0, 0, 0, 0.6);
+//       }
+//     }
+    
+//     .step-extras {
+//       ::ng-deep mat-checkbox {
+//         opacity: 0.6;
+//       }
+//     }
+//   }
+// }
