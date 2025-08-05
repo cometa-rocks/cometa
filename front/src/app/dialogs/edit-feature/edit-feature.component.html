@@ -958,11 +958,11 @@
 
         <div class="feature-history-buttons" *ngIf="prettyFiles.length > 0">
           <!-- This button will call method restoreFeature, and pass the value from mat-form-field selected file -->   
-          <button color="primary" (click)="restoreFeature()" mat-stroked-button>
+          <button color="primary" (click)="restoreFeature()" mat-stroked-button [disabled]="!selectedFile.value">
             Restore Feature
           </button>
           <!-- This button will call method deleteBackup, and pass the value from mat-form-field selected file -->
-          <button type="button" color="warn" [disabled]="getButtonsDisabledState()" (click)="deleteBackup()" mat-stroked-button>
+          <button type="button" color="warn" [disabled]="getButtonsDisabledState() || !selectedFile.value" (click)="deleteBackup()" mat-stroked-button>
             Delete Backup
           </button>
         </div>
