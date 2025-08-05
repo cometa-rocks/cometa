@@ -43,6 +43,7 @@ import {
   Observable,
   of,
   take,
+  fromEvent
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -169,6 +170,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   private lastInsertTime: number = 0;
   private readonly INSERT_THROTTLE_MS = 200; // 0.5 seconds
 
+  // Mobile-specific properties
+  isMobileDevice: boolean = false;
+  isLandscape: boolean = false;
+  touchStartY: number = 0;
+  touchStartX: number = 0;
+  isDragging: boolean = false;
+
   @ViewChildren(MatListItem, { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
@@ -233,6 +241,76 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   ) {
     super();
     this.stepsForm = this._fb.array([]);
+    
+    // Detect mobile device
+    this.detectMobileDevice();
+    
+    // Listen for orientation changes
+    this.subs.sink = fromEvent(window, 'orientationchange').subscribe(() => {
+      setTimeout(() => {
+        this.updateOrientation();
+        this._cdr.detectChanges();
+      }, 100);
+    });
+    
+    // Listen for resize events
+    this.subs.sink = fromEvent(window, 'resize').subscribe(() => {
+      this.updateOrientation();
+      this._cdr.detectChanges();
+    });
+  }
+
+  /**
+   * Detect if the current device is mobile
+   */
+  private detectMobileDevice(): void {
+    const userAgent = navigator.userAgent.toLowerCase();
+    this.isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    this.updateOrientation();
+  }
+
+  /**
+   * Update orientation state
+   */
+  private updateOrientation(): void {
+    this.isLandscape = window.innerWidth > window.innerHeight;
+  }
+
+  /**
+   * Handle touch events for better mobile interaction
+   */
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent): void {
+    if (!this.isMobileDevice) return;
+    
+    this.touchStartY = event.touches[0].clientY;
+    this.touchStartX = event.touches[0].clientX;
+    this.isDragging = false;
+  }
+
+  @HostListener('touchmove', ['$event'])
+  onTouchMove(event: TouchEvent): void {
+    if (!this.isMobileDevice) return;
+    
+    const touchY = event.touches[0].clientY;
+    const touchX = event.touches[0].clientX;
+    const deltaY = Math.abs(touchY - this.touchStartY);
+    const deltaX = Math.abs(touchX - this.touchStartX);
+    
+    // If horizontal movement is greater than vertical, it might be a drag operation
+    if (deltaX > deltaY && deltaX > 10) {
+      this.isDragging = true;
+    }
+  }
+
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(event: TouchEvent): void {
+    if (!this.isMobileDevice) return;
+    
+    // Reset dragging state after a short delay
+    setTimeout(() => {
+      this.isDragging = false;
+    }, 100);
   }
 
   @ViewSelectSnapshot(UserState.RetrieveUserDepartments) 
@@ -937,7 +1015,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Ignore focus events during autocomplete selection to prevent interference
     if (this.isAutocompleteSelectionInProgress) {
-
       return;
     }
     
@@ -976,10 +1053,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = text.split('"')[0].trim().toLowerCase();
-          const activatedAction = this.actions.find(action => {
-        const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
-        return actionPrefix === prefix;
-      });
+    const activatedAction = this.actions.find(action => {
+      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+      return actionPrefix === prefix;
+    });
     if (activatedAction) {
       // Context: immediately after this.stepsForm.at(index).patchValue
       this.stepsForm.at(index).patchValue({
@@ -1026,13 +1103,30 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.mobileDropdownStepIndex = index;
           this.mobileDropdownReplaceIndex = m.start - 1;
           
-          // Position the dropdown
+          // Position the dropdown with mobile-friendly adjustments
           setTimeout(() => {
             const coords = this.getCaretCoordinates(textarea, m.start);
             const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-            const left = textarea.offsetLeft + coords.left + 18;
-            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+            
+            // Mobile-friendly positioning
+            let left = textarea.offsetLeft + coords.left + 18;
+            let top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+            
+            // Ensure dropdown doesn't go off-screen on mobile
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
             const dropdownWidth = Math.max(this.measureTextWidth(m.text, textarea), 120);
+            
+            // Adjust horizontal position if needed
+            if (left + dropdownWidth > viewportWidth - 20) {
+              left = viewportWidth - dropdownWidth - 20;
+            }
+            
+            // Adjust vertical position if needed
+            if (top < 20) {
+              top = textarea.offsetTop + coords.top + 20;
+            }
+            
             this.mobileDropdownWidth = dropdownWidth;
             this._cdr.detectChanges();
             dropdownEl.style.left = `${left}px`;
@@ -1120,13 +1214,30 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.mobileDropdownStepIndex = i;
         this.mobileDropdownReplaceIndex = nextQuote.start - 1;
         
-        // Position the dropdown
+        // Position the dropdown with mobile-friendly adjustments
         setTimeout(() => {
           const coords = this.getCaretCoordinates(textarea, nextQuote.start);
           const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-          const left = textarea.offsetLeft + coords.left + 18;
-          const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+          
+          // Mobile-friendly positioning
+          let left = textarea.offsetLeft + coords.left + 18;
+          let top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+          
+          // Ensure dropdown doesn't go off-screen on mobile
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
           const dropdownWidth = Math.max(this.measureTextWidth(nextQuote.text, textarea), 120);
+          
+          // Adjust horizontal position if needed
+          if (left + dropdownWidth > viewportWidth - 20) {
+            left = viewportWidth - dropdownWidth - 20;
+          }
+          
+          // Adjust vertical position if needed
+          if (top < 20) {
+            top = textarea.offsetTop + coords.top + 20;
+          }
+          
           this.mobileDropdownWidth = dropdownWidth;
           this._cdr.detectChanges();
           dropdownEl.style.left = `${left}px`;
@@ -2082,13 +2193,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         );
         
         if (stepRow) {
-          stepRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          // Mobile-friendly scrolling
+          if (this.isMobileDevice) {
+            stepRow.scrollIntoView({ 
+              block: 'center', 
+              behavior: 'smooth',
+              inline: 'nearest'
+            });
+          } else {
+            stepRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
           
           const input = stepRow.querySelector('.code') as HTMLInputElement;
           if (input) {
-            input.focus();
-            // Simulate a click to trigger onStepTextareaClick logic (e.g., mobile dropdown position)
-            input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            // Add a small delay for mobile devices to ensure proper focus
+            setTimeout(() => {
+              input.focus();
+              // Simulate a click to trigger onStepTextareaClick logic (e.g., mobile dropdown position)
+              input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            }, this.isMobileDevice ? 200 : 0);
           }
         }
       } catch (err) {
@@ -2100,18 +2223,32 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   scrollStepsToBottom(focusLastStep: boolean = false) {
     setTimeout(_ => {
       try {
-        document
-          .querySelector(`.mat-dialog-content .step-row:last-child`)
-          .scrollIntoView({ block: 'center', behavior: 'smooth' });
-        setTimeout(() => {
-          if (focusLastStep) {
-            (
-              document.querySelector(
-                `.mat-dialog-content .step-row:last-child .code`
-              ) as HTMLInputElement
-            ).focus();
+        const lastStep = document.querySelector(`.mat-dialog-content .step-row:last-child`);
+        if (lastStep) {
+          if (this.isMobileDevice) {
+            lastStep.scrollIntoView({ 
+              block: 'center', 
+              behavior: 'smooth',
+              inline: 'nearest'
+            });
+          } else {
+            lastStep.scrollIntoView({ block: 'center', behavior: 'smooth' });
           }
-        }, 500);
+          
+          setTimeout(() => {
+            if (focusLastStep) {
+              const lastStepInput = document.querySelector(
+                `.mat-dialog-content .step-row:last-child .code`
+              ) as HTMLInputElement;
+              if (lastStepInput) {
+                // Add delay for mobile devices
+                setTimeout(() => {
+                  lastStepInput.focus();
+                }, this.isMobileDevice ? 200 : 0);
+              }
+            }
+          }, this.isMobileDevice ? 700 : 500);
+        }
       } catch (err) {}
     }, 0);
   }
