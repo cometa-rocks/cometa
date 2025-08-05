@@ -509,7 +509,7 @@ export class EditFeature implements OnInit, OnDestroy {
         override_chat_ids: [''],
         override_message_thread_id: ['']
       }),
-      send_mail_on_error: [false],
+      email_notification_options: ['always'],
       check_maximum_notification_on_error: [false],
       maximum_notification_on_error: ['3'],
       attach_pdf_report_to_email: [true],
@@ -1425,7 +1425,7 @@ export class EditFeature implements OnInit, OnDestroy {
           'email_bcc_address',
           'email_subject',
           'email_body',
-          'send_mail_on_error',
+          'email_notification_options',
           'maximum_notification_on_error',
           'check_maximum_notification_on_error',
           'attach_pdf_report_to_email',
@@ -1713,15 +1713,18 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
       
-      // Handle the options field to set send_mail_on_error correctly
+      // Handle the options field to set email_notification_options correctly
       if (featureInfo.options) {
         if (featureInfo.options === 'A') {
-          this.featureForm.get('send_mail_on_error').setValue(false, { emitEvent: false });
+          this.featureForm.get('email_notification_options').setValue('always', { emitEvent: false });
         } else if (featureInfo.options === 'S') {
-          this.featureForm.get('send_mail_on_error').setValue('on_success', { emitEvent: false });
+          this.featureForm.get('email_notification_options').setValue('on_success', { emitEvent: false });
         } else if (featureInfo.options === 'E') {
-          this.featureForm.get('send_mail_on_error').setValue(true, { emitEvent: false });
+          this.featureForm.get('email_notification_options').setValue('on_error', { emitEvent: false });
         }
+      } else {
+        // Default to 'always' if options field is not set
+        this.featureForm.get('email_notification_options').setValue('always', { emitEvent: false });
       }
       
       // Special handling for nested telegram_options FormGroup
@@ -2214,16 +2217,24 @@ export class EditFeature implements OnInit, OnDestroy {
         dataToSend.send_telegram_notification = false;
       }
       
-      // Set the options field based on send_mail_on_error value
+      // Set the options field based on email_notification_options value
+      // Only set options field if email notifications are enabled
+      // If email notifications are disabled, options should be empty/null
       if (dataToSend.send_mail) {
-        if (dataToSend.send_mail_on_error === false) {
+        if (dataToSend.email_notification_options === 'always') {
           dataToSend.options = 'A'; // Always
-        } else if (dataToSend.send_mail_on_error === 'on_success') {
+        } else if (dataToSend.email_notification_options === 'on_success') {
           dataToSend.options = 'S'; // On Success
-        } else if (dataToSend.send_mail_on_error === true) {
+        } else if (dataToSend.email_notification_options === 'on_error') {
           dataToSend.options = 'E'; // On Error
         }
+      } else {
+        // Email notifications disabled - clear position 0
+        dataToSend.options = null;
       }
+      
+      // Remove the email_notification_options field from data being sent (we only send options)
+      delete dataToSend.email_notification_options;
       
       // Construct schedule for sending
       if (fValues.run_now) {
