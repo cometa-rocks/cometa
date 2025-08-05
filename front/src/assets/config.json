@@ -1,5 +1,5 @@
 {
-  "version": "3.0.86",
+  "version": "3.0.87",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.87",
+      "date": "2025-08-05",
+      "features": [
+        {
+          "title": "Added new email notification option 'On Success' - #6658",
+          "description": "A new option to enable email notifications only when features are executed successfully."
+        }
+      ]
+    },
     {
       "version": "3.0.86",
       "date": "2025-08-02",
