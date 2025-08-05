@@ -2220,6 +2220,19 @@ def step_imp(context, filename):
 
 # Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath
 # Example: Download a file by clicking on the "Download Report"
+@step(u'Get list of browser downloaded files and save to variable "{variable}"')
+@done(u'Get list of browser downloaded files and save to variable "{variable}"')    
+def step_imp(context, variable):
+    if context.cloud != "local":
+        raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
+
+    # get already downloaded files
+    downloadedFiles = sum(list(context.downloadedFiles.values()), [])
+    logger.debug("Downloaded files during this feature: %s" % downloadedFiles)
+    addVariable(context, variable, downloadedFiles, save_to_step_report=True)
+
+# Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath
+# Example: Download a file by clicking on the "Download Report"
 @step(u'Download a file by clicking on "{linktext}"')
 @done(u'Download a file by clicking on "{linktext}"')
 def step_imp(context, linktext):
