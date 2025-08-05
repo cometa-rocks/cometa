@@ -147,9 +147,9 @@ stages:
     # Reload project files in gunicorn
     - echo -e "\e[0Ksection_start:`date +%s`:reloading_gunicorn\r\e[0KPreparing to reload project in gunicorn"
     - echo -e "Now reloading gunicorn for django"
-    - docker exec cometa_django fuser -k -HUP 8000/tcp
+    - docker exec cometa_django pkill -HUP -f gunicorn || true
     - echo -e "Now reloading gunicorn for behave"
-    - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    - docker exec cometa_behave pkill -HUP -f gunicorn || true
     - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
