@@ -3224,6 +3224,22 @@ class FeatureViewSet(viewsets.ModelViewSet):
             telegram_options.save()
             
             logger.debug(f"Updated telegram options for feature {feature.feature_id}: created={created}")
+            
+            # Update the options field to include telegram notification frequency
+            if feature.send_telegram_notification:
+                # Determine telegram notification frequency based on send_on_error
+                if telegram_options.send_on_error:
+                    tg_value = 'ON ERROR'
+                else:
+                    tg_value = 'ALWAYS'  # Default to always if not error-only
+                
+                # Use the encoder to update position 1 (telegram)
+                from backend.utility.encoder_config import feature_encoder
+                feature.options = feature_encoder.encode_position(feature.options or '', 1, tg_value)
+                
+                # Save the feature with updated options
+                feature.save(update_fields=['options'])
+                logger.debug(f"Updated feature options to: {feature.options}")
 
         
         """
