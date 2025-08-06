@@ -37,8 +37,6 @@ for i in "${!IMAGE_PATHS[@]}"; do
         exit 1
     fi
 
-    docker images | grep $IMAGE_NAME
-
 
     # Tag the image as 'latest'
     echo "Tagging $IMAGE_NAME:$BUILD_VERSION as $IMAGE_NAME:latest..."
@@ -59,8 +57,8 @@ for i in "${!IMAGE_PATHS[@]}"; do
     fi
 
     # Cleanup Docker images (Remove unused images to free space)
-    echo "Cleaning up local Docker images $IMAGE_NAME:$BUILD_VERSION and $IMAGE_NAME:latest"
-    docker rmi "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest" --force
+#    echo "Cleaning up local Docker images $IMAGE_NAME:$BUILD_VERSION and $IMAGE_NAME:latest"
+#    docker rmi "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest" --force
 
     # Return to the previous directory
     cd - 
