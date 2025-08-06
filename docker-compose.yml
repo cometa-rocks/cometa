@@ -149,6 +149,7 @@ services:
     platform: linux/amd64  
     pull_policy: always
     restart: always
+    user: "0"  # This forces the container to run as root
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
