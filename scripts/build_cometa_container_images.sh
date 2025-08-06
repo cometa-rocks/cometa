@@ -37,6 +37,9 @@ for i in "${!IMAGE_PATHS[@]}"; do
         exit 1
     fi
 
+    docker images | grep $IMAGE_NAME
+
+
     # Tag the image as 'latest'
     echo "Tagging $IMAGE_NAME:$BUILD_VERSION as $IMAGE_NAME:latest..."
     if docker tag "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest"; then
