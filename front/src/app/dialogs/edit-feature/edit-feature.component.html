@@ -128,7 +128,7 @@
                   <div class="hover-box">(H)</div>
                 </div>
                 <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-                  <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                  <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure === true || user.settings?.continue_on_failure === true) as disabled">
                     <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
                       <mat-icon class="checkbox-icon">error_outline</mat-icon>
                       Continue on failure
@@ -170,11 +170,13 @@
                   </div>
                 </div>
                 <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-                  <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
-                    <mat-icon class="checkbox-icon">videocam</mat-icon>
-                    Record video
-                  </mat-checkbox>
-                  <div class="hover-box">(R)</div>
+                  <ng-container *ngLet="(user.settings?.hasOwnProperty('recordVideo') ? user.settings?.recordVideo === true : false) as videoDisabled">
+                    <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="videoDisabled ? ('record_video.tooltip' | translate) : ('edit_feature.record_video' | translate)" [matTooltipDisabled]="!videoDisabled" [disabled]="videoDisabled" matTooltipPosition="above">
+                      <mat-icon class="checkbox-icon">videocam</mat-icon>
+                      Record video
+                    </mat-checkbox>
+                    <div class="hover-box">(R)</div>
+                  </ng-container>
                 </div>
               </div>
 
@@ -374,12 +376,15 @@
               ></textarea>
           </mat-form-field>
           <br>
-          <mat-radio-group formControlName="send_mail_on_error">
+          <mat-radio-group formControlName="email_notification_options">
             When to send email:
-            <mat-radio-button color="primary" [value]="false"
+            <mat-radio-button color="primary" [value]="'always'"
               >Always</mat-radio-button
             >
-            <mat-radio-button color="primary" [value]="true"
+            <mat-radio-button color="primary" [value]="'on_success'"
+              >On success</mat-radio-button
+            >
+            <mat-radio-button color="primary" [value]="'on_error'"
               >On error</mat-radio-button
             >
           </mat-radio-group>

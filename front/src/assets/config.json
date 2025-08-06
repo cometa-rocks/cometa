@@ -1,5 +1,5 @@
 {
-  "version": "3.0.85",
+  "version": "3.0.87",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -241,12 +241,32 @@
   ],
   "changelog": [
     {
+      "version": "3.0.87",
+      "date": "2025-08-05",
+      "features": [
+        {
+          "title": "Added new email notification option 'On Success' - #6658",
+          "description": "A new option to enable email notifications only when features are executed successfully."
+        }
+      ]
+    },
+    {
+      "version": "3.0.86",
+      "date": "2025-08-02",
+      "features": [
+        {
+          "title": "Several fixes to file management for excel files - #6649",
+          "description": "Solved normalization issue with column headings, sheet navigation after uploading a file and other small fixes."
+        }
+      ]
+    },
+    {
       "version": "3.0.85",
       "date": "2025-07-30",
       "features": [
         {
           "title": "Improved feature item/list view - #6644",
-          "description": "Improved feature item/list view, sync with main-view (syeps) and enhance browsers icon."
+          "description": "Improved feature item/list view, sync with main-view (steps) and enhance browsers icon."
         },
         {
           "title": "Network logging and generate dataset icons - #6644",
@@ -294,7 +314,7 @@
         }
       ]
     },
-    {
+	  {
       "version": "3.0.80",
       "date": "2025-07-28",
       "features": [
@@ -324,6 +344,7 @@
             "title": "View latest recording icon in feature actions - #6627",
             "description": "New video icon added in feature actions to open the LATEST video in a new dialog if avaible."
         }
+
       ]
     },
     {

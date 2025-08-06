@@ -172,10 +172,13 @@
               <span class="chip-text" matTooltip="{{ apk.name }}" matTooltipPosition="above">
                 {{ apk.name }}
               </span>
-              <!-- <button mat-icon-button (click)="removeInstalledApk(apk)" [disabled]="isRemovingApk?.[apk.id]">
+              <button matChipRemove 
+                      (click)="removeInstalledApk(apk)" 
+                      [disabled]="isRemovingApk?.[apk.id]"
+                      [attr.aria-label]="'remove ' + apk.name">
                 <mat-icon *ngIf="!isRemovingApk?.[apk.id]">cancel</mat-icon>
                 <mat-spinner *ngIf="isRemovingApk?.[apk.id]" diameter="20"></mat-spinner>
-              </button> -->
+              </button>
             </mat-chip-row>
           </mat-chip-grid>
           <input matInput [matChipInputFor]="installedChipGrid" class="hidden-input" />

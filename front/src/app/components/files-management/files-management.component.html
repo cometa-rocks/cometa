@@ -53,8 +53,8 @@
     ></app-loading-spinner>
 
     <mtx-grid
-      [data]="displayFiles"
-      [columns]="fileColumns"
+      [data]="displayFiles || []"
+      [columns]="fileColumns || []"
       [sortOnFront]="true"
       sortActive="created_on"
       sortDirection="desc"
@@ -159,16 +159,11 @@
         </button>
     </div>
     
-    <!-- No Data Message -->
-    <div *ngIf="!file_data[row.id]?.isLoading && (!file_data[row.id]?.file_data || file_data[row.id]?.file_data.length === 0)" class="no-data-message">
-      <p>No data found for this file. The file may be empty or in an unsupported format.</p>
-    </div>
-
-    <!-- Data Grid - Only shown when we have data and not loading -->
+    <!-- Data Grid - Always show when not loading -->
     <mtx-grid
-      *ngIf="!file_data[row.id]?.isLoading && file_data[row.id]?.file_data && file_data[row.id]?.file_data.length > 0"
-      [data]="file_data[row.id]?.file_data"
-      [columns]="file_data[row.id]?.columns"
+      *ngIf="!file_data[row.id]?.isLoading"
+      [data]="file_data[row.id]?.file_data || []"
+      [columns]="file_data[row.id]?.columns || []"
       [sortOnFront]="true"
       sortDirection="desc"
       [sortDisableClear]="true"
@@ -184,8 +179,8 @@
       (columnChange)="saveNestedColumnVisibilitySettings($event, row.id)">
     </mtx-grid>
 
-    <!-- Excel Sheet Navigation - Only shown for Excel files with multiple sheets -->
-    <div *ngIf="isExcelFile(row.name) && hasMultipleSheets(row.id)" class="excel-sheet-tabs">
+    <!-- Excel Sheet Navigation - Shown for all Excel files -->
+    <div *ngIf="isExcelFile(row.name)" class="excel-sheet-tabs">
       
       <!-- Error message display for Excel operations -->
       <div *ngIf="file_data[row.id]?.error" class="sheet-error-message">

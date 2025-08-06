@@ -509,7 +509,7 @@ export class EditFeature implements OnInit, OnDestroy {
         override_chat_ids: [''],
         override_message_thread_id: ['']
       }),
-      send_mail_on_error: [false],
+      email_notification_options: ['always'],
       check_maximum_notification_on_error: [false],
       maximum_notification_on_error: ['3'],
       attach_pdf_report_to_email: [true],
@@ -1288,8 +1288,12 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
     }
     else if (KeyPressed === KEY_CODES.F) {
-      const continueOnFailure = this.featureForm.get('continue_on_failure').value;
-      this.featureForm.get('continue_on_failure').setValue(!continueOnFailure);
+      // Check if continue_on_failure is disabled before allowing toggle
+      const continueOnFailureControl = this.featureForm.get('continue_on_failure');
+      if (!continueOnFailureControl.disabled) {
+        const continueOnFailure = continueOnFailureControl.value;
+        continueOnFailureControl.setValue(!continueOnFailure);
+      }
     }
     else if (KeyPressed === KEY_CODES.H) {
       const needHelp = this.featureForm.get('need_help').value;
@@ -1303,8 +1307,12 @@ export class EditFeature implements OnInit, OnDestroy {
           this.featureForm.get('send_notification').setValue(!sendNotification);
         }
         else if (KeyPressed === KEY_CODES.R) {
-          const video = this.featureForm.get('video').value;
-          this.featureForm.get('video').setValue(!video);
+          // Check if video is disabled before allowing toggle
+          const videoControl = this.featureForm.get('video');
+          if (!videoControl.disabled) {
+            const video = videoControl.value;
+            videoControl.setValue(!video);
+          }
         }
         else if (KeyPressed === KEY_CODES.N) {
           const networkLogging = this.featureForm.get('network_logging').value;
@@ -1417,7 +1425,7 @@ export class EditFeature implements OnInit, OnDestroy {
           'email_bcc_address',
           'email_subject',
           'email_body',
-          'send_mail_on_error',
+          'email_notification_options',
           'maximum_notification_on_error',
           'check_maximum_notification_on_error',
           'attach_pdf_report_to_email',
@@ -1522,6 +1530,10 @@ export class EditFeature implements OnInit, OnDestroy {
           
           if (this.department) {
             this.fileUpload.validateFileUploadStatus(this.department);
+            // Update disabled states when department changes
+            this.initializeDisabledStates();
+            // Force change detection to update visual state
+            this.cdr.markForCheck();
           }
           this.cdr.detectChanges();
         });
@@ -1701,6 +1713,20 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
       
+      // Handle the options field to set email_notification_options correctly
+      if (featureInfo.options) {
+        if (featureInfo.options === 'A') {
+          this.featureForm.get('email_notification_options').setValue('always', { emitEvent: false });
+        } else if (featureInfo.options === 'S') {
+          this.featureForm.get('email_notification_options').setValue('on_success', { emitEvent: false });
+        } else if (featureInfo.options === 'E') {
+          this.featureForm.get('email_notification_options').setValue('on_error', { emitEvent: false });
+        }
+      } else {
+        // Default to 'always' if options field is not set
+        this.featureForm.get('email_notification_options').setValue('always', { emitEvent: false });
+      }
+      
       // Special handling for nested telegram_options FormGroup
       if (featureInfo.telegram_options) {
         const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
@@ -1773,6 +1799,11 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Initialize disabled states
     this.initializeDisabledStates();
+    
+    // Force change detection after initializing disabled states
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   /**
@@ -1787,6 +1818,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Update continue_on_failure checkbox state
     this.updateContinueOnFailureState();
+
+    // Update video checkbox state
+    this.updateVideoState();
   }
 
   /**
@@ -1814,8 +1848,8 @@ export class EditFeature implements OnInit, OnDestroy {
     if (!control) return;
 
     // Check if department settings or user settings disable the checkbox
-    const departmentDisabled = this.department?.settings?.continue_on_failure;
-    const userDisabled = this.user.settings?.continue_on_failure;
+    const departmentDisabled = this.department?.settings?.continue_on_failure === true;
+    const userDisabled = this.user.settings?.continue_on_failure === true;
     const isDisabled = departmentDisabled || userDisabled;
     
     if (isDisabled) {
@@ -1823,6 +1857,32 @@ export class EditFeature implements OnInit, OnDestroy {
     } else {
       control.enable();
     }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Update the disabled state of video checkbox based on user settings
+   */
+  private updateVideoState() {
+    const control = this.featureForm.get('video');
+    if (!control) return;
+
+    // Check if user settings disable the video checkbox
+    // Use the same logic as in user component: check if recordVideo property exists, then check recordVideo value
+    const userDisabled = this.user.settings?.hasOwnProperty('recordVideo') 
+      ? this.user.settings?.recordVideo === true 
+      : false;
+    
+    if (userDisabled) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
   }
 
   /**
@@ -2156,6 +2216,25 @@ export class EditFeature implements OnInit, OnDestroy {
         dataToSend.send_mail = false;
         dataToSend.send_telegram_notification = false;
       }
+      
+      // Set the options field based on email_notification_options value
+      // Only set options field if email notifications are enabled
+      // If email notifications are disabled, options should be empty/null
+      if (dataToSend.send_mail) {
+        if (dataToSend.email_notification_options === 'always') {
+          dataToSend.options = 'A'; // Always
+        } else if (dataToSend.email_notification_options === 'on_success') {
+          dataToSend.options = 'S'; // On Success
+        } else if (dataToSend.email_notification_options === 'on_error') {
+          dataToSend.options = 'E'; // On Error
+        }
+      } else {
+        // Email notifications disabled - clear position 0
+        dataToSend.options = null;
+      }
+      
+      // Remove the email_notification_options field from data being sent (we only send options)
+      delete dataToSend.email_notification_options;
       
       // Construct schedule for sending
       if (fValues.run_now) {

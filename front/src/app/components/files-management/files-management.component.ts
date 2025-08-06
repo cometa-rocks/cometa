@@ -145,6 +145,10 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   expandedFileIds: Set<number> = new Set<number>();
   file_data: Record<string, any> = {};
   showRemovedFiles: boolean = false;
+  deletingFileIds: Set<number> = new Set<number>(); // Track files being deleted
+  
+  // Static storage for deleted file IDs that persists across component instances
+  private static globalDeletedFileIds: Set<number> = new Set<number>();
   
   // Editing properties
   editingCell: { fileId: number, rowIndex: number, columnField: string } | null = null;
@@ -223,6 +227,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   }
   
   ngOnInit(): void {
+    // Sync deletingFileIds with the global static storage
+    this.deletingFileIds = new Set(FilesManagementComponent.globalDeletedFileIds);
+    
     // Initialize displayFiles from department.files but respect the showRemovedFiles setting
     this.updateDisplayFiles();
     
@@ -335,6 +342,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     Object.keys(this.file_data).forEach(fileId => {
       this._clearFullDataset(Number(fileId));
     });
+    
+    // Note: We don't clear deletingFileIds here since it syncs with the static globalDeletedFileIds
   }
   
   // Initialize default file columns
@@ -361,6 +370,16 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           if (rowData.is_removed) {
             // Use HTML directly to apply the class to the text
             return `<span class="status-deleted">Deleted</span>`;
+          }
+          // Only show error details if the actual status is 'Error'
+          // This prevents stale error data from showing when status is 'Done'
+          if (rowData.status === 'Error' && rowData.error) {
+            // For DDR-specific errors, show a more user-friendly message
+            if (rowData.error.status === 'NOT_DDR_FILE') {
+              return `<span class="status-error" title="${rowData.error.description}">Error: Not DDR Ready</span>`;
+            }
+            // For other errors, show the error status or a generic message
+            return `<span class="status-error" title="${rowData.error.description || 'Upload failed'}">Error: ${rowData.error.status || 'Upload Failed'}</span>`;
           }
           return rowData.status;
         },
@@ -552,37 +571,52 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   onDeleteFile(file: UploadedFile): void {
     this.log.msg('4', `Delete file clicked: ${file.id}`, 'Delete');
     
-    const dialogRef = this._dialog.open(SureRemoveFileComponent, {
-      data: {
-        file: file
-      },
-      disableClose: true
-    });
-    
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.log.msg('4', `Delete confirmed for file: ${file.id}`, 'Delete');
-        
-        // Update local state instead of department directly
-        if (this.displayFiles && this.displayFiles.length) {
-          this.displayFiles = this.displayFiles.filter(f => f.id !== file.id);
+    // Prevent duplicate delete attempts
+    if (file.id && !this.deletingFileIds.has(file.id)) {
+      this.deletingFileIds.add(file.id);
+      FilesManagementComponent.globalDeletedFileIds.add(file.id); // Add to global storage
+      
+      const dialogRef = this._dialog.open(SureRemoveFileComponent, {
+        data: {
+          file: file
+        },
+        disableClose: true
+      });
+      
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.log.msg('4', `Delete confirmed for file: ${file.id}`, 'Delete');
           
-          // Force change detection to update the UI
-          this.cdRef.markForCheck();
+          // Update local state instead of department directly
+          if (this.displayFiles && this.displayFiles.length) {
+            this.displayFiles = this.displayFiles.filter(f => f.id !== file.id);
+            
+            // Force change detection to update the UI
+            this.cdRef.markForCheck();
+          }
+          
+          // Also remove any expanded state for this file
+          this.expandedFileIds.delete(file.id);
+          delete this.file_data[file.id];
+          delete this.original_file_data[file.id];
+          delete this.isDirty[file.id];
+          this.saveExpandedFileIds();
+          
+          // Emit the event to the parent component to handle the deletion
+          this.fileDeleted.emit(file);
+          
+          // Keep the file ID in deletingFileIds to prevent re-deletion attempts
+        } else {
+          // User cancelled, remove from deletingFileIds
+          if (file.id) {
+            this.deletingFileIds.delete(file.id);
+            FilesManagementComponent.globalDeletedFileIds.delete(file.id); // Remove from global storage
+          }
         }
-        
-        // Also remove any expanded state for this file
-        this.expandedFileIds.delete(file.id);
-        delete this.file_data[file.id];
-        delete this.original_file_data[file.id];
-        delete this.isDirty[file.id];
-        this.saveExpandedFileIds();
-        
-        // Emit the event to the parent component to handle the deletion
-        this.fileDeleted.emit(file);
-
-      }
-    });
+      });
+    } else {
+      this.log.msg('3', `File ${file.id} is already being deleted or was deleted, ignoring duplicate request`, 'Delete');
+    }
   }
   
   onDownloadFile(file: UploadedFile): void {
@@ -864,23 +898,128 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             } else {
               this.log.msg('3', `No data found for file ${fileId}`, 'GetData');
               
-              this.file_data[fileId] = {
-                ...this.file_data[fileId],
-                columns: [],
-                file_data: [],
-                total: 0,
-                isLoading: false,
-                showPagination: false,
-                fileId: fileId, // Ensure file ID is stored
-                sheets: this.file_data[fileId].sheets
-              };
+              // For Excel files, create a default empty grid structure that users can interact with
+              if (this.isExcelFile(file.name)) {
+                // Create default columns (A, B, C, D)
+                const defaultColumns: MtxGridColumn[] = [
+                  {
+                    field: 'rowNumber',
+                    header: '#',
+                    width: '60px',
+                    resizable: false,
+                    sortable: false,
+                    formatter: (rowData: any) => {
+                      return rowData.rowNumber || 1;
+                    }
+                  }
+                ];
+                
+                // Add default data columns A, B, C, D
+                const defaultDataColumns = ['A', 'B', 'C', 'D'];
+                defaultDataColumns.forEach(colName => {
+                  defaultColumns.push({
+                    field: colName,
+                    header: colName,
+                    resizable: true,
+                    sortable: true,
+                    cellTemplate: this.dynamicEditableCellTpl,
+                    class: `file-${fileId}`
+                  });
+                });
+                
+                // Create one empty row with default structure
+                const emptyRow = { rowNumber: 1 };
+                defaultDataColumns.forEach(colName => {
+                  emptyRow[colName] = '';
+                });
+                
+                this.file_data[fileId] = {
+                  ...this.file_data[fileId],
+                  columns: defaultColumns,
+                  file_data: [emptyRow],
+                  total: 1,
+                  isLoading: false,
+                  showPagination: false,
+                  fileId: fileId,
+                  sheets: this.file_data[fileId].sheets
+                };
+                
+                // Don't mark as dirty - this is just the initial empty state
+                this.isDirty[fileId] = false;
+                
+                // Store this as the original data
+                this.original_file_data[fileId] = JSON.parse(JSON.stringify([emptyRow]));
+                
+                this.log.msg('4', `Created default empty grid for Excel file ${fileId}`, 'GetData');
+              } else {
+                // For non-Excel files, keep the original behavior
+                this.file_data[fileId] = {
+                  ...this.file_data[fileId],
+                  columns: [],
+                  file_data: [],
+                  total: 0,
+                  isLoading: false,
+                  showPagination: false,
+                  fileId: fileId,
+                  sheets: this.file_data[fileId].sheets
+                };
+              }
             }
           } catch (e) {
             this.log.msg('2', `Error processing response for file ${fileId}`, 'GetData', e);
-            this.file_data[fileId].file_data = [];
-            this.file_data[fileId].total = 0;
-            this.file_data[fileId].showPagination = false;
-            this.file_data[fileId].isLoading = false;
+            
+            // For Excel files, provide default empty grid even on error
+            if (this.isExcelFile(file.name)) {
+              // Create default columns (A, B, C, D)
+              const defaultColumns: MtxGridColumn[] = [
+                {
+                  field: 'rowNumber',
+                  header: '#',
+                  width: '60px',
+                  resizable: false,
+                  sortable: false,
+                  formatter: (rowData: any) => {
+                    return rowData.rowNumber || 1;
+                  }
+                }
+              ];
+              
+              // Add default data columns A, B, C, D
+              const defaultDataColumns = ['A', 'B', 'C', 'D'];
+              defaultDataColumns.forEach(colName => {
+                defaultColumns.push({
+                  field: colName,
+                  header: colName,
+                  resizable: true,
+                  sortable: true,
+                  cellTemplate: this.dynamicEditableCellTpl,
+                  class: `file-${fileId}`
+                });
+              });
+              
+              // Create one empty row with default structure
+              const emptyRow = { rowNumber: 1 };
+              defaultDataColumns.forEach(colName => {
+                emptyRow[colName] = '';
+              });
+              
+              this.file_data[fileId].columns = defaultColumns;
+              this.file_data[fileId].file_data = [emptyRow];
+              this.file_data[fileId].total = 1;
+              this.file_data[fileId].showPagination = false;
+              this.file_data[fileId].isLoading = false;
+              
+              // Don't mark as dirty - this is just the initial empty state after error
+              this.isDirty[fileId] = false;
+              this.original_file_data[fileId] = JSON.parse(JSON.stringify([emptyRow]));
+              
+              this.log.msg('4', `Created default empty grid for Excel file ${fileId} after error`, 'GetData');
+            } else {
+              this.file_data[fileId].file_data = [];
+              this.file_data[fileId].total = 0;
+              this.file_data[fileId].showPagination = false;
+              this.file_data[fileId].isLoading = false;
+            }
           }
           
           this.cdRef.markForCheck();
@@ -1874,10 +2013,17 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (!this.department || !this.department.files) {
       this.allCurrentlyRelevantFiles = [];
     } else {
+      
       // First filter by removal status
       let filteredFiles = this.showRemovedFiles 
         ? [...this.department.files]
         : this.department.files.filter(file => !file.is_removed);
+      
+      // Also filter out files that are in the deletingFileIds (globally deleted)
+      if (!this.showRemovedFiles && this.deletingFileIds.size > 0) {
+        filteredFiles = filteredFiles.filter(file => !this.deletingFileIds.has(file.id));
+      }
+      
       
       // Then filter by file_type if specified
       if (this.file_type) {
@@ -2107,11 +2253,12 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         this.file_data[fileId].params.size = preservedPageSize; // Preserve page size
       }
       
-      // Store the sheet name in the file object for the API call
-      (file as any).selectedSheet = sheetName;
+      // Create a copy of the file object to avoid modifying the store directly
+      // This prevents the "Cannot add property selectedSheet, object is not extensible" error
+      const fileCopy = { ...file, selectedSheet: sheetName };
       
       // Reload the file data with the new sheet
-      this.getFileData(file);
+      this.getFileData(fileCopy);
     } else {
       this.log.msg('2', `Cannot find original file with ID ${fileId} to reload sheet data`, 'Sheets');
       // Remove loading state if we can't proceed
@@ -2121,19 +2268,19 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   }
   
 
-  // Add helper to check if a file has multiple sheets
-  hasMultipleSheets(fileId: number): boolean {
-    return this.file_data[fileId]?.sheets?.names?.length > 1;
-  }
-
   // Add helper to get sheet names for a file
   getSheetNames(fileId: number): string[] {
-    return this.file_data[fileId]?.sheets?.names || [];
+    // If sheet names are loaded, return them
+    if (this.file_data[fileId]?.sheets?.names?.length > 0) {
+      return this.file_data[fileId].sheets.names;
+    }
+    // Otherwise return a default sheet name so the UI is always visible
+    return ['Sheet1'];
   }
 
   // Add helper to get current sheet for a file
   getCurrentSheet(fileId: number): string {
-    return this.file_data[fileId]?.sheets?.current || '';
+    return this.file_data[fileId]?.sheets?.current || 'Sheet1';
   }
   
   // Clear file error message
@@ -3148,4 +3295,5 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       });
     }, 100); // Small delay to ensure DOM is rendered
   }
+  
 } 
