@@ -242,8 +242,12 @@
   "changelog": [
     {
       "version": "3.0.87",
-      "date": "2025-08-05",
+      "date": "2025-08-04",
       "features": [
+        {
+          "title": "Step insertion behavior clarification",
+          "description": "When right-clicking and selecting 'Insert Step Above', the new step will be inserted above the current step. This action only occurs when right-clicking and selecting 'Insert Step below'; the new step will be added below the current one."
+        },
         {
           "title": "Added new email notification option 'On Success' - #6658",
           "description": "A new option to enable email notifications only when features are executed successfully."
