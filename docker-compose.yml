@@ -7,6 +7,12 @@ services:
       - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
      - testing
     restart: always
@@ -46,7 +52,8 @@ services:
     expose:
       - "8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
      - testing
 
