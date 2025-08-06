@@ -20,7 +20,7 @@ for i in "${!IMAGE_PATHS[@]}"; do
     cd $IMAGE_DIR
     
     # Build the Docker image
-    echo "Building Docker image: $IMAGE_NAME:$BUILD_VERSION..."
+    echo "Building Docker image: $IMAGE_NAME:$BUILD_VERSION"
     if docker build . -f Dockerfile -t "$IMAGE_NAME:$BUILD_VERSION" --no-cache; then
         echo "$IMAGE_NAME:$BUILD_VERSION built successfully"
     else
@@ -29,7 +29,7 @@ for i in "${!IMAGE_PATHS[@]}"; do
     fi
 
     # Push the built image to the Docker registry
-    echo "Pushing $IMAGE_NAME:$BUILD_VERSION to Docker registry: $DOCKER_REGISTRY..."
+    echo "Pushing $IMAGE_NAME:$BUILD_VERSION to Docker registry: $DOCKER_REGISTRY"
     if docker push "$IMAGE_NAME:$BUILD_VERSION"; then
         echo "$IMAGE_NAME:$BUILD_VERSION pushed successfully"
     else
@@ -37,8 +37,9 @@ for i in "${!IMAGE_PATHS[@]}"; do
         exit 1
     fi
 
+    
     # Tag the image as 'latest'
-    echo "Tagging $IMAGE_NAME:$BUILD_VERSION as $IMAGE_NAME:latest..."
+    echo "Tagging $IMAGE_NAME:$BUILD_VERSION as $IMAGE_NAME:latest"
     if docker tag "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest"; then
         echo "Tagging successful"
     else
