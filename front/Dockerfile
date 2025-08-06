@@ -4,7 +4,8 @@ FROM node:18 AS build
 WORKDIR /app
 RUN apt-get update 
 COPY package*.json ./
-COPY . ./
+# copy everything from the current directory to the app directory except the .git, node_modules,  folder
+COPY . ./ 
 RUN npm ci --legacy-peer-deps 
 RUN npx ng build -c production 
 
@@ -39,8 +40,8 @@ SHELL ["/bin/bash", "-c"]
 
 
 # Create a non-root user 'cometa'
-RUN groupadd -g 472 cometa \
-    && useradd -u 472 -g cometa -d /home/cometa -s /bin/bash cometa
+RUN groupadd -g 1472 cometa \
+&& useradd -u 1472 -g cometa -d /home/cometa -s /bin/bash cometa
 
 # Create necessary directories and set ownership/permissions
 RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
@@ -52,7 +53,7 @@ RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
 # COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs 
 # # COPY --chown=cometa:cometa apache-conf/ /usr/local/apache2/conf/
 # COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/
-# COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
+COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
 
 WORKDIR /code/front
 
@@ -100,7 +101,7 @@ USER cometa
 EXPOSE 80 443
 
 # Start Nginx server
-ENTRYPOINT ["start_server.sh"]
+ENTRYPOINT ["bash", "/code/front/start_server.sh"]
 
 
 # Command for multi-architecture build:

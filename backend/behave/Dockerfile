@@ -40,8 +40,8 @@ curl \
 gnupg2 \
 && rm -rf /var/lib/apt/lists/*
 # Create a non-root user 'cometa' with UID 472 and GID 472
-RUN groupadd -g 472 cometa && \
-    useradd -u 472 -g cometa -m cometa -s /bin/bash
+RUN groupadd -g 1472 cometa \
+&& useradd -u 1472 -g cometa -d /home/cometa -s /bin/bash cometa
 
 RUN usermod -aG sudo cometa
     
@@ -58,7 +58,7 @@ RUN mkdir -p /code/behave/pdf
 RUN mkdir -p /data/test/downloads
 RUN mkdir -p /code/behave/department_data
 RUN mkdir -p /code/src/logs
-
+RUN mkdir -p /home/cometa
 
 RUN chown -R cometa:cometa /code
 RUN chown -R cometa:cometa /code/src/logs
