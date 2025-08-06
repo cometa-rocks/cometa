@@ -3,7 +3,7 @@ FROM postgres:12.1
 
 # Create a non-root user 'cometa' with UID and GID 472
 # PostgreSQL image automatically creates a user `postgres`, here we add user `cometa`
-RUN groupadd -g 472 cometa && \
+RUN groupadd -g 1472 cometa && \
     useradd -u 472 -g 472 -m cometa
 
 # Change ownership of the PostgreSQL data directory
