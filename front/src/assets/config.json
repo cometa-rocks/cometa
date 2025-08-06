@@ -1,5 +1,5 @@
 {
-  "version": "3.0.86",
+  "version": "3.0.88",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -241,9 +241,37 @@
   ],
   "changelog": [
     {
+      "version": "3.0.88",
+      "date": "2025-08-06",
+      "features": [
+        {
+          "title": "Prefix/textarea Component Corrections - #6657",
+          "description": "Fixed prefix and textarea in different browsers."
+        }
+      ]
+    },
+    {
+      "version": "3.0.87",
+      "date": "2025-08-04",
+      "features": [
+        {
+          "title": "Step insertion behavior clarification",
+          "description": "When right-clicking and selecting 'Insert Step Above', the new step will be inserted above the current step. This action only occurs when right-clicking and selecting 'Insert Step below'; the new step will be added below the current one."
+        },
+        {
+          "title": "Added new email notification option 'On Success' - #6658",
+          "description": "A new option to enable email notifications only when features are executed successfully."
+        }
+      ]
+    },
+    {
       "version": "3.0.86",
       "date": "2025-08-02",
       "features": [
+        {
+          "title": "Step editor improvements - #6650",
+          "description": "Step editor improvements, fixed issue with dropdown and add alert message when invalid mobile/package is selected."
+        },
         {
           "title": "Several fixes to file management for excel files - #6649",
           "description": "Solved normalization issue with column headings, sheet navigation after uploading a file and other small fixes."
