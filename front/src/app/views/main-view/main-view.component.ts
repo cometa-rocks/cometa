@@ -3,12 +3,13 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  OnDestroy,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Actions, ofActionDispatched, Select } from '@ngxs/store';
-import { combineLatest, Observable, fromEvent } from 'rxjs';
+import { combineLatest, Observable, fromEvent, Subject } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
-import { map } from 'rxjs/operators';
+import { map, takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngxs/store';
 import { MtxGridColumn, MtxGridModule } from '@ng-matero/extensions/grid';
@@ -88,12 +89,20 @@ import { Features } from '@store/actions/features.actions';
     MatBadgeModule
   ],
 })
-export class MainViewComponent implements OnInit {
+export class MainViewComponent implements OnInit, OnDestroy {
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived'))
   showArchived$: Observable<boolean>;
   
   @Select(UserState.GetPermission('change_result_status'))
   canChangeResultStatus$: Observable<boolean>;
+
+  @Select(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'))
+  deleteTemplateWithResults$: Observable<boolean>;
+
+  // Alias for archived state to match template expectations
+  get archived$(): Observable<boolean> {
+    return this.showArchived$;
+  }
 
   columns: MtxGridColumn[] = [
     {
@@ -228,6 +237,7 @@ export class MainViewComponent implements OnInit {
           click: (result: FeatureResult) => {
             this._sharedActions
               .archive(result)
+              .pipe(takeUntil(this.destroy$))
               .subscribe(_ => this.getResults());
           },
           iif: (result: FeatureResult) => !result.archived,
@@ -241,6 +251,7 @@ export class MainViewComponent implements OnInit {
           click: (result: FeatureResult) => {
             this._sharedActions
               .archive(result)
+              .pipe(takeUntil(this.destroy$))
               .subscribe(_ => this.getResults());
           },
           iif: (result: FeatureResult) => result.archived,
@@ -254,6 +265,7 @@ export class MainViewComponent implements OnInit {
           click: (result: FeatureResult) => {
             this._sharedActions
               .deleteFeatureResult(result)
+              .pipe(takeUntil(this.destroy$))
               .subscribe(_ => this.getResults());
           },
           iif: (result: FeatureResult) => !result.archived,
@@ -266,7 +278,7 @@ export class MainViewComponent implements OnInit {
 
   results = [];
   total = 0;
-  isLoading = true;
+  isLoading = false;
   showPagination = true;
   latestFeatureResultId: number = 0;
   archived: boolean = false;
@@ -285,6 +297,12 @@ export class MainViewComponent implements OnInit {
     return p;
   }
 
+  // Add private properties for subscription management
+  private destroy$ = new Subject<void>();
+  private isInitialized = false;
+  private lastFeatureId: number = 0;
+  private lastArchived: boolean = false;
+
   constructor(
     private _route: ActivatedRoute,
     private _actions: Actions,
@@ -300,7 +318,11 @@ export class MainViewComponent implements OnInit {
     private _downloadService: DownloadService,
     private elementRef: ElementRef,
     private logger: LogService
-  ) {}
+  ) {
+    // Ensure initial state is correct
+    this.isLoading = false;
+    this.isInitialized = false;
+  }
 
   featureId$: Observable<number>;
   originalResults: any[] = [];
@@ -317,10 +339,48 @@ export class MainViewComponent implements OnInit {
     ]);
   }
 
-  getResults() {
+    getResults() {
+    // Prevent multiple simultaneous calls
+    if (this.isLoading) {
+      return;
+    }
+
+    // Prevent calls before initialization
+    if (!this.isInitialized) {
+      return;
+    }
+
     this.isLoading = true;
-    combineLatest([this.featureId$, this.showArchived$]).subscribe(
-      ([featureId, archived]) => {
+    
+    combineLatest([
+      this.featureId$.pipe(distinctUntilChanged()),
+      this.showArchived$.pipe(distinctUntilChanged())
+    ])
+    .pipe(
+      takeUntil(this.destroy$),
+      debounceTime(200) // Prevent rapid successive calls
+    )
+    .subscribe({
+      next: ([featureId, archived]) => {
+        if (!featureId || featureId <= 0) {
+          this.isLoading = false;
+          this.cdRef.detectChanges();
+          return;
+        }
+
+        // Check if parameters have actually changed to avoid unnecessary API calls
+        if (this.lastFeatureId === featureId && 
+            this.lastArchived === archived && 
+            this.results.length > 0) {
+          this.isLoading = false;
+          this.cdRef.detectChanges();
+          return;
+        }
+
+        // Update last known values
+        this.lastFeatureId = featureId;
+        this.lastArchived = archived;
+        
         this._http
           .get(`/backend/api/feature_results_by_featureid/`, {
             params: {
@@ -329,6 +389,7 @@ export class MainViewComponent implements OnInit {
               ...this.params,
             },
           })
+          .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (res: any) => {
               this.results = res.results;
@@ -343,21 +404,29 @@ export class MainViewComponent implements OnInit {
               this.checkIfThereAreFailedSteps();
               
               // Update the store to ensure l1-feature-items gets the latest data
-              if (featureId) {
+              // Only dispatch store actions if we have results and this is not a pagination call
+              if (featureId && this.results.length > 0 && this.query.page === 0) {
                 this._store.dispatch(new Features.UpdateFeature(featureId));
                 this._store.dispatch(new WebSockets.CleanupFeatureResults(featureId));
               }
             },
             error: err => {
-              console.error(err);
+              console.error('getResults: HTTP error:', err);
+              this.isLoading = false;
+              this.cdRef.detectChanges();
             },
             complete: () => {
               this.isLoading = false;
               this.cdRef.detectChanges();
             },
           });
+      },
+      error: err => {
+        console.error('getResults: combineLatest error:', err);
+        this.isLoading = false;
+        this.cdRef.detectChanges();
       }
-    );
+    });
   }
 
   onMobileSelectionChange(event: any, row: FeatureResult): void {
@@ -370,9 +439,12 @@ export class MainViewComponent implements OnInit {
   }
 
   updateData(e: PageEvent) {
-    this.query.page = e.pageIndex;
-    this.query.size = e.pageSize;
-    this.getResults();
+    // Only update if page or size actually changed
+    if (this.query.page !== e.pageIndex || this.query.size !== e.pageSize) {
+      this.query.page = e.pageIndex;
+      this.query.size = e.pageSize;
+      this.getResults();
+    }
 
     // create a localstorage session
     localStorage.setItem('co_results_page_size', e.pageSize.toString());
@@ -390,10 +462,12 @@ export class MainViewComponent implements OnInit {
    * Performs the overriding action through the Store
    */
   setResultStatus(results: FeatureResult, status: 'Success' | 'Failed' | 'Canceled' | '') {
-    this._sharedActions.setResultStatus(results, status).subscribe(_ => {
-      this.getResults();
-      this.checkIfThereAreFailedSteps(); 
-    });
+    this._sharedActions.setResultStatus(results, status)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(_ => {
+        this.getResults();
+        this.checkIfThereAreFailedSteps(); 
+      });
   }
 
   openVideo(result: FeatureResult, video_url:string) {
@@ -446,6 +520,7 @@ export class MainViewComponent implements OnInit {
     );
     this._api
       .removeMultipleFeatureRuns(featureId, clearing, deleteTemplateWithResults)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: _ => {
           this.getResults();
@@ -484,24 +559,48 @@ export class MainViewComponent implements OnInit {
 
 
   ngOnInit() {
-
+    console.log('ngOnInit: Component initializing');
+    
+    // Reset isLoading to ensure clean state
+    this.isLoading = false;
+    
     this.featureId$ = this._route.paramMap.pipe(
-      map(params => +params.get('feature'))
+      map(params => +params.get('feature')),
+      distinctUntilChanged()
     );
+    
     this.query.size =
       parseInt(localStorage.getItem('co_results_page_size')) || 500;
+    
+    console.log('ngOnInit: query.size set to:', this.query.size);
+    
+    // Set initialization flag
+    this.isInitialized = true;
+    console.log('ngOnInit: Component initialized, calling getResults');
     this.getResults();
 
     // Reload current page of runs whenever a feature run completes
     this._actions
       .pipe(
         untilDestroyed(this),
-        ofActionDispatched(WebSockets.FeatureRunCompleted)
+        ofActionDispatched(WebSockets.FeatureRunCompleted),
+        debounceTime(1000) // Increase debounce time to prevent rapid successive calls from WebSocket events
       )
       .subscribe(_ => {
-        this.getResults();
+        // Only reload if we're on the first page to avoid disrupting pagination
+        if (this.query.page === 0) {
+          this.getResults();
+        }
       });
-      this.extractButtons();
+      
+    this.extractButtons();
+  }
+
+  ngOnDestroy() {
+    console.log('ngOnDestroy: Cleaning up component');
+    this.isLoading = false;
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Extract buttons from mtxgridCoumns
