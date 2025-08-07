@@ -1,42 +1,47 @@
-import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Inject, HostListener } from '@angular/core';
 import {
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
   MatLegacyDialogModule,
   MatLegacyDialogRef as MatDialogRef,
 } from '@angular/material/legacy-dialog';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-
-export interface MobileValidationErrorData {
-  title?: string;
-  message?: string;
-  errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>;
-}
-
-export type MobileValidationAction = 'ignore' | 'correct';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'mobile-validation-error',
-  template: `
-    <h2 mat-dialog-title>{{ data?.title }}</h2>
-    <mat-dialog-content>
-      <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: 0;">{{ data?.message }}</pre>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-stroked-button color="warn" [mat-dialog-close]="'ignore'">
-        Ignore
-      </button>
-      <button mat-stroked-button color="primary" [mat-dialog-close]="'correct'">
-        Correct
-      </button>
-    </mat-dialog-actions>
-  `,
+  templateUrl: './mobile-validation-error.component.html',
+  styleUrls: ['./mobile-validation-error.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatLegacyDialogModule, MatLegacyButtonModule, MatLegacyTooltipModule, TranslateModule],
 })
 export class MobileValidationErrorDialog {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: MobileValidationErrorData,
     private dialogRef: MatDialogRef<MobileValidationErrorDialog>
   ) {}
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      
+      // Close dialog with 'ignore' response when Escape is pressed
+      this.dialogRef.close('ignore');
+    }
+  }
+
+  handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      
+      // Close dialog with 'ignore' response when Escape is pressed
+      this.dialogRef.close('ignore');
+    }
+  }
 }
