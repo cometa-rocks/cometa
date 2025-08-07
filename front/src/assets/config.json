@@ -1,5 +1,5 @@
 {
-  "version": "3.0.87",
+  "version": "3.0.88",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.88",
+      "date": "2025-08-06",
+      "features": [
+        {
+          "title": "Prefix/textarea Component Corrections - #6657",
+          "description": "Fixed prefix and textarea in different browsers."
+        }
+      ]
+    },
     {
       "version": "3.0.87",
       "date": "2025-08-04",
