@@ -1,0 +1,21 @@
+// Mobile validation dialog styles
+.mobile-validation-dialog {
+  z-index: 1001 !important; // Higher than parent dialog
+  
+  .mat-dialog-container {
+    position: relative;
+    z-index: 1002;
+  }
+  
+  // Prevent event bubbling to parent dialog
+  .mat-dialog-content,
+  .mat-dialog-actions {
+    position: relative;
+    z-index: 1003;
+  }
+}
+
+// Ensure the dialog backdrop doesn't interfere
+.cdk-overlay-pane.mobile-validation-dialog {
+  z-index: 1001 !important;
+}
