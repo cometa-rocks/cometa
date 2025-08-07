@@ -2172,6 +2172,13 @@ export class EditFeature implements OnInit, OnDestroy {
       await this.showMobileValidationError(validationResult.errors);
       return;
     }
+
+    // Validate feature references in steps before saving
+    const featureValidationResult = await this.validateFeatureReferences();
+    if (!featureValidationResult.isValid) {
+      await this.showFeatureValidationError(featureValidationResult.errors);
+      return;
+    }
     
     // Get current steps from Store
     let currentSteps = [];
@@ -3167,6 +3174,158 @@ export class EditFeature implements OnInit, OnDestroy {
       const snackbarMessage = errorCount === 1 
         ? `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`
         : `${errorCount} steps have invalid mobile references. Please update them.`;
+      
+      this._snackBar.open(
+        snackbarMessage, 
+        'OK', 
+        { duration: 8000 }
+      );
+    }
+  }
+
+  /**
+   * Validates that all "Run feature with name" and "Run feature with id" references point to existing features
+   * @returns Validation result with errors if any
+   */
+  private async validateFeatureReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}>}> {
+    const errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}> = [];
+    
+    // Get current steps
+    let currentSteps = [];
+    if (this.stepEditor) {
+      currentSteps = this.stepEditor.getSteps();
+    } else {
+      const featureId = this.data.mode === 'clone' ? 0 : this.data.feature.feature_id;
+      currentSteps = this._store.selectSnapshot(CustomSelectors.GetFeatureSteps(featureId));
+    }
+
+    // Get all features from store
+    const allFeatures = this._store.selectSnapshot(FeaturesState.GetFeaturesAsArray);
+    const userDepartments = this.user.departments.map(dept => dept.department_id);
+
+    // Check each step for "Run feature with name" and "Run feature with id" references
+    currentSteps.forEach((step, index) => {
+      // Only validate enabled steps
+      if (!step.enabled) {
+        return; // Skip disabled steps
+      }
+      
+      if (step.step_content && step.step_content.startsWith('Run feature with name')) {
+        const match = step.step_content.match(/"([^"]*)"/);
+        if (match) {
+          const featureName = match[1];
+          
+          // Check if feature exists
+          const matchingFeature = allFeatures.find(f => 
+            f.feature_name === featureName && 
+            userDepartments.includes(f.department_id)
+          );
+          
+          if (!matchingFeature) {
+            errors.push({
+              stepIndex: index + 1,
+              stepContent: step.step_content,
+              error: `Feature "${featureName}" not found`,
+              featureName: featureName
+            });
+          }
+        }
+      } else if (step.step_content && step.step_content.startsWith('Run feature with id')) {
+
+        const match = step.step_content.match(/"([^"]*)"/);
+        if (match) {
+          const featureIdStr = match[1];
+          
+          // Check if it's a valid number
+          const featureId = parseInt(featureIdStr, 10);
+          if (isNaN(featureId)) {
+            errors.push({
+              stepIndex: index + 1,
+              stepContent: step.step_content,
+              error: `Invalid feature ID format: "${featureIdStr}"`,
+              featureName: featureIdStr
+            });
+          } else {
+            // Check if feature exists
+            const matchingFeature = allFeatures.find(f => 
+              f.feature_id === featureId && 
+              userDepartments.includes(f.department_id)
+            );
+            
+            if (!matchingFeature) {
+              errors.push({
+                stepIndex: index + 1,
+                stepContent: step.step_content,
+                error: `Feature with ID "${featureId}" not found`,
+                featureName: featureId.toString()
+              });
+            }
+          }
+        }
+      }
+    });
+    return {
+      isValid: errors.length === 0,
+      errors: errors
+    };
+  }
+
+  /**
+   * Shows a dialog with feature validation errors (name or ID) and allows user to navigate to problematic steps
+   * @param errors Array of validation errors
+   */
+  private async showFeatureValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}>): Promise<void> {
+    const errorMessages = errors.map(err => 
+      `Step ${err.stepIndex}: ${err.error}`
+    ).join('\n\n');
+
+    // Create a simple dialog with just OK button
+    const errorCount = errors.length;
+    const dialogTitle = errorCount === 1 ? 'Feature Reference Validation Error' : `Feature Reference Validation Errors (${errorCount} found)`;
+    
+    const dialogRef = this._dialog.open(SimpleAlertDialog, {
+      width: '600px',
+      data: {
+        title: dialogTitle,
+        message: `The following steps reference features that do not exist:\n\n${errorMessages}\n\nPlease correct these references before saving.`
+      } as SimpleAlertData
+    });
+
+    await dialogRef.afterClosed().toPromise();
+    
+    // Navigate to the first error after dialog is closed
+    const firstError = errors[0];
+    if (firstError && this.stepEditor) {
+      // Open the Steps panel if it's not already open
+      const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
+      if (stepsPanel && !stepsPanel.expanded) {
+        stepsPanel.open();
+      }
+      
+      // Focus on the step with error
+      this.stepEditor.focusStep(firstError.stepIndex - 1);
+      
+      // Select the problematic text inside quotes
+      setTimeout(() => {
+        const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
+        if (textarea) {
+          const content = textarea.value;
+          const match = content.match(/"([^"]*)"/);
+          if (match) {
+            const quoteStart = match.index + 1; // Position after opening quote
+            const quoteEnd = match.index + 1 + match[1].length; // Position at closing quote
+            
+            textarea.setSelectionRange(quoteStart, quoteEnd);
+            textarea.focus();
+          }
+        }
+      }, 100);
+      
+      // Show a snackbar to indicate the errors
+      const errorCount = errors.length;
+      const snackbarMessage = errorCount === 1 
+        ? `Step ${firstError.stepIndex} references a non-existent feature. Please correct it.`
+        : `${errorCount} steps reference non-existent features. Please correct them.`;
       
       this._snackBar.open(
         snackbarMessage, 
