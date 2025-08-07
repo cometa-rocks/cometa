@@ -22,7 +22,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .utility.config_handler import *
-from .utility.encoder_config import feature_encoder
  
 # GLOBAL VARIABLES
 
@@ -812,13 +811,6 @@ class Step(models.Model):
                     {'step_action': f"Action with name '{self.step_action}' does not exist."}
                 )
                 
-# Email notification frequency choices
-EMAIL_NOTIFICATION_CHOICES = [
-    ('A', 'ALWAYS'),
-    ('E', 'ON ERROR'),
-    ('S', 'ON SUCCESS'),
-]
-
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
@@ -854,7 +846,6 @@ class Feature(models.Model):
     email_bcc_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
     email_subject = models.CharField(max_length=250, null=True, blank=True)
     email_body = models.TextField(null=True, blank=True)
-    options = models.CharField(max_length=2, null=True, blank=True)
     video = models.BooleanField(default=True)
     network_logging = models.BooleanField(default=False)
     generate_dataset = models.BooleanField(default=False)
@@ -867,38 +858,6 @@ class Feature(models.Model):
 
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
-    
-    @property
-    def encoded_options(self):
-        """Return all encoded values with both dict and attribute access."""
-        class EncodedDict(dict):
-            def __getattr__(self, name):
-                return self.get(name)
-            
-            def __setattr__(self, name, value):
-                if name.startswith('_'):
-                    super().__setattr__(name, value)
-                    return
-                    
-                from backend.utility.encoder_config import feature_encoder
-                position = feature_encoder.get_position_for_attribute(name)
-                if position is not None:
-                    parent = self._parent_instance
-                    parent.options = feature_encoder.encode_position(parent.options or '', position, value)
-                    parent.save(update_fields=['options'])
-                    self[name] = value
-                else:
-                    raise AttributeError(f"No encoded position found for '{name}'")
-        
-        result = EncodedDict()
-        result._parent_instance = self
-        
-        for position, config in feature_encoder.positions.items():
-            value = feature_encoder.decode_position(self.options, position, model_instance=self)
-            if value is not None:
-                result[config['name']] = value
-        return result
-    
     def save(self, *args, **kwargs):
         new_feature = True
         self.slug = slugify(self.feature_name)

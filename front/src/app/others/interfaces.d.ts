@@ -212,7 +212,7 @@ interface Feature {
   browsers: BrowserstackBrowser[];
   cloud: string;
   send_mail: boolean;
-  options?: string;
+  send_mail_on_error: boolean;
   email_address: string[];
   email_cc_address?: string[];
   email_bcc_address?: string[];
@@ -537,6 +537,7 @@ interface SendSaveFeature {
   email_bcc_address?: string[];
   email_subject: string;
   email_body: string;
+  send_mail_on_error: boolean;
   last_edited: number;
   video: boolean;
   send_notification?: boolean;
