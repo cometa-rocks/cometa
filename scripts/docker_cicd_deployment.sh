@@ -135,12 +135,16 @@ sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apac
 
 echo "docker-compose.yml updated with specific versions"
 
+echo "Stopping the docker compose and removing the orphan containers"
 docker compose down --remove-orphans
 
-# now restart the docker compose
-docker compose up -d --build
+echo "Starting the docker compose with the new images"
+docker compose up -d
 
-if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z"$CI_COMMIT_BRANCH" ]; then
+echo "Faicon path to be replaced: $COMETA_REPLACE_FAVICON_IN"
+echo "Current Branch: $CI_COMMIT_BRANCH"
+
+if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z "$CI_COMMIT_BRANCH" ]; then
     echo "Replacing favicon in the front"
     for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
 fi
