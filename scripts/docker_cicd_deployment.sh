@@ -42,19 +42,31 @@ if [ ! -f "front/src/assets/config.json" ]; then
     exit 1
 fi      
 
-django_version=$(cat backend/src/version.json | jq -r '.version')
-behave_version=$(cat backend/behave/version.json | jq -r '.version')
-scheduler_version=$(cat backend/scheduler/version.json | jq -r '.version')
-ws_server_version=$(cat backend/ws-server/version.json | jq -r '.version')
-front_stable_version=$(cat front/src/assets/config.json | jq -r '.version')
+# When we are deploying on any other branch other than master, assummuing that is for testing purposes
+# so we are using the version key to get the version
+VERSION_KEY="version"
 
+if [ "$CI_COMMIT_BRANCH" == "master" ]; then
+    # when are deploying on master, we are using the version_stable key to get the stable version  
+    VERSION_KEY="stable_version"
+fi
+
+
+# get the version from the version.json file
+django_version=$(jq -r ".$VERSION_KEY" backend/src/version.json)
+behave_version=$(jq -r ".$VERSION_KEY" backend/behave/version.json)
+scheduler_version=$(jq -r ".$VERSION_KEY" backend/scheduler/version.json)
+ws_server_version=$(jq -r ".$VERSION_KEY" backend/ws-server/version.json)
+front_stable_version=$(jq -r ".$VERSION_KEY" front/src/assets/config.json)
+
+# create the image name for the docker images
 django_image_name="cometa/django:$django_version"
 behave_image_name="cometa/behave:$behave_version"
 scheduler_image_name="cometa/scheduler:$scheduler_version"
 ws_server_image_name="cometa/socket:$ws_server_version"
 front_image_name="cometa/front:$front_stable_version"
 
-
+# print the image names
 echo "--------------------------------------------------"
 echo "Docker images to be used for this deployment:"
 echo "--------------------------------------------------"
@@ -64,12 +76,6 @@ echo "scheduler_image_name: $scheduler_image_name"
 echo "ws_server_image_name: $ws_server_image_name"
 echo "front_image_name: $front_image_name"
 echo "--------------------------------------------------"
-
-
-# now modify docker-compose.yml file to use the new version
-
-
-
 
 
 
@@ -103,18 +109,26 @@ if [ -z "$DOCKER_HTTP_PORT" ]; then
     DOCKER_HTTP_PORT=80
 fi
 
+echo "DOCKER_HTTP_PORT: $DOCKER_HTTP_PORT"
+
 if [ -z "$COMETA_DATA_FOLDER" ]; then
     COMETA_DATA_FOLDER="./data"
 fi
 
-rm $COMETA_DATA_FOLDER/redis/data/dump.rdb
+echo "COMETA_DATA_FOLDER: $COMETA_DATA_FOLDER"
+
+echo "Removing the redis data from : $COMETA_DATA_FOLDER/redis/data/dump.rdb"
+rm -rf $COMETA_DATA_FOLDER/redis/data/dump.rdb
 
 echo "Replacing <outside_port> with $DOCKER_HTTP_PORT"
 sed -i 's/<outside_port>/'$DOCKER_HTTP_PORT'/g' docker-compose.yml
 
+
 if [ -z "$DOCKER_OPENIDC_CONFIG_EXT" ]; then
     DOCKER_OPENIDC_CONFIG_EXT="basic"
 fi
+
+echo "DOCKER_OPENIDC_CONFIG_EXT: $DOCKER_OPENIDC_CONFIG_EXT"
 
 echo "Replacing @@COMETA_CRYPTO_PASSPHRASE@@ with $COMETA_CRYPTO_PASSPHRASE"
 sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache2/conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
@@ -125,6 +139,11 @@ docker compose down --remove-orphans
 
 # now restart the docker compose
 docker compose up -d --build
+
+if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z"$CI_COMMIT_BRANCH" ]; then
+    echo "Replacing favicon in the front"
+    for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+fi
 
 
 echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update database"
