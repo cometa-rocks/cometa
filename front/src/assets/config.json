@@ -1,5 +1,5 @@
 {
-  "version": "3.0.87",
+  "version": "3.0.89",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.89",
+      "date": "2025-08-07",
+      "features": [
+        {
+          "title": "Fix false \"Unsaved Changes\" warning and improve popup behavior - #6672",
+          "description": "Resolved an issue where the editor incorrectly showed a \"You have unsaved changes\" warning even when no modifications were made. The problem was related to the handling of \"Run with ID\" and \"Run with Name\" steps. Improved the popup response to accurately detect the problem and highlight the content inside quotes."
+        }
+      ]
+    },
+    {
+      "version": "3.0.88",
+      "date": "2025-08-06",
+      "features": [
+        {
+          "title": "Prefix/textarea Component Corrections - #6657",
+          "description": "Fixed prefix and textarea in different browsers."
+        }
+      ]
+    },
     {
       "version": "3.0.87",
       "date": "2025-08-04",
