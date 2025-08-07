@@ -72,9 +72,7 @@ import {
   SimpleAlertDialog,
 } from '@dialogs/simple-alert/simple-alert.component';
 import {
-  MobileValidationErrorData,
   MobileValidationErrorDialog,
-  MobileValidationAction,
 } from '@dialogs/mobile-validation-error/mobile-validation-error.component';
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
@@ -199,6 +197,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   departmentSettings$: Observable<Department['settings']>;
   variable_dialog_isActive: boolean = false;
+
 
   steps$: Observable<FeatureStep[]>;
 
@@ -450,6 +449,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private inputFocusService: InputFocusService,
     private logger: LogService,
   ) {
+
 
     this.featureId = this.data.feature.feature_id;
 
@@ -844,8 +844,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
-    return this._store.dispatch(new StepDefinitions.ClearNewFeature());
-    this.inputFocusSubscription.unsubscribe();
+    this._store.dispatch(new StepDefinitions.ClearNewFeature());
+    if (this.inputFocusSubscription) {
+      this.inputFocusSubscription.unsubscribe();
+    }
     if (this.notificationSubscription) {
       this.notificationSubscription.unsubscribe();
     }
@@ -1157,6 +1159,14 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+
+     // Check if mobile validation dialog is open using DOM query
+     const mobileValidationDialog = document.querySelector('mobile-validation-error') as HTMLElement | null;
+     if (mobileValidationDialog) {
+       // Mobile validation dialog is open – don't process ESC in EditFeature
+       return;
+     }
+
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
@@ -1164,6 +1174,9 @@ export class EditFeature implements OnInit, OnDestroy {
         // A context menu is open – don't process ESC in EditFeature
         return;
       }
+      
+
+      
     }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
@@ -3041,6 +3054,7 @@ export class EditFeature implements OnInit, OnDestroy {
     
     const dialogRef = this._dialog.open(MobileValidationErrorDialog, {
       width: '600px',
+      autoFocus: true,
       data: {
         title: dialogTitle,
         message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`,
