@@ -327,6 +327,7 @@ export class EditFeature implements OnInit, OnDestroy {
   
   private notificationSubscription: Subscription;
   private configSubscriptions: Subscription[] = [];
+  private stepsSubscription: Subscription;
 
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
@@ -842,6 +843,10 @@ export class EditFeature implements OnInit, OnDestroy {
     this.inputFocusSubscription.unsubscribe();
     if (this.notificationSubscription) {
       this.notificationSubscription.unsubscribe();
+    }
+    // Clean up steps subscription
+    if (this.stepsSubscription) {
+      this.stepsSubscription.unsubscribe();
     }
     // Clean up config subscriptions
     this.configSubscriptions.forEach(sub => sub.unsubscribe());
@@ -1490,13 +1495,52 @@ export class EditFeature implements OnInit, OnDestroy {
           'step_content',
           'enabled',
           'screenshot',
-          'compare',
         ];
         for (let i = 0; i < currentSteps.length; i++) {
           for (const field of fieldsToCompare) {
             if (currentSteps[i][field] !== this.stepsOriginal[i][field]) {
               return true;
             }
+          }
+          
+          // Special handling for step_action - it's normalized to empty string if falsy
+          const originalStepAction = this.stepsOriginal[i].step_action;
+          const currentStepAction = currentSteps[i].step_action;
+          if (originalStepAction !== currentStepAction && 
+              !(originalStepAction === null && currentStepAction === '') &&
+              !(originalStepAction === undefined && currentStepAction === '')) {
+            return true;
+          }
+          
+          // Special handling for timeout - it's normalized to default value if not provided
+          const originalTimeout = this.stepsOriginal[i].timeout;
+          const currentTimeout = currentSteps[i].timeout;
+          const defaultTimeout = this.department?.settings?.step_timeout || 60;
+          if (originalTimeout !== currentTimeout && 
+              !(originalTimeout === null && currentTimeout === defaultTimeout) &&
+              !(originalTimeout === undefined && currentTimeout === defaultTimeout)) {
+            return true;
+          }
+          // Special handling for compare field - it's automatically normalized
+          // compare is only allowed when screenshot is true, so we need to check
+          // if there's an actual change beyond the automatic normalization
+          const originalCompare = this.stepsOriginal[i].compare;
+          const currentCompare = currentSteps[i].compare;
+          const originalScreenshot = this.stepsOriginal[i].screenshot;
+          const currentScreenshot = currentSteps[i].screenshot;
+          
+          // Only consider it a change if:
+          // 1. Original had screenshot=true and compare=true, but current has compare=false
+          // 2. Original had screenshot=false and compare=true, but current has screenshot=true and compare=false
+          // 3. User explicitly changed compare when screenshot is true
+          if (originalScreenshot && originalCompare && !currentCompare) {
+            return true;
+          }
+          if (!originalScreenshot && originalCompare && currentScreenshot && !currentCompare) {
+            return true;
+          }
+          if (currentScreenshot && originalCompare !== currentCompare) {
+            return true;
           }
         }
       } else {
@@ -1746,6 +1790,7 @@ export class EditFeature implements OnInit, OnDestroy {
         this.featureForm.get('send_notification').setValue(shouldEnableNotifications, { emitEvent: false });
       }
       
+      // Initialize stepsOriginal with the data steps, but it will be updated when steps are loaded from store
       this.stepsOriginal = this.data.steps;
     } else {
       // Code for creating a feature
@@ -1760,6 +1805,21 @@ export class EditFeature implements OnInit, OnDestroy {
     this.steps$ = this._store.select(
       CustomSelectors.GetFeatureSteps(featureId)
     );
+
+    // Subscribe to steps changes to update stepsOriginal with the normalized steps
+    this.stepsSubscription = this.steps$.subscribe(steps => {
+      if (steps && steps.length > 0) {
+        // Apply the same normalization logic as the step editor
+        const normalizedSteps = steps.map(step => ({
+          ...step,
+          compare: step.screenshot ? step.compare : false,
+          step_action: step.step_action || '',
+          timeout: step.timeout || this.department?.settings?.step_timeout || 60,
+          selected: false
+        }));
+        this.stepsOriginal = normalizedSteps;
+      }
+    });
 
     this.featureForm
       .get('department_name')
