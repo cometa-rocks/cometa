@@ -1717,17 +1717,6 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
       
-      // Handle the options field to set send_mail_on_error correctly
-      if (featureInfo.options) {
-        if (featureInfo.options === 'A') {
-          this.featureForm.get('send_mail_on_error').setValue(false, { emitEvent: false });
-        } else if (featureInfo.options === 'S') {
-          this.featureForm.get('send_mail_on_error').setValue('on_success', { emitEvent: false });
-        } else if (featureInfo.options === 'E') {
-          this.featureForm.get('send_mail_on_error').setValue(true, { emitEvent: false });
-        }
-      }
-      
       // Special handling for nested telegram_options FormGroup
       if (featureInfo.telegram_options) {
         const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
@@ -2223,17 +2212,6 @@ export class EditFeature implements OnInit, OnDestroy {
       if (!dataToSend.send_notification) {
         dataToSend.send_mail = false;
         dataToSend.send_telegram_notification = false;
-      }
-      
-      // Set the options field based on send_mail_on_error value
-      if (dataToSend.send_mail) {
-        if (dataToSend.send_mail_on_error === false) {
-          dataToSend.options = 'A'; // Always
-        } else if (dataToSend.send_mail_on_error === 'on_success') {
-          dataToSend.options = 'S'; // On Success
-        } else if (dataToSend.send_mail_on_error === true) {
-          dataToSend.options = 'E'; // On Error
-        }
       }
       
       // Construct schedule for sending

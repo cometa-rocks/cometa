@@ -811,13 +811,6 @@ class Step(models.Model):
                     {'step_action': f"Action with name '{self.step_action}' does not exist."}
                 )
                 
-# Email notification frequency choices
-EMAIL_NOTIFICATION_CHOICES = [
-    ('A', 'ALWAYS'),
-    ('E', 'ON ERROR'),
-    ('S', 'ON SUCCESS'),
-]
-
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
@@ -853,7 +846,6 @@ class Feature(models.Model):
     email_bcc_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
     email_subject = models.CharField(max_length=250, null=True, blank=True)
     email_body = models.TextField(null=True, blank=True)
-    options = models.CharField(max_length=1, choices=EMAIL_NOTIFICATION_CHOICES, null=True, blank=True)
     video = models.BooleanField(default=True)
     network_logging = models.BooleanField(default=False)
     generate_dataset = models.BooleanField(default=False)
@@ -866,19 +858,6 @@ class Feature(models.Model):
 
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
-    
-    @property
-    def email_notification_frequency(self):
-        """
-        Returns the email notification frequency based on options field.
-        Uses get_options_display() for the human-readable value.
-        """
-        if self.options:
-            return self.get_options_display()
-        else:
-            # Default behavior based on send_mail_on_error field for backward compatibility
-            return 'ON ERROR' if self.send_mail_on_error else 'ALWAYS'
-    
     def save(self, *args, **kwargs):
         new_feature = True
         self.slug = slugify(self.feature_name)
