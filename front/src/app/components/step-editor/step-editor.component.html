@@ -251,7 +251,6 @@
             </div>
             <!-- Textarea with autocomplete enabled -->
             <textarea
-              *ngIf="!disableStepAutocomplete"
               #stepTextarea
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
@@ -272,7 +271,6 @@
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
-
             <mat-list
               class="var_name_autoComplete"
               [ngStyle]="{
