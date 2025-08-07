@@ -71,6 +71,9 @@ import {
   SimpleAlertData,
   SimpleAlertDialog,
 } from '@dialogs/simple-alert/simple-alert.component';
+import {
+  MobileValidationErrorDialog,
+} from '@dialogs/mobile-validation-error/mobile-validation-error.component';
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
@@ -157,7 +160,8 @@ import { User } from '@store/actions/user.actions';
     DraggableWindowModule,
     MobileListComponent,
     FilesManagementComponent,
-    TelegramNotificationHelp
+    TelegramNotificationHelp,
+    MobileValidationErrorDialog
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -193,6 +197,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   departmentSettings$: Observable<Department['settings']>;
   variable_dialog_isActive: boolean = false;
+
 
   steps$: Observable<FeatureStep[]>;
 
@@ -444,6 +449,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private inputFocusService: InputFocusService,
     private logger: LogService,
   ) {
+
 
     this.featureId = this.data.feature.feature_id;
 
@@ -838,8 +844,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
-    return this._store.dispatch(new StepDefinitions.ClearNewFeature());
-    this.inputFocusSubscription.unsubscribe();
+    this._store.dispatch(new StepDefinitions.ClearNewFeature());
+    if (this.inputFocusSubscription) {
+      this.inputFocusSubscription.unsubscribe();
+    }
     if (this.notificationSubscription) {
       this.notificationSubscription.unsubscribe();
     }
@@ -1151,6 +1159,14 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+
+     // Check if mobile validation dialog is open using DOM query
+     const mobileValidationDialog = document.querySelector('mobile-validation-error') as HTMLElement | null;
+     if (mobileValidationDialog) {
+       // Mobile validation dialog is open – don't process ESC in EditFeature
+       return;
+     }
+
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
@@ -1158,6 +1174,9 @@ export class EditFeature implements OnInit, OnDestroy {
         // A context menu is open – don't process ESC in EditFeature
         return;
       }
+      
+
+      
     }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
@@ -2093,10 +2112,16 @@ export class EditFeature implements OnInit, OnDestroy {
     }
 
     // Validate mobile references in steps before saving
-    const validationResult = await this.validateMobileReferences();
-    if (!validationResult.isValid) {
-      await this.showMobileValidationError(validationResult.errors);
-      return;
+    let validationResult = await this.validateMobileReferences();
+    while (!validationResult.isValid) {
+      const action = await this.showMobileValidationError(validationResult.errors);
+      if (action === 'ignore') {
+        // User chose to ignore the errors, continue with save
+        break;
+      } else if (action === 'correct') {
+        // User chose to correct, cancel the save process completely
+        return;
+      }
     }
     
     // Get current steps from Store
@@ -3016,70 +3041,77 @@ export class EditFeature implements OnInit, OnDestroy {
   /**
    * Shows a dialog with mobile validation errors and allows user to navigate to problematic steps
    * @param errors Array of validation errors
+   * @returns Promise<MobileValidationAction> The action chosen by the user
    */
-  private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<void> {
+  private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<MobileValidationAction> {
     const errorMessages = errors.map(err => 
       `Step ${err.stepIndex}: ${err.error}`
     ).join('\n\n');
 
-    // Create a simple dialog with just OK button
+    // Create a dialog with Ignore and Correct buttons
     const errorCount = errors.length;
     const dialogTitle = errorCount === 1 ? 'Mobile Validation Error' : `Mobile Validation Errors (${errorCount} found)`;
     
-    const dialogRef = this._dialog.open(SimpleAlertDialog, {
+    const dialogRef = this._dialog.open(MobileValidationErrorDialog, {
       width: '600px',
+      autoFocus: true,
       data: {
         title: dialogTitle,
-        message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`
-      } as SimpleAlertData
+        message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`,
+        errors: errors
+      } as MobileValidationErrorData
     });
 
-    await dialogRef.afterClosed().toPromise();
+    const result = await dialogRef.afterClosed().toPromise();
     
-    // Navigate to the first error after dialog is closed
-    const firstError = errors[0];
-    if (firstError && this.stepEditor) {
-      // Open the Steps panel if it's not already open
-      const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
-      if (stepsPanel && !stepsPanel.expanded) {
-        stepsPanel.open();
-      }
-      
-      // Focus on the step with error
-      this.stepEditor.focusStep(firstError.stepIndex - 1);
-      
-      // Select the problematic text if we have position information
-      if (firstError.quoteStart !== undefined && firstError.quoteEnd !== undefined) {
-        setTimeout(() => {
-          const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
-          if (textarea) {
-            textarea.setSelectionRange(firstError.quoteStart, firstError.quoteEnd);
-            textarea.focus();
-            
-            // If this is a mobile code error, automatically open the mobile dropdown
-            const selectedText = textarea.value.substring(firstError.quoteStart, firstError.quoteEnd);
-            if (selectedText && /^[a-zA-Z0-9_-]+$/.test(selectedText) && selectedText.length >= 6) {
-              // This looks like a mobile code, trigger the dropdown
-              setTimeout(() => {
-                // Call the step editor's method to check and show mobile dropdown
-                this.stepEditor.checkAndShowMobileDropdown(textarea, firstError.stepIndex - 1, firstError.quoteStart);
-              }, 200);
+    // If user chose to correct, navigate to the first error
+    if (result === 'correct') {
+      const firstError = errors[0];
+      if (firstError && this.stepEditor) {
+        // Open the Steps panel if it's not already open
+        const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
+        if (stepsPanel && !stepsPanel.expanded) {
+          stepsPanel.open();
+        }
+        
+        // Focus on the step with error
+        this.stepEditor.focusStep(firstError.stepIndex - 1);
+        
+        // Select the problematic text if we have position information
+        if (firstError.quoteStart !== undefined && firstError.quoteEnd !== undefined) {
+          setTimeout(() => {
+            const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
+            if (textarea) {
+              textarea.setSelectionRange(firstError.quoteStart, firstError.quoteEnd);
+              textarea.focus();
+              
+              // If this is a mobile code error, automatically open the mobile dropdown
+              const selectedText = textarea.value.substring(firstError.quoteStart, firstError.quoteEnd);
+              if (selectedText && /^[a-zA-Z0-9_-]+$/.test(selectedText) && selectedText.length >= 6) {
+                // This looks like a mobile code, trigger the dropdown
+                setTimeout(() => {
+                  // Call the step editor's method to check and show mobile dropdown
+                  this.stepEditor.checkAndShowMobileDropdown(textarea, firstError.stepIndex - 1, firstError.quoteStart);
+                }, 200);
+              }
             }
-          }
-        }, 100);
+          }, 100);
+        }
+        
+        // Show a snackbar to indicate the errors
+        const errorCount = errors.length;
+        const snackbarMessage = errorCount === 1 
+          ? `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`
+          : `${errorCount} steps have invalid mobile references. Please update them.`;
+        
+        this._snackBar.open(
+          snackbarMessage, 
+          'OK', 
+          { duration: 8000 }
+        );
       }
-      
-      // Show a snackbar to indicate the errors
-      const errorCount = errors.length;
-      const snackbarMessage = errorCount === 1 
-        ? `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`
-        : `${errorCount} steps have invalid mobile references. Please update them.`;
-      
-      this._snackBar.open(
-        snackbarMessage, 
-        'OK', 
-        { duration: 8000 }
-      );
     }
+    
+    return result || 'ignore';
   }
 }
