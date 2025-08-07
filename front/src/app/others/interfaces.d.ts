@@ -213,7 +213,6 @@ interface Feature {
   cloud: string;
   send_mail: boolean;
   send_mail_on_error: boolean;
-  options?: string;
   email_address: string[];
   email_cc_address?: string[];
   email_bcc_address?: string[];
