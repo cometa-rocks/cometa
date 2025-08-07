@@ -376,15 +376,15 @@
               ></textarea>
           </mat-form-field>
           <br>
-          <mat-radio-group formControlName="email_notification_options">
+          <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
-            <mat-radio-button color="primary" [value]="'always'"
+            <mat-radio-button color="primary" [value]="false"
               >Always</mat-radio-button
             >
             <mat-radio-button color="primary" [value]="'on_success'"
               >On success</mat-radio-button
             >
-            <mat-radio-button color="primary" [value]="'on_error'"
+            <mat-radio-button color="primary" [value]="true"
               >On error</mat-radio-button
             >
           </mat-radio-group>
