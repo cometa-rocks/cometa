@@ -513,7 +513,7 @@ export class EditFeature implements OnInit, OnDestroy {
         override_chat_ids: [''],
         override_message_thread_id: ['']
       }),
-      email_notification_options: ['always'],
+      send_mail_on_error: [false],
       check_maximum_notification_on_error: [false],
       maximum_notification_on_error: ['3'],
       attach_pdf_report_to_email: [true],
@@ -1429,7 +1429,7 @@ export class EditFeature implements OnInit, OnDestroy {
           'email_bcc_address',
           'email_subject',
           'email_body',
-          'email_notification_options',
+          'send_mail_on_error',
           'maximum_notification_on_error',
           'check_maximum_notification_on_error',
           'attach_pdf_report_to_email',
@@ -1715,20 +1715,6 @@ export class EditFeature implements OnInit, OnDestroy {
         if (this.featureForm.get(key) instanceof UntypedFormControl) {
           this.featureForm.get(key).setValue(featureInfo[key], { emitEvent: false });
         }
-      }
-      
-      // Handle the options field to set email_notification_options correctly
-      if (featureInfo.options) {
-        if (featureInfo.options === 'A') {
-          this.featureForm.get('email_notification_options').setValue('always', { emitEvent: false });
-        } else if (featureInfo.options === 'S') {
-          this.featureForm.get('email_notification_options').setValue('on_success', { emitEvent: false });
-        } else if (featureInfo.options === 'E') {
-          this.featureForm.get('email_notification_options').setValue('on_error', { emitEvent: false });
-        }
-      } else {
-        // Default to 'always' if options field is not set
-        this.featureForm.get('email_notification_options').setValue('always', { emitEvent: false });
       }
       
       // Special handling for nested telegram_options FormGroup
@@ -2227,25 +2213,6 @@ export class EditFeature implements OnInit, OnDestroy {
         dataToSend.send_mail = false;
         dataToSend.send_telegram_notification = false;
       }
-      
-      // Set the options field based on email_notification_options value
-      // Only set options field if email notifications are enabled
-      // If email notifications are disabled, options should be empty/null
-      if (dataToSend.send_mail) {
-        if (dataToSend.email_notification_options === 'always') {
-          dataToSend.options = 'A'; // Always
-        } else if (dataToSend.email_notification_options === 'on_success') {
-          dataToSend.options = 'S'; // On Success
-        } else if (dataToSend.email_notification_options === 'on_error') {
-          dataToSend.options = 'E'; // On Error
-        }
-      } else {
-        // Email notifications disabled - clear position 0
-        dataToSend.options = null;
-      }
-      
-      // Remove the email_notification_options field from data being sent (we only send options)
-      delete dataToSend.email_notification_options;
       
       // Construct schedule for sending
       if (fValues.run_now) {

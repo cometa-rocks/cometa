@@ -8,6 +8,12 @@ services:
       - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
      - testing
     restart: always
@@ -19,6 +25,7 @@ services:
     build:
       context: ./backend/src
       dockerfile: Dockerfile
+    user: "0"  # This forces the container to run as root
     logging:
       driver: json-file
     command: bash start.sh -dev
@@ -50,7 +57,10 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+      
     # links:
     #   - behave:cometabehave.local
     networks:
@@ -63,6 +73,8 @@ services:
     platform: linux/amd64
     logging:
       driver: json-file
+    user: "0"  # This forces the container to run as root
+
     build:
       context: ./backend/behave
       dockerfile: Dockerfile
@@ -189,6 +201,8 @@ services:
     build:
       context: ./front
       dockerfile: Dockerfile
+    user: "0"  # This forces the container to run as root
+
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_front
