@@ -2194,14 +2194,10 @@ export class EditFeature implements OnInit, OnDestroy {
     const featureValidationResult = await this.validateFeatureReferences();
     if (!featureValidationResult.isValid) {
       const shouldContinue = await this.showFeatureValidationError(featureValidationResult.errors);
-      console.log('showFeatureValidationError returned:', shouldContinue);
       if (!shouldContinue) {
         // User pressed Escape, cancel the save process
-        console.log('Cancelling save process due to Escape');
         return;
       }
-      // User clicked "Correct", continue with save process
-      console.log('Continuing with save process after Correct click');
     }
     
     // Get current steps from Store
@@ -2212,7 +2208,6 @@ export class EditFeature implements OnInit, OnDestroy {
       if (this.stepEditor.stepsForm) {
         // Check steps validity
         if (!this.stepEditor.stepsForm.valid) {
-          console.log('Steps form is invalid, showing are-you-sure dialog');
           const result = await this.openAreYouSureDialog();
           if (!result) {
             // Focus on on first invalid step
@@ -3310,13 +3305,11 @@ export class EditFeature implements OnInit, OnDestroy {
     
     // If user pressed Escape (false), cancel the save process completely
     if (result === false) {
-      console.log('User pressed Escape, returning false');
       return false; // Return false to cancel the save process
     }
     
     // If user clicked "Correct" (true), proceed with navigation
     if (result === true) {
-      console.log('User clicked Correct, proceeding with navigation');
       // Navigate to the first error after dialog is closed
       const firstError = errors[0];
       if (firstError && this.stepEditor) {
