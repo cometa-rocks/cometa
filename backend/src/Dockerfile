@@ -6,8 +6,8 @@ LABEL AUTHOR="COMETA ROCKS S.L."
 SHELL ["/bin/bash", "-c"]
 
 # # Create a non-root user 'cometa' with UID and GID 472
-RUN groupadd -g 472 cometa && \
-    useradd -u 472 -g cometa -m cometa -s /bin/bash
+RUN groupadd -g 1472 cometa && \
+    useradd -u 1472 -g cometa -m cometa -s /bin/bash
 
 USER root
 

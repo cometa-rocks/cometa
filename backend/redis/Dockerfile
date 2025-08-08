@@ -5,8 +5,8 @@ FROM redis:7.2.0
 USER root
 
 # Create a non-root user 'cometa' with UID and GID 472
-RUN groupadd -g 472 cometa && \
-    useradd -r -u 472 -g 472 -m cometa
+RUN groupadd -g 1472 cometa && \
+    useradd -r -u 1472 -g 1472 -m cometa
 
 # Create the directory for Redis data and set the owner to 'cometa'
 RUN mkdir -p /data && \
