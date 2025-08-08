@@ -3301,7 +3301,6 @@ export class EditFeature implements OnInit, OnDestroy {
     });
 
     const result = await dialogRef.afterClosed().toPromise();
-    console.log('SimpleAlertDialog result:', result);
     
     // If user pressed Escape (false), cancel the save process completely
     if (result === false) {
