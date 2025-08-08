@@ -68,7 +68,6 @@ import {
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
 import {
-  SimpleAlertData,
   SimpleAlertDialog,
 } from '@dialogs/simple-alert/simple-alert.component';
 import {
@@ -1172,6 +1171,13 @@ export class EditFeature implements OnInit, OnDestroy {
        return;
      }
 
+     // Check if simple-alert dialog is open using DOM query
+     const simpleAlertDialog = document.querySelector('simple-alert') as HTMLElement | null;
+     if (simpleAlertDialog) {
+       // Simple alert dialog is open – don't process ESC in EditFeature
+       return;
+     }
+
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
@@ -2187,8 +2193,15 @@ export class EditFeature implements OnInit, OnDestroy {
     // Validate feature references in steps before saving
     const featureValidationResult = await this.validateFeatureReferences();
     if (!featureValidationResult.isValid) {
-      await this.showFeatureValidationError(featureValidationResult.errors);
-      return;
+      const shouldContinue = await this.showFeatureValidationError(featureValidationResult.errors);
+      console.log('showFeatureValidationError returned:', shouldContinue);
+      if (!shouldContinue) {
+        // User pressed Escape, cancel the save process
+        console.log('Cancelling save process due to Escape');
+        return;
+      }
+      // User clicked "Correct", continue with save process
+      console.log('Continuing with save process after Correct click');
     }
     
     // Get current steps from Store
@@ -2199,6 +2212,7 @@ export class EditFeature implements OnInit, OnDestroy {
       if (this.stepEditor.stepsForm) {
         // Check steps validity
         if (!this.stepEditor.stepsForm.valid) {
+          console.log('Steps form is invalid, showing are-you-sure dialog');
           const result = await this.openAreYouSureDialog();
           if (!result) {
             // Focus on on first invalid step
@@ -3272,8 +3286,9 @@ export class EditFeature implements OnInit, OnDestroy {
   /**
    * Shows a dialog with feature validation errors (name or ID) and allows user to navigate to problematic steps
    * @param errors Array of validation errors
+   * @returns true if user clicked "Correct", false if user pressed Escape
    */
-  private async showFeatureValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}>): Promise<void> {
+  private async showFeatureValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}>): Promise<boolean> {
     const errorMessages = errors.map(err => 
       `Step ${err.stepIndex}: ${err.error}`
     ).join('\n\n');
@@ -3290,47 +3305,61 @@ export class EditFeature implements OnInit, OnDestroy {
       } as SimpleAlertData
     });
 
-    await dialogRef.afterClosed().toPromise();
+    const result = await dialogRef.afterClosed().toPromise();
+    console.log('SimpleAlertDialog result:', result);
     
-    // Navigate to the first error after dialog is closed
-    const firstError = errors[0];
-    if (firstError && this.stepEditor) {
-      // Open the Steps panel if it's not already open
-      const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
-      if (stepsPanel && !stepsPanel.expanded) {
-        stepsPanel.open();
-      }
-      
-      // Focus on the step with error
-      this.stepEditor.focusStep(firstError.stepIndex - 1);
-      
-      // Select the problematic text inside quotes
-      setTimeout(() => {
-        const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
-        if (textarea) {
-          const content = textarea.value;
-          const match = content.match(/"([^"]*)"/);
-          if (match) {
-            const quoteStart = match.index + 1; // Position after opening quote
-            const quoteEnd = match.index + 1 + match[1].length; // Position at closing quote
-            
-            textarea.setSelectionRange(quoteStart, quoteEnd);
-            textarea.focus();
-          }
-        }
-      }, 100);
-      
-      // Show a snackbar to indicate the errors
-      const errorCount = errors.length;
-      const snackbarMessage = errorCount === 1 
-        ? `Step ${firstError.stepIndex} references a non-existent feature. Please correct it.`
-        : `${errorCount} steps reference non-existent features. Please correct them.`;
-      
-      this._snackBar.open(
-        snackbarMessage, 
-        'OK', 
-        { duration: 8000 }
-      );
+    // If user pressed Escape (false), cancel the save process completely
+    if (result === false) {
+      console.log('User pressed Escape, returning false');
+      return false; // Return false to cancel the save process
     }
+    
+    // If user clicked "Correct" (true), proceed with navigation
+    if (result === true) {
+      console.log('User clicked Correct, proceeding with navigation');
+      // Navigate to the first error after dialog is closed
+      const firstError = errors[0];
+      if (firstError && this.stepEditor) {
+        // Open the Steps panel if it's not already open
+        const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
+        if (stepsPanel && !stepsPanel.expanded) {
+          stepsPanel.open();
+        }
+        
+        // Focus on the step with error
+        this.stepEditor.focusStep(firstError.stepIndex - 1);
+        
+        // Select the problematic text inside quotes
+        setTimeout(() => {
+          const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
+          if (textarea) {
+            const content = textarea.value;
+            const match = content.match(/"([^"]*)"/);
+            if (match) {
+              const quoteStart = match.index + 1; // Position after opening quote
+              const quoteEnd = match.index + 1 + match[1].length; // Position at closing quote
+              
+              textarea.setSelectionRange(quoteStart, quoteEnd);
+              textarea.focus();
+            }
+          }
+        }, 100);
+        
+        // Show a snackbar to indicate the errors
+        const errorCount = errors.length;
+        const snackbarMessage = errorCount === 1 
+          ? `Step ${firstError.stepIndex} references a non-existent feature. Please correct it.`
+          : `${errorCount} steps reference non-existent features. Please correct them.`;
+        
+        this._snackBar.open(
+          snackbarMessage, 
+          'OK', 
+          { duration: 8000 }
+        );
+      }
+    }
+    
+    // Return true to continue with save process (user clicked "Correct")
+    return true;
   }
 }

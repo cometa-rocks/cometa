@@ -1199,3 +1199,8 @@ interface MobileValidationErrorData {
 }
 
 type MobileValidationAction = 'ignore' | 'correct';
+
+interface SimpleAlertData {
+  title?: string;
+  message?: string;
+}
