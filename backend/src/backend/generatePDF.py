@@ -188,27 +188,21 @@ class PDFAndEmailManager:
             logger.debug("Checking for maximum emails on error")
             # Check if current feature_result is failed
             # Check if number of sent notifications are less then maximum number set to send the notification  
-            email_frequency = feature.encoded_options.email_notification_frequency
-            
-            if self.feature_result.success:
-                # Test passed
-                if email_frequency in ['ALWAYS', 'ON SUCCESS']:
-                    should_send_the_email = True
-                    feature.number_notification_sent = 0
-                else:
-                    should_send_the_email = False
-                    feature.number_notification_sent = 0
-            else:
-                # Test failed
-                if email_frequency in ['ALWAYS', 'ON ERROR']:
-                    # Check if we haven't exceeded maximum notifications
-                    if feature.number_notification_sent < feature.maximum_notification_on_error:
-                        feature.number_notification_sent = feature.number_notification_sent + 1 
-                        should_send_the_email = True
-                    else:
-                        should_send_the_email = False
-                else:
-                    should_send_the_email = False
+            if self.feature_result.success and not feature.send_mail_on_error:
+                should_send_the_email = True
+                feature.number_notification_sent = 0
+                
+            elif self.feature_result.success:
+                should_send_the_email = False
+                feature.number_notification_sent = 0                
+                                
+            # Send email and increase number_notification_sent count by 1
+            elif feature.number_notification_sent < feature.maximum_notification_on_error:
+                feature.number_notification_sent = feature.number_notification_sent + 1 
+                should_send_the_email = True
+                
+            elif feature.number_notification_sent >= feature.maximum_notification_on_error:
+                should_send_the_email = False
         # In check_maximum_notification_on_error set number_notification_sent to 0 so that user can get the notification when new error is there
         else:
             feature.number_notification_sent = 0 
@@ -273,29 +267,14 @@ class PDFAndEmailManager:
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Send email is set to False. No email sent.")
             return False
 
-        # Check email notification frequency setting
-        email_frequency = self.feature_template.encoded_options.email_notification_frequency
-        
-        if email_frequency == 'ON ERROR':
-            self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Send email is set to ON ERROR.")
-            if self.feature_result.fails <= 0:
-                self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | No errors. Email not sent.")
+        # Check if the email is send on error only. If it is, check feature errors. If there is no errors, get out of execution and don't send email.
+        if(self.feature_template.send_mail_on_error == True):
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Send email is set to Send On Error.")
+            if(self.feature_result.fails <= 0):
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | No errors. Email not sent.")
                 return False
             else:
-                self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Errors found. Will send email.")
-        elif email_frequency == 'ON SUCCESS':
-            self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Send email is set to ON SUCCESS.")
-            if self.feature_result.fails > 0:
-                self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Test failed. Email not sent.")
-                return False
-            else:
-                self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Test succeeded. Will send email.")
-        elif email_frequency == 'ALWAYS':
-            self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Send email is set to ALWAYS. Will send email.")
-        else:
-            # This shouldn't happen if send_mail is True, but handle it just in case
-            self.my_logger.debug(f"[GeneratePDF] {self.feature_result.feature_id} | Unknown email frequency setting. Email not sent.")
-            return False
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Errors found. Will send email.")
 
         # Bad e-mail checking. If an email is not valid, it will get deleted. 
         # This is done to protect user from sending emails to unwanted directions.

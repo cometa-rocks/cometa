@@ -244,5 +244,9 @@
     "paste_steps_here": "Paste the steps you have copied at the current position in the list.",
     "delete_selected_steps": "Delete all selected steps from the list",
     "select_step_tooltip": "Select this step for bulk operations (copy, delete). Use Shift+Click to select multiple steps."
+  },
+  "mobile_validation": {
+    "ignore_tooltip": "If you ignore, the changes will be saved with the current mobile reference errors",
+    "correct_tooltip": "Navigate to the problematic step to fix the mobile reference error"
   }
 }

@@ -43,6 +43,7 @@ import {
   Observable,
   of,
   take,
+  fromEvent
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -168,6 +169,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Throttle Ctrl+Arrow operations to prevent erratic behavior
   private lastInsertTime: number = 0;
   private readonly INSERT_THROTTLE_MS = 200; // 0.5 seconds
+
+  // Mobile-specific properties
+  isMobileDevice: boolean = false;
+  isLandscape: boolean = false;
+  touchStartY: number = 0;
+  touchStartX: number = 0;
+  isDragging: boolean = false;
 
   @ViewChildren(MatListItem, { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
@@ -945,7 +953,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Ignore focus events during autocomplete selection to prevent interference
     if (this.isAutocompleteSelectionInProgress) {
-
       return;
     }
     
@@ -984,10 +991,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = text.split('"')[0].trim().toLowerCase();
-          const activatedAction = this.actions.find(action => {
-        const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
-        return actionPrefix === prefix;
-      });
+    const activatedAction = this.actions.find(action => {
+      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+      return actionPrefix === prefix;
+    });
     if (activatedAction) {
       // Context: immediately after this.stepsForm.at(index).patchValue
       this.stepsForm.at(index).patchValue({
@@ -1073,7 +1080,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.mobileDropdownStepIndex = i;
         this.mobileDropdownReplaceIndex = nextQuote.start - 1;
         
-        // Position the dropdown
+        // Position the dropdown with mobile-friendly adjustments
         setTimeout(() => {
           const coords = this.getCaretCoordinates(textarea, nextQuote.start);
           const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
@@ -1844,6 +1851,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   addEmpty(index: number = -1, openAutocomplete: boolean = false) {
+
     // Store the original focused step index before inserting
     const originalFocusedIndex = this.currentFocusedStepIndex;
     
