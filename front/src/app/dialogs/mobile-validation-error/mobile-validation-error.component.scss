@@ -19,3 +19,16 @@
 .cdk-overlay-pane.mobile-validation-dialog {
   z-index: 1001 !important;
 }
+
+// Error message styles
+.error-message {
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+// Dialog container styles
+.dialog-container {
+  outline: none;
+}

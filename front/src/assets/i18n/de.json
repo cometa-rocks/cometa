@@ -122,5 +122,9 @@
   "send_on": {
     "after_test_execution": "Immer",
     "after_test_execution_failed": "Bei Fehler"
+  },
+  "mobile_validation": {
+    "ignore_tooltip": "Wenn Sie ignorieren, werden die Änderungen mit den aktuellen mobilen Referenzfehlern gespeichert",
+    "correct_tooltip": "Navigieren Sie zum problematischen Schritt, um den mobilen Referenzfehler zu beheben"
   }
 }

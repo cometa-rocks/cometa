@@ -1160,12 +1160,13 @@ export class EditFeature implements OnInit, OnDestroy {
     event: KeyboardEvent
   ) {
 
-     // Check if mobile validation dialog is open using DOM query
-     const mobileValidationDialog = document.querySelector('mobile-validation-error') as HTMLElement | null;
-     if (mobileValidationDialog) {
-       // Mobile validation dialog is open – don't process ESC in EditFeature
-       return;
-     }
+    // Check if mobile validation dialog is open using DOM query
+    const mobileValidationDialog = document.querySelector('mobile-validation-error') as HTMLElement | null;
+
+    if (mobileValidationDialog) {
+      // Mobile validation dialog is open – don't process ESC in EditFeature
+      return;
+    }
 
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
@@ -1174,10 +1175,8 @@ export class EditFeature implements OnInit, OnDestroy {
         // A context menu is open – don't process ESC in EditFeature
         return;
       }
-      
-
-      
     }
+    
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
@@ -1191,6 +1190,13 @@ export class EditFeature implements OnInit, OnDestroy {
     if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
+          // Check if mobile validation dialog is open using DOM query
+          const mobileValidationDialog = document.querySelector('mobile-validation-error') as HTMLElement | null;
+          if (mobileValidationDialog) {
+            // Mobile validation dialog is open – don't process ESC in EditFeature
+            return;
+          }
+          
           // Check if form has been modified before closing
           if (this.hasChanged()) {
             this._dialog
@@ -2115,14 +2121,19 @@ export class EditFeature implements OnInit, OnDestroy {
     let validationResult = await this.validateMobileReferences();
     while (!validationResult.isValid) {
       const action = await this.showMobileValidationError(validationResult.errors);
+      console.log('Mobile validation action:', action);
       if (action === 'ignore') {
         // User chose to ignore the errors, continue with save
+        console.log('User chose to ignore, continuing with save');
         break;
-      } else if (action === 'correct') {
-        // User chose to correct, cancel the save process completely
+      } else if (action === 'correct' || action === undefined) {
+        // User chose to correct or pressed ESC, cancel the save process completely
+        console.log('User chose to correct or pressed ESC, canceling save');
         return;
       }
     }
+    
+    console.log('Continuing with save process after mobile validation');
     
     // Get current steps from Store
     let currentSteps = [];
@@ -3039,34 +3050,59 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   /**
-   * Shows a dialog with mobile validation errors and allows user to navigate to problematic steps
+   * Shows a dialog with mobile validation errors for mobile_code and mobile_name only
    * @param errors Array of validation errors
    * @returns Promise<MobileValidationAction> The action chosen by the user
    */
   private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<MobileValidationAction> {
-    const errorMessages = errors.map(err => 
+    // Filter errors to only include mobile_code and mobile_name issues
+    const mobileErrors = errors.filter(err => 
+      err.error.includes('mobile code') || err.error.includes('mobile name')
+    );
+
+    if (mobileErrors.length === 0) {
+      return 'ignore'; // No mobile code/name errors, continue
+    }
+
+    const errorMessages = mobileErrors.map(err => 
       `Step ${err.stepIndex}: ${err.error}`
     ).join('\n\n');
 
     // Create a dialog with Ignore and Correct buttons
-    const errorCount = errors.length;
-    const dialogTitle = errorCount === 1 ? 'Mobile Validation Error' : `Mobile Validation Errors (${errorCount} found)`;
+    const errorCount = mobileErrors.length;
+    const dialogTitle = errorCount === 1 ? 'Mobile Code/Name Error' : `Mobile Code/Name Errors (${errorCount} found)`;
     
     const dialogRef = this._dialog.open(MobileValidationErrorDialog, {
-      width: '600px',
-      autoFocus: true,
       data: {
         title: dialogTitle,
-        message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`,
-        errors: errors
-      } as MobileValidationErrorData
+        message: `The following mobile codes or names are no longer valid:\n\n${errorMessages}\n\nPlease update these mobile references before saving.`,
+        errors: mobileErrors
+      } as MobileValidationErrorData,
+      autoFocus: true,
+      panelClass: MobileValidationErrorDialog.panelClass,
+      disableClose: true,
+      hasBackdrop: true,
+      closeOnNavigation: true,
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      width: '600px'
+    });
+
+    // Handle ESC manually to return undefined
+    const escSubscription = dialogRef.keydownEvents().subscribe(event => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        event.preventDefault();
+        escSubscription.unsubscribe();
+        dialogRef.close(undefined);
+      }
     });
 
     const result = await dialogRef.afterClosed().toPromise();
     
-    // If user chose to correct, navigate to the first error
+    // If user chose to correct, navigate to the first error and show all errors in snackbar
     if (result === 'correct') {
-      const firstError = errors[0];
+      const firstError = mobileErrors[0];
       if (firstError && this.stepEditor) {
         // Open the Steps panel if it's not already open
         const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
@@ -3098,20 +3134,27 @@ export class EditFeature implements OnInit, OnDestroy {
           }, 100);
         }
         
-        // Show a snackbar to indicate the errors
-        const errorCount = errors.length;
-        const snackbarMessage = errorCount === 1 
-          ? `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`
-          : `${errorCount} steps have invalid mobile references. Please update them.`;
+        // Show a detailed snackbar with all error steps
+        const errorCount = mobileErrors.length;
+        let snackbarMessage = '';
+        
+        if (errorCount === 1) {
+          snackbarMessage = `Step ${firstError.stepIndex} has an invalid mobile code or name. Please update it.`;
+        } else {
+          const errorSteps = mobileErrors.map(err => `Step ${err.stepIndex}`).join(', ');
+          snackbarMessage = `${errorCount} steps have invalid mobile codes or names: ${errorSteps}. Currently focused on Step ${firstError.stepIndex}.`;
+        }
         
         this._snackBar.open(
           snackbarMessage, 
           'OK', 
-          { duration: 8000 }
+          { duration: 10000 }
         );
       }
     }
-    
-    return result || 'ignore';
+    // If result is undefined (ESC pressed), return undefined to cancel the save
+    // If result is 'ignore', return 'ignore' to continue with save
+    // If result is 'correct', return 'correct' to navigate to errors
+    return result;
   }
 }

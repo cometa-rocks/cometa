@@ -173,6 +173,10 @@
   "feature": {
     "starred": "Esta funcionalidad está en tus favoritos",
     "not_starred": "Añadir a favoritos"
+  },
+  "mobile_validation": {
+    "ignore_tooltip": "Si ignoras, los cambios se guardarán con los errores de referencia móvil actuales",
+    "correct_tooltip": "Navegar al paso problemático para corregir el error de referencia móvil"
   }
 
 }

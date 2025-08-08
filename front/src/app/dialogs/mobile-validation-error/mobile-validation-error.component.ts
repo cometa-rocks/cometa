@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Inject, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Inject, OnInit } from '@angular/core';
 import {
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
   MatLegacyDialogModule,
@@ -17,31 +17,10 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [MatLegacyDialogModule, MatLegacyButtonModule, MatLegacyTooltipModule, TranslateModule],
 })
 export class MobileValidationErrorDialog {
+  static panelClass = 'no-resize-dialog';
+
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: MobileValidationErrorData,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private dialogRef: MatDialogRef<MobileValidationErrorDialog>
   ) {}
-
-  @HostListener('document:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      
-      // Close dialog with 'ignore' response when Escape is pressed
-      this.dialogRef.close('ignore');
-    }
-  }
-
-  handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      
-      // Close dialog with 'ignore' response when Escape is pressed
-      this.dialogRef.close('ignore');
-    }
-  }
 }
