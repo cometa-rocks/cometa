@@ -1,0 +1,18 @@
+<div (keydown)="handleKeydown($event)" (click)="$event.stopPropagation()" tabindex="0" style="outline: none;">
+  <h2 mat-dialog-title>{{ data?.title }}</h2>
+  <mat-dialog-content>
+    <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: 0;">{{ data?.message }}</pre>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button color="warn" [mat-dialog-close]="'ignore'" 
+            matTooltip="{{ 'mobile_validation.ignore_tooltip' | translate }}"
+            matTooltipPosition="above">
+      Ignore
+    </button>
+    <button mat-stroked-button color="primary" [mat-dialog-close]="'correct'"
+            matTooltip="{{ 'mobile_validation.correct_tooltip' | translate }}"
+            matTooltipPosition="above">
+      Correct
+    </button>
+  </mat-dialog-actions>
+</div>

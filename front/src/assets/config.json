@@ -1,5 +1,5 @@
 {
-  "version": "3.0.89",
+  "version": "3.0.90",
   "stable_version": "3.0.75",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.90",
+      "date": "2025-08-07",
+      "features": [
+        {
+          "title": "Add informative popup in mobile steps with option to ignore or fix the issue - #6674",
+          "description": "Implemented an informational popup for mobile steps when a problem is detected. The popup clearly explains the issue and offers two options to the user: ignore the problem and continue, or fix the issue before proceeding. This improves user guidance and prevents silent errors in mobile step configurations."
+        }
+      ]
+    },
     {
       "version": "3.0.89",
       "date": "2025-08-07",
