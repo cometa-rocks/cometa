@@ -3,6 +3,7 @@
   <span>{{ data?.description }}</span>
 </mat-dialog-content>
 <mat-dialog-actions>
+  <button mat-stroked-button color="warn" [mat-dialog-close]="true">Yes</button>
   <button 
     autofocus
     mat-stroked-button 
@@ -10,5 +11,4 @@
     [mat-dialog-close]="false">
     No
   </button>
-  <button mat-stroked-button color="warn" [mat-dialog-close]="true">Yes</button>
 </mat-dialog-actions>
