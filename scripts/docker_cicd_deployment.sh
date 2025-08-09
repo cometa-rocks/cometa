@@ -51,6 +51,12 @@ if [ "$CI_COMMIT_BRANCH" == "master" ]; then
     VERSION_KEY="stable_version"
 fi
 
+echo "========================"
+echo "Version key: $VERSION_KEY"
+echo "========================"
+echo "CI_COMMIT_BRANCH: $CI_COMMIT_BRANCH"
+echo "========================"
+
 
 # get the version from the version.json file
 django_version=$(jq -r ".$VERSION_KEY" backend/src/version.json)
@@ -134,21 +140,19 @@ echo "Replacing @@COMETA_CRYPTO_PASSPHRASE@@ with $COMETA_CRYPTO_PASSPHRASE"
 sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache2/conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
 
 echo "docker-compose.yml updated with specific versions"
-
-echo "Stopping the docker compose and removing the orphan containers"
-docker compose down --remove-orphans
-
-echo "Starting the docker compose with the new images"
-docker compose up -d
+docker compose up -d --remove-orphans
 
 echo "Faicon path to be replaced: $COMETA_REPLACE_FAVICON_IN"
 echo "Current Branch: $CI_COMMIT_BRANCH"
 
-if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z "$CI_COMMIT_BRANCH" ]; then
-    echo "Replacing favicon in the front"
-    for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z"$CI_COMMIT_BRANCH" ]; then
+    echo "Replacing favicon in the front for branch: $CI_COMMIT_BRANCH and files: $COMETA_REPLACE_FAVICON_IN"
+    for FILE in ${COMETA_REPLACE_FAVICON_IN}; do 
+        echo "Replacing favicon in the front: $FILE"
+        docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; 
+    done
 fi
-
+ 
 
 echo -e "\e[0Ksection_start:`date +%s`:restart_front\r\e[0KRestarting front"
 docker exec cometa_front bash -c "httpd -k restart"
