@@ -6,11 +6,20 @@ from utils.curl_processor import parse_curl_command
 import requests
 import json
 from requests.exceptions import ConnectionError
+import traceback
 
 def get_schedules():
-    """Fetches scheduled tasks from a Django API and updates them in the scheduler."""
-    url = f"{get_django_server_url()}/api/schedule/"
-    response = requests.get(url)
+    try:
+        """Fetches scheduled tasks from a Django API and updates them in the scheduler."""
+        url = f"{get_django_server_url()}/api/schedule/"
+        response = requests.get(url)
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+        logger.error(f"Connection error while making HTTP request to Django server at {url}, maybe the server is starting up")
+        return []
+    except Exception as e:
+        logger.error(f"Failed to fetch schedules, {e}")
+        traceback.print_exc()
+        return []
 
     if response.status_code == 200:
         schedules = response.json().get('schedules', [])

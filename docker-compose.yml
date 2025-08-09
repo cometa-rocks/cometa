@@ -102,6 +102,12 @@ services:
       - NPM_CONFIG_LOGLEVEL=info
     expose:
       - "3001"
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
      - testing
 

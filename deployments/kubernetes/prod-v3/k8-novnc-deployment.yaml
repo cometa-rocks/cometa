@@ -18,11 +18,6 @@ spec:
         operator: "Equal"
         value: "amd"
         effect: "NoSchedule"
-      securityContext:
-        fsGroup: 472
-        runAsGroup: 472
-        runAsNonRoot: true
-        runAsUser: 472
       containers:
       - name: novnc
         image: cometa/novnc:1.6
@@ -36,8 +31,8 @@ spec:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsGroup: 472
-          runAsUser: 472
+          runAsGroup: 1472
+          runAsUser: 1472
           seccompProfile:
             type: RuntimeDefault
         resources:
