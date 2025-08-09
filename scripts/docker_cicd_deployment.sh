@@ -145,7 +145,7 @@ docker compose up -d --remove-orphans
 echo "Faicon path to be replaced: $COMETA_REPLACE_FAVICON_IN"
 echo "Current Branch: $CI_COMMIT_BRANCH"
 
-if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z"$CI_COMMIT_BRANCH" ]; then
+if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z "$CI_COMMIT_BRANCH" ]; then
     echo "Replacing favicon in the front for branch: $CI_COMMIT_BRANCH and files: $COMETA_REPLACE_FAVICON_IN"
     for FILE in ${COMETA_REPLACE_FAVICON_IN}; do 
         echo "Replacing favicon in the front: $FILE"
