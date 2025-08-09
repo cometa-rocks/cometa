@@ -19,11 +19,6 @@ spec:
         operator: "Equal"
         value: "amd"
         effect: "NoSchedule"
-      securityContext:
-        fsGroup: 472
-        runAsGroup: 472
-        runAsNonRoot: true
-        runAsUser: 472
       restartPolicy: Always
 
       containers:
@@ -43,8 +38,8 @@ spec:
               drop:
               - ALL
             runAsNonRoot: true
-            runAsGroup: 472
-            runAsUser: 472
+            runAsGroup: 1472
+            runAsUser: 1472
             seccompProfile:
               type: RuntimeDefault
           resources:
@@ -54,6 +49,22 @@ spec:
             requests:
               cpu: "0.25"
               memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
