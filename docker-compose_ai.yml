@@ -1,3 +1,4 @@
+name: cometa-ai-prod
 services:
   redis.ai:
     image: redis:latest

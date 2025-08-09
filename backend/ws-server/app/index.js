@@ -515,6 +515,11 @@ app.post('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
   res.status(200).json({ success: true, sentCount: totalSent });
 })
 
+// add health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ success: true, message: 'WS server is running' });
+})
+
 /* WS Endpoint: Mobile container status update */
 app.post('/mobile/container/status', (req, res) => {
   const containerId = req.body.container_id;

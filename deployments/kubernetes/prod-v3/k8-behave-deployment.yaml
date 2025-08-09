@@ -20,14 +20,8 @@ spec:
       - key: "architecture"
         operator: "Equal"
         value: "amd"
-        effect: "NoSchedule"
+        effect: "NoSchedule"    
         
-      securityContext:
-        fsGroup: 472
-        runAsGroup: 472
-        runAsNonRoot: true
-        runAsUser: 472
-      
       containers:
       - name: cometa-behave-container
         image: cometa/behave:latest
@@ -38,8 +32,8 @@ spec:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsGroup: 472
-          runAsUser: 472
+          runAsGroup: 1472
+          runAsUser: 1472
           seccompProfile:
             type: RuntimeDefault
         ports:
