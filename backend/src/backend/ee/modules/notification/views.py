@@ -271,7 +271,7 @@ def telegram_webhook(request):
     received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
     
     # Use timing-attack resistant comparison
-    if not hmac.compare_digest(received_secret, expected_secret):
+    if not hmac.compare_digest(received_secret.strip(), expected_secret.strip()):
         
         logger.warning(
             "Rejected Telegram webhook call due to invalid secret token",
