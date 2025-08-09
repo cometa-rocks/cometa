@@ -27,8 +27,8 @@ RUN mkdir -p /.pm2/logs \
 USER cometa
 
 # Copy application files and package.json with proper ownership
-COPY --chown=cometa:cometa app/ /home/cometa/app/app/
-COPY --chown=cometa:cometa package.json /home/cometa/app/
+COPY --chown=cometa:cometa ./app/ /home/cometa/app/app/
+COPY --chown=cometa:cometa ./package.json /home/cometa/app/package.json
 
 # Install dependencies
 RUN npm install

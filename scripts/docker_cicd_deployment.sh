@@ -146,6 +146,10 @@ if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z"$CI_COMMIT_BRANCH" ]; then
 fi
 
 
+echo -e "\e[0Ksection_start:`date +%s`:restart_front\r\e[0KRestarting front"
+docker exec cometa_front bash -c "httpd -k restart"
+echo -e "\e[0Ksection_end:`date +%s`:restart_front\r\e[0K"
+
 echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update database"
 docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 10"
 echo -e "\e[0Ksection_end:`date +%s`:parse_actions\r\e[0K"
