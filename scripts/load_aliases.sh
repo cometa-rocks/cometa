@@ -29,4 +29,7 @@ alias dsfb="docker compose -f docker-compose-dev.yml up --force-recreate apache 
 # Install django containers dependencies for debugging mode and start server
 alias dsd="docker exec -it cometa_django ./start.sh"
 
+# Get cometa containers ips
+alias dcip="docker ps -q | xargs docker inspect --format '{{.Name}} - {{.NetworkSettings.Networks.cometa_testing.IPAddress}}'"
+
 
