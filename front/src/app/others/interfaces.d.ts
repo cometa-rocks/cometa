@@ -309,7 +309,7 @@ interface BrowserResult {
 interface Department {
   department_id: number;
   department_name: string;
-  files?: [];
+  files?: UploadedFile[];
   slug?: string;
   settings?: any;
   users?: IAccount[];
@@ -1191,3 +1191,11 @@ interface FeatureData {
   depends_on_others?: boolean;
   schedule?: string;
 }
+
+interface MobileValidationErrorData {
+  title?: string;
+  message?: string;
+  errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>;
+}
+
+type MobileValidationAction = 'ignore' | 'correct';

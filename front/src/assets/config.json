@@ -1,6 +1,6 @@
 {
-  "version": "3.0.85",
-  "stable_version": "3.0.75",
+  "version": "3.0.90",
+  "stable_version": "3.0.90",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -240,6 +240,64 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.90",
+      "date": "2025-08-07",
+      "features": [
+        {
+          "title": "Add informative popup in mobile steps with option to ignore or fix the issue - #6674",
+          "description": "Implemented an informational popup for mobile steps when a problem is detected. The popup clearly explains the issue and offers two options to the user: ignore the problem and continue, or fix the issue before proceeding. This improves user guidance and prevents silent errors in mobile step configurations."
+        }
+      ]
+    },
+    {
+      "version": "3.0.89",
+      "date": "2025-08-07",
+      "features": [
+        {
+          "title": "Fix false \"Unsaved Changes\" warning and improve popup behavior - #6672",
+          "description": "Resolved an issue where the editor incorrectly showed a \"You have unsaved changes\" warning even when no modifications were made. The problem was related to the handling of \"Run with ID\" and \"Run with Name\" steps. Improved the popup response to accurately detect the problem and highlight the content inside quotes."
+        }
+      ]
+    },
+    {
+      "version": "3.0.88",
+      "date": "2025-08-06",
+      "features": [
+        {
+          "title": "Prefix/textarea Component Corrections - #6657",
+          "description": "Fixed prefix and textarea in different browsers."
+        }
+      ]
+    },
+    {
+      "version": "3.0.87",
+      "date": "2025-08-04",
+      "features": [
+        {
+          "title": "Step insertion behavior clarification",
+          "description": "When right-clicking and selecting 'Insert Step Above', the new step will be inserted above the current step. This action only occurs when right-clicking and selecting 'Insert Step below'; the new step will be added below the current one."
+        },
+        {
+          "title": "Added new email notification option 'On Success' - #6658",
+          "description": "A new option to enable email notifications only when features are executed successfully."
+        }
+      ]
+    },
+    {
+      "version": "3.0.86",
+      "date": "2025-08-02",
+      "features": [
+        {
+          "title": "Step editor improvements - #6650",
+          "description": "Step editor improvements, fixed issue with dropdown and add alert message when invalid mobile/package is selected."
+        },
+        {
+          "title": "Several fixes to file management for excel files - #6649",
+          "description": "Solved normalization issue with column headings, sheet navigation after uploading a file and other small fixes."
+        }
+      ]
+    },
     {
       "version": "3.0.85",
       "date": "2025-07-30",

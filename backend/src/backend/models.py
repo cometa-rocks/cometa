@@ -364,7 +364,7 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
         
         # While running test feature files is created that time we don't want to save steps to the database
         # this is to avoid step duplication in the database, because multiple thread try to create feature files at same time
-        if save_steps:
+        if True:
             
             from django.db import IntegrityError, transaction
             try:

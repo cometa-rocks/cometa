@@ -65,7 +65,9 @@ class ExcelGridHandler:
         
         try:
             if self.file_path.lower().endswith('.csv'):
-                df = pd.read_csv(self.file_path, header=0, skipinitialspace=True, skip_blank_lines=True)
+                # Read CSV with all columns as strings to preserve original formatting
+                df = pd.read_csv(self.file_path, header=0, skipinitialspace=True, skip_blank_lines=True, 
+                                dtype=str, keep_default_na=False, na_values=[''])
                 metadata['column_order'] = list(df.columns)
                 self.column_order = metadata['column_order']
                 
@@ -79,14 +81,16 @@ class ExcelGridHandler:
                     # Determine which sheet to read
                     if sheet_name and sheet_name in metadata['sheet_names']:
                         logger.info(f"Reading Excel file with specified sheet: {sheet_name}")
-                        df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+                        df = pd.read_excel(xls, sheet_name=sheet_name, header=0, dtype=str, 
+                                         keep_default_na=False, na_values=[''])
                         metadata['selected_sheet'] = sheet_name
                         self.selected_sheet = sheet_name
                     else:
                         # Use first sheet if no sheet specified or specified sheet not found
                         selected_sheet = metadata['sheet_names'][0] if metadata['sheet_names'] else 'Sheet1'
                         logger.info(f"Reading Excel file with first sheet: {selected_sheet}")
-                        df = pd.read_excel(xls, sheet_name=selected_sheet, header=0)
+                        df = pd.read_excel(xls, sheet_name=selected_sheet, header=0, dtype=str, 
+                                         keep_default_na=False, na_values=[''])
                         metadata['selected_sheet'] = selected_sheet
                         self.selected_sheet = selected_sheet
                     
@@ -107,12 +111,13 @@ class ExcelGridHandler:
                 
                 # Use requested sheet if specified and available
                 if sheet_name and sheet_name in metadata['sheet_names']:
-                    df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+                    df = pd.read_excel(xls, sheet_name=sheet_name, header=0, dtype=str, 
+                                     keep_default_na=False, na_values=[''])
                     metadata['selected_sheet'] = sheet_name
                     self.selected_sheet = sheet_name
                 else:
                     selected_sheet = metadata['sheet_names'][0] if metadata['sheet_names'] else 'Sheet1'
-                    df = pd.read_excel(xls, header=0)
+                    df = pd.read_excel(xls, header=0, dtype=str, keep_default_na=False, na_values=[''])
                     metadata['selected_sheet'] = selected_sheet
                     self.selected_sheet = selected_sheet
                 
@@ -136,12 +141,13 @@ class ExcelGridHandler:
             pd.DataFrame: DataFrame with normalized column names
         """
         if len(df.columns) > 0:
-            df.columns = df.columns.str.replace(" ", "_").str.lower()
+            df.columns = [DataFrameUtils.normalize_column_name(col) for col in df.columns]
         return df
     
     def check_data_driven_ready(self, df: pd.DataFrame) -> Dict[str, Any]:
         """
         Check if the data is ready for data-driven testing.
+        Validates both column presence AND data validity.
         
         Args:
             df (pd.DataFrame): DataFrame to check
@@ -149,21 +155,48 @@ class ExcelGridHandler:
         Returns:
             Dict[str, Any]: Data-driven readiness status
         """
-        ddr_ready = 'feature_id' in df.columns or 'feature_name' in df.columns
+        has_feature_id = 'feature_id' in df.columns
+        has_feature_name = 'feature_name' in df.columns
         
-        if ddr_ready:
-            return {
-                'data-driven-ready': True
-            }
-        else:
+        if not has_feature_id and not has_feature_name:
             return {
                 'data-driven-ready': False,
                 'reason': 'Missing \'feature_id\' or \'feature_name\' columns. This file can be viewed but not used for data-driven testing.'
             }
+        
+        # Additional validation: Check if feature_id values are valid (numeric when present)
+        if has_feature_id:
+            feature_id_column = df['feature_id']
+            invalid_rows = []
+            
+            for idx, value in enumerate(feature_id_column):
+                if pd.notna(value) and value is not None and str(value).strip():
+                    # Try to convert to numeric but keep as string
+                    try:
+                        float(str(value).strip())
+                    except (ValueError, TypeError):
+                        invalid_rows.append(idx + 1)  # 1-based row numbering
+            
+            if invalid_rows:
+                if len(invalid_rows) <= 5:  # Show specific rows if not too many
+                    rows_text = ', '.join(map(str, invalid_rows))
+                    return {
+                        'data-driven-ready': False,
+                        'reason': f'Invalid feature_id values in rows: {rows_text}. Feature IDs must be numeric (stored as text).'
+                    }
+                else:
+                    return {
+                        'data-driven-ready': False,
+                        'reason': f'Invalid feature_id values in {len(invalid_rows)} rows. Feature IDs must be numeric (stored as text).'
+                    }
+        
+        return {
+            'data-driven-ready': True
+        }
     
     def dataframe_to_json_records(self, df: pd.DataFrame) -> List[str]:
         """
-        Convert DataFrame to JSON records format.
+        Convert DataFrame to JSON records format while preserving all values as strings.
         
         Args:
             df (pd.DataFrame): DataFrame to convert
@@ -171,7 +204,20 @@ class ExcelGridHandler:
         Returns:
             List[str]: List of JSON string records
         """
-        return df.to_json(orient='records', lines=True).splitlines()
+        if df.empty:
+            return []
+        
+        # Convert the dataframe to preserve all values as strings
+        df_copy = df.copy()
+        
+        # Convert all non-null values to strings, preserving their exact representation
+        for col in df_copy.columns:
+            df_copy[col] = df_copy[col].apply(lambda x: str(x) if pd.notna(x) and x is not None else None)
+        
+        # Replace any 'nan' strings with None for proper JSON null representation
+        df_copy = df_copy.replace('nan', None)
+        
+        return df_copy.to_json(orient='records', lines=True).splitlines()
     
     def create_data_batches(self, json_data: List[str], batch_size: int = 100) -> List[Dict[str, Any]]:
         """
@@ -217,13 +263,36 @@ class ExcelGridHandler:
         # Read the file
         df, metadata = self.read_file_data(sheet_name)
         
-        # Normalize column names if requested
+        original_columns = list(df.columns)
+        metadata['original_column_order'] = original_columns
+        
+        # Check DDR status on ORIGINAL columns (case-insensitive)
+        ddr_status = None
+        is_ddr_file = False
+        if check_ddr:
+            normalized_columns = [DataFrameUtils.normalize_column_name(col) for col in original_columns]
+            is_ddr_file = 'feature_id' in normalized_columns or 'feature_name' in normalized_columns
+            
+            # Initial DDR status based on original columns
+            if is_ddr_file:
+                ddr_status = {'data-driven-ready': True}
+            else:
+                ddr_status = {
+                    'data-driven-ready': False,
+                    'reason': 'Missing \'feature_id\' or \'feature_name\' columns. This file can be viewed but not used for data-driven testing.'
+                }
+        
+        # Always normalize column names for consistency (including "Unnamed: n" -> "column_n" and special chars)
         if normalize_columns:
             df = self.normalize_column_names(df)
+            # Update column order to reflect normalized names
+            metadata['column_order'] = list(df.columns)
+        else:
+            # For cases where normalization is explicitly disabled, keep original column names
+            metadata['column_order'] = original_columns
         
-        # Check data-driven readiness if requested
-        ddr_status = None
-        if check_ddr:
+        # Final DDR check on processed dataframe
+        if check_ddr and is_ddr_file:
             ddr_status = self.check_data_driven_ready(df)
         
         # Convert to JSON records
@@ -243,6 +312,79 @@ class ExcelGridHandler:
         }
         
         return result
+    
+    def check_all_sheets_ddr_status(self) -> Dict[str, Any]:
+        """
+        Check DDR readiness across all sheets in a file.
+        Enterprise-grade implementation with proper error handling and logging.
+        """
+        ddr_sheets = []
+        sheet_details = {}
+        
+        try:
+            if self.file_path.lower().endswith('.csv'):
+                # CSV handling
+                df, metadata = self.read_file_data()
+                cols_normalized = [DataFrameUtils.normalize_column_name(col) for col in df.columns]
+                is_ddr = 'feature_id' in cols_normalized or 'feature_name' in cols_normalized
+                
+                sheet_details['CSV'] = {
+                    'is_ddr': is_ddr,
+                    'row_count': len(df),
+                    'columns': list(df.columns)
+                }
+                if is_ddr:
+                    ddr_sheets.append('CSV')
+                    
+            else:
+                # Excel handling with proper resource management
+                with pd.ExcelFile(self.file_path) as xls:
+                    for sheet_name in xls.sheet_names:
+                        try:
+                            # Read only header + few rows for efficiency
+                            df_sample = pd.read_excel(xls, sheet_name=sheet_name, nrows=5, dtype=str)
+                            
+                            if df_sample.empty:
+                                logger.debug(f"Sheet '{sheet_name}' is empty")
+                                continue
+                                
+                            cols_normalized = [DataFrameUtils.normalize_column_name(col) for col in df_sample.columns]
+                            is_ddr = 'feature_id' in cols_normalized or 'feature_name' in cols_normalized
+                            
+                            # Get actual row count efficiently
+                            df_full = pd.read_excel(xls, sheet_name=sheet_name, usecols=[0])
+                            row_count = len(df_full)
+                            
+                            sheet_details[sheet_name] = {
+                                'is_ddr': is_ddr,
+                                'row_count': row_count,
+                                'columns': list(df_sample.columns)
+                            }
+                            
+                            if is_ddr:
+                                ddr_sheets.append(sheet_name)
+                                logger.info(f"Sheet '{sheet_name}' is DDR-ready with {row_count} rows")
+                                
+                        except Exception as e:
+                            logger.error(f"Error processing sheet '{sheet_name}': {str(e)}", exc_info=True)
+                            sheet_details[sheet_name] = {'error': str(e)}
+                            
+        except Exception as e:
+            logger.error(f"Error checking DDR status for file {self.file_path}: {str(e)}", exc_info=True)
+            return {
+                'is_ddr_ready': False,
+                'error': f"File validation error: {str(e)}",
+                'ddr_sheets': [],
+                'sheet_details': {}
+            }
+        
+        return {
+            'is_ddr_ready': len(ddr_sheets) > 0,
+            'ddr_sheets': ddr_sheets,
+            'sheet_details': sheet_details,
+            'total_sheets': len(sheet_details),
+            'reason': None if ddr_sheets else 'No sheets contain required DDR columns (feature_id or feature_name)'
+        }
 
 
 def create_excel_handler(file_path: str) -> ExcelGridHandler:
@@ -317,6 +459,41 @@ class DataFrameUtils:
     """
     Utility class for DataFrame manipulation operations.
     """
+    
+    @staticmethod
+    def normalize_column_name(column_name: str) -> str:
+        """
+        Normalize a column name using the standard logic.
+        Replaces spaces with underscores, converts to lowercase, and handles special characters.
+        
+        Args:
+            column_name: Original column name
+            
+        Returns:
+            Normalized column name
+        """
+        if not column_name:
+            return column_name
+        
+        # First handle pandas "Unnamed: n" columns by converting to our standard format
+        if column_name.startswith("Unnamed: "):
+            number = column_name.replace("Unnamed: ", "")
+            return f"column_{number}"
+        
+        # Normalize the column name: replace spaces and special chars with underscores, lowercase
+        normalized = column_name.replace(" ", "_").replace("/", "_").replace("\\", "_")
+        normalized = normalized.replace(":", "_").replace("*", "_").replace("?", "_")
+        normalized = normalized.replace("<", "_").replace(">", "_").replace("|", "_")
+        normalized = normalized.replace('"', "_").replace("'", "_")
+        
+        # Remove multiple consecutive underscores and convert to lowercase
+        import re
+        normalized = re.sub(r'_+', '_', normalized).lower()
+        
+        # Remove leading/trailing underscores
+        normalized = normalized.strip('_')
+        
+        return normalized
     
     @staticmethod
     def clean_header_for_display(header: str) -> str:
@@ -408,11 +585,6 @@ class DataFrameUtils:
                 logger.info(f"Converting column '{col}' from complex type to string")
                 df_copy[col] = df_copy[col].apply(lambda x: str(x) if x is not None else '')
         
-        # Ensure feature_id is numeric if present
-        if 'feature_id' in df_copy.columns:
-            logger.info("Ensuring feature_id is properly formatted")
-            df_copy['feature_id'] = pd.to_numeric(df_copy['feature_id'], errors='coerce').fillna(0).astype(int)
-        
         return df_copy
     
     @staticmethod
@@ -430,7 +602,7 @@ class DataFrameUtils:
         header_to_field_map = {}
         
         for header in column_order:
-            field_name = header.lower().replace(' ', '_')
+            field_name = DataFrameUtils.normalize_column_name(header)
             field_to_header_map[field_name] = header
             header_to_field_map[header] = field_name
         
@@ -443,28 +615,33 @@ class DataFrameUtils:
         
         Args:
             df: DataFrame to reorder
-            column_order: Desired column order (display headers)
+            column_order: Desired column order (can be field names or display headers)
             
         Returns:
             DataFrame with reordered columns
         """
         df_copy = df.copy()
-        field_to_header_map, _ = DataFrameUtils.create_column_mapping(column_order)
-        
-        ordered_columns = []
         df_columns = df_copy.columns.tolist()
         
-        # First, add columns in the order specified by column_order
-        for header in column_order:
-            field_name = header.lower().replace(' ', '_')
-            if field_name in df_columns:
-                ordered_columns.append(field_name)
-                df_columns.remove(field_name)
+        ordered_columns = []
+        remaining_columns = df_columns.copy()
+        
+        # First, try direct matching (when column_order contains actual field names)
+        for col in column_order:
+            if col in remaining_columns:
+                ordered_columns.append(col)
+                remaining_columns.remove(col)
+            else:
+                # Try normalized version (in case column_order has display headers)
+                normalized = DataFrameUtils.normalize_column_name(col)
+                if normalized in remaining_columns:
+                    ordered_columns.append(normalized)
+                    remaining_columns.remove(normalized)
         
         # Then add any remaining columns that weren't in column_order
-        ordered_columns.extend(df_columns)
+        ordered_columns.extend(remaining_columns)
         
-        logger.info(f"Reordering DataFrame columns to: {ordered_columns}")
+        logger.info(f"Reordering DataFrame columns from {df_columns} to: {ordered_columns}")
         return df_copy[ordered_columns]
     
     @staticmethod
@@ -474,12 +651,18 @@ class DataFrameUtils:
         
         Args:
             df: DataFrame to rename
-            column_order: List of display headers
+            column_order: List of column names (can be field names or display headers)
             
         Returns:
             DataFrame with renamed columns
         """
         df_copy = df.copy()
+        
+        # Check if column_order contains the actual field names (no renaming needed)
+        if set(column_order).issubset(set(df_copy.columns)):
+            logger.info("Column order contains field names, no renaming needed")
+            return df_copy
+        
         field_to_header_map, _ = DataFrameUtils.create_column_mapping(column_order)
         
         rename_dict = {}
@@ -537,7 +720,7 @@ class DataFrameUtils:
             return df
         
         df_copy = df.copy()
-        column_mapping = {col.lower().replace(' ', '_'): col for col in original_columns}
+        column_mapping = {DataFrameUtils.normalize_column_name(col): col for col in original_columns}
         
         rename_dict = {}
         for col in df_copy.columns:

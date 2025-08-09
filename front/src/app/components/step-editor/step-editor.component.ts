@@ -43,6 +43,7 @@ import {
   Observable,
   of,
   take,
+  fromEvent
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -169,6 +170,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   private lastInsertTime: number = 0;
   private readonly INSERT_THROTTLE_MS = 200; // 0.5 seconds
 
+  // Mobile-specific properties
+  isMobileDevice: boolean = false;
+  isLandscape: boolean = false;
+  touchStartY: number = 0;
+  touchStartX: number = 0;
+  isDragging: boolean = false;
+
   @ViewChildren(MatListItem, { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
@@ -199,8 +207,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   mobileDropdownStepIndex: number | null = null;
   mobileDropdownReplaceIndex: number | null = null;
 
-  // Controls whether the step autocomplete should be disabled (e.g., when editing mobile name)
-  disableStepAutocomplete: boolean = false;
+
 
   // Holds the pixel width of the quoted content for the mobile dropdown
   mobileDropdownWidth: number = 180;
@@ -574,21 +581,33 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.showMobileDropdown = false;
     this.mobileDropdownStepIndex = null;
     this.mobileDropdownReplaceIndex = null;
-    this.disableStepAutocomplete = false;
+
+    // Only show dropdown if clicking directly on a placeholder text
+    this.checkAndShowMobileDropdown(textarea, index, cursorPos);
+  }
+
+  /**
+   * Checks if the cursor is on a mobile placeholder and shows dropdown only if clicking on placeholder text
+   */
+  public checkAndShowMobileDropdown(textarea: HTMLTextAreaElement, index: number, cursorPos: number) {
+    const value = textarea.value;
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const stepAction = stepFormGroup.get('step_action')?.value || '';
 
     // Regex to find all quoted substrings
     const regex = /"([^"]*)"/g;
     let match;
     let found = false;
+
     // Loop through all quoted substrings to find the one where the cursor is inside
     while ((match = regex.exec(value)) !== null) {
       const start = match.index + 1; // after first quote
       const end = start + match[1].length;
+      
       if (cursorPos >= start && cursorPos <= end) {
         // Cursor is inside these quotes
         const insideText = match[1];
-        const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-        const stepAction = stepFormGroup.get('step_action')?.value || '';
+        
         // Find all quoted substrings to determine parameter position using exec loop
         const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
         const quoteRegex = /"([^"]*)"/g;
@@ -601,6 +620,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
             end: quoteMatch.index + 1 + quoteMatch[1].length
           });
         }
+        
         let paramIndex = -1;
         for (let mi = 0; mi < allMatches.length; mi++) {
           const m = allMatches[mi];
@@ -609,88 +629,82 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
             break;
           }
         }
-        // Allow dropdown if:
-        // 1. The text matches the placeholder (as antes)
-        // 2. The text is empty and the action expects this parameter (for user help)
-        // 3. The action is 'On mobile start app' and we're on the first parameter (app package)
+
+        // Only show dropdown if the text is exactly a placeholder or if it's an empty quote in a mobile action
         let shouldShowDropdown = false;
         
-        if (stepAction && /on mobile start app/i.test(stepAction) && paramIndex === 0) {
-          this.mobileDropdownType = 'package';
+        // Check if it's exactly a placeholder text
+        if (insideText === '{mobile_name}' || insideText === '{mobile_code}' || insideText === '{app_package}') {
           shouldShowDropdown = true;
-        }
-        
-        if (
-          insideText === '{mobile_name}' ||
-          insideText === '{mobile_code}' ||
-          insideText === '{app_package}' ||
-          this.runningMobiles.some(m => m.image_name === insideText) ||
-          this.runningMobiles.some(m => m.hostname === insideText) ||
-          this.appPackages.includes(insideText)
-        ) {
-          shouldShowDropdown = true;
-          // Determine dropdown type based on the content
+          // Determine dropdown type based on the placeholder
           if (insideText === '{mobile_code}') {
             this.mobileDropdownType = 'code';
           } else if (insideText === '{app_package}') {
             this.mobileDropdownType = 'package';
           } else if (insideText === '{mobile_name}') {
             this.mobileDropdownType = 'name';
+          }
+        }
+        // Check if it's an existing mobile value (for editing)
+        else if (this.runningMobiles.some(m => m.image_name === insideText) ||
+                 this.runningMobiles.some(m => m.hostname === insideText) ||
+                 this.appPackages.includes(insideText)) {
+          shouldShowDropdown = true;
+          // Determine dropdown type based on what matches
+          const matchingMobile = this.runningMobiles.find(m => m.hostname === insideText);
+          if (matchingMobile) {
+            this.mobileDropdownType = 'code';
+          } else if (this.appPackages.includes(insideText)) {
+            this.mobileDropdownType = 'package';
           } else {
-            // For existing values, determine type based on what matches
-            const matchingMobile = this.runningMobiles.find(m => m.hostname === insideText);
-            if (matchingMobile) {
-              this.mobileDropdownType = 'code';
-            } else {
-              // Check if it's an app package
-              if (this.appPackages.includes(insideText)) {
-                this.mobileDropdownType = 'package';
-              } else {
-                // Default to name for image_name matches
-                this.mobileDropdownType = 'name';
-              }
-            }
+            this.mobileDropdownType = 'name';
           }
-          
-          // Show dropdown if conditions are met
-          if (shouldShowDropdown) {
-            // Always refresh the list of running mobiles before showing the dropdown
-            this.fetchRunningMobiles();
+        }
+        // Special case for "On mobile start app" action with empty first parameter
+        else if (stepAction && /on mobile start app/i.test(stepAction) && paramIndex === 0 && insideText === '') {
+          this.mobileDropdownType = 'package';
+          shouldShowDropdown = true;
+        }
+        
+        // Show dropdown if conditions are met
+        if (shouldShowDropdown) {
+          // Always refresh the list of running mobiles before showing the dropdown
+          this.fetchRunningMobiles();
 
-            this.showMobileDropdown = true;
-            this.mobileDropdownStepIndex = index;
-            this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
+          this.showMobileDropdown = true;
+          this.mobileDropdownStepIndex = index;
+          this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
 
-            // Always recalculate the dropdown position and width every time it is shown
-            setTimeout(() => {
-              const coords = this.getCaretCoordinates(textarea, start);
-              const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-              // Add offset: -120px to top, 18px to left for better dropdown positioning
-              // This ensures the dropdown appears above and slightly to the right of the quote
-              const left = textarea.offsetLeft + coords.left + 18;
-              const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-              const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
-              this.mobileDropdownWidth = dropdownWidth;
-              this._cdr.detectChanges();
-              dropdownEl.style.left = `${left}px`;
-              dropdownEl.style.top = `${top}px`;
-              dropdownEl.style.minWidth = `${dropdownWidth}px`;
-            }, 0);
+          // Always recalculate the dropdown position and width every time it is shown
+          setTimeout(() => {
+            const coords = this.getCaretCoordinates(textarea, start);
+            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
+            // Add offset: -120px to top, 18px to left for better dropdown positioning
+            // This ensures the dropdown appears above and slightly to the right of the quote
+            const left = textarea.offsetLeft + coords.left + 18;
+            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
+            const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
+            this.mobileDropdownWidth = dropdownWidth;
+            this._cdr.detectChanges();
+            dropdownEl.style.left = `${left}px`;
+            dropdownEl.style.top = `${top}px`;
+            dropdownEl.style.minWidth = `${dropdownWidth}px`;
+          }, 0);
 
-            this.disableStepAutocomplete = true; // Disable autocomplete when editing mobile name/code/package/activity
-            this.dropdownActiveIndex = 0;
-            found = true;
-            break; // Stop after finding the correct match
-          }
+
+          this.dropdownActiveIndex = 0;
+          found = true;
+          break; // Stop after finding the correct match
         }
       }
     }
+    
     // If not found, always hide the dropdown and reset related state
     if (!found) {
       this.showMobileDropdown = false;
       this.mobileDropdownStepIndex = null;
       this.mobileDropdownReplaceIndex = null;
-      this.disableStepAutocomplete = false; // Enable autocomplete otherwise
+
       this._cdr.detectChanges();
     }
   }
@@ -937,7 +951,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Ignore focus events during autocomplete selection to prevent interference
     if (this.isAutocompleteSelectionInProgress) {
-
       return;
     }
     
@@ -976,10 +989,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = text.split('"')[0].trim().toLowerCase();
-          const activatedAction = this.actions.find(action => {
-        const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
-        return actionPrefix === prefix;
-      });
+    const activatedAction = this.actions.find(action => {
+      const actionPrefix = action.action_name.split('"')[0].trim().toLowerCase();
+      return actionPrefix === prefix;
+    });
     if (activatedAction) {
       // Context: immediately after this.stepsForm.at(index).patchValue
       this.stepsForm.at(index).patchValue({
@@ -987,66 +1000,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       });
     }
 
-    // Check if the step contains mobile placeholders and auto-open dropdown for the first one
-    const textarea = event.target as HTMLTextAreaElement;
-    if (textarea) {
-      const value = textarea.value;
-      // Find all quoted substrings to check for placeholders
-      const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
-      const quoteRegex = /"([^"]*)"/g;
-      let quoteMatch;
-      while ((quoteMatch = quoteRegex.exec(value)) !== null) {
-        allMatches.push({
-          index: quoteMatch.index,
-          text: quoteMatch[1],
-          start: quoteMatch.index + 1,
-          end: quoteMatch.index + 1 + quoteMatch[1].length
-        });
-      }
-      
-      // Find the first placeholder and open dropdown
-      for (let mi = 0; mi < allMatches.length; mi++) {
-        const m = allMatches[mi];
-        if (m.text.includes('{mobile_name}') || m.text.includes('{mobile_code}') || 
-            m.text.includes('{app_package}')) {
-          
-          // Set dropdown type based on placeholder
-          if (m.text.includes('{mobile_code}')) {
-            this.mobileDropdownType = 'code';
-          } else if (m.text.includes('{app_package}')) {
-            this.mobileDropdownType = 'package';
-          } else {
-            this.mobileDropdownType = 'name';
-          }
-          
-          // Always refresh the list of running mobiles before showing the dropdown
-          this.fetchRunningMobiles();
-          
-          this.showMobileDropdown = true;
-          this.mobileDropdownStepIndex = index;
-          this.mobileDropdownReplaceIndex = m.start - 1;
-          
-          // Position the dropdown
-          setTimeout(() => {
-            const coords = this.getCaretCoordinates(textarea, m.start);
-            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-            const left = textarea.offsetLeft + coords.left + 18;
-            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-            const dropdownWidth = Math.max(this.measureTextWidth(m.text, textarea), 120);
-            this.mobileDropdownWidth = dropdownWidth;
-            this._cdr.detectChanges();
-            dropdownEl.style.left = `${left}px`;
-            dropdownEl.style.top = `${top}px`;
-            dropdownEl.style.minWidth = `${dropdownWidth}px`;
-          }, 0);
-          
-          this.disableStepAutocomplete = true;
-          this.dropdownActiveIndex = 0;
-          break; // Only open dropdown for the first placeholder found
-        }
-      }
-    }
-    
+    // Don't automatically show mobile dropdown on focus - only show when user clicks on placeholder text
     this._cdr.detectChanges();
   }
 
@@ -1101,15 +1055,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       textarea.setSelectionRange(nextQuote.start, nextQuote.end);
       
       // Check if the next quote contains a placeholder and open corresponding dropdown
-      if (nextQuote.text.includes('{mobile_name}') || nextQuote.text.includes('{mobile_code}') || 
-          nextQuote.text.includes('{app_package}')) {
+      // Only show dropdown if the text is exactly a placeholder or if it's an existing mobile value
+      if (nextQuote.text === '{mobile_name}' || nextQuote.text === '{mobile_code}' || 
+          nextQuote.text === '{app_package}' ||
+          this.runningMobiles.some(m => m.image_name === nextQuote.text) ||
+          this.runningMobiles.some(m => m.hostname === nextQuote.text) ||
+          this.appPackages.includes(nextQuote.text)) {
         
-        // Set dropdown type based on placeholder
-        if (nextQuote.text.includes('{mobile_code}')) {
+        // Set dropdown type based on placeholder or existing value
+        if (nextQuote.text === '{mobile_code}' || this.runningMobiles.some(m => m.hostname === nextQuote.text)) {
           this.mobileDropdownType = 'code';
-        } else if (nextQuote.text.includes('{app_package}')) {
+        } else if (nextQuote.text === '{app_package}' || this.appPackages.includes(nextQuote.text)) {
           this.mobileDropdownType = 'package';
-        }  else {
+        } else {
           this.mobileDropdownType = 'name';
         }
         
@@ -1120,7 +1078,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.mobileDropdownStepIndex = i;
         this.mobileDropdownReplaceIndex = nextQuote.start - 1;
         
-        // Position the dropdown
+        // Position the dropdown with mobile-friendly adjustments
         setTimeout(() => {
           const coords = this.getCaretCoordinates(textarea, nextQuote.start);
           const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
@@ -1134,7 +1092,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           dropdownEl.style.minWidth = `${dropdownWidth}px`;
         }, 0);
         
-        this.disableStepAutocomplete = true;
+
         this.dropdownActiveIndex = 0;
       }
       
@@ -1854,7 +1812,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.showMobileDropdown = false;
       this.mobileDropdownStepIndex = null;
       this.mobileDropdownReplaceIndex = null;
-      this.disableStepAutocomplete = false;
+
     }
 
     // Reset focused step
@@ -1889,6 +1847,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   addEmpty(index: number = -1, openAutocomplete: boolean = false) {
 
+    // Store the original focused step index before inserting
+    const originalFocusedIndex = this.currentFocusedStepIndex;
     
     const template = this._fb.group({
       enabled: [true],
@@ -1913,6 +1873,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     
     const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
 
+    // Deselect the current step first (simulate manual deselection)
+    if (originalFocusedIndex !== null) {
+      this.currentFocusedStepIndex = null;
+      this._cdr.detectChanges();
+    }
     
     // Focus and open autocomplete with proper timing
     setTimeout(() => {
@@ -1921,9 +1886,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       if (textareas && textareas[stepIndex]) {
         const textarea = textareas[stepIndex].nativeElement as HTMLTextAreaElement;
         if (textarea) {
-          // Set the current focused step index right before focusing
-          this.currentFocusedStepIndex = stepIndex;
-  
+          // Simulate a click on the textarea to trigger the focus event properly
+          // This will call onTextareaFocus which sets currentFocusedStepIndex
+          textarea.click();
+          
+          // Also explicitly focus to ensure autocomplete opens
           textarea.focus();
           
           // Open autocomplete if requested
@@ -1936,9 +1903,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         const textareas = this._elementRef.nativeElement.querySelectorAll('textarea.code');
         const textarea = textareas[stepIndex] as HTMLTextAreaElement;
         if (textarea) {
-          // Set the current focused step index right before focusing
-          this.currentFocusedStepIndex = stepIndex;
-  
+          // Simulate a click on the textarea to trigger the focus event properly
+          textarea.click();
+          
+          // Also explicitly focus to ensure autocomplete opens
           textarea.focus();
           
           // Open autocomplete if requested
