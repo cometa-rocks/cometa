@@ -1,37 +1,40 @@
 # Use Node.js version 22 LTS as the base image
 FROM node:22
 
+# Create cometa user/group (uid/gid 1472) and set working directory
+RUN groupadd -g 1472 cometa \
+    && useradd -u 1472 -g cometa -m cometa -s /bin/bash
+
 # Set the working directory inside the container
-WORKDIR /home/node/app
+WORKDIR /home/cometa/app
 
-# chown folder permissions
-RUN chown -R node:node /home/node/app
+# Ensure app directory owned by cometa
+RUN chown -R cometa:cometa /home/cometa/app
 
-# npm settings
-RUN mkdir -p npm
-RUN touch ./npm/test
-RUN chown -R node:node ./npm
-RUN chmod -R 755 ./npm
+# npm settings (project-local dir)
+RUN mkdir -p npm \
+    && touch ./npm/test \
+    && chown -R cometa:cometa ./npm \
+    && chmod -R 755 ./npm
 
-# pm2 settings
-RUN mkdir -p /.pm2/logs
-RUN touch /.pm2/test
-RUN chown -R node:node /.pm2
-RUN chmod -R 777 /.pm2
+# pm2 settings (keep same path but owned by cometa for compatibility)
+RUN mkdir -p /.pm2/logs \
+    && touch /.pm2/test \
+    && chown -R cometa:cometa /.pm2 \
+    && chmod -R 777 /.pm2
 
 # Switch to non-root user
-USER node
+USER cometa
 
 # Copy application files and package.json with proper ownership
-COPY --chown=node:node app/ /home/node/app/app/
-COPY --chown=node:node package.json /home/node/app/
+COPY --chown=cometa:cometa app/ /home/cometa/app/app/
+COPY --chown=cometa:cometa package.json /home/cometa/app/
 
 # Install dependencies
 RUN npm install
 
-# Change ownership to non-root 'node' user for all app directories and set permissions
-
-RUN chmod -R 755 /home/node/app/node_modules
+# Permissions for dependencies directory
+RUN chmod -R 755 /home/cometa/app/node_modules
 
 # Expose the port the app runs on
 EXPOSE 3001

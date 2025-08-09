@@ -19,11 +19,6 @@ spec:
         value: "amd"
         effect: "NoSchedule"
       
-      securityContext:
-        fsGroup: 472
-        runAsGroup: 472
-        runAsNonRoot: true
-        runAsUser: 472
       containers:
       - name: cometa-front-container
         image: cometa/front:latest
@@ -84,6 +79,9 @@ spec:
            
         securityContext:
           allowPrivilegeEscalation: true
+          runAsNonRoot: true
+          runAsGroup: 1472
+          runAsUser: 1472
         resources:
           limits:
             cpu: "2"
