@@ -140,9 +140,10 @@ echo "Replacing @@COMETA_CRYPTO_PASSPHRASE@@ with $COMETA_CRYPTO_PASSPHRASE"
 sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache2/conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
 
 echo "docker-compose.yml updated with specific versions"
-
-# restart containers with minimal downtime: recreate changed and remove orphans
 docker compose up -d --remove-orphans
+
+echo "Faicon path to be replaced: $COMETA_REPLACE_FAVICON_IN"
+echo "Current Branch: $CI_COMMIT_BRANCH"
 
 if [ -z "$COMETA_REPLACE_FAVICON_IN" && -z"$CI_COMMIT_BRANCH" ]; then
     echo "Replacing favicon in the front for branch: $CI_COMMIT_BRANCH and files: $COMETA_REPLACE_FAVICON_IN"
