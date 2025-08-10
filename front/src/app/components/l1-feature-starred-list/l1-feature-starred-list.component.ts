@@ -46,6 +46,9 @@ interface TableData {
 })
 
 export class L1FeatureStarredListComponent implements OnInit {
+  // Static reference to access the trackBy function
+  L1FeatureItemListComponent = L1FeatureItemListComponent;
+  
   @Input() data$?: Observable<TableData>;
   starredFeatures$: Observable<FeatureData[]> = of([]);
   groupedFeatures$!: Observable<Map<string, FeatureData[]>>;

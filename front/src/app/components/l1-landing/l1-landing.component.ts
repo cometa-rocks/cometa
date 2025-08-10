@@ -124,6 +124,9 @@ import { TranslateModule } from '@ngx-translate/core';
   ],
 })
 export class L1LandingComponent implements OnInit {
+  // Static reference to access the trackBy function
+  L1FeatureItemListComponent = L1FeatureItemListComponent;
+  
   constructor(
     private _router: Router,
     private _dialog: MatDialog,

@@ -1192,3 +1192,14 @@ interface FeatureData {
   depends_on_others?: boolean;
   schedule?: string;
 }
+
+// Interface for cached feature data in l1-feature-item-list component
+interface CachedFeatureData {
+  total: number;
+  time: number;
+  date: string | null;
+  status: string;
+  lastUpdated: number;
+  departmentId: number;
+  featureData: any; // Store complete feature data for comprehensive state restoration
+}

@@ -495,6 +495,23 @@ export class FeaturesState {
     { department_id }: Features.SetDepartmentFilter
   ) {
     patchState({ departments: department_id });
+    
+    // Clear feature cache when department filter changes
+    this.clearFeatureCache();
+  }
+
+  /**
+   * Clears the feature cache when department filter changes
+   * Uses dynamic import to avoid circular dependencies
+   */
+  private async clearFeatureCache() {
+    try {
+      // Dynamically import the component to avoid circular dependencies
+      const { L1FeatureItemListComponent } = await import('@components/l1-feature-item-list/l1-feature-item-list.component');
+      L1FeatureItemListComponent.clearAllCache();
+    } catch (error) {
+      // Silent error handling
+    }
   }
 
   @Action(Features.SetApplicationFilter)
@@ -772,6 +789,23 @@ export class FeaturesState {
    */
   static static_setSelectedDepartment(departent: number){
     this.selectedDepartmentId = departent
+    
+    // Clear feature cache when static department changes
+    this.clearFeatureCache();
+  }
+
+  /**
+   * Clears the feature cache when department changes
+   * Uses dynamic import to avoid circular dependencies
+   */
+  private static async clearFeatureCache() {
+    try {
+      // Dynamically import the component to avoid circular dependencies
+      const { L1FeatureItemListComponent } = await import('@components/l1-feature-item-list/l1-feature-item-list.component');
+      L1FeatureItemListComponent.clearAllCache();
+    } catch (error) {
+      // Silent error handling
+    }
   }
 
   /**
