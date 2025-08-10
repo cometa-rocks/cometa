@@ -5,6 +5,7 @@ Component containing the item view features and folder list
 Author: dph000
 
 -->
+<!-- DEBUG: item.type = {{ item.type }} -->
 <ng-container
   class="items-container"
   *ngIf="item.type === 'feature'; else folderItem">
@@ -73,10 +74,14 @@ Author: dph000
         </div>
         <div 
           class="run" 
-          [class.run-disabled]="isButtonDisabled"
+          [class.run-disabled]="isButtonDisabled || shouldDisableRunButton()"
+          [class.browser-version-disabled]="shouldDisableRunButton()"
           [class.running]="running"
+          [matTooltip]="shouldDisableRunButton() ? ('modify_browser_version' | translate) : ''"
+          [matTooltipDisabled]="!shouldDisableRunButton()"
+          matTooltipPosition="above"
           stopPropagation 
-          (click)="isButtonDisabled && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
+          (click)="(isButtonDisabled || shouldDisableRunButton()) && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
           <div class="triangle"></div>
           <ng-container *ngIf="!isButtonDisabled">
             <ng-container [ngSwitch]="running">
@@ -84,16 +89,20 @@ Author: dph000
               <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="isButtonDisabled && !running">
+          <ng-container *ngIf="isButtonDisabled && !running && !shouldDisableRunButton()">
             <mat-icon class="state-icon">hourglass_empty</mat-icon>
           </ng-container>
           <ng-container *ngIf="isButtonDisabled && running">
             <mat-icon class="state-icon">remove_red_eye</mat-icon>
           </ng-container>
+          <ng-container *ngIf="shouldDisableRunButton() && !running">
+            <mat-icon class="state-icon">block</mat-icon>
+          </ng-container>
           <span style="vertical-align: middle">
-            <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
-            <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
+            <ng-container *ngIf="!isButtonDisabled && !running && !shouldDisableRunButton()">Run</ng-container>
+            <ng-container *ngIf="isButtonDisabled && !running && !shouldDisableRunButton()">Wait...</ng-container>
             <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
+            <ng-container *ngIf="shouldDisableRunButton() && !running">Disabled</ng-container>
           </span>
         </div>
       <!-- Feature go to folder -->
@@ -248,6 +257,11 @@ Author: dph000
                 [matTooltip]="getUniqueBrowserTooltip(browser.browser)"
                 matTooltipPosition="above"
                 [ngClass]="browser.browser"></i>
+              <mat-icon 
+                *ngIf="shouldDisableRunButton()"
+                class="browser-version-warning"
+                matTooltip="('modify_browser_version' | translate)"
+                matTooltipPosition="above">keyboard_arrow_down</mat-icon>
             </div>
           </div>
           <span *ngIf="item.browsers.length === 1">{{ item.browsers[0] | browserComboText }}</span>

@@ -8,6 +8,9 @@
 import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy, TrackByFunction } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
+import { BrowsersState } from '@store/browsers.state';
+import { BrowserstackState } from '@store/browserstack.state';
+import { Browserstack } from '@store/actions/browserstack.actions';
 import { Observable, switchMap, tap, map, filter, take, Subject, BehaviorSubject } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
@@ -130,41 +133,37 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   lastFeatureResult$: Observable<FeatureResult | IResult>;
 
   ngOnInit() {
-    this.log.msg('1', 'Initializing component...', 'feature-item-list');
-
     // Initialize cache if not already done
     if (!L1FeatureItemListComponent.cacheInitialized) {
       L1FeatureItemListComponent.initializeCache();
     }
 
-    // Apply cached data if available
-    this.applyCachedData();
-
-    // Ensure button is in correct state on initialization
-    // Check if feature is currently running and set button state accordingly
-    if (this.item.status && (this.item.status === 'running' || this.item.status === 'pending')) {
-      this.running = true;
-      this.isButtonDisabled = true;
+    // Only apply cached data if we don't already have valid data
+    // This prevents overwriting valid data with potentially stale cached data
+    if (!this.item.total || !this.item.time || !this.item.date) {
+      this.applyCachedData();
     } else {
-      this.running = false;
-      this.isButtonDisabled = false;
+      // If we have valid data, cache it for future use
+      this.cacheFeatureData();
     }
-    
-    // Set up safety timeout to re-enable button if stuck
-    this.initSafetyTimeout = setTimeout(() => {
-      if (this.isButtonDisabled && !this.running && this.isComponentActive) {
-        this.forceReenableButton();
-      }
-    }, 10000); // 10 seconds timeout
 
-    // Set up intersection observer to detect when component is visible
+    // Ensure browsers are loaded for button state checking
+    this.ensureBrowsersLoaded();
+
+    // Setup observables
+    this.setupEssentialObservables();
+    this.setupDeferredObservables();
+    
+    // Setup intersection observer for lazy loading
     this.setupIntersectionObserver();
 
-    // Only set up essential observables initially
-    this.setupEssentialObservables();
-    
-    // Defer other observables until component is active
-    this.setupDeferredObservables();
+    // Set initial button state
+    this.isButtonDisabled = false;
+    this.running = false;
+
+    // DEBUG: Check item.type
+    console.log('DEBUG - item:', this.item);
+    console.log('DEBUG - item.type:', this.item?.type);
   }
 
   private setupEssentialObservables() {
@@ -260,6 +259,14 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       // Check if we already have cached data to avoid unnecessary API calls
       if (this.item._hasCachedData && this.item.total && this.item.time && this.item.date) {
         this.log.msg('1', `Using cached data for feature ${this.feature_id}`, 'feature-item-list');
+        return;
+      }
+
+      // Additional check: if we already have valid data, don't make API call
+      if (this.item.total && this.item.total > 0 && this.item.time && this.item.date) {
+        this.log.msg('1', `Feature ${this.feature_id} already has valid data, skipping API call`, 'feature-item-list');
+        // Cache the existing data
+        this.cacheFeatureData();
         return;
       }
 
@@ -420,6 +427,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private refreshFeatureResults() {
     if (!this.isComponentActive) return;
     
+    // Check if we already have valid data to avoid unnecessary API calls
+    if (this.item.total && this.item.time && this.item.date) {
+      this.log.msg('1', `Feature ${this.feature_id} already has valid data, skipping refresh`, 'feature-item-list');
+      return;
+    }
+    
     this._api.getFeatureResultsByFeatureId(this.feature_id, {
       archived: false,
       page: 1,
@@ -447,15 +460,23 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private forceUpdateFeatureStatus() {
     if (!this.isComponentActive) return;
     
+    // Check if we already have recent data to avoid unnecessary API calls
+    if (this.item._hasCachedData && this.item.total && this.item.time && this.item.date) {
+      this.log.msg('1', `Feature ${this.feature_id} has recent cached data, skipping force update`, 'feature-item-list');
+      return;
+    }
+    
     // Dispatch action to update feature data
     this._store.dispatch(new Features.UpdateFeature(this.feature_id));
     
-    // Also refresh results directly from API
-    setTimeout(() => {
-      if (this.isComponentActive) {
-        this.refreshFeatureResults();
-      }
-    }, 500); // Wait 500ms for the store action to complete
+    // Only refresh results from API if we don't have valid data
+    if (!this.item.total || !this.item.time || !this.item.date) {
+      setTimeout(() => {
+        if (this.isComponentActive) {
+          this.refreshFeatureResults();
+        }
+      }, 500); // Wait 500ms for the store action to complete
+    }
   }
 
   /**
@@ -465,12 +486,19 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     if (!result || !this.isComponentActive) return;
     
     // Update the item with the latest feature result information
-    this.item.total = result.total || 0;
-    this.item.time = result.execution_time || 0;
-    this.item.date = result.result_date || null;
+    // Only update if the value is different to prevent duplication
+    if (result.total !== undefined && this.item.total !== result.total) {
+      this.item.total = result.total;
+    }
+    if (result.execution_time !== undefined && this.item.time !== result.execution_time) {
+      this.item.time = result.execution_time;
+    }
+    if (result.result_date !== undefined && this.item.date !== result.result_date) {
+      this.item.date = result.result_date;
+    }
     
     // Update the status with the real result status from the API
-    if (result.status) {
+    if (result.status && this.item.status !== result.status) {
       this.item.status = result.status;
     }
     
@@ -989,14 +1017,34 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     if (cachedData && this.isCacheValid(cachedData)) {
       // Apply cached data to restore component state
       if (cachedData.featureData) {
-        // Use complete feature data if available
-        Object.assign(this.item, cachedData.featureData);
+        // Only apply cached data if we don't already have the same values
+        // This prevents duplication of data
+        if (!this.item.total || this.item.total !== cachedData.featureData.total) {
+          this.item.total = cachedData.featureData.total;
+        }
+        if (!this.item.time || this.item.time !== cachedData.featureData.time) {
+          this.item.time = cachedData.featureData.time;
+        }
+        if (!this.item.date || this.item.date !== cachedData.featureData.date) {
+          this.item.date = cachedData.featureData.date;
+        }
+        if (!this.item.status || this.item.status !== cachedData.featureData.status) {
+          this.item.status = cachedData.featureData.status;
+        }
       } else {
-        // Fallback to individual properties
-        this.item.total = cachedData.total;
-        this.item.time = cachedData.time;
-        this.item.date = cachedData.date;
-        this.item.status = cachedData.status;
+        // Fallback to individual properties with duplication check
+        if (!this.item.total || this.item.total !== cachedData.total) {
+          this.item.total = cachedData.total;
+        }
+        if (!this.item.time || this.item.time !== cachedData.time) {
+          this.item.time = cachedData.time;
+        }
+        if (!this.item.date || this.item.date !== cachedData.date) {
+          this.item.date = cachedData.date;
+        }
+        if (!this.item.status || this.item.status !== cachedData.status) {
+          this.item.status = cachedData.status;
+        }
       }
       
       // Mark that we have cached data
@@ -1022,6 +1070,22 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   // Cache the current feature data
   private cacheFeatureData() {
+    // Don't cache if we don't have valid data or if data seems duplicated
+    if (!this.item.total || this.item.total <= 0 || !this.item.time || !this.item.date) {
+      this.log.msg('1', `Feature ${this.feature_id} has invalid data, skipping cache`, 'feature-item-list');
+      return;
+    }
+    
+    // Check if we're already caching the same data
+    const existingCache = L1FeatureItemListComponent.featureDataCache.get(this.feature_id);
+    if (existingCache && 
+        existingCache.total === this.item.total && 
+        existingCache.time === this.item.time && 
+        existingCache.date === this.item.date) {
+      this.log.msg('1', `Feature ${this.feature_id} data unchanged, skipping cache update`, 'feature-item-list');
+      return;
+    }
+    
     const cacheData: CachedFeatureData = {
       total: this.item.total || 0,
       time: this.item.time || 0,
@@ -1033,6 +1097,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     };
     
     L1FeatureItemListComponent.featureDataCache.set(this.feature_id, cacheData);
+    this.log.msg('1', `Cached feature data for feature ${this.feature_id}`, 'feature-item-list');
   }
 
   // Static method to initialize the cache system
@@ -1086,6 +1151,61 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   // Static trackBy function for *ngFor optimization
   static trackByFeatureId(index: number, item: any): number {
     return item.id || item.feature_id || index;
+  }
+
+  /**
+   * Ensure browsers are loaded in the store
+   */
+  private ensureBrowsersLoaded(): void {
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    
+    if (!availableBrowsers || availableBrowsers.length === 0) {
+      try {
+        this._store.dispatch(new Browserstack.GetBrowserstack());
+      } catch (error) {
+        // Silently handle error
+      }
+    }
+  }
+
+  /**
+   * Check if the run button should be disabled due to browser version issues
+   */
+  public shouldDisableRunButton(): boolean {
+    // Check if the feature has browsers configured
+    if (!this.item?.browsers || this.item.browsers.length === 0) {
+      return false;
+    }
+
+    // Ensure browsers are loaded
+    this.ensureBrowsersLoaded();
+
+    // Get the available browsers from BrowserstackState
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    
+    // If still no browsers, return false (button will be enabled - allow running)
+    if (!availableBrowsers || availableBrowsers.length === 0) {
+      return false;
+    }
+
+    // Check if any of the selected browsers have outdated versions
+    const hasOutdatedBrowser = this.item.browsers.some((selectedBrowser: any) => {
+      // Find matching available browser by OS, OS version, browser type, and browser version
+      const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
+        const osMatch = availableBrowser.os === selectedBrowser.os;
+        const osVersionMatch = availableBrowser.os_version === selectedBrowser.os_version;
+        const browserMatch = availableBrowser.browser === selectedBrowser.browser;
+        const browserVersionMatch = availableBrowser.browser_version === selectedBrowser.browser_version;
+        
+        return osMatch && osVersionMatch && browserMatch && browserVersionMatch;
+      });
+
+      // If no matching browser is found, it means the version is outdated/not available
+      return !matchingAvailableBrowser;
+    });
+
+    // Return true ONLY if there are outdated browsers (this will disable the button)
+    return hasOutdatedBrowser;
   }
 
 }
