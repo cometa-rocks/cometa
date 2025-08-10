@@ -5,10 +5,10 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take, Subject } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -46,6 +46,7 @@ import {
   LowerCasePipe,
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
+import { shareReplay, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -78,7 +79,7 @@ import { StarredService } from '@services/starred.service';
     LowerCasePipe,
   ],
 })
-export class L1FeatureItemListComponent implements OnInit {
+export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   constructor(
     private _router: NavigationService,
     private _store: Store,
@@ -99,6 +100,8 @@ export class L1FeatureItemListComponent implements OnInit {
   folderName: string | null = null;
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
+  private destroy$ = new Subject<void>();
+  private isComponentActive = true; // Track if component is active
   finder: boolean = false;
   running: boolean = false;
   isButtonDisabled: boolean = false;
@@ -124,28 +127,100 @@ export class L1FeatureItemListComponent implements OnInit {
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
+    // Set up intersection observer to detect when component is visible
+    this.setupIntersectionObserver();
 
+    // Only set up essential observables initially
+    this.setupEssentialObservables();
+    
+    // Defer other observables until component is active
+    this.setupDeferredObservables();
+  }
 
+  private setupEssentialObservables() {
+    // Essential observables that are always needed
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
+    ).pipe(
+      shareReplay({ bufferSize: 1, refCount: true }),
+      distinctUntilChanged()
     );
 
-    // Subscribe to the status message comming from NGXS
+    // Basic feature status without heavy processing
     this.featureStatus$ = this._store.select(
       CustomSelectors.GetFeatureStatus(this.feature_id)
     ).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+  }
+
+  private setupDeferredObservables() {
+    // Only set up heavy observables when component becomes active
+    this.destroy$.subscribe(() => {
+      // Clean up any existing subscriptions
+    });
+
+    // Watch for component activation to set up heavy observables
+    const activationCheck = setInterval(() => {
+      if (this.isComponentActive && !this.heavyObservablesSetup) {
+        this.setupHeavyObservables();
+        clearInterval(activationCheck);
+      }
+    }, 1000);
+
+    // Clean up interval on destroy
+    this.destroy$.subscribe(() => {
+      clearInterval(activationCheck);
+    });
+  }
+
+  private heavyObservablesSetup = false;
+
+  private setupHeavyObservables() {
+    if (this.heavyObservablesSetup) return;
+    
+    this.log.msg('1', `Setting up heavy observables for feature ${this.feature_id}`, 'feature-item-list');
+    this.heavyObservablesSetup = true;
+
+    // Subscribe to the status message coming from NGXS with optimization
+    this.featureStatus$ = this._store.select(
+      CustomSelectors.GetFeatureStatus(this.feature_id)
+    ).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      filter(() => this.isComponentActive), // Only process if component is active
       tap(status => {
-        if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled' || status === 'stopped') {
-          // Update feature information from backend when feature completes
-          // This ensures the total steps, execution time, and date are refreshed
-          this._store.dispatch(new Features.UpdateFeature(this.feature_id));
-          this.cdr.detectChanges();
+        // Only update when feature actually completes and we haven't already processed it
+        if ((status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled' || status === 'stopped') && 
+            this.item.status !== status) {
+          // Update local status to prevent repeated processing
+          this.item.status = status;
+          
+          // Only dispatch update if we don't have the latest data
+          if (!this.item.total || !this.item.time || !this.item.date) {
+            this._store.dispatch(new Features.UpdateFeature(this.feature_id));
+          }
+          
+          // Only trigger change detection if component is visible
+          if (this.isComponentActive) {
+            // Debounce change detection to prevent rapid updates
+            setTimeout(() => {
+              if (this.isComponentActive) {
+                this.cdr.detectChanges();
+              }
+            }, 100);
+          }
         }
       })
     );
 
-    // Subscribe to feature updates to refresh the item data
-    this.feature$.subscribe(feature => {
+    // Subscribe to feature updates to refresh the item data with optimization
+    this.feature$.pipe(
+      distinctUntilChanged(),
+      take(1), // Only take the first emission to avoid repeated API calls
+      filter(() => this.isComponentActive) // Only execute if component is active
+    ).subscribe(feature => {
       // Get the latest feature result directly from the API to ensure we have the most recent data
       this._api.getFeatureResultsByFeatureId(this.feature_id, {
         archived: false,
@@ -153,7 +228,7 @@ export class L1FeatureItemListComponent implements OnInit {
         size: 1,
       }).subscribe({
         next: (response: any) => {
-          if (response && response.results && response.results.length > 0) {
+          if (response && response.results && response.results.length > 0 && this.isComponentActive) {
             const latestResult = response.results[0];
             
             // Update the item with the latest feature result information
@@ -165,49 +240,151 @@ export class L1FeatureItemListComponent implements OnInit {
           }
         },
         error: (err) => {
-          console.error('Error fetching feature results:', err);
+          if (this.isComponentActive) {
+            console.error('Error fetching feature results:', err);
+          }
         }
       });
     });
 
-    // Nos aseguramos de que el observable esté suscrito
-    this.featureStatus$.subscribe();
-
-    // También actualizamos el estado cuando el feature deja de estar en ejecución
+    // Optimize feature running status with proper stream management
     this.featureRunning$ = this._store.select(
       CustomSelectors.GetFeatureRunningStatus(this.feature_id)
     ).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      filter(() => this.isComponentActive), // Only process if component is active
       tap(running => {
-        
-        if (!running) {
-          // console.log('Feature stopped running, resetting states');
-          this.isButtonDisabled = false;
-          this.cdr.detectChanges();
+        // Only update if the running state actually changed
+        if (this.running !== running) {
+          this.running = running;
+          
+          if (!running) {
+            this.isButtonDisabled = false;
+          }
+          
+          // Only trigger change detection if component is visible
+          if (this.isComponentActive) {
+            // Debounce change detection to prevent rapid updates
+            setTimeout(() => {
+              if (this.isComponentActive) {
+                this.cdr.detectChanges();
+              }
+            }, 100);
+          }
         }
       })
     );
 
-    // Nos aseguramos de que el observable esté suscrito
-    this.featureRunning$.subscribe();
-
+    // Optimize permission selectors
     this.canEditFeature$ = this._store.select(
       CustomSelectors.HasPermission('edit_feature', this.feature_id)
+    ).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
+    
     this.canDeleteFeature$ = this._store.select(
       CustomSelectors.HasPermission('delete_feature', this.feature_id)
+    ).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    // Optimize other observables
     this.isAnyFeatureRunning$ = this._sharedActions.folderRunningStates.asObservable().pipe(
-      map(runningStates => runningStates.get(this.item.id) || false)
+      map(runningStates => runningStates.get(this.item.id) || false),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.departmentFolders$ = this._store.select(CustomSelectors.GetDepartmentFolders())
+    this.departmentFolders$ = this._store.select(CustomSelectors.GetDepartmentFolders()).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
 
-    this._sharedActions.filterState$.subscribe(isActive => {
+    this._sharedActions.filterState$.pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    ).subscribe(isActive => {
       this.finder = isActive;
     });
 
-    this.isStarred$ = this.starredService.isStarred(this.feature_id);
+    this.isStarred$ = this.starredService.isStarred(this.feature_id).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+  }
+
+  ngOnDestroy() {
+    this.isComponentActive = false;
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupIntersectionObserver() {
+    // Only set up observer if IntersectionObserver is supported
+    if ('IntersectionObserver' in window) {
+      let activationTimeout: any;
+      let deactivationTimeout: any;
+      
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              // Clear any pending deactivation
+              if (deactivationTimeout) {
+                clearTimeout(deactivationTimeout);
+                deactivationTimeout = null;
+              }
+              
+              // Activate component after a short delay to prevent rapid toggling
+              if (!this.isComponentActive) {
+                activationTimeout = setTimeout(() => {
+                  if (this.isComponentActive === false) {
+                    this.isComponentActive = true;
+                    this.log.msg('1', `Component ${this.feature_id} activated`, 'feature-item-list');
+                  }
+                }, 200);
+              }
+            } else {
+              // Clear any pending activation
+              if (activationTimeout) {
+                clearTimeout(activationTimeout);
+                activationTimeout = null;
+              }
+              
+              // Deactivate component after a delay to prevent rapid toggling
+              if (this.isComponentActive) {
+                deactivationTimeout = setTimeout(() => {
+                  if (this.isComponentActive === true) {
+                    this.isComponentActive = false;
+                    this.log.msg('1', `Component ${this.feature_id} deactivated`, 'feature-item-list');
+                  }
+                }, 500);
+              }
+            }
+          });
+        },
+        { 
+          threshold: 0.1, // Trigger when 10% of component is visible
+          rootMargin: '50px' // Add margin to prevent edge cases
+        }
+      );
+
+      // Observe the component element
+      const element = document.querySelector(`[data-feature-id="${this.feature_id}"]`);
+      if (element) {
+        observer.observe(element);
+      }
+
+      // Clean up observer and timeouts on destroy
+      this.destroy$.subscribe(() => {
+        if (activationTimeout) clearTimeout(activationTimeout);
+        if (deactivationTimeout) clearTimeout(deactivationTimeout);
+        observer.disconnect();
+      });
+    }
   }
 
   async goLastRun() {
@@ -522,7 +699,7 @@ export class L1FeatureItemListComponent implements OnInit {
    * Get network login tooltip text
    */
   getNetworkLoginTooltip(): string {
-    console.log(this.item.reference);
+    // Removed console.log to prevent excessive logging
     return 'Network logging enabled. This feature will record network responses and analyze vulnerable headers.';
   }
 

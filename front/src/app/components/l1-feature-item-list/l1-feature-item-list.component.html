@@ -11,6 +11,7 @@ Author: dph000
   <ng-container *ngLet="item.id | featureRunning | async as running">
     <div
       class="wrapper"
+      [attr.data-feature-id]="feature_id"
       (click)="_sharedActions.goToFeature(item.id)"
       [class.running]="running"
       [class.menu-open]="isMenuOpen">

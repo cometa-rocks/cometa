@@ -987,6 +987,7 @@ interface Paginations<T> {
 
 interface IStepDefinitionsState {
   comment: string;
+  loading?: { [featureId: number]: boolean }; // Track loading state for each feature
   [feature_id: number]: FeatureStep[];
 }
 

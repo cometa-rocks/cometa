@@ -213,8 +213,7 @@
       
       .browser-icon-container {
         position: relative;
-        margin-right: -8px; // Creates overlap effect
-        
+                
         &:last-child {
           margin-right: 8px; // Add space between icons and text
         }
