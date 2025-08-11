@@ -242,6 +242,7 @@
       display: flex;
       align-items: center;
       // gap: $browser-icon-spacing;
+      gap: 4px;
     }
     
     .browser-icons {
@@ -251,10 +252,10 @@
       
       .browser-icon-container {
         position: relative;
-        margin-right: $browser-icon-spacing; // Add space between browser icons
+        margin-right: 4px; // Add space between browser icons
                 
         &:last-child {
-          margin-right: $browser-icon-text-spacing; // Add space between icons and text
+          margin-right: 8px; // Add space between icons and text
         }
         .my-icons {
           background-size: contain;
@@ -264,8 +265,8 @@
           vertical-align: middle;
           z-index: 1;
           position: relative;
-          width: $browser-icon-size;
-          height: $browser-icon-height;
+          width: 12px;
+          height: 15px;
         }
         
         .browser-icon {
@@ -274,8 +275,8 @@
           background-position: center;
           display: inline-block;
           vertical-align: middle;
-          width: $browser-icon-size;
-          height: $browser-icon-height;
+          width: 12px;
+          height: 15px;
         }
         
         .browser-version-warning {

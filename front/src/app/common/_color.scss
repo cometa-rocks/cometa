@@ -131,6 +131,12 @@ $edit-feature-button-bg-color:  linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%
 
 // END - edit-feature #####################################
 
+/* Browser and UI Colors */
+$browser-version-warning-color: #f44336; // Red color for browser version warnings
+$browser-version-warning-bg: #ffffff; // White background for browser version warnings
+$browser-version-warning-shadow: rgba(0, 0, 0, 0.3); // Shadow for browser version warnings
+$browser-text-color: #546e7a; // Color for browser text
+
 /* Option Pages */
 $opt-bg-color: #e5b355;
 
