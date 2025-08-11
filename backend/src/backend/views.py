@@ -4897,3 +4897,83 @@ def GetBulkFileSchedules(request):
     except Exception as err:
         logger.exception(err)
         return JsonResponse({'success': False, 'error': 'Error retrieving schedule data.'})
+
+@csrf_exempt
+def getFeatureHistory(request, feature_id):
+    try:
+        backup_dir = os.path.join(settings.BASE_DIR, '../../code/backups/features')
+        
+        if not os.path.exists(backup_dir):
+            logger.error(f"Backup directory {backup_dir} not found")
+            return JsonResponse({
+                'success': False,
+                'error': 'Backup directory not found'
+            })
+        
+        logger.debug(f"Getting feature history for feature {feature_id}")
+
+        history_entries = []
+        
+        # Get all files in the backup directory
+        backup_files = os.listdir(backup_dir)
+        
+        # Filter files that belong to this feature_id
+        logger.debug(f"Filtering files for feature {feature_id}")
+        feature_backup_files = [
+            file for file in backup_files 
+            if file.startswith(f"{feature_id}_") and file.endswith("_meta.json")
+        ]
+        logger.debug(f"Found {len(feature_backup_files)} feature backup files")
+        for backup_file in feature_backup_files:
+            try:
+                meta_file_path = os.path.join(backup_dir, backup_file)
+                
+                with open(meta_file_path, 'r') as f:
+                    meta_data = json.load(f)
+                    
+                # Extract user info
+                user_id = meta_data.get('last_edited')
+                user_name = "Unknown User"
+                
+                if user_id:
+                    try:
+                        user = OIDCAccount.objects.get(user_id=user_id)
+                        user_name = user.name
+                    except OIDCAccount.DoesNotExist:
+                        pass
+                
+                # Extract date from filename for better sorting
+                # Format: 1_Go-to-Google_2025-07-28_12-22-28_meta.json
+                filename_parts = backup_file.split('_')
+                if len(filename_parts) >= 4:
+                    date_part = filename_parts[-3]  # 2025-07-28
+                    time_part = filename_parts[-2]  # 12-22-28
+                    backup_timestamp = f"{date_part} {time_part.replace('-', ':')}"
+                else:
+                    backup_timestamp = meta_data.get('last_edited_date', '')
+                
+                history_entries.append({
+                    'backup_id': backup_file.replace('_meta.json', ''),
+                    'timestamp': backup_timestamp,
+                    'user_name': user_name,
+                    'user_id': user_id,
+                    'feature_name': meta_data.get('feature_name', ''),
+                    'description': meta_data.get('description', ''),
+                    'steps_count': meta_data.get('steps', 0)
+                })
+            except Exception as e:
+                continue
+        
+        # Sort by timestamp (newest first)
+        history_entries.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        return JsonResponse({
+            'success': True,
+            'history': history_entries
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

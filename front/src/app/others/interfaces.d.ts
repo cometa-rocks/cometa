@@ -1199,3 +1199,19 @@ interface MobileValidationErrorData {
 }
 
 type MobileValidationAction = 'ignore' | 'correct';
+
+interface FeatureHistoryEntry {
+  backup_id: string;
+  timestamp: string;
+  user_name: string;
+  user_id: number;
+  feature_name: string;
+  description: string;
+  steps_count: number;
+}
+
+interface FeatureHistoryResponse {
+  success: boolean;
+  history: FeatureHistoryEntry[];
+  error?: string;
+}

@@ -1,8 +1,8 @@
 /**
- * l1-feature-trashbin-list.component.ts
+ * api-testing.component.ts
  *
- * Contains the code to control the behaviour of the features list within the trash bin of the new landing
- *
+ * Component containing the api testing page
+ * 
  * @date 18-04-25
  *
  * @lastModification 23-04-25

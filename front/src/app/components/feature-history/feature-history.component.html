@@ -1,0 +1,92 @@
+<!-- feature-history.component.html
+
+Component containing the feature history page
+
+Author: Nico
+
+-->
+
+<!-- <div class="container">
+  <h2>
+    <mat-icon>format_paint</mat-icon>
+    Upcoming feature! Please, come again later.
+  </h2>
+</div> -->
+
+<div class="feature-history-container">
+  <div class="header">
+    <h2>
+      <mat-icon>history</mat-icon>
+      Feature History
+    </h2>
+    <p class="subtitle">Track changes and modifications to this feature</p>
+  </div>
+
+  <div class="content">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <mat-icon class="loading-icon">hourglass_empty</mat-icon>
+      <p>Loading feature history...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <mat-icon class="error-icon">error</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-button (click)="loadFeatureHistory()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+
+    <!-- History List -->
+    <div *ngIf="!loading && !error" class="history-timeline">
+      <div *ngFor="let entry of history; let i = index" class="history-entry">
+        <!-- Timeline Line -->
+        <div class="timeline-line" [class.last]="i === history.length - 1"></div>
+        
+        <!-- Timeline Dot -->
+        <div class="timeline-dot">
+          <mat-icon>commit</mat-icon>
+        </div>
+        
+        <!-- Entry Content -->
+        <div class="entry-content">
+          <div class="entry-header">
+            <div class="user-info">
+              <mat-icon class="user-avatar">account_circle</mat-icon>
+              <span class="user-name">{{ entry.user_name }}</span>
+            </div>
+            <div class="entry-meta">
+              <span class="timestamp">{{ formatDate(entry.timestamp) }}</span>
+              <span class="relative-time">{{ getRelativeTime(entry.timestamp) }}</span>
+            </div>
+          </div>
+          
+          <div class="entry-details">
+            <h3 class="feature-name">{{ entry.feature_name }}</h3>
+            <p *ngIf="entry.description" class="description">{{ entry.description }}</p>
+            
+            <div class="entry-stats">
+              <mat-chip class="stat-chip">
+                <mat-icon>list</mat-icon>
+                {{ entry.steps_count }} steps
+              </mat-chip>
+              <mat-chip class="stat-chip backup-id">
+                <mat-icon>backup</mat-icon>
+                {{ entry.backup_id }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && history.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <p>No history found for this feature</p>
+      <p class="empty-subtitle">Changes will appear here once the feature is modified</p>
+    </div>
+  </div>
+</div>

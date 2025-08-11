@@ -869,12 +869,6 @@ class Feature(models.Model):
         if self.feature_id is not None:
             new_feature = False
 
-            # We don't want to backup feature info if feature is being updated by backend api calls
-            # backup should only be created if feature is being created or modified by the user    
-            if kwargs.get('backup_feature_info', False)==True:
-                backup_feature_info(self)
-            
-
         # save to get the feature_id in case it is a new feature
         super(Feature, self).save(*args)
 
@@ -885,6 +879,12 @@ class Feature(models.Model):
             if not response['success']:
                 return response
             
+        if self.feature_id is not None:
+            # We don't want to backup feature info if feature is being updated by backend api calls
+            # backup should only be created if feature is being created or modified by the user    
+            if kwargs.get('backup_feature_info', False)==True:
+                backup_feature_info(self)
+
         return {"success": True}
     
     def delete(self, *args, **kwargs):
