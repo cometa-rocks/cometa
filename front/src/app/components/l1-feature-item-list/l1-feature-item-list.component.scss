@@ -172,6 +172,20 @@
             background-color: #9e9e9e !important;
             box-shadow: none !important;
           }
+          
+        
+        }
+        
+        // When NOT browser-version-disabled, keep normal colors
+        &:not(.browser-version-disabled) {
+          span {
+            color: $pure-white !important; // Keep original white color
+            opacity: 1 !important; // Keep full opacity
+          }
+          
+          .triangle {
+            border-bottom-color: $blue !important; // Keep original blue color
+          }
         }
       }
     }

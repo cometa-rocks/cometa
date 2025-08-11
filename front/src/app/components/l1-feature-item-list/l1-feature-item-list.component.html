@@ -100,7 +100,7 @@ Author: dph000
           </ng-container>
           <span style="vertical-align: middle">
             <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
-            <ng-container *ngIf="isButtonDisabled && !running && !shouldDisableRunButton()">Wait...</ng-container>
+            <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
             <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
 
           </span>
