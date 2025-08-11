@@ -215,8 +215,8 @@
     display: flex;
     align-items: center;
     .stepsFolder {
-      // display: flex;
-      // align-items: center;
+      display: flex;
+      align-items: center;
       .folderDomain {
         font-size: 20px;
         color: #767676;
@@ -707,6 +707,7 @@ input {
     line-height: 14px;
     transition: color 0.2s ease;
     color: $edit-feature-icon-color;
+    margin-top: 1px;
   }
 
   &:hover mat-icon {
@@ -740,7 +741,7 @@ input {
   cursor: help;
 
   .notification-icon-material {
-    font-size: 14px;
+    font-size: 13px;
     width: 14px;
     height: 14px;
     line-height: 14px;
@@ -754,9 +755,10 @@ input {
   // Network login icon specific styling
   &.network-login {
     .notification-icon-material {
-      font-size: 15px;
+      font-size: 14px;
       width: 16px;
       color: $star-feature-icon-color;
+      margin-top: -2px;
     }
 
     &:hover .notification-icon-material {
@@ -767,7 +769,7 @@ input {
   // Generate dataset icon specific styling
   &.generate-dataset {
     .notification-icon-material {
-      font-size: 15px;
+      font-size: 13px;
       width: 16px;
       color: $star-feature-icon-color; 
     }
