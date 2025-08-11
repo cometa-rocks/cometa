@@ -49,7 +49,7 @@ Author: Redouan
             </div>
             <div class="features-grid">
               <cometa-l1-feature-item-list
-                *ngFor="let item of department.value"
+                *ngFor="let item of department.value; trackBy: L1FeatureItemListComponent.trackByFeatureId"
                 [item]="item"
                 [feature_id]="+item.id"
                 class="feature-item">
@@ -69,7 +69,7 @@ Author: Redouan
             </div>
             <div class="features-grid">
               <cometa-l1-feature-item-list
-                *ngFor="let item of department.value"
+                *ngFor="let item of department.value; trackBy: L1FeatureItemListComponent.trackByFeatureId"
                 [item]="item"
                 [feature_id]="+item.id"
                 class="feature-item">

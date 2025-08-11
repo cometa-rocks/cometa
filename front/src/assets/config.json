@@ -1,4 +1,5 @@
 {
+
   "version": "3.0.90",
   "stable_version": "3.0.90",
   "language": "en",
@@ -304,7 +305,7 @@
       "features": [
         {
           "title": "Improved feature item/list view - #6644",
-          "description": "Improved feature item/list view, sync with main-view (steps) and enhance browsers icon."
+          "description": "Improved feature item/list view, sync with main-view (syeps) and enhance browsers icon."
         },
         {
           "title": "Network logging and generate dataset icons - #6644",

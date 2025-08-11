@@ -136,6 +136,7 @@
         "creating_feature": "Creating feature",
         "deleting_feature": "Deleting feature",
         "latest_browser": "The latest stable version of this browser will be used automatically",
+    "modify_browser_version": "You must modify the browser version in en.json before running this feature",
         "invalid_edit_form": "We found errors in the form, please fix them before saving",
 
         "_comment": "// Tooltips for step options",

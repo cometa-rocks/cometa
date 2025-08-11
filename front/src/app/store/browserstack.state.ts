@@ -1,4 +1,4 @@
-import { State, Action, StateContext } from '@ngxs/store';
+import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
@@ -30,5 +30,11 @@ export class BrowserstackState {
     { browsers }: Browserstack.SetBrowserstacks
   ) {
     setState(browsers);
+  }
+
+  // Selector to get all available browserstack browsers
+  @Selector()
+  static getBrowserstacks(state: BrowserstackBrowser[]) {
+    return state;
   }
 }

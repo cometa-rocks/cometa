@@ -987,6 +987,7 @@ interface Paginations<T> {
 
 interface IStepDefinitionsState {
   comment: string;
+  loading?: { [featureId: number]: boolean }; // Track loading state for each feature
   [feature_id: number]: FeatureStep[];
 }
 
@@ -1190,6 +1191,17 @@ interface FeatureData {
   help?: boolean;
   depends_on_others?: boolean;
   schedule?: string;
+}
+
+// Interface for cached feature data in l1-feature-item-list component
+interface CachedFeatureData {
+  total: number;
+  time: number;
+  date: string | null;
+  status: string;
+  lastUpdated: number;
+  departmentId: number;
+  featureData: any; // Store complete feature data for comprehensive state restoration
 }
 
 interface MobileValidationErrorData {

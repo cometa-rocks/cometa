@@ -601,6 +601,23 @@ export class SharedActionsService {
   //updates the observable with new data
   setSelectedDepartment(department: string) {
     this.selectedDepartmentSubject.next(department);
+    
+    // Clear feature cache when department changes to ensure fresh data
+    this.clearFeatureCache();
+  }
+
+  /**
+   * Clears the feature cache when department changes
+   * Uses dynamic import to avoid circular dependencies
+   */
+  private async clearFeatureCache() {
+    try {
+      // Dynamically import the component to avoid circular dependencies
+      const { L1FeatureItemListComponent } = await import('@components/l1-feature-item-list/l1-feature-item-list.component');
+      L1FeatureItemListComponent.clearAllCache();
+    } catch (error) {
+      // Silent error handling
+    }
   }
 
   /**

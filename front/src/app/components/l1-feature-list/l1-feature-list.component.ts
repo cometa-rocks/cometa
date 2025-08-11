@@ -14,10 +14,11 @@ import {
   OnInit,
   Output,
   ViewChild,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { BehaviorSubject, Observable, switchMap, tap, filter, take } from 'rxjs';
+import { BehaviorSubject, Observable, switchMap, tap, filter, take, map } from 'rxjs';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatLegacyPaginator as MatPaginator } from '@angular/material/legacy-paginator';
 import { MatSort } from '@angular/material/sort';
@@ -62,7 +63,6 @@ import {
 } from '@angular/common';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { map } from 'rxjs/operators';
 import { StarredService } from '@services/starred.service';
 import { Router } from '@angular/router';
 
@@ -113,7 +113,8 @@ export class L1FeatureListComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private log: LogService,
     private _starred: StarredService,
-    private _router: Router
+    private _router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   @Input() data$: any; // Contains the new structure of the features / folders
@@ -226,6 +227,32 @@ export class L1FeatureListComponent implements OnInit {
     // Initialize feature locations
     this.initializeFeatureLocations();
 
+    // Update feature data with latest information from API
+    if (this.data$ && this.data$.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature') {
+          this.updateFeatureDataFromAPI(row);
+        }
+      });
+    }
+
+    // Subscribe to feature status changes to refresh data when features complete
+    if (this.data$ && this.data$.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature') {
+          // Subscribe to feature status changes
+          this._store.select(CustomSelectors.GetFeatureStatus(row.id)).subscribe(status => {
+            if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled' || status === 'stopped') {
+              // Update the specific feature data when it completes
+              this.updateFeatureDataFromAPI(row);
+              // Also dispatch UpdateFeature to refresh the store
+              this._store.dispatch(new Features.UpdateFeature(row.id));
+            }
+          });
+        }
+      });
+    }
+
     this.data$.rows.forEach(row => {
       const folderId = row.reference.folder_id;
   
@@ -240,6 +267,130 @@ export class L1FeatureListComponent implements OnInit {
         this.isStarredMap.set(row.id, this._starred.isStarred(row.id));
       }
     });
+  }
+
+  // Update feature data with latest information from API
+  private updateFeatureDataFromAPI(row: any) {
+    if (row.type === 'feature' && row.id) {
+      this._api.getFeatureResultsByFeatureId(row.id, {
+        archived: false,
+        page: 1,
+        size: 1,
+      }).subscribe({
+        next: (response: any) => {
+          if (response && response.results && response.results.length > 0) {
+            const latestResult = response.results[0];
+            
+            // Update the row with the latest feature result information
+            row.date = latestResult.result_date || null;
+            row.time = latestResult.execution_time || 0;
+            row.total = latestResult.total || 0;
+            row.ok = latestResult.ok || 0;
+            row.fails = (latestResult.total || 0) - (latestResult.ok || 0);
+            
+            // Force change detection to update the table view
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error('Error fetching feature results for table:', err);
+        }
+      });
+    }
+  }
+
+  // Refresh all feature data in the table
+  private refreshAllFeatureData() {
+    if (this.data$ && this.data$.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature') {
+          this.updateFeatureDataFromAPI(row);
+        }
+      });
+    }
+  }
+
+  // Public method to refresh table data (can be called from parent components)
+  public refreshTableData() {
+    this.refreshAllFeatureData();
+  }
+
+  /**
+   * Get unique browser types for a row (grouped by browser name to avoid duplicates)
+   */
+  getUniqueBrowsersForRow(row: any): any[] {
+    if (!row.browsers || row.browsers.length === 0) {
+      return [];
+    }
+    
+    // Group browsers by browser type and return unique ones
+    const uniqueBrowsers = new Map<string, any>();
+    
+    row.browsers.forEach(browser => {
+      const browserType = browser.browser;
+      if (!uniqueBrowsers.has(browserType)) {
+        uniqueBrowsers.set(browserType, browser);
+      }
+    });
+    
+    return Array.from(uniqueBrowsers.values());
+  }
+
+  /**
+   * Get tooltip for unique browser showing all versions
+   */
+  getUniqueBrowserTooltipForRow(row: any, browserType: string): string {
+    if (!row.browsers || row.browsers.length === 0) {
+      return '';
+    }
+    
+    // Get all browsers of this type
+    const browsersOfType = row.browsers.filter(browser => browser.browser === browserType);
+    
+    if (browsersOfType.length === 1) {
+      return `${browserType} ${browsersOfType[0].browser_version || ''}`.trim();
+    } else {
+      // Multiple versions of the same browser
+      const versions = browsersOfType.map(browser => browser.browser_version || 'latest').join(', ');
+      return `${browserType} (${versions})`;
+    }
+  }
+
+  /**
+   * Get organized browsers tooltip text for a row
+   */
+  getBrowsersTooltipForRow(row: any): string {
+    if (!row.browsers || row.browsers.length === 0) {
+      return 'No browsers selected';
+    }
+    
+    // Group browsers by type
+    const browsersByType = new Map<string, any[]>();
+    
+    row.browsers.forEach(browser => {
+      const browserType = browser.browser;
+      if (!browsersByType.has(browserType)) {
+        browsersByType.set(browserType, []);
+      }
+      browsersByType.get(browserType)!.push(browser);
+    });
+    
+    // Build organized tooltip text
+    const tooltipLines: string[] = [];
+    
+    browsersByType.forEach((browsers, browserType) => {
+      if (browsers.length === 1) {
+        // Single version
+        const version = browsers[0].browser_version || 'latest';
+        tooltipLines.push(`${browserType} ${version}`);
+      } else {
+        // Multiple versions
+        const versions = browsers.map(browser => browser.browser_version || 'latest').join(', ');
+        tooltipLines.push(`${browserType} (${versions})`);
+      }
+    });
+    
+    return tooltipLines.join('\n');
   }
 
   private initializeFeatureLocations() {
