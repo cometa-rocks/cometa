@@ -87,6 +87,8 @@ default_cometa_configurations = {
     "COMETA_FEATURE_MOBILE_TEST_ENABLED": False,
     "COMETA_TELEGRAM_BOT_TOKEN": "",
     "COMETA_TELEGRAM_ENABLED": False,
+    "COMETA_TELEGRAM_WEBHOOK_SECRET": "",
+    "COMETA_TELEGRAM_OAUTH_MODE": "standard",  # 'standard' or 'state_parameter'
     # Add host hostAliases to test environments 
     # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
     "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",

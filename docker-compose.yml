@@ -7,6 +7,12 @@ services:
       - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
      - testing
     restart: always
@@ -46,7 +52,9 @@ services:
     expose:
       - "8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
     networks:
      - testing
 
@@ -94,6 +102,12 @@ services:
       - NPM_CONFIG_LOGLEVEL=info
     expose:
       - "3001"
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
      - testing
 
@@ -149,6 +163,7 @@ services:
     platform: linux/amd64  
     pull_policy: always
     restart: always
+    user: "0"  # This forces the container to run as root
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
@@ -169,7 +184,7 @@ services:
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     healthcheck:
-      test: ["CMD", "curl", "-s", "-k", "https://localhost/welcome.html"]
+      test: ["CMD", "curl", "-s", "-k", "http://localhost/welcome.html"]
       interval: 10s
       timeout: 5s
       retries: 3

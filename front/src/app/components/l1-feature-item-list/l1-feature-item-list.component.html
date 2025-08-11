@@ -10,12 +10,14 @@ Author: dph000
   class="items-container"
   *ngIf="item.type === 'feature'; else folderItem">
   <ng-container *ngLet="item.id | featureRunning | async as running">
+    
     <div
       class="wrapper"
       [attr.data-feature-id]="feature_id"
       (click)="_sharedActions.goToFeature(item.id)"
       [class.running]="running"
       [class.menu-open]="isMenuOpen">
+
       <!-- Need help box -->
       <div
         class="top-left-container"
@@ -231,7 +233,6 @@ Author: dph000
       </div>
 
 
-
       <!-- Feature ID -->
       <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
         <ng-container>
@@ -271,6 +272,7 @@ Author: dph000
             matTooltipPosition="above">{{ item.browsers.length }} browsers</span>
         </div>
       </div>
+      <!-- Feature browser -->
       <div class="schedule-container">
         <div class="schedule-data">
           <p *ngIf="item.schedule" class="schedule-active">

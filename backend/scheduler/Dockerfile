@@ -7,8 +7,8 @@ USER root
 # Create a user named 'cometa' to run the application
 # Avoid running the application as the root user for security reasons
 
-RUN groupadd -g 472 cometa && \
-    useradd -u 472 -g cometa -m cometa -s /bin/bash
+RUN groupadd -g 1472 cometa && \
+    useradd -u 1472 -g cometa -m cometa -s /bin/bash
 
 
 RUN chown -R cometa:cometa /usr/bin
