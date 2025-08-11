@@ -36,7 +36,7 @@ fi
 
 # check if the version.json file exists in the front directory
 
-if [ ! -f "front/version.json" ]; then
+if [ ! -f "front/src/assets/config.json" ]; then
     echo "version.json file not found in the front directory"
     exit 1
 fi      
@@ -46,7 +46,7 @@ django_stable_version=$(cat backend/src/version.json | jq -r '.stable_version')
 behave_stable_version=$(cat backend/behave/version.json | jq -r '.stable_version')
 scheduler_stable_version=$(cat backend/scheduler/version.json | jq -r '.stable_version')
 ws_server_stable_version=$(cat backend/ws-server/version.json | jq -r '.stable_version')
-front_stable_version=$(cat front/version.json | jq -r '.stable_version')
+front_stable_version=$(cat front/src/assets/config.json | jq -r '.stable_version')
 
 echo "Restarting cometa-django-deployment"
 kubectl edit deployment cometa-django-deployment cometa-django=cometa/django:$django_stable_version --record --namespace=$NAME_SPACE

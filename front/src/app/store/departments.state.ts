@@ -3,6 +3,7 @@ import { ApiService } from '@services/api.service';
 import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Departments } from './actions/departments.actions';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import produce from 'immer';
 
 /**
@@ -15,7 +16,7 @@ import produce from 'immer';
 })
 @Injectable()
 export class DepartmentsState {
-  constructor(private _api: ApiService) {}
+  constructor(private _api: ApiService, private _snackBar: MatSnackBar) {}
 
   @Action(Departments.GetAdminDepartments)
   getAdminDepartments({ setState }: StateContext<Department[]>) {
@@ -113,6 +114,22 @@ export class DepartmentsState {
     { setState, getState }: StateContext<Department[]>,
     { file, error }: Departments.FileUploadStatusError
   ) {
+    // Handle critical errors that require file removal
+    const criticalErrors = ['NOT_DDR_FILE', 'FILE_VIRUS_DETECTED', 'FILE_ALREADY_EXIST'];
+    if (error && criticalErrors.includes(error.status)) {
+      // Show appropriate error message
+      if (error.status === 'NOT_DDR_FILE') {
+        this.showDDRValidationError(error);
+      } else {
+        this.updateFileStatus(setState, getState, file, error);
+      }
+      // Remove file after delay (shorter for DDR, longer for others)
+      const delay = error.status === 'NOT_DDR_FILE' ? 500 : 3000;
+      setTimeout(() => this.removeFailedFile(setState, getState, file), delay);
+      return;
+    }
+    
+    // For other errors, use the normal flow
     this.updateFileStatus(setState, getState, file, error);
   }
 
@@ -149,5 +166,50 @@ export class DepartmentsState {
         }
       })
     );
+  }
+
+  private removeFailedFile(setState, getState, file: UploadedFile): void {
+    setState(
+      produce(getState(), (ctx: Department[]) => {
+        const departmentIndex = ctx.findIndex(
+          dept => dept.department_id == Number(file.department)
+        );
+
+        if (departmentIndex !== -1) {
+          // Remove the failed file from the department's files array
+          const files = ctx[departmentIndex].files as UploadedFile[];
+          
+          // Remove file by name (most reliable for failed uploads) and any file with matching id
+          const filteredFiles = files.filter(f => {
+            // Remove if name matches (primary matching for failed uploads)
+            if (f.name === file.name) return false;
+            // Also remove if id matches and it's not null/undefined
+            if (file.id && f.id === file.id) return false;
+            // Remove files with "Uploading" status that have the same name (cleanup stuck uploads)
+            if (f.status === 'Uploading' && f.name === file.name) return false;
+            return true;
+          });
+          
+          ctx[departmentIndex] = {
+            ...ctx[departmentIndex],
+            files: filteredFiles
+          };
+        }
+      })
+    );
+  }
+
+  private showDDRValidationError(error: FileUploadError): void {
+    const isInvalidFeatureId = error.description?.includes('Invalid feature_id values');
+    const message = isInvalidFeatureId
+      ? `${error.description} Please ensure all feature_id values are numeric and try uploading again.`
+      : 'Data-driven files require a feature_id or feature_name column. Please add the missing column and upload again.';
+    
+    this._snackBar.open(message, 'OK', {
+      duration: isInvalidFeatureId ? 15000 : 12000,
+      panelClass: ['file-management-custom-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
   }
 }
