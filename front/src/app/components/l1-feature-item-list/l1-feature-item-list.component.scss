@@ -75,6 +75,28 @@
         &.state-disabled {
           opacity: 0;
         }
+        
+        // Additional styles for browser version disabled state
+        &.browser-version-disabled {
+          opacity: 0.7 !important;
+
+          
+          // Override any default status colors
+          &.success {
+            opacity: 0.7;
+            // background-color: rgba(76, 175, 80, 0.7) !important;
+          }
+          
+          &.failed {
+            opacity: 0.7;
+            // background-color: rgba(244, 67, 54, 0.7) !important;
+          }
+          
+          &.canceled {
+            opacity: 0.7;
+            // background-color: rgba(158, 158, 158, 0.7) !important;
+          }
+        }
         padding: 3px 10px 3px 0;
         padding-right: 20px;
         display: inline-block;
@@ -124,7 +146,7 @@
       .run-disabled {
         pointer-events: default;
         cursor: default;
-        opacity: 0.7;
+ 
         &.running {
           opacity: 1;
           cursor: pointer;
@@ -210,7 +232,7 @@
     }
   }
   .browser {
-    color: #546e7a;
+    color: $browser-text-color;
     margin-top: 10px;
     margin-left: 10px;
     font-size: 14px;
@@ -219,7 +241,7 @@
     .browser-content {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
+      // gap: $browser-icon-spacing;
     }
     
     .browser-icons {
@@ -229,22 +251,50 @@
       
       .browser-icon-container {
         position: relative;
+        margin-right: $browser-icon-spacing; // Add space between browser icons
                 
         &:last-child {
-          margin-right: 8px; // Add space between icons and text
+          margin-right: $browser-icon-text-spacing; // Add space between icons and text
+        }
+        .my-icons {
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          display: inline-block;
+          vertical-align: middle;
+          z-index: 1;
+          position: relative;
+          width: $browser-icon-size;
+          height: $browser-icon-height;
         }
         
-        .my-icons {
-          background-size: contain !important;
-          background-repeat: no-repeat !important;
-          background-position: center !important;
-          display: inline-block !important;
-          vertical-align: middle !important;
-          z-index: 1 !important;
-          position: relative !important;
+        .browser-icon {
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          display: inline-block;
+          vertical-align: middle;
+          width: $browser-icon-size;
+          height: $browser-icon-height;
         }
         
         .browser-version-warning {
+          position: absolute;
+          bottom: -2px;
+          right: -2px;
+          font-size: 12px;
+          width: 12px;
+          height: 12px;
+          line-height: 12px;
+          color: $browser-version-warning-color;
+          background-color: $browser-version-warning-bg;
+          border-radius: 50%;
+          z-index: 2;
+          box-shadow: 0 1px 3px $browser-version-warning-shadow;
+        }
+        
+        // Specific styles for material-icons when used as browser-version-warning
+        .material-icons.browser-version-warning {
           position: absolute !important;
           bottom: -2px !important;
           right: -2px !important;
@@ -252,11 +302,25 @@
           width: 12px !important;
           height: 12px !important;
           line-height: 12px !important;
-          color: #f44336 !important; // Red color
-          background-color: white !important;
+          color: $browser-version-warning-color !important;
+          background-color: $browser-version-warning-bg !important;
           border-radius: 50% !important;
           z-index: 2 !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+          box-shadow: 0 1px 3px $browser-version-warning-shadow !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          min-width: 12px !important;
+          min-height: 12px !important;
+          max-width: 12px !important;
+          max-height: 12px !important;
+          text-align: center !important;
+          vertical-align: middle !important;
+          font-weight: bold !important;
+          letter-spacing: normal !important;
+          text-transform: none !important;
+          white-space: nowrap !important;
+          word-wrap: normal !important;
         }
       }
     }
@@ -264,20 +328,48 @@
     // Browser-specific icon styles at component level
     .my-icons {
       &.chrome {
-        background-image: url(^assets/chrome.svg) !important;
+        background-image: url(^assets/chrome.svg);
       }
       &.firefox {
-        background-image: url(^assets/firefox.svg) !important;
+        background-image: url(^assets/firefox.svg);
       }
       &.MicrosoftEdge,
       &.edge {
-        background-image: url(^assets/icons/edge.svg) !important;
+        background-image: url(^assets/icons/edge.svg);
       }
       &.safari {
-        background-image: url(^assets/icons/safari.svg) !important;
+        background-image: url(^assets/icons/safari.svg);
       }
       &.ie {
-        background-image: url(^assets/icons/ie.svg) !important;
+        background-image: url(^assets/icons/ie.svg);
+      }
+    }
+    
+    // Mobile and tablet specific styles
+    .browser-icon {
+      // Android devices
+      &[style*="android"] {
+        background-size: 18px 18px;
+      }
+      
+      // iOS devices
+      &[style*="ios"] {
+        background-size: 18px 18px;
+      }
+      
+      // iPhone devices
+      &[style*="iphone"] {
+        background-size: 18px 18px;
+      }
+      
+      // Tablet devices
+      &[style*="tablet"] {
+        background-size: 18px 18px;
+      }
+      
+      // Generic mobile devices
+      &[style*="mobile"] {
+        background-size: 18px 18px;
       }
     }
   }
@@ -313,7 +405,7 @@
   }
   // Paper inside of folders with items
   .folder-paper {
-    background-color: $pure-white !important;
+    background-color: $pure-white;
     z-index: 1;
     box-shadow: 0 -6px 15px -13px $table-high-shadow;
   }

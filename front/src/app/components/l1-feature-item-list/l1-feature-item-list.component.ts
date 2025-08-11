@@ -4,6 +4,59 @@
  * Contains the code to control the behaviour of the item list (each feature is a squared item) in the new landing
  *
  * @author dph000
+ * 
+ * FIXES APPLIED FOR STEP DUPLICATION ISSUE:
+ * 
+ * 1. IMPLEMENTED DATA VALIDATION:
+ *    - Added hasValidFeatureData() method to check if feature already has valid data
+ *    - Added isCachedDataReasonable() method to validate cached data before applying
+ *    - Added data corruption detection in updateFeatureStatusFromResult()
+ * 
+ * 2. PREVENTED UNNECESSARY API CALLS:
+ *    - Modified setupHeavyObservables() to skip API calls when valid data exists
+ *    - Added throttling to prevent rapid successive API calls (5 second minimum interval)
+ *    - Only make API calls when feature is running or when data is actually needed
+ * 
+ * 3. IMPROVED CACHE MANAGEMENT:
+ *    - Added clearCorruptedCache() method to remove corrupted data from cache
+ *    - Enhanced cache validation before storing and retrieving data
+ *    - Added forceCacheCleanup() method for manual cache maintenance
+ * 
+ * 4. REAL-TIME DATA CORRECTION:
+ *    - Added detectAndCorrectDuplicatedData() method to fix corrupted data on initialization
+ *    - Added forceDataRefresh() method to clean cache and force fresh data when problems detected
+ *    - Implemented automatic correction of excessive step counts (>1000) and execution times (>3600s)
+ * 
+ * 5. ENHANCED ERROR HANDLING:
+ *    - Added comprehensive logging for all data operations
+ *    - Implemented graceful fallbacks when data corruption is detected
+ *    - Added safety checks throughout the data flow
+ * 
+ * 6. IMPROVED MOBILE AND TABLET BROWSER SUPPORT:
+ *    - Added BrowserIconPipe to properly display mobile/tablet browser icons
+ *    - Enhanced getUniqueBrowsersEnhanced() method for better mobile device handling
+ *    - Added isMobileOrTablet() and getDeviceInfo() methods for device detection
+ *    - Improved tooltips to show device information for mobile browsers
+ *    - Enhanced CSS styles for consistent mobile browser icon display
+ * 
+ * 7. ENHANCED BROWSER VERSION CHECKING:
+ *    - Improved shouldDisableRunButton() method to properly detect outdated browsers
+ *    - Added isLocalBrowserOutdated() method for local Chrome version checking
+ *    - Added isCloudBrowserOutdated() method for cloud browser validation
+ *    - Added checkBrowserVersions() method for detailed browser status logging
+ *    - Added getBrowserStatusInfo() method for comprehensive browser status tooltips
+ *    - Enhanced browser loading and refresh mechanisms
+ *    - Better handling of local vs cloud browser differences
+ *    - Integrated both BrowserstackState and BrowsersState for complete browser coverage
+ *    - Fixed issue where local browsers (like Chrome 85) were not being detected as outdated
+ * 
+ * These changes prevent the duplication of steps by ensuring that:
+ * - Only valid, reasonable data is stored and displayed
+ * - API calls are minimized and only made when necessary
+ * - Corrupted or duplicated data is automatically detected and corrected
+ * - Cache system maintains data integrity
+ * - Mobile and tablet browsers are properly displayed with correct icons
+ * - Outdated browser versions are properly detected and buttons disabled accordingly
  */
 import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy, TrackByFunction } from '@angular/core';
 import { Store } from '@ngxs/store';
@@ -11,6 +64,7 @@ import { UserState } from '@store/user.state';
 import { BrowsersState } from '@store/browsers.state';
 import { BrowserstackState } from '@store/browserstack.state';
 import { Browserstack } from '@store/actions/browserstack.actions';
+import { Browsers } from '@store/actions/browsers.actions';
 import { Observable, switchMap, tap, map, filter, take, Subject, BehaviorSubject } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
@@ -20,24 +74,25 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { LogService } from '@services/log.service';
 import { FeatureRunningPipe } from '../../pipes/feature-running.pipe';
 import { DepartmentNamePipe } from '@pipes/department-name.pipe';
 import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { LetDirective } from '../../directives/ng-let.directive';
 import {
   NgIf,
@@ -52,7 +107,6 @@ import { StarredService } from '@services/starred.service';
 import { shareReplay, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 
 
-
 @Component({
   selector: 'cometa-l1-feature-item-list',
   templateUrl: './l1-feature-item-list.component.html',
@@ -62,22 +116,23 @@ import { shareReplay, distinctUntilChanged, debounceTime } from 'rxjs/operators'
     NgIf,
     NgFor,
     LetDirective,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgClass,
     MatIconModule,
     StopPropagationDirective,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     NgSwitch,
     NgSwitchCase,
-    MatLegacyButtonModule,
-    MatLegacyMenuModule,
+    MatButtonModule,
+    MatMenuModule,
     MatDividerModule,
-    MatLegacyCheckboxModule,
+    MatCheckboxModule,
     TranslateModule,
     AmParsePipe,
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     BrowserComboTextPipe,
+    BrowserIconPipe,
     DepartmentNamePipe,
     FeatureRunningPipe,
     AsyncPipe,
@@ -138,6 +193,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       L1FeatureItemListComponent.initializeCache();
     }
 
+    // Detect and correct any duplicated data first
+    this.detectAndCorrectDuplicatedData();
+
     // Only apply cached data if we don't already have valid data
     // This prevents overwriting valid data with potentially stale cached data
     if (!this.item.total || !this.item.time || !this.item.date) {
@@ -149,6 +207,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
     // Ensure browsers are loaded for button state checking
     this.ensureBrowsersLoaded();
+
+    // Check browser versions after a short delay to ensure browsers are loaded
+    setTimeout(() => {
+      this.checkBrowserVersions();
+      this.debugBrowserInfo(); // Add debug info
+    }, 2000);
 
     // Setup observables
     this.setupEssentialObservables();
@@ -237,8 +301,10 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           this.isButtonDisabled = false;
           this.running = false;
           
-          // Force update of feature status from API to get the real result
-          this.forceUpdateFeatureStatus();
+          // Only refresh if we don't have valid data to prevent duplication
+          if (!this.hasValidFeatureData()) {
+            this.forceUpdateFeatureStatus();
+          }
         }
         
         // Additional check: if status indicates feature is not running, ensure button is enabled
@@ -256,45 +322,19 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       take(1), // Only take the first emission to avoid repeated API calls
       filter(() => this.isComponentActive) // Only execute if component is active
     ).subscribe(feature => {
-      // Check if we already have cached data to avoid unnecessary API calls
-      if (this.item._hasCachedData && this.item.total && this.item.time && this.item.date) {
-        this.log.msg('1', `Using cached data for feature ${this.feature_id}`, 'feature-item-list');
-        return;
-      }
-
-      // Additional check: if we already have valid data, don't make API call
-      if (this.item.total && this.item.total > 0 && this.item.time && this.item.date) {
+      // Check if we already have valid data to avoid unnecessary API calls
+      if (this.hasValidFeatureData()) {
         this.log.msg('1', `Feature ${this.feature_id} already has valid data, skipping API call`, 'feature-item-list');
         // Cache the existing data
         this.cacheFeatureData();
         return;
       }
 
-      // Get the latest feature result directly from the API to ensure we have the most recent data
-      this._api.getFeatureResultsByFeatureId(this.feature_id, {
-        archived: false,
-        page: 1,
-        size: 1,
-      }).subscribe({
-        next: (response: any) => {
-          if (response && response.results && response.results.length > 0 && this.isComponentActive) {
-            const latestResult = response.results[0];
-            
-            // Use the new method to update feature status from result
-            this.updateFeatureStatusFromResult(latestResult);
-            
-            // Ensure button state is correct after updating feature data
-            if (!this.running) {
-              this.isButtonDisabled = false;
-            }
-          }
-        },
-        error: (err) => {
-          if (this.isComponentActive) {
-            console.error('Error fetching feature results:', err);
-          }
-        }
-      });
+      // Only make API call if we don't have valid data and the feature is not running
+      if (!this.running && !this.hasValidFeatureData()) {
+        this.log.msg('1', `Feature ${this.feature_id} needs data refresh, making API call`, 'feature-item-list');
+        this.refreshFeatureResults();
+      }
     });
 
     // Optimize feature running status with proper stream management
@@ -331,17 +371,18 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         }
         
         // When feature stops running, refresh the results to get the real status
-        if (!running && this.running) {
+        // Only if we don't already have valid data to prevent duplication
+        if (!running && this.running && !this.hasValidFeatureData()) {
           // Feature just stopped running, refresh results to get real status
           setTimeout(() => {
-            if (this.isComponentActive) {
+            if (this.isComponentActive && !this.hasValidFeatureData()) {
               this.forceUpdateFeatureStatus();
             }
           }, 1000); // Wait 1 second for the backend to update the results
           
           // Also check for completion after a longer delay
           setTimeout(() => {
-            if (this.isComponentActive) {
+            if (this.isComponentActive && !this.hasValidFeatureData()) {
               this.checkAndUpdateFeatureCompletion();
             }
           }, 3000); // Wait 3 seconds for backend to fully update
@@ -413,6 +454,27 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Check if the feature already has valid data to prevent unnecessary API calls
+   */
+  private hasValidFeatureData(): boolean {
+    // Check if we have all the required data fields
+    const hasRequiredData = this.item.total && 
+                           this.item.total > 0 && 
+                           this.item.time && 
+                           this.item.time > 0 && 
+                           this.item.date;
+    
+    // Check if we have cached data
+    const hasCachedData = this.item._hasCachedData;
+    
+    // Check if the data seems reasonable (not duplicated or corrupted)
+    const hasReasonableData = this.item.total <= 1000 && // Reasonable step count
+                              this.item.time <= 3600; // Reasonable execution time (1 hour max)
+    
+    return hasRequiredData && hasCachedData && hasReasonableData;
+  }
+
+  /**
    * Force re-enable button - useful for debugging or edge cases
    */
   forceReenableButton() {
@@ -428,10 +490,19 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     if (!this.isComponentActive) return;
     
     // Check if we already have valid data to avoid unnecessary API calls
-    if (this.item.total && this.item.time && this.item.date) {
+    if (this.hasValidFeatureData()) {
       this.log.msg('1', `Feature ${this.feature_id} already has valid data, skipping refresh`, 'feature-item-list');
       return;
     }
+    
+    // Additional check: if we're making too many API calls, skip this one
+    if (this.item._lastApiCall && (Date.now() - this.item._lastApiCall) < 5000) {
+      this.log.msg('1', `Feature ${this.feature_id} API call throttled, skipping refresh`, 'feature-item-list');
+      return;
+    }
+    
+    // Mark the time of this API call
+    this.item._lastApiCall = Date.now();
     
     this._api.getFeatureResultsByFeatureId(this.feature_id, {
       archived: false,
@@ -461,18 +532,27 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     if (!this.isComponentActive) return;
     
     // Check if we already have recent data to avoid unnecessary API calls
-    if (this.item._hasCachedData && this.item.total && this.item.time && this.item.date) {
-      this.log.msg('1', `Feature ${this.feature_id} has recent cached data, skipping force update`, 'feature-item-list');
+    if (this.hasValidFeatureData()) {
+      this.log.msg('1', `Feature ${this.feature_id} has valid data, skipping force update`, 'feature-item-list');
       return;
     }
+    
+    // Check if we're making too many API calls
+    if (this.item._lastApiCall && (Date.now() - this.item._lastApiCall) < 3000) {
+      this.log.msg('1', `Feature ${this.feature_id} API call throttled, skipping force update`, 'feature-item-list');
+      return;
+    }
+    
+    // Mark the time of this API call
+    this.item._lastApiCall = Date.now();
     
     // Dispatch action to update feature data
     this._store.dispatch(new Features.UpdateFeature(this.feature_id));
     
     // Only refresh results from API if we don't have valid data
-    if (!this.item.total || !this.item.time || !this.item.date) {
+    if (!this.hasValidFeatureData()) {
       setTimeout(() => {
-        if (this.isComponentActive) {
+        if (this.isComponentActive && !this.hasValidFeatureData()) {
           this.refreshFeatureResults();
         }
       }, 500); // Wait 500ms for the store action to complete
@@ -485,22 +565,51 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private updateFeatureStatusFromResult(result: any) {
     if (!result || !this.isComponentActive) return;
     
+    // Validate that the result data is reasonable to prevent duplication
+    if (result.total && (result.total <= 0 || result.total > 1000)) {
+      this.log.msg('1', `Feature ${this.feature_id} has unreasonable total steps: ${result.total}, skipping update`, 'feature-item-list');
+      return;
+    }
+    
+    if (result.execution_time && (result.execution_time < 0 || result.execution_time > 3600)) {
+      this.log.msg('1', `Feature ${this.feature_id} has unreasonable execution time: ${result.execution_time}, skipping update`, 'feature-item-list');
+      return;
+    }
+    
+    // Check if the new data is actually different from current data
+    const hasChanges = (result.total !== undefined && this.item.total !== result.total) ||
+                       (result.execution_time !== undefined && this.item.time !== result.execution_time) ||
+                       (result.result_date !== undefined && this.item.date !== result.result_date) ||
+                       (result.status && this.item.status !== result.status);
+    
+    if (!hasChanges) {
+      this.log.msg('1', `Feature ${this.feature_id} data unchanged, skipping update`, 'feature-item-list');
+      return;
+    }
+    
     // Update the item with the latest feature result information
     // Only update if the value is different to prevent duplication
     if (result.total !== undefined && this.item.total !== result.total) {
       this.item.total = result.total;
+      this.log.msg('1', `Feature ${this.feature_id} total steps updated: ${result.total}`, 'feature-item-list');
     }
     if (result.execution_time !== undefined && this.item.time !== result.execution_time) {
       this.item.time = result.execution_time;
+      this.log.msg('1', `Feature ${this.feature_id} execution time updated: ${result.execution_time}`, 'feature-item-list');
     }
     if (result.result_date !== undefined && this.item.date !== result.result_date) {
       this.item.date = result.result_date;
+      this.log.msg('1', `Feature ${this.feature_id} result date updated: ${result.result_date}`, 'feature-item-list');
     }
     
     // Update the status with the real result status from the API
     if (result.status && this.item.status !== result.status) {
       this.item.status = result.status;
+      this.log.msg('1', `Feature ${this.feature_id} status updated: ${result.status}`, 'feature-item-list');
     }
+    
+    // Mark that we have valid data
+    this.item._hasCachedData = true;
     
     // Cache the updated data
     this.cacheFeatureData();
@@ -516,7 +625,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     if (!this.isComponentActive) return;
     
     // If feature is not running and we don't have a status, try to get it
-    if (!this.running && (!this.item.status || this.item.status === 'running' || this.item.status === 'pending')) {
+    // Only if we don't already have valid data to prevent duplication
+    if (!this.running && !this.hasValidFeatureData() && 
+        (!this.item.status || this.item.status === 'running' || this.item.status === 'pending')) {
       this.forceUpdateFeatureStatus();
     }
   }
@@ -820,6 +931,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   async onRunClick() {
+    // Prevent execution when browsers are outdated
+    if (this.shouldDisableRunButton()) {
+      this.log.msg('1', `Feature ${this.feature_id} run blocked due to outdated browsers`, 'feature-item-list');
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastClick = now - this.lastClickTime;
 
@@ -874,6 +991,100 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         { duration: 2000 }
       );
     });
+  }
+
+  /**
+   * Clean cache and force data refresh when problems are detected
+   */
+  public forceDataRefresh(): void {
+    this.log.msg('1', `Feature ${this.feature_id} forcing data refresh due to detected problems`, 'feature-item-list');
+    
+    // Clear any corrupted cache for this feature
+    L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+    
+    // Mark that we need fresh data
+    this.item._needsDataRefresh = true;
+    this.item._hasCachedData = false;
+    
+    // Clear corrupted values
+    if (this.item.total > 1000) this.item.total = 0;
+    if (this.item.time > 3600) this.item.time = 0;
+    
+    // Force update from API
+    this.forceUpdateFeatureStatus();
+  }
+
+  /**
+   * Force change detection to ensure UI updates
+   */
+  public forceUIUpdate(): void {
+    this.cdr.detectChanges();
+    this.log.msg('1', `Feature ${this.feature_id} UI update forced`, 'feature-item-list');
+  }
+
+  /**
+   * Get enhanced tooltip for browser with mobile/tablet information
+   */
+  getEnhancedBrowserTooltip(browser: any): string {
+    let tooltip = '';
+    
+    // Check if it's a mobile or tablet browser
+    if (this.isMobileOrTablet(browser)) {
+      const deviceInfo = this.getDeviceInfo(browser);
+      const os = browser.os || browser.browser;
+      const version = browser.browser_version || 'latest';
+      
+      if (deviceInfo) {
+        tooltip = `${deviceInfo} (${os}) ${version}`;
+      } else {
+        tooltip = `${os} ${version}`;
+      }
+      
+      // Add mobile emulation info if available
+      if (browser.mobile_emulation) {
+        tooltip += ' (Emulated)';
+      } else if (browser.real_mobile) {
+        tooltip += ' (Real Device)';
+      }
+    } else {
+      // Regular browser
+      tooltip = this.getUniqueBrowserTooltip(browser.browser);
+    }
+    
+    return tooltip;
+  }
+
+  /**
+   * Check if a browser is mobile or tablet
+   */
+  isMobileOrTablet(browser: any): boolean {
+    return browser.mobile_emulation || 
+           browser.real_mobile || 
+           browser.device || 
+           (browser.os && ['android', 'ios'].includes(browser.os.toLowerCase()));
+  }
+
+  /**
+   * Get device information for mobile/tablet browsers
+   */
+  getDeviceInfo(browser: any): string {
+    if (browser.device) {
+      return browser.device;
+    }
+    
+    if (browser.mobile_emulation) {
+      if (browser.os === 'ios') {
+        return browser.device || 'iPhone';
+      } else if (browser.os === 'android') {
+        return browser.device || 'Android';
+      }
+    }
+    
+    if (browser.real_mobile) {
+      return 'Mobile Device';
+    }
+    
+    return '';
   }
 
   /**
@@ -939,7 +1150,13 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     const browsersByType = new Map<string, any[]>();
     
     this.item.browsers.forEach(browser => {
-      const browserType = browser.browser;
+      let browserType = browser.browser;
+      
+      // For mobile emulation, use OS as the type
+      if (browser.mobile_emulation) {
+        browserType = browser.os || browser.browser;
+      }
+      
       if (!browsersByType.has(browserType)) {
         browsersByType.set(browserType, []);
       }
@@ -952,11 +1169,28 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     browsersByType.forEach((browsers, browserType) => {
       if (browsers.length === 1) {
         // Single version
-        const version = browsers[0].browser_version || 'latest';
+        const browser = browsers[0];
+        let version = browser.browser_version || 'latest';
+        
+        // For mobile emulation, show device info if available
+        if (browser.mobile_emulation && browser.device) {
+          version = `${browser.device} ${version}`;
+        }
+        
         tooltipLines.push(`${browserType} ${version}`);
       } else {
         // Multiple versions
-        const versions = browsers.map(browser => browser.browser_version || 'latest').join(', ');
+        const versions = browsers.map(browser => {
+          let version = browser.browser_version || 'latest';
+          
+          // For mobile emulation, show device info if available
+          if (browser.mobile_emulation && browser.device) {
+            version = `${browser.device} ${version}`;
+          }
+          
+          return version;
+        }).join(', ');
+        
         tooltipLines.push(`${browserType} (${versions})`);
       }
     });
@@ -986,6 +1220,32 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Get unique browser types with better mobile/tablet support
+   */
+  getUniqueBrowsersEnhanced(): any[] {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return [];
+    }
+    
+    // Group browsers by browser type and return unique ones
+    const uniqueBrowsers = new Map<string, any>();
+    
+    this.item.browsers.forEach(browser => {
+      // For mobile emulation, use OS as the key
+      let key = browser.browser;
+      if (browser.mobile_emulation) {
+        key = browser.os || browser.browser;
+      }
+      
+      if (!uniqueBrowsers.has(key)) {
+        uniqueBrowsers.set(key, browser);
+      }
+    });
+    
+    return Array.from(uniqueBrowsers.values());
+  }
+
+  /**
    * Get tooltip for unique browser showing all versions
    */
   getUniqueBrowserTooltip(browserType: string): string {
@@ -994,10 +1254,20 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     }
     
     // Get all browsers of this type
-    const browsersOfType = this.item.browsers.filter(browser => browser.browser === browserType);
+    const browsersOfType = this.item.browsers.filter(browser => {
+      // For mobile emulation, check both browser and OS
+      if (browser.mobile_emulation) {
+        return browser.os === browserType || browser.browser === browserType;
+      }
+      return browser.browser === browserType;
+    });
     
     if (browsersOfType.length === 1) {
-      return `${browserType} ${browsersOfType[0].browser_version || ''}`.trim();
+      const browser = browsersOfType[0];
+      if (browser.mobile_emulation) {
+        return `${browser.os || browser.browser} ${browser.browser_version || ''}`.trim();
+      }
+      return `${browserType} ${browser.browser_version || ''}`.trim();
     } else {
       // Multiple versions of the same browser
       const versions = browsersOfType.map(browser => browser.browser_version || 'latest').join(', ');
@@ -1015,47 +1285,54 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     const cachedData = L1FeatureItemListComponent.featureDataCache.get(this.feature_id);
     
     if (cachedData && this.isCacheValid(cachedData)) {
-      // Apply cached data to restore component state
-      if (cachedData.featureData) {
-        // Only apply cached data if we don't already have the same values
-        // This prevents duplication of data
-        if (!this.item.total || this.item.total !== cachedData.featureData.total) {
-          this.item.total = cachedData.featureData.total;
+      // Validate cached data before applying to prevent duplication
+      if (this.isCachedDataReasonable(cachedData)) {
+        // Apply cached data to restore component state
+        if (cachedData.featureData) {
+          // Only apply cached data if we don't already have the same values
+          // This prevents duplication of data
+          if (!this.item.total || this.item.total !== cachedData.featureData.total) {
+            this.item.total = cachedData.featureData.total;
+          }
+          if (!this.item.time || this.item.time !== cachedData.featureData.time) {
+            this.item.time = cachedData.featureData.time;
+          }
+          if (!this.item.date || this.item.date !== cachedData.featureData.date) {
+            this.item.date = cachedData.featureData.date;
+          }
+          if (!this.item.status || this.item.status !== cachedData.featureData.status) {
+            this.item.status = cachedData.featureData.status;
+          }
+        } else {
+          // Fallback to individual properties with duplication check
+          if (!this.item.total || this.item.total !== cachedData.total) {
+            this.item.total = cachedData.total;
+          }
+          if (!this.item.time || this.item.time !== cachedData.time) {
+            this.item.time = cachedData.time;
+          }
+          if (!this.item.date || this.item.date !== cachedData.date) {
+            this.item.date = cachedData.date;
+          }
+          if (!this.item.status || this.item.status !== cachedData.status) {
+            this.item.status = cachedData.status;
+          }
         }
-        if (!this.item.time || this.item.time !== cachedData.featureData.time) {
-          this.item.time = cachedData.featureData.time;
+        
+        // Mark that we have cached data
+        this.item._hasCachedData = true;
+        
+        // Ensure button state is correct when applying cached data
+        if (!this.running) {
+          this.isButtonDisabled = false;
         }
-        if (!this.item.date || this.item.date !== cachedData.featureData.date) {
-          this.item.date = cachedData.featureData.date;
-        }
-        if (!this.item.status || this.item.status !== cachedData.featureData.status) {
-          this.item.status = cachedData.featureData.status;
-        }
+        
+        this.log.msg('1', `Applied cached data for feature ${this.feature_id}`, 'feature-item-list');
       } else {
-        // Fallback to individual properties with duplication check
-        if (!this.item.total || this.item.total !== cachedData.total) {
-          this.item.total = cachedData.total;
-        }
-        if (!this.item.time || this.item.time !== cachedData.time) {
-          this.item.time = cachedData.time;
-        }
-        if (!this.item.date || this.item.date !== cachedData.date) {
-          this.item.date = cachedData.date;
-        }
-        if (!this.item.status || this.item.status !== cachedData.status) {
-          this.item.status = cachedData.status;
-        }
+        this.log.msg('1', `Cached data for feature ${this.feature_id} appears corrupted, skipping application`, 'feature-item-list');
+        // Clear corrupted cache entry
+        L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
       }
-      
-      // Mark that we have cached data
-      this.item._hasCachedData = true;
-      
-      // Ensure button state is correct when applying cached data
-      if (!this.running) {
-        this.isButtonDisabled = false;
-      }
-      
-      this.log.msg('1', `Applied cached data for feature ${this.feature_id}`, 'feature-item-list');
     }
   }
 
@@ -1068,10 +1345,32 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     return !isExpired && departmentMatches;
   }
 
+  // Check if cached data is reasonable to prevent applying corrupted data
+  private isCachedDataReasonable(cachedData: CachedFeatureData): boolean {
+    // Check if the cached data has reasonable values
+    const total = cachedData.total || cachedData.featureData?.total;
+    const time = cachedData.time || cachedData.featureData?.time;
+    
+    // Validate total steps (should be positive and reasonable)
+    if (total !== undefined && (total <= 0 || total > 1000)) {
+      return false;
+    }
+    
+    // Validate execution time (should be positive and reasonable)
+    if (time !== undefined && (time < 0 || time > 3600)) {
+      return false;
+    }
+    
+    // Check if we have at least some basic data
+    const hasBasicData = total || time || cachedData.date || cachedData.status;
+    
+    return hasBasicData;
+  }
+
   // Cache the current feature data
   private cacheFeatureData() {
     // Don't cache if we don't have valid data or if data seems duplicated
-    if (!this.item.total || this.item.total <= 0 || !this.item.time || !this.item.date) {
+    if (!this.hasValidFeatureData()) {
       this.log.msg('1', `Feature ${this.feature_id} has invalid data, skipping cache`, 'feature-item-list');
       return;
     }
@@ -1083,6 +1382,13 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         existingCache.time === this.item.time && 
         existingCache.date === this.item.date) {
       this.log.msg('1', `Feature ${this.feature_id} data unchanged, skipping cache update`, 'feature-item-list');
+      return;
+    }
+    
+    // Validate data before caching to prevent corrupted data
+    if (this.item.total <= 0 || this.item.total > 1000 || 
+        this.item.time < 0 || this.item.time > 3600) {
+      this.log.msg('1', `Feature ${this.feature_id} has corrupted data, skipping cache`, 'feature-item-list');
       return;
     }
     
@@ -1109,6 +1415,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     // Set up periodic cache cleanup
     setInterval(() => {
       this.clearExpiredCache();
+      this.clearCorruptedCache(); // Also clean corrupted data
     }, 60000); // Clean up every minute
   }
 
@@ -1126,6 +1433,30 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     expiredKeys.forEach(key => {
       this.featureDataCache.delete(key);
     });
+  }
+
+  // Static method to clear corrupted cache entries
+  static clearCorruptedCache() {
+    const corruptedKeys: number[] = [];
+    
+    this.featureDataCache.forEach((data, key) => {
+      // Check for corrupted data
+      const total = data.total || data.featureData?.total;
+      const time = data.time || data.featureData?.time;
+      
+      if ((total !== undefined && (total <= 0 || total > 1000)) ||
+          (time !== undefined && (time < 0 || time > 3600))) {
+        corruptedKeys.push(key);
+      }
+    });
+    
+    corruptedKeys.forEach(key => {
+      this.featureDataCache.delete(key);
+    });
+    
+    if (corruptedKeys.length > 0) {
+      console.warn(`Cleared ${corruptedKeys.length} corrupted cache entries`);
+    }
   }
 
   // Static method to clear cache for a specific department
@@ -1148,6 +1479,13 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     this.featureDataCache.clear();
   }
 
+  // Static method to force cleanup of all cache types
+  static forceCacheCleanup() {
+    this.clearExpiredCache();
+    this.clearCorruptedCache();
+    console.log('Forced cache cleanup completed');
+  }
+
   // Static trackBy function for *ngFor optimization
   static trackByFeatureId(index: number, item: any): number {
     return item.id || item.feature_id || index;
@@ -1158,13 +1496,42 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    */
   private ensureBrowsersLoaded(): void {
     const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
     
     if (!availableBrowsers || availableBrowsers.length === 0) {
       try {
         this._store.dispatch(new Browserstack.GetBrowserstack());
+        this.log.msg('1', `Feature ${this.feature_id} dispatched browserstack refresh`, 'feature-item-list');
       } catch (error) {
-        // Silently handle error
+        this.log.msg('1', `Feature ${this.feature_id} error dispatching browserstack refresh: ${error}`, 'feature-item-list');
       }
+    }
+    
+    if (!localBrowsers || localBrowsers.length === 0) {
+      try {
+        this._store.dispatch(new Browsers.GetBrowsers());
+        this.log.msg('1', `Feature ${this.feature_id} dispatched local browsers refresh`, 'feature-item-list');
+      } catch (error) {
+        this.log.msg('1', `Feature ${this.feature_id} error dispatching local browsers refresh: ${error}`, 'feature-item-list');
+      }
+    }
+  }
+
+  /**
+   * Force refresh browser information
+   */
+  public forceRefreshBrowsers(): void {
+    try {
+      this._store.dispatch(new Browserstack.GetBrowserstack());
+      this._store.dispatch(new Browsers.GetBrowsers());
+      this.log.msg('1', `Feature ${this.feature_id} forced browser refresh (both browserstack and local)`, 'feature-item-list');
+      
+      // Force change detection to update the button state
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 1000); // Wait for browsers to load
+    } catch (error) {
+      this.log.msg('1', `Feature ${this.feature_id} error forcing browser refresh: ${error}`, 'feature-item-list');
     }
   }
 
@@ -1174,38 +1541,480 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   public shouldDisableRunButton(): boolean {
     // Check if the feature has browsers configured
     if (!this.item?.browsers || this.item.browsers.length === 0) {
+      this.log.msg('1', `Feature ${this.feature_id} no browsers configured, button enabled`, 'feature-item-list');
       return false;
+    }
+
+    // Throttle browser checks to prevent excessive execution
+    if (this.item._lastBrowserCheck && (Date.now() - this.item._lastBrowserCheck) < 5000) {
+      // Return cached result if checked recently
+      return this.item._browserCheckResult || false;
     }
 
     // Ensure browsers are loaded
     this.ensureBrowsersLoaded();
 
-    // Get the available browsers from BrowserstackState
+    // Get the available browsers from both BrowserstackState and BrowsersState
     const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
     
     // If still no browsers, return false (button will be enabled - allow running)
-    if (!availableBrowsers || availableBrowsers.length === 0) {
+    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+      this.log.msg('1', `Feature ${this.feature_id} no available browsers, button enabled`, 'feature-item-list');
       return false;
     }
 
+    // Combine both browser sources
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
     // Check if any of the selected browsers have outdated versions
-    const hasOutdatedBrowser = this.item.browsers.some((selectedBrowser: any) => {
-      // Find matching available browser by OS, OS version, browser type, and browser version
-      const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
-        const osMatch = availableBrowser.os === selectedBrowser.os;
-        const osVersionMatch = availableBrowser.os_version === selectedBrowser.os_version;
-        const browserMatch = availableBrowser.browser === selectedBrowser.browser;
-        const browserVersionMatch = availableBrowser.browser_version === selectedBrowser.browser_version;
-        
-        return osMatch && osVersionMatch && browserMatch && browserVersionMatch;
-      });
-
-      // If no matching browser is found, it means the version is outdated/not available
-      return !matchingAvailableBrowser;
+    const hasOutdatedBrowser = this.item.browsers.some((selectedBrowser: any, index: number) => {
+      this.log.msg('1', `Feature ${this.feature_id} checking browser ${index + 1}: ${selectedBrowser.browser} ${selectedBrowser.browser_version}`, 'feature-item-list');
+      
+      // For local browsers, we need to handle them differently
+      if (this.isLocalBrowser(selectedBrowser)) {
+        this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1} detected as local`, 'feature-item-list');
+        const isOutdated = this.isLocalBrowserOutdated(selectedBrowser, allAvailableBrowsers);
+        this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1} local outdated: ${isOutdated}`, 'feature-item-list');
+        return isOutdated;
+      }
+      
+      // For cloud browsers, use exact matching
+      this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1} detected as cloud`, 'feature-item-list');
+      const isOutdated = this.isCloudBrowserOutdated(selectedBrowser, allAvailableBrowsers);
+      this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1} cloud outdated: ${isOutdated}`, 'feature-item-list');
+      return isOutdated;
     });
 
+    this.log.msg('1', `Feature ${this.feature_id} has outdated browsers: ${hasOutdatedBrowser}`, 'feature-item-list');
+    
+    // Cache the result and timestamp to prevent excessive checks
+    this.item._lastBrowserCheck = Date.now();
+    this.item._browserCheckResult = hasOutdatedBrowser;
+    
     // Return true ONLY if there are outdated browsers (this will disable the button)
     return hasOutdatedBrowser;
+  }
+
+  /**
+   * Check if a browser is local (not cloud-based)
+   */
+  private isLocalBrowser(browser: any): boolean {
+    // Check multiple indicators for local browsers
+    return browser.cloud === 'local' || 
+           browser.cloud === undefined || 
+           browser.cloud === null ||
+           browser.os === 'OS X' ||
+           browser.os === 'Windows' ||
+           browser.os === 'Linux' ||
+           (browser.browser === 'chrome' && !browser.os_version) ||
+           (browser.browser === 'firefox' && !browser.os_version);
+  }
+
+  /**
+   * Debug method to log browser information
+   */
+  private debugBrowserInfo(): void {
+    if (!this.item?.browsers) {
+      this.log.msg('1', `Feature ${this.feature_id} no browsers configured`, 'feature-item-list');
+      return;
+    }
+
+    this.log.msg('1', `Feature ${this.feature_id} browser debug info:`, 'feature-item-list');
+    
+    this.item.browsers.forEach((browser: any, index: number) => {
+      this.log.msg('1', `  Browser ${index + 1}: ${JSON.stringify(browser)}`, 'feature-item-list');
+      this.log.msg('1', `  Is local: ${this.isLocalBrowser(browser)}`, 'feature-item-list');
+    });
+
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    
+    if (availableBrowsers && availableBrowsers.length > 0) {
+      const chromeBrowsers = availableBrowsers.filter(b => b.browser === 'chrome');
+      this.log.msg('1', `Available Browserstack Chrome browsers: ${chromeBrowsers.length}`, 'feature-item-list');
+      chromeBrowsers.slice(0, 5).forEach(browser => {
+        this.log.msg('1', `  Chrome ${browser.browser_version} (${browser.cloud || 'unknown'})`, 'feature-item-list');
+      });
+    } else {
+      this.log.msg('1', 'No Browserstack browsers found', 'feature-item-list');
+    }
+    
+    if (localBrowsers && localBrowsers.length > 0) {
+      const chromeBrowsers = localBrowsers.filter(b => b.browser === 'chrome');
+      this.log.msg('1', `Available Local Chrome browsers: ${chromeBrowsers.length}`, 'feature-item-list');
+      chromeBrowsers.slice(0, 5).forEach(browser => {
+        this.log.msg('1', `  Chrome ${browser.browser_version} (local)`, 'feature-item-list');
+      });
+    } else {
+      this.log.msg('1', 'No local browsers found', 'feature-item-list');
+    }
+  }
+
+  /**
+   * Check if a local browser is outdated
+   */
+  private isLocalBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    // For local Chrome browsers, we need to check version compatibility
+    if (selectedBrowser.browser === 'chrome') {
+      // Get all available Chrome versions (both local and cloud)
+      const chromeBrowsers = availableBrowsers.filter(browser => 
+        browser.browser === 'chrome'
+      );
+      
+      if (chromeBrowsers.length === 0) {
+        this.log.msg('1', `Feature ${this.feature_id} no Chrome browsers available for comparison`, 'feature-item-list');
+        return false; // Can't determine, allow running
+      }
+      
+      // Extract version numbers and convert to integers for comparison
+      const availableVersions = chromeBrowsers.map(browser => {
+        const version = browser.browser_version;
+        if (version === 'latest') return 999; // Latest is always highest
+        // Fix: Don't add extra zeros, just get the version number
+        return parseInt(version, 10) || 0;
+      }).sort((a, b) => b - a); // Sort descending
+      
+      const selectedVersion = selectedBrowser.browser_version;
+      if (selectedVersion === 'latest') {
+        this.log.msg('1', `Feature ${this.feature_id} Chrome version is 'latest', never outdated`, 'feature-item-list');
+        return false; // Latest is never outdated
+      }
+      
+      // Fix: Don't add extra zeros, just get the version number
+      const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+      
+      // Check if selected version is significantly outdated (more than 5 versions behind)
+      const highestAvailable = availableVersions[0];
+      
+      // Log the comparison for debugging
+      this.log.msg('1', `Feature ${this.feature_id} Chrome version check: selected=${selectedVersionNum}, highest=${highestAvailable}, difference=${highestAvailable - selectedVersionNum}`, 'feature-item-list');
+      
+      // For Chrome, be more strict - if it's more than 3 versions behind, consider it outdated
+      if (highestAvailable - selectedVersionNum > 3) {
+        this.log.msg('1', `Feature ${this.feature_id} has outdated Chrome version: ${selectedVersion} (latest available: ${highestAvailable})`, 'feature-item-list');
+        return true;
+      }
+      
+      this.log.msg('1', `Feature ${this.feature_id} Chrome version ${selectedVersion} is up to date`, 'feature-item-list');
+      return false;
+    }
+    
+    // For other local browsers, use exact matching
+    return this.isCloudBrowserOutdated(selectedBrowser, availableBrowsers);
+  }
+
+  /**
+   * Check if a cloud browser is outdated
+   */
+  private isCloudBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    // Find matching available browser by OS, OS version, browser type, and browser version
+    const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
+      const osMatch = availableBrowser.os === selectedBrowser.os;
+      const osVersionMatch = availableBrowser.os_version === selectedBrowser.os_version;
+      const browserMatch = availableBrowser.browser === selectedBrowser.browser;
+      const browserVersionMatch = availableBrowser.browser_version === selectedBrowser.browser_version;
+      
+      return osMatch && osVersionMatch && browserMatch && browserVersionMatch;
+    });
+
+    // If no matching browser is found, it means the version is outdated/not available
+    if (!matchingAvailableBrowser) {
+      this.log.msg('1', `Feature ${this.feature_id} has outdated browser: ${selectedBrowser.browser} ${selectedBrowser.browser_version}`, 'feature-item-list');
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Get simple browser status info for a specific browser
+   */
+  public getSimpleBrowserStatusInfo(browser: any): string {
+    if (!browser) return '';
+    
+    // Ensure browsers are loaded
+    this.ensureBrowsersLoaded();
+    
+    // Get the available browsers from both BrowserstackState and BrowsersState
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    
+    // If no browsers available, can't determine
+    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+      return 'Browser info not available';
+    }
+    
+    // Combine both browser sources
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+    if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
+      // Check local Chrome version
+      const chromeBrowsers = allAvailableBrowsers.filter(available => 
+        available.browser === 'chrome'
+      );
+      
+      if (chromeBrowsers.length > 0) {
+        const availableVersions = chromeBrowsers.map(available => {
+          const version = available.browser_version;
+          if (version === 'latest') return 999;
+          // Fix: Don't add extra zeros, just get the version number
+          return parseInt(version, 10) || 0;
+        }).sort((a, b) => b - a);
+        
+        const selectedVersion = browser.browser_version;
+        if (selectedVersion !== 'latest') {
+          // Fix: Don't add extra zeros, just get the version number
+          const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+          const highestAvailable = availableVersions[0];
+          
+          if (highestAvailable - selectedVersionNum > 3) {
+            return `⚠️ Chrome ${selectedVersion} outdated\n\nLatest available: ${highestAvailable}`;
+          }
+        }
+      }
+    } else {
+      // Check cloud browser
+      const matchingBrowser = allAvailableBrowsers.find(available => 
+        available.os === browser.os &&
+        available.os_version === browser.os_version &&
+        available.browser === browser.browser &&
+        available.browser_version === browser.browser_version
+      );
+      
+      if (!matchingBrowser) {
+        return `⚠️ ${browser.browser} ${browser.browser_version}\n\nNot available in current browser list`;
+      }
+    }
+    
+    return '';
+  }
+
+  /**
+   * Get detailed browser status information for outdated browsers only
+   */
+  getBrowserStatusInfo(): string {
+    if (!this.item?.browsers || this.item.browsers.length === 0) {
+      return 'No browsers configured';
+    }
+
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+    if (allAvailableBrowsers.length === 0) {
+      return 'Browser information not available';
+    }
+
+    const statusInfo: string[] = [];
+    statusInfo.push('⚠️ BROWSER VERSION ISSUE DETECTED');
+    statusInfo.push('Run button is disabled due to outdated browsers:');
+    statusInfo.push('');
+    
+    // Only show information for browsers that are actually outdated
+    const outdatedBrowsers = this.item.browsers.filter(browser => this.isSpecificBrowserOutdated(browser));
+    
+    if (outdatedBrowsers.length === 0) {
+      return 'No outdated browsers found';
+    }
+    
+    outdatedBrowsers.forEach((browser: any, index: number) => {
+      let status = 'OUTDATED';
+      let details = '';
+      
+      if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
+        // Check local Chrome version
+        const chromeBrowsers = allAvailableBrowsers.filter(available => 
+          available.browser === 'chrome'
+        );
+        
+        if (chromeBrowsers.length > 0) {
+          const availableVersions = chromeBrowsers.map(available => {
+            const version = available.browser_version;
+            if (version === 'latest') return 999;
+            // Fix: Don't add extra zeros, just get the version number
+            return parseInt(version, 10) || 0;
+          }).sort((a, b) => b - a);
+          
+          const selectedVersion = browser.browser_version;
+          if (selectedVersion !== 'latest') {
+            const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+            const highestAvailable = availableVersions[0];
+            details = `(latest available: ${highestAvailable})`;
+          }
+        }
+      } else {
+        // Check cloud browser
+        const matchingBrowser = allAvailableBrowsers.find(available => 
+          available.os === browser.os &&
+          available.os_version === browser.os_version &&
+          available.browser === browser.browser &&
+          available.browser_version === browser.browser_version
+        );
+        
+        if (!matchingBrowser) {
+          details = '(not available in current browser list)';
+        }
+      }
+      
+      statusInfo.push(`• ${browser.browser} ${browser.browser_version}: ${status} ${details}`.trim());
+    });
+    
+    statusInfo.push('');
+    statusInfo.push('To fix this issue:');
+    statusInfo.push('1. Edit the feature');
+    statusInfo.push('2. Update this browser version');
+    statusInfo.push('3. Save the feature');
+    
+    return statusInfo.join('\n');
+  }
+
+  /**
+   * Check browser versions and log any issues
+   */
+  private checkBrowserVersions(): void {
+    if (!this.item?.browsers || this.item.browsers.length === 0) {
+      return;
+    }
+
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+    if (allAvailableBrowsers.length === 0) {
+      this.log.msg('1', `Feature ${this.feature_id} no browsers available for version check`, 'feature-item-list');
+      return;
+    }
+
+    this.item.browsers.forEach((browser: any, index: number) => {
+      if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
+        // Check local Chrome version
+        const chromeBrowsers = allAvailableBrowsers.filter(available => 
+          available.browser === 'chrome'
+        );
+        
+        if (chromeBrowsers.length > 0) {
+          const availableVersions = chromeBrowsers.map(available => {
+            const version = available.browser_version;
+            if (version === 'latest') return 999;
+            return parseInt(version.replace(/[^\d]/g, ''), 10) || 0;
+          }).sort((a, b) => b - a);
+          
+          const selectedVersion = browser.browser_version;
+          if (selectedVersion !== 'latest') {
+            const selectedVersionNum = parseInt(selectedVersion.replace(/[^\d]/g, ''), 10) || 0;
+            const highestAvailable = availableVersions[0];
+            
+            if (highestAvailable - selectedVersionNum > 3) {
+              this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1}: Chrome ${selectedVersion} is outdated (latest: ${highestAvailable})`, 'feature-item-list');
+            } else {
+              this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1}: Chrome ${selectedVersion} is up to date`, 'feature-item-list');
+            }
+          } else {
+            this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1}: Chrome latest is always up to date`, 'feature-item-list');
+          }
+        }
+      } else {
+        // Check cloud browser
+        const matchingBrowser = allAvailableBrowsers.find(available => 
+          available.os === browser.os &&
+          available.os_version === browser.os_version &&
+          available.browser === browser.browser &&
+          available.browser_version === browser.browser_version
+        );
+        
+        if (!matchingBrowser) {
+          this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1}: ${browser.browser} ${browser.browser_version} not found in available browsers`, 'feature-item-list');
+        } else {
+          this.log.msg('1', `Feature ${this.feature_id} browser ${index + 1}: ${browser.browser} ${browser.browser_version} is available`, 'feature-item-list');
+        }
+      }
+    });
+  }
+
+  /**
+   * Detect and correct duplicated data in real-time
+   */
+  private detectAndCorrectDuplicatedData(): void {
+    // Check for obvious data duplication
+    if (this.item.total && this.item.total > 1000) {
+      this.log.msg('1', `Feature ${this.feature_id} has excessive total steps (${this.item.total}), attempting correction`, 'feature-item-list');
+      
+      // Try to get the correct data from the store first
+      const storeFeature = this._store.selectSnapshot(CustomSelectors.GetFeatureInfo(this.feature_id));
+      if (storeFeature && storeFeature.info && storeFeature.info.total && 
+          storeFeature.info.total > 0 && storeFeature.info.total <= 1000) {
+        this.item.total = storeFeature.info.total;
+        this.log.msg('1', `Feature ${this.feature_id} total steps corrected from store: ${this.item.total}`, 'feature-item-list');
+      } else {
+        // If store doesn't have valid data, clear the corrupted value
+        this.item.total = 0;
+        this.log.msg('1', `Feature ${this.feature_id} total steps cleared due to corruption`, 'feature-item-list');
+      }
+    }
+    
+    // Check for execution time anomalies
+    if (this.item.time && this.item.time > 3600) {
+      this.log.msg('1', `Feature ${this.feature_id} has excessive execution time (${this.item.time}), attempting correction`, 'feature-item-list');
+      
+      // Try to get the correct data from the store first
+      const storeFeature = this._store.selectSnapshot(CustomSelectors.GetFeatureInfo(this.feature_id));
+      if (storeFeature && storeFeature.info && storeFeature.info.execution_time && 
+          storeFeature.info.execution_time > 0 && storeFeature.info.execution_time <= 3600) {
+        this.item.time = storeFeature.info.execution_time;
+        this.log.msg('1', `Feature ${this.feature_id} execution time corrected from store: ${this.item.time}`, 'feature-item-list');
+      } else {
+        // If store doesn't have valid data, clear the corrupted value
+        this.item.time = 0;
+        this.log.msg('1', `Feature ${this.feature_id} execution time cleared due to corruption`, 'feature-item-list');
+      }
+    }
+    
+    // Mark that we need to refresh data if we had to correct values
+    if (this.item.total === 0 || this.item.time === 0) {
+      this.item._needsDataRefresh = true;
+    }
+  }
+
+  /**
+   * Clear browser check cache to force re-evaluation
+   */
+  public clearBrowserCheckCache(): void {
+    if (this.item) {
+      delete this.item._lastBrowserCheck;
+      delete this.item._browserCheckResult;
+      this.log.msg('1', `Feature ${this.feature_id} browser check cache cleared`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Check if a specific browser is outdated
+   */
+  public isSpecificBrowserOutdated(browser: any): boolean {
+    if (!browser) return false;
+    
+    // Ensure browsers are loaded
+    this.ensureBrowsersLoaded();
+    
+    // Get the available browsers from both BrowserstackState and BrowsersState
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    
+    // If no browsers available, can't determine
+    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+      return false;
+    }
+    
+    // Combine both browser sources
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+    // For local browsers, we need to handle them differently
+    if (this.isLocalBrowser(browser)) {
+      return this.isLocalBrowserOutdated(browser, allAvailableBrowsers);
+    }
+    
+    // For cloud browsers, use exact matching
+    return this.isCloudBrowserOutdated(browser, allAvailableBrowsers);
   }
 
 }

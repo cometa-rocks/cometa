@@ -51,6 +51,7 @@ Author: dph000
           *ngIf="item.date"
           class="state"
           [class.state-disabled]="isButtonDisabled && !running"
+          [class.browser-version-disabled]="shouldDisableRunButton()"
           stopPropagation
           [class.running]="running"
           [ngClass]="!running && (item.status | lowercase)">
@@ -79,7 +80,7 @@ Author: dph000
           [class.run-disabled]="isButtonDisabled || shouldDisableRunButton()"
           [class.browser-version-disabled]="shouldDisableRunButton()"
           [class.running]="running"
-          [matTooltip]="shouldDisableRunButton() ? ('modify_browser_version' | translate) : ''"
+          [matTooltip]="shouldDisableRunButton() ? ('tooltips.modify_browser_version' | translate) : ''"
           [matTooltipDisabled]="!shouldDisableRunButton()"
           matTooltipPosition="above"
           stopPropagation 
@@ -97,14 +98,11 @@ Author: dph000
           <ng-container *ngIf="isButtonDisabled && running">
             <mat-icon class="state-icon">remove_red_eye</mat-icon>
           </ng-container>
-          <ng-container *ngIf="shouldDisableRunButton() && !running">
-            <mat-icon class="state-icon">block</mat-icon>
-          </ng-container>
           <span style="vertical-align: middle">
-            <ng-container *ngIf="!isButtonDisabled && !running && !shouldDisableRunButton()">Run</ng-container>
+            <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
             <ng-container *ngIf="isButtonDisabled && !running && !shouldDisableRunButton()">Wait...</ng-container>
             <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
-            <ng-container *ngIf="shouldDisableRunButton() && !running">Disabled</ng-container>
+
           </span>
         </div>
       <!-- Feature go to folder -->
@@ -252,17 +250,17 @@ Author: dph000
       <div class="browser" *ngIf="item.browsers && item.browsers.length > 0">
         <div class="browser-content">
           <div class="browser-icons">
-            <div class="browser-icon-container" *ngFor="let browser of getUniqueBrowsers(); let i = index">
+            <div class="browser-icon-container" *ngFor="let browser of getUniqueBrowsersEnhanced(); let i = index">
               <i
-                class="my-icons"
-                [matTooltip]="getUniqueBrowserTooltip(browser.browser)"
+                class="my-icons browser-icon"
+                [matTooltip]="getEnhancedBrowserTooltip(browser)"
                 matTooltipPosition="above"
-                [ngClass]="browser.browser"></i>
-              <mat-icon 
-                *ngIf="shouldDisableRunButton()"
-                class="browser-version-warning"
-                matTooltip="('modify_browser_version' | translate)"
-                matTooltipPosition="above">keyboard_arrow_down</mat-icon>
+                [style.backgroundImage]="browser.browser | browserIcon"></i>
+                <i 
+                  *ngIf="isSpecificBrowserOutdated(browser)"
+                  class="material-icons browser-version-warning"
+                  [matTooltip]="getSimpleBrowserStatusInfo(browser)"
+                  matTooltipPosition="above">keyboard_arrow_down</i>
             </div>
           </div>
           <span *ngIf="item.browsers.length === 1">{{ item.browsers[0] | browserComboText }}</span>
