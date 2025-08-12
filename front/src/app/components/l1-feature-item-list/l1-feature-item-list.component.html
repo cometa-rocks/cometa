@@ -84,7 +84,8 @@ Author: dph000
           [matTooltipDisabled]="!shouldDisableRunButton()"
           matTooltipPosition="above"
           stopPropagation 
-          (click)="(isButtonDisabled || shouldDisableRunButton()) && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
+          (click)="running ? _sharedActions.openLiveSteps(item.id) : 
+            (shouldDisableRunButton() ? null : onRunClick())">
           <div class="triangle"></div>
           <ng-container *ngIf="!isButtonDisabled">
             <ng-container [ngSwitch]="running">
@@ -102,7 +103,6 @@ Author: dph000
             <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
             <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
             <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
-
           </span>
         </div>
       <!-- Feature go to folder -->
