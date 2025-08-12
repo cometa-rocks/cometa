@@ -295,6 +295,43 @@ button.browser-obsolete {
   }
 }
 
+// Status and execution data styling
+.no-status-text,
+.no-runs-text {
+  color: #999;
+  font-style: italic;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: darken(#999, 20%);
+  }
+}
+
+.no-time-text {
+  color: #999;
+  font-style: italic;
+}
+
+.refresh-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+// Status display styling
+.status-default {
+  text-align: right;
+}
+
+.status-text {
+  vertical-align: middle;
+}
+
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
   background-color: $blue;
 }

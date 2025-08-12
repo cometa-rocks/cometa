@@ -291,81 +291,127 @@ Author: dph000
 
 <!-- Feature status -->
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
-  <div *ngLet="row.id | featureRunning | async as running">
-    <ng-container *ngIf="row.orderType == 2 && running; else showState">
-      <!--
-        OrderType = 1 # Folder
-        OrderType = 2 # Feature that can be executed
-        OrderType = 3 # Feature that cannot be executed (depends on others)
-      -->
-      <div [matTooltip]="row.status" class="state running">
-        <mat-spinner class="item-loader" diameter="20"></mat-spinner>
-        <span>Running</span>
-      </div>
-    </ng-container>
-    <ng-template #showState>
-      <div
-        *ngIf="row.status"
-        class="state"
-        [ngClass]="!running && (row.status | lowercase)">
-        <ng-container [ngSwitch]="row.status | lowercase">
-          <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-          <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
-          <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
-          <span style="text-align: right" *ngSwitchDefault>-</span>
+  <ng-container *ngIf="row.type === 'feature'; else folderStatus">
+    <div *ngLet="row.id | featureRunning | async as running">
+      <ng-container *ngIf="row.orderType == 2 && running; else showState">
+        <!--
+          OrderType = 1 # Folder
+          OrderType = 2 # Feature that can be executed
+          OrderType = 3 # Feature that cannot be executed (depends on others)
+        -->
+        <div [matTooltip]="row.status" class="state running">
+          <mat-spinner class="item-loader" diameter="20"></mat-spinner>
+          <span>Running</span>
+        </div>
+      </ng-container>
+      <ng-template #showState>
+        <ng-container *ngIf="row.status; else noStatus">
+          <div
+            class="state"
+            [ngClass]="!running && (row.status | lowercase)">
+            <ng-container [ngSwitch]="row.status | lowercase">
+              <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
+              <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
+              <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
+              <span class="status-default" *ngSwitchDefault>-</span>
+            </ng-container>
+            <span class="status-text">{{ row.status }}</span>
+          </div>
         </ng-container>
-        <span style="vertical-align: middle">{{ row.status }}</span>
-      </div>
-    </ng-template>
-  </div>
+        <ng-template #noStatus>
+          <div [matTooltip]="'No execution status available. Click to refresh.' | translate" matTooltipPosition="above">
+            <span class="no-status-text" (click)="refreshFeatureData()">
+              <mat-icon class="refresh-icon">refresh</mat-icon>
+              No status
+            </span>
+          </div>
+        </ng-template>
+      </ng-template>
+    </div>
+  </ng-container>
+  <ng-template #folderStatus>
+    <!-- Show nothing for folders -->
+  </ng-template>
 </ng-template>
 
 <!-- Date of last feature execution -->
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
-  <ng-container *ngIf="row.date as date; else emptyField">
-    <div [matTooltip]="'schedule.last-run' | translate" matTooltipPosition="above">
-      {{ date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
-    </div>
+  <ng-container *ngIf="row.type === 'feature'; else folderDate">
+    <ng-container *ngIf="row.date as date; else emptyField">
+      <div [matTooltip]="'schedule.last-run' | translate" matTooltipPosition="above">
+        {{ date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
+      </div>
+    </ng-container>
+    <ng-template #emptyField>
+      <div [matTooltip]="'No execution data available. Click to refresh.' | translate" matTooltipPosition="above">
+        <span class="no-runs-text" (click)="refreshFeatureData()">
+          <mat-icon class="refresh-icon">refresh</mat-icon>
+          No runs
+        </span>
+      </div>
+    </ng-template>
   </ng-container>
+  <ng-template #folderDate>
+    <!-- Show nothing for folders -->
+  </ng-template>
 </ng-template>
 
 <!-- Duration of last feature execution -->
 <ng-template #timeTpl let-row let-index="index" let-col="colDef">
-  <ng-container *ngIf="row.time as time; else emptyField">
-    <div class="time">
-      {{ time | secondsToHumanReadable }}
-    </div>
+  <ng-container *ngIf="row.type === 'feature'; else folderTime">
+    <ng-container *ngIf="row.time as time; else emptyTimeField">
+      <div class="time">
+        {{ time | secondsToHumanReadable }}
+      </div>
+    </ng-container>
+    <ng-template #emptyTimeField>
+      <div>
+        <span class="no-time-text">-</span>
+      </div>
+    </ng-template>
   </ng-container>
+  <ng-template #folderTime>
+    <!-- Show nothing for folders -->
+  </ng-template>
 </ng-template>
 
 <!-- Feature's total amount of steps -->
 <ng-template #totalTpl let-row let-index="index" let-col="colDef">
-  <ng-container>
+  <ng-container *ngIf="row.type === 'feature'; else folderTotal">
     <div>
       {{ row.total }}
     </div>
   </ng-container>
+  <ng-template #folderTotal>
+    <!-- Show nothing for folders -->
+  </ng-template>
 </ng-template>
 
 <!-- #3427 -------------------------------------------------------- start -->
 <!-- Feature's amount of successful steps -->
 <ng-template #okTpl let-row let-index="index" let-col="colDef">
-  <ng-container>
+  <ng-container *ngIf="row.type === 'feature'; else folderOk">
     <div>
       {{ row.ok }}
     </div>
   </ng-container>
+  <ng-template #folderOk>
+    <!-- Show nothing for folders -->
+  </ng-template>
 </ng-template>
 <!-- #3427 -------------------------------------------------------- end -->
 
 <!-- #3427 -------------------------------------------------------- start -->
 <!-- Feature's amount of failed steps -->
 <ng-template #failsTpl let-row let-index="index" let-col="colDef">
-  <ng-container>
+  <ng-container *ngIf="row.type === 'feature'; else folderFails">
     <div>
       {{ row.fails }}
     </div>
   </ng-container>
+  <ng-template #folderFails>
+    <!-- Show nothing for folders -->
+  </ng-template>
 </ng-template>
 <!-- #3427 -------------------------------------------------------- end -->
 

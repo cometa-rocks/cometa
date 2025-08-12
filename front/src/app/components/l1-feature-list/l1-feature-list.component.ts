@@ -15,6 +15,8 @@ import {
   Output,
   ViewChild,
   ChangeDetectorRef,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -108,7 +110,7 @@ import { Browsers } from '@store/actions/browsers.actions';
     FeatureRunningPipe,
   ],
 })
-export class L1FeatureListComponent implements OnInit {
+export class L1FeatureListComponent implements OnInit, OnChanges {
   constructor(
     private _store: Store,
     public _sharedActions: SharedActionsService,
@@ -281,17 +283,93 @@ export class L1FeatureListComponent implements OnInit {
     }, 2000);
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data$']) {
+      this.log.msg('1', 'Data input changed, updating feature information...', 'feature-list');
+      
+      // First update status from store (faster)
+      this.updateStatusFromStore();
+      
+      // Then refresh execution data from API
+      setTimeout(() => {
+        this.refreshAllFeatureData();
+      }, 100); // Small delay to ensure status is updated first
+    }
+  }
+
+  /**
+   * Force update status from store for all features
+   */
+  private updateStatusFromStore(): void {
+    this.log.msg('1', 'Updating status from store for all features...', 'feature-list');
+    
+    if (this.data$ && this.data$.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature' && row.id) {
+          this._store.select(CustomSelectors.GetFeatureStatus(row.id)).pipe(
+            take(1)
+          ).subscribe(storeStatus => {
+            if (storeStatus && storeStatus !== row.status) {
+              this.log.msg('1', `Updating status for feature ${row.id}: ${row.status} -> ${storeStatus}`, 'feature-list');
+              row.status = storeStatus;
+              this.cdr.detectChanges();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  /**
+   * Refresh execution data for all features when view changes
+   */
+  private refreshAllFeatureData(): void {
+    this.log.msg('1', 'View changed, refreshing all feature execution data...', 'feature-list');
+    
+    if (this.data$ && this.data$.rows) {
+      this.data$.rows.forEach(row => {
+        if (row.type === 'feature') {
+          this.log.msg('1', `Refreshing data for feature ${row.id}`, 'feature-list');
+          this.updateFeatureDataFromAPI(row);
+        }
+      });
+    }
+  }
+
   // Update feature data with latest information from API
   private updateFeatureDataFromAPI(row: any) {
     if (row.type === 'feature' && row.id) {
+      this.log.msg('1', `Updating feature data for ${row.id}`, 'feature-list');
+      
+      // First, get the current status from the store
+      this._store.select(CustomSelectors.GetFeatureStatus(row.id)).pipe(
+        take(1) // Take only the first value to avoid subscription issues
+      ).subscribe(storeStatus => {
+        this.log.msg('1', `Store status for feature ${row.id}: ${storeStatus}`, 'feature-list');
+        
+        // Update the status from the store
+        if (storeStatus) {
+          row.status = storeStatus;
+          this.log.msg('1', `Updated row status from store: ${row.status}`, 'feature-list');
+        }
+      });
+      
       this._api.getFeatureResultsByFeatureId(row.id, {
         archived: false,
         page: 1,
         size: 1,
       }).subscribe({
         next: (response: any) => {
+          this.log.msg('1', `API response for feature ${row.id}:`, 'feature-list');
+          this.log.msg('1', `Response: ${JSON.stringify(response)}`, 'feature-list');
+          
           if (response && response.results && response.results.length > 0) {
             const latestResult = response.results[0];
+            this.log.msg('1', `Latest result for feature ${row.id}:`, 'feature-list');
+            this.log.msg('1', `Result date: ${latestResult.result_date}`, 'feature-list');
+            this.log.msg('1', `Execution time: ${latestResult.execution_time}`, 'feature-list');
+            this.log.msg('1', `Total: ${latestResult.total}`, 'feature-list');
+            this.log.msg('1', `OK: ${latestResult.ok}`, 'feature-list');
             
             // Update the row with the latest feature result information
             row.date = latestResult.result_date || null;
@@ -300,26 +378,63 @@ export class L1FeatureListComponent implements OnInit {
             row.ok = latestResult.ok || 0;
             row.fails = (latestResult.total || 0) - (latestResult.ok || 0);
             
+            // Also update status from the API result if available
+            if (latestResult.status) {
+              row.status = latestResult.status;
+              this.log.msg('1', `Updated status from API result: ${row.status}`, 'feature-list');
+            }
+            
+            this.log.msg('1', `Updated row data for feature ${row.id}:`, 'feature-list');
+            this.log.msg('1', `Row status: ${row.status}`, 'feature-list');
+            this.log.msg('1', `Row date: ${row.date}`, 'feature-list');
+            this.log.msg('1', `Row time: ${row.time}`, 'feature-list');
+            this.log.msg('1', `Row total: ${row.total}`, 'feature-list');
+            
+            // Force change detection to update the table view
+            this.cdr.detectChanges();
+          } else {
+            this.log.msg('1', `No results found for feature ${row.id}, clearing execution data`, 'feature-list');
+            
+            // Clear execution data if no results found
+            row.date = null;
+            row.time = 0;
+            row.total = 0;
+            row.ok = 0;
+            row.fails = 0;
+            
+            // Don't clear status here, keep it from the store if available
+            
             // Force change detection to update the table view
             this.cdr.detectChanges();
           }
         },
         error: (err) => {
+          this.log.msg('1', `Error fetching feature results for ${row.id}: ${err}`, 'feature-list');
           console.error('Error fetching feature results for table:', err);
+          
+          // Clear execution data on error to avoid showing stale data
+          row.date = null;
+          row.time = 0;
+          row.total = 0;
+          row.ok = 0;
+          row.fails = 0;
+          
+          // Don't clear status here, keep it from the store if available
+          
+          // Force change detection to update the table view
+          this.cdr.detectChanges();
         }
       });
     }
   }
 
-  // Refresh all feature data in the table
-  private refreshAllFeatureData() {
-    if (this.data$ && this.data$.rows) {
-      this.data$.rows.forEach(row => {
-        if (row.type === 'feature') {
-          this.updateFeatureDataFromAPI(row);
-        }
-      });
-    }
+  /**
+   * Public method to refresh all feature execution data
+   * Can be called from parent components when needed
+   */
+  public refreshFeatureData(): void {
+    this.log.msg('1', 'Manual refresh of feature execution data requested', 'feature-list');
+    this.refreshAllFeatureData();
   }
 
   // Public method to refresh table data (can be called from parent components)
@@ -1175,93 +1290,6 @@ export class L1FeatureListComponent implements OnInit {
   }
 
   /**
-   * Get detailed browser status information for outdated browsers only
-   */
-  getBrowserStatusInfo(browser: any): string {
-    if (!browser) return 'No browser information';
-    
-    // Ensure browsers are loaded
-    this.ensureBrowsersLoaded();
-    
-    // Get the available browsers from both BrowserstackState and BrowsersState
-    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
-    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
-    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
-    
-    if (allAvailableBrowsers.length === 0) {
-      return 'Browser information not available';
-    }
-
-    let status = 'UP TO DATE';
-    let details = '';
-    
-    if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
-      // Check local Chrome version
-      const chromeBrowsers = allAvailableBrowsers.filter(available => 
-        available.browser === 'chrome'
-      );
-      
-      if (chromeBrowsers.length > 0) {
-        const availableVersions = chromeBrowsers.map(available => {
-          const version = available.browser_version;
-          if (version === 'latest') return 999;
-          return parseInt(version, 10) || 0;
-        }).sort((a, b) => b - a);
-        
-        const selectedVersion = browser.browser_version;
-        if (selectedVersion !== 'latest') {
-          const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
-          const highestAvailable = availableVersions[0];
-          
-          if (highestAvailable - selectedVersionNum > 3) {
-            status = 'OUTDATED';
-            details = `(latest available: ${highestAvailable})`;
-          }
-        }
-      }
-    } else {
-      // Check cloud browser
-      const matchingBrowser = allAvailableBrowsers.find(available => 
-        available.os === browser.os &&
-        available.os_version === browser.os_version &&
-        available.browser === browser.browser &&
-        available.browser_version === browser.browser_version
-      );
-      
-      if (!matchingBrowser) {
-        status = 'OUTDATED';
-        details = '(not available in current browser list)';
-      }
-    }
-    
-    if (status === 'OUTDATED') {
-      return `⚠️ ${browser.browser} ${browser.browser_version}: ${status} ${details}`.trim();
-    }
-    
-    return '';
-  }
-
-  /**
-   * Check browser versions and log status
-   */
-  private checkBrowserVersions(): void {
-    // Ensure browsers are loaded
-    this.ensureBrowsersLoaded();
-    
-    // Get the available browsers from both BrowserstackState and BrowsersState
-    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
-    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
-    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
-    
-    if (allAvailableBrowsers.length === 0) {
-      this.log.msg('1', 'No browsers available for version checking', 'feature-list');
-      return;
-    }
-    
-    this.log.msg('1', `Browser version check: ${allAvailableBrowsers.length} browsers available`, 'feature-list');
-  }
-
-  /**
    * Check if the run button should be disabled due to browser version issues
    */
   public shouldDisableRunButton(row: any): boolean {
@@ -1403,21 +1431,23 @@ export class L1FeatureListComponent implements OnInit {
   }
 
   /**
-   * Force refresh browser information
+   * Check browser versions and log status
    */
-  public forceRefreshBrowsers(): void {
-    try {
-      this._store.dispatch(new Browserstack.GetBrowserstack());
-      this._store.dispatch(new Browsers.GetBrowsers());
-      this.log.msg('1', 'Forced browser refresh (both browserstack and local)', 'feature-list');
-      
-      // Force change detection to update the button states
-      setTimeout(() => {
-        this.cdr.detectChanges();
-      }, 1000); // Wait for browsers to load
-    } catch (error) {
-      this.log.msg('1', `Error forcing browser refresh: ${error}`, 'feature-list');
+  private checkBrowserVersions(): void {
+    // Ensure browsers are loaded
+    this.ensureBrowsersLoaded();
+    
+    // Get the available browsers from both BrowserstackState and BrowsersState
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+    if (allAvailableBrowsers.length === 0) {
+      this.log.msg('1', 'No browsers available for version checking', 'feature-list');
+      return;
     }
+    
+    this.log.msg('1', `Browser version check: ${allAvailableBrowsers.length} browsers available`, 'feature-list');
   }
 
   /**
