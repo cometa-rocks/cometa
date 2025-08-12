@@ -137,6 +137,7 @@
     button {
       border: none;
       background-color: transparent;
+      transition: all 0.3s ease;
     }
     .folder-running{
       display: flex;
@@ -175,7 +176,6 @@
 .state {
   display: flex;
   align-items: center;
-  /* justify-content: center; */
   .mat-icon {
     margin-right: 5px;
   }
@@ -198,8 +198,105 @@
   }
 }
 
+// Browser obsolete button styling
+button.browser-obsolete {
+  cursor: not-allowed;
+  
+  .obsolete-icon {
+    color: $disabled-slide-toggle;
+    opacity: 0.6;
+  }
+  
+  &:hover {
+    cursor: not-allowed;
+    
+    .obsolete-icon {
+      color: $disabled-slide-toggle;
+      opacity: 0.6;
+    }
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    
+    .obsolete-icon {
+      color: $disabled-slide-toggle;
+      opacity: 0.6;
+    }
+  }
+  
+  // Override Material button styles for disabled state
+  &[disabled] {
+    background-color: transparent;
+    color: $disabled-slide-toggle;
+    cursor: not-allowed;
+    
+    .obsolete-icon {
+      color: $disabled-slide-toggle;
+      opacity: 0.6;
+    }
+  }
+}
+
+// Browser icon container and warning styles
+.browsers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  .browser-icon-container {
+    position: relative;
+    margin-right: 4px;
+    
+    &:last-child {
+      margin-right: 8px;
+    }
+    
+    .my-icons {
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      display: inline-block;
+      vertical-align: middle;
+      z-index: 1;
+      position: relative;
+      width: 12px;
+      height: 15px;
+    }
+    
+    .browser-version-warning {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+      line-height: 12px;
+      color: $browser-version-warning-color;
+      background-color: $browser-version-warning-bg;
+      border-radius: 50%;
+      z-index: 2;
+      box-shadow: 0 1px 3px $browser-version-warning-shadow;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 12px;
+      min-height: 12px;
+      max-width: 12px;
+      max-height: 12px;
+      text-align: center;
+      vertical-align: middle;
+      font-weight: bold;
+      letter-spacing: normal;
+      text-transform: none;
+      white-space: nowrap;
+      word-wrap: normal;
+    }
+  }
+}
+
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
-  background-color: $blue !important;
+  background-color: $blue;
 }
 
 :host::ng-deep .exec-feature-loading {

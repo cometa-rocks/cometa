@@ -240,9 +240,15 @@ Author: dph000
         <button
           stopPropagation
           *ngIf="!row.depends_on_others"
-          (click)="SArunFeature(row.id)"
-          mat-icon-button>
-          <mat-icon color="primary">
+          (click)="shouldDisableRunButton(row) ? $event.stopPropagation() : SArunFeature(row.id)"
+          mat-icon-button
+          [disabled]="shouldDisableRunButton(row)"
+          [ngClass]="{'browser-obsolete': shouldDisableRunButton(row)}"
+          [matTooltip]="shouldDisableRunButton(row) ? getRowBrowserStatusInfo(row) : ''"
+          matTooltipPosition="above">
+          <mat-icon 
+            [color]="shouldDisableRunButton(row) ? 'warn' : 'primary'"
+            [ngClass]="{'obsolete-icon': shouldDisableRunButton(row)}">
             <ng-container *ngIf="running; else runIcon"
               >remove_red_eye</ng-container
             >
@@ -275,9 +281,9 @@ Author: dph000
       <mat-icon
         *ngIf="row.help"
         [matTooltip]="'need_help.tooltip' | translate"
-        matTooltipPosition="above"
-        >help</mat-icon
-      >
+        matTooltipPosition="above">
+        help
+      </mat-icon>
       {{ row.name }}
     </div>
   </ng-container>
@@ -304,9 +310,7 @@ Author: dph000
         [ngClass]="!running && (row.status | lowercase)">
         <ng-container [ngSwitch]="row.status | lowercase">
           <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-          <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
-            >remove_circle</mat-icon
-          >
+          <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
           <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
           <span style="text-align: right" *ngSwitchDefault>-</span>
         </ng-container>
@@ -336,32 +340,32 @@ Author: dph000
 
 <!-- Feature's total amount of steps -->
 <ng-template #totalTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
+  <ng-container>
     <div>
       {{ row.total }}
     </div>
-  </ng.container>
+  </ng-container>
 </ng-template>
 
 <!-- #3427 -------------------------------------------------------- start -->
 <!-- Feature's amount of successful steps -->
 <ng-template #okTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
+  <ng-container>
     <div>
       {{ row.ok }}
     </div>
-  </ng.container>
+  </ng-container>
 </ng-template>
 <!-- #3427 -------------------------------------------------------- end -->
 
 <!-- #3427 -------------------------------------------------------- start -->
 <!-- Feature's amount of failed steps -->
 <ng-template #failsTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
+  <ng-container>
     <div>
       {{ row.fails }}
     </div>
-  </ng.container>
+  </ng-container>
 </ng-template>
 <!-- #3427 -------------------------------------------------------- end -->
 
@@ -383,30 +387,36 @@ Author: dph000
 
 <!-- Name of the feature's application -->
 <ng-template #applicationTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
+  <ng-container>
     <div>
       {{ row.app }}
     </div>
-  </ng.container>
+  </ng-container>
 </ng-template>
 
 <!-- Name of the feature's environment -->
 <ng-template #environmentTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
+  <ng-container>
     <div>
       {{ row.environment }}
     </div>
-  </ng.container>
+  </ng-container>
 </ng-template>
 
 <!-- Browsers of the feature -->
 <ng-template #browsersTpl let-row let-index="index" let-col="colDef">
   <div class="browsers">
-    <i
-      class="my-icons"
-      [matTooltip]="getUniqueBrowserTooltipForRow(row, browser.browser)"
-      *ngFor="let browser of getUniqueBrowsersForRow(row); trackBy: trackBrowser"
-      [style.backgroundImage]="browser.browser | browserIcon"></i>
+    <div class="browser-icon-container" *ngFor="let browser of getUniqueBrowsersForRow(row); trackBy: trackBrowser">
+      <i
+        class="my-icons"
+        [matTooltip]="getUniqueBrowserTooltipForRow(row, browser.browser)"
+        [style.backgroundImage]="browser.browser | browserIcon"></i>
+      <i 
+        *ngIf="isSpecificBrowserOutdated(browser)"
+        class="material-icons browser-version-warning"
+        [matTooltip]="getSimpleBrowserStatusInfo(browser)"
+        matTooltipPosition="above">keyboard_arrow_down</i>
+    </div>
   </div>
 </ng-template>
 
