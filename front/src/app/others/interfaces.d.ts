@@ -1208,6 +1208,12 @@ interface FeatureHistoryEntry {
   feature_name: string;
   description: string;
   steps_count: number;
+  steps: FeatureHistoryStep[];
+}
+
+interface FeatureHistoryStep {
+  step_file: string;
+  step_content: any;
 }
 
 interface FeatureHistoryResponse {

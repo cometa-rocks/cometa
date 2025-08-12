@@ -641,8 +641,12 @@ export class SharedActionsService {
   }
 
   openFeatureHistory(featureId: number) {
+    //open dialog that occupies 90% of the screen
     this._dialog.open(FeatureHistoryComponent, {
       data: featureId,
+      width: '90%',
+      height: '90%',
+      panelClass: 'full-screen-dialog', 
     });
   }
   

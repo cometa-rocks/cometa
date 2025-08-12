@@ -42,14 +42,6 @@ Author: Nico
     <!-- History List -->
     <div *ngIf="!loading && !error" class="history-timeline">
       <div *ngFor="let entry of history; let i = index" class="history-entry">
-        <!-- Timeline Line -->
-        <div class="timeline-line" [class.last]="i === history.length - 1"></div>
-        
-        <!-- Timeline Dot -->
-        <div class="timeline-dot">
-          <mat-icon>commit</mat-icon>
-        </div>
-        
         <!-- Entry Content -->
         <div class="entry-content">
           <div class="entry-header">
@@ -68,14 +60,62 @@ Author: Nico
             <p *ngIf="entry.description" class="description">{{ entry.description }}</p>
             
             <div class="entry-stats">
-              <mat-chip class="stat-chip">
+              <button class="stat-chip" (click)="showSteps(entry.backup_id)" [class.selected]="selectedBackupId === entry.backup_id">
                 <mat-icon>list</mat-icon>
                 {{ entry.steps_count }} steps
-              </mat-chip>
-              <mat-chip class="stat-chip backup-id">
+              </button>
+              <div class="stat-chip backup-id">
                 <mat-icon>backup</mat-icon>
                 {{ entry.backup_id }}
-              </mat-chip>
+              </div>
+            </div>
+            
+            <!-- Steps Display Section -->
+            <div *ngIf="selectedBackupId === entry.backup_id && entry.steps && entry.steps.length > 0" class="steps-section">
+              <div class="steps-header">
+                <h4>Steps for this backup:</h4>
+                <button mat-button (click)="showSteps(entry.backup_id)" class="close-steps">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="steps-list">
+                <div *ngFor="let step of entry.steps; let stepIndex = index" class="step-item">
+
+                  <div class="step-content">
+                    <div class="step-text">{{ formatStep(step) }}</div>
+                    
+                    <!-- Individual Steps Display -->
+                    <div *ngIf="step.step_content && isArray(step.step_content)" class="individual-steps">
+                      <div *ngFor="let individualStep of step.step_content; let individualStepIndex = index" class="individual-step-compact">
+                        <div class="step-line">
+                          <span class="step-number-badge">{{ individualStepIndex + 1 }}</span>
+                          <span class="step-keyword">{{ individualStep.step_keyword }}</span>
+                          <span class="step-content-text">{{ individualStep.step_content }}</span>
+                          <div class="step-flags-inline" *ngIf="getIndividualStepFlags(individualStep).length > 0">
+                            <div 
+                              *ngFor="let flag of getIndividualStepFlags(individualStep)" 
+                              class="flag-chip-inline"
+                              [ngClass]="'flag-' + flag.color">
+                              <mat-icon>{{ getFlagIcon(flag.label) }}</mat-icon>
+                              {{ flag.label }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="step-flags" *ngIf="getStepFlags(step).length > 0">
+                      <div 
+                        *ngFor="let flag of getStepFlags(step)" 
+                        class="flag-chip"
+                        [ngClass]="'flag-' + flag.color">
+                        <mat-icon>{{ getFlagIcon(flag.label) }}</mat-icon>
+                        {{ flag.label }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

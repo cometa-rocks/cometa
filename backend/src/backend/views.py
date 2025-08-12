@@ -4923,7 +4923,13 @@ def getFeatureHistory(request, feature_id):
             file for file in backup_files 
             if file.startswith(f"{feature_id}_") and file.endswith("_meta.json")
         ]
+        # Filter files that belong to this feature_id and are not meta files (steps)
+        feature_backup_files_steps = [
+            file for file in backup_files 
+            if file.startswith(f"{feature_id}_") and not file.endswith("_meta.json")
+        ]
         logger.debug(f"Found {len(feature_backup_files)} feature backup files")
+        
         for backup_file in feature_backup_files:
             try:
                 meta_file_path = os.path.join(backup_dir, backup_file)
@@ -4943,7 +4949,7 @@ def getFeatureHistory(request, feature_id):
                         pass
                 
                 # Extract date from filename for better sorting
-                # Format: 1_Go-to-Google_2025-07-28_12-22-28_meta.json
+                # Format: <feature_id>_<feature_name>_<date>_<time>_meta.json
                 filename_parts = backup_file.split('_')
                 if len(filename_parts) >= 4:
                     date_part = filename_parts[-3]  # 2025-07-28
@@ -4952,14 +4958,34 @@ def getFeatureHistory(request, feature_id):
                 else:
                     backup_timestamp = meta_data.get('last_edited_date', '')
                 
+                # Get backup_id to match with step files
+                backup_id = backup_file.replace('_meta.json', '')
+                
+                # Find corresponding step files for this backup
+                steps_data = []
+                for step_file in feature_backup_files_steps:
+                    if step_file.startswith(backup_id) and not step_file.endswith('_meta.json'):
+                        try:
+                            step_file_path = os.path.join(backup_dir, step_file)
+                            with open(step_file_path, 'r') as f:
+                                step_content = json.load(f)
+                                steps_data.append({
+                                    'step_file': step_file,
+                                    'step_content': step_content
+                                })
+                        except Exception as e:
+                            logger.warning(f"Failed to read step file {step_file}: {e}")
+                            continue
+                
                 history_entries.append({
-                    'backup_id': backup_file.replace('_meta.json', ''),
+                    'backup_id': backup_id,
                     'timestamp': backup_timestamp,
                     'user_name': user_name,
                     'user_id': user_id,
                     'feature_name': meta_data.get('feature_name', ''),
                     'description': meta_data.get('description', ''),
-                    'steps_count': meta_data.get('steps', 0)
+                    'steps_count': meta_data.get('steps', 0),
+                    'steps': steps_data
                 })
             except Exception as e:
                 continue
