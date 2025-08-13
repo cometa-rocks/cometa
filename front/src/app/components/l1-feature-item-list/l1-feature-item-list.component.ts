@@ -322,11 +322,8 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       take(1), // Only take the first emission to avoid repeated API calls
       filter(() => this.isComponentActive) // Only execute if component is active
     ).subscribe(feature => {
-      // Check if we already have valid data to avoid unnecessary API calls
-      if (this.hasValidFeatureData()) {
-        this.log.msg('1', `Feature ${this.feature_id} already has valid data, skipping API call`, 'feature-item-list');
-        // Cache the existing data
-        this.cacheFeatureData();
+      // Use smart data refresh to determine if refresh is needed
+      if (!this.smartDataRefresh()) {
         return;
       }
 
@@ -373,6 +370,11 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         // When feature stops running, refresh the results to get the real status
         // Only if we don't already have valid data to prevent duplication
         if (!running && this.running && !this.hasValidFeatureData()) {
+          // Use smart data refresh to determine if refresh is needed
+          if (!this.smartDataRefresh()) {
+            return;
+          }
+          
           // Feature just stopped running, refresh results to get real status
           setTimeout(() => {
             if (this.isComponentActive && !this.hasValidFeatureData()) {
@@ -475,6 +477,86 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Check if there are perceptible data changes that warrant a reload
+   * This prevents unnecessary API calls when data hasn't meaningfully changed
+   */
+  private hasPerceptibleDataChanges(newData: any): boolean {
+    if (!newData) return false;
+    
+    // Check if we have existing data to compare against
+    if (!this.item.total && !this.item.time && !this.item.date) {
+      // No existing data, so any new data is perceptible
+      return true;
+    }
+    
+    // Define thresholds for what constitutes a "perceptible" change
+    const TOTAL_STEPS_THRESHOLD = 1; // 1 step difference is perceptible
+    const EXECUTION_TIME_THRESHOLD = 1; // 1 second difference is perceptible
+    const STATUS_CHANGE_THRESHOLD = true; // Any status change is perceptible
+    const DATE_CHANGE_THRESHOLD = 60; // 1 minute difference is perceptible (in seconds)
+    
+    let hasPerceptibleChanges = false;
+    
+    // Check total steps change
+    if (newData.total !== undefined && this.item.total !== undefined) {
+      const stepDifference = Math.abs(newData.total - this.item.total);
+      if (stepDifference >= TOTAL_STEPS_THRESHOLD) {
+        this.log.msg('1', `Feature ${this.feature_id} has perceptible step change: ${this.item.total} -> ${newData.total} (diff: ${stepDifference})`, 'feature-item-list');
+        hasPerceptibleChanges = true;
+      }
+    }
+    
+    // Check execution time change
+    if (newData.execution_time !== undefined && this.item.time !== undefined) {
+      const timeDifference = Math.abs(newData.execution_time - this.item.time);
+      if (timeDifference >= EXECUTION_TIME_THRESHOLD) {
+        this.log.msg('1', `Feature ${this.feature_id} has perceptible time change: ${this.item.time} -> ${newData.execution_time} (diff: ${timeDifference}s)`, 'feature-item-list');
+        hasPerceptibleChanges = true;
+      }
+    }
+    
+    // Check status change
+    if (newData.status && this.item.status && newData.status !== this.item.status) {
+      this.log.msg('1', `Feature ${this.feature_id} has perceptible status change: ${this.item.status} -> ${newData.status}`, 'feature-item-list');
+      hasPerceptibleChanges = true;
+    }
+    
+    // Check date change (only if dates are significantly different)
+    if (newData.result_date && this.item.date) {
+      const currentDate = new Date(this.item.date).getTime();
+      const newDate = new Date(newData.result_date).getTime();
+      const dateDifference = Math.abs(newDate - currentDate) / 1000; // Convert to seconds
+      
+      if (dateDifference >= DATE_CHANGE_THRESHOLD) {
+        this.log.msg('1', `Feature ${this.feature_id} has perceptible date change: ${this.item.date} -> ${newData.result_date} (diff: ${Math.round(dateDifference)}s)`, 'feature-item-list');
+        hasPerceptibleChanges = true;
+      }
+    }
+    
+    // Check if new data has values we don't have (always perceptible)
+    if (newData.total && !this.item.total) {
+      this.log.msg('1', `Feature ${this.feature_id} has new total steps data: ${newData.total}`, 'feature-item-list');
+      hasPerceptibleChanges = true;
+    }
+    
+    if (newData.execution_time && !this.item.time) {
+      this.log.msg('1', `Feature ${this.feature_id} has new execution time data: ${newData.execution_time}`, 'feature-item-list');
+      hasPerceptibleChanges = true;
+    }
+    
+    if (newData.result_date && !this.item.date) {
+      this.log.msg('1', `Feature ${this.feature_id} has new result date data: ${newData.result_date}`, 'feature-item-list');
+      hasPerceptibleChanges = true;
+    }
+    
+    if (!hasPerceptibleChanges) {
+      this.log.msg('1', `Feature ${this.feature_id} has no perceptible data changes, skipping reload`, 'feature-item-list');
+    }
+    
+    return hasPerceptibleChanges;
+  }
+
+  /**
    * Force re-enable button - useful for debugging or edge cases
    */
   forceReenableButton() {
@@ -487,22 +569,14 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * Refresh feature results from API to get the real status
    */
   private refreshFeatureResults() {
-    if (!this.isComponentActive) return;
-    
-    // Check if we already have valid data to avoid unnecessary API calls
-    if (this.hasValidFeatureData()) {
-      this.log.msg('1', `Feature ${this.feature_id} already has valid data, skipping refresh`, 'feature-item-list');
-      return;
-    }
-    
-    // Additional check: if we're making too many API calls, skip this one
-    if (this.item._lastApiCall && (Date.now() - this.item._lastApiCall) < 5000) {
-      this.log.msg('1', `Feature ${this.feature_id} API call throttled, skipping refresh`, 'feature-item-list');
+    // Use smart data refresh to determine if refresh is needed
+    if (!this.smartDataRefresh()) {
       return;
     }
     
     // Mark the time of this API call
     this.item._lastApiCall = Date.now();
+    this.item._lastDataCheck = Date.now();
     
     this._api.getFeatureResultsByFeatureId(this.feature_id, {
       archived: false,
@@ -529,22 +603,14 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * Force update feature status from API
    */
   private forceUpdateFeatureStatus() {
-    if (!this.isComponentActive) return;
-    
-    // Check if we already have recent data to avoid unnecessary API calls
-    if (this.hasValidFeatureData()) {
-      this.log.msg('1', `Feature ${this.feature_id} has valid data, skipping force update`, 'feature-item-list');
-      return;
-    }
-    
-    // Check if we're making too many API calls
-    if (this.item._lastApiCall && (Date.now() - this.item._lastApiCall) < 3000) {
-      this.log.msg('1', `Feature ${this.feature_id} API call throttled, skipping force update`, 'feature-item-list');
+    // Use smart data refresh to determine if update is needed
+    if (!this.smartDataRefresh()) {
       return;
     }
     
     // Mark the time of this API call
     this.item._lastApiCall = Date.now();
+    this.item._lastDataCheck = Date.now();
     
     // Dispatch action to update feature data
     this._store.dispatch(new Features.UpdateFeature(this.feature_id));
@@ -564,6 +630,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    */
   private updateFeatureStatusFromResult(result: any) {
     if (!result || !this.isComponentActive) return;
+    
+    // Check if there are perceptible data changes before updating
+    if (!this.hasPerceptibleDataChanges(result)) {
+      this.log.msg('1', `Feature ${this.feature_id} has no perceptible changes, skipping update`, 'feature-item-list');
+      return;
+    }
     
     // Validate that the result data is reasonable to prevent duplication
     if (result.total && (result.total <= 0 || result.total > 1000)) {
@@ -2015,6 +2087,176 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     
     // For cloud browsers, use exact matching
     return this.isCloudBrowserOutdated(browser, allAvailableBrowsers);
+  }
+
+  /**
+   * Check if cached data is still fresh enough to avoid reloading
+   * This prevents unnecessary API calls when data is still recent
+   */
+  private isCachedDataFresh(): boolean {
+    if (!this.item._lastDataCheck) return false;
+    
+    const now = Date.now();
+    const timeSinceLastCheck = now - this.item._lastDataCheck;
+    
+    // Define freshness thresholds based on feature status
+    let freshnessThreshold = 60000; // Default: 1 minute
+    
+    if (this.running) {
+      // If feature is running, data is fresh for longer (5 minutes)
+      freshnessThreshold = 300000;
+    } else if (this.item.status === 'Success' || this.item.status === 'Failed') {
+      // If feature has completed, data is fresh for longer (10 minutes)
+      freshnessThreshold = 600000;
+    } else if (this.item.status === 'running' || this.item.status === 'pending') {
+      // If feature is in progress, data is fresh for shorter (30 seconds)
+      freshnessThreshold = 30000;
+    }
+    
+    const isFresh = timeSinceLastCheck < freshnessThreshold;
+    
+    if (isFresh) {
+      this.log.msg('1', `Feature ${this.feature_id} cached data is fresh (${Math.round(timeSinceLastCheck / 1000)}s old, threshold: ${Math.round(freshnessThreshold / 1000)}s)`, 'feature-item-list');
+    } else {
+      this.log.msg('1', `Feature ${this.feature_id} cached data is stale (${Math.round(timeSinceLastCheck / 1000)}s old, threshold: ${Math.round(freshnessThreshold / 1000)}s)`, 'feature-item-list');
+    }
+    
+    return isFresh;
+  }
+
+  /**
+   * Smart data refresh that only updates when necessary
+   * This method combines all the optimization logic
+   */
+  private smartDataRefresh(): boolean {
+    // Log optimization status for debugging
+    this.logOptimizationStatus();
+    
+    // Check if component is active
+    if (!this.isComponentActive) {
+      this.log.msg('1', `Feature ${this.feature_id} component not active, skipping refresh`, 'feature-item-list');
+      return false;
+    }
+    
+    // Check if we should skip data reload based on feature state
+    if (this.shouldSkipDataReload()) {
+      return false;
+    }
+    
+    // Check if we're making too many API calls
+    if (this.item._lastApiCall && (Date.now() - this.item._lastApiCall) < 5000) {
+      this.log.msg('1', `Feature ${this.feature_id} API call throttled, skipping refresh`, 'feature-item-list');
+      return false;
+    }
+    
+    // Check API call frequency optimization
+    if (!this.optimizeApiCallFrequency()) {
+      return false;
+    }
+    
+    // All checks passed, allow refresh
+    this.log.msg('1', `Feature ${this.feature_id} refresh allowed, proceeding with update`, 'feature-item-list');
+    return true;
+  }
+
+  /**
+   * Enhanced cache management to prevent unnecessary reloads
+   * This method provides additional optimization based on feature state
+   */
+  private shouldSkipDataReload(): boolean {
+    // Skip if feature is running and we have recent data
+    if (this.running && this.item._lastDataCheck && (Date.now() - this.item._lastDataCheck) < 60000) {
+      this.log.msg('1', `Feature ${this.feature_id} is running with recent data, skipping reload`, 'feature-item-list');
+      return true;
+    }
+    
+    // Skip if feature has completed and we have valid data
+    if ((this.item.status === 'Success' || this.item.status === 'Failed') && this.hasValidFeatureData()) {
+      this.log.msg('1', `Feature ${this.feature_id} has completed with valid data, skipping reload`, 'feature-item-list');
+      return true;
+    }
+    
+    // Skip if we have cached data that's still fresh
+    if (this.isCachedDataFresh()) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Performance monitoring and optimization
+   * This method tracks API call frequency and optimizes accordingly
+   */
+  private optimizeApiCallFrequency(): boolean {
+    const now = Date.now();
+    
+    // Initialize tracking if not exists
+    if (!this.item._apiCallCount) {
+      this.item._apiCallCount = 0;
+      this.item._apiCallWindowStart = now;
+    }
+    
+    // Reset counter if window has passed (5 minutes)
+    if (now - this.item._apiCallWindowStart > 300000) {
+      this.item._apiCallCount = 0;
+      this.item._apiCallWindowStart = now;
+    }
+    
+    // Increment counter
+    this.item._apiCallCount++;
+    
+    // If we're making too many calls in the window, throttle
+    if (this.item._apiCallCount > 10) { // Max 10 calls per 5 minutes
+      this.log.msg('1', `Feature ${this.feature_id} API call frequency too high (${this.item._apiCallCount} calls), throttling`, 'feature-item-list');
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Comprehensive optimization status logging
+   * This method provides detailed information about why a refresh was allowed or denied
+   */
+  private logOptimizationStatus(): void {
+    const now = Date.now();
+    const timeSinceLastCheck = this.item._lastDataCheck ? now - this.item._lastDataCheck : 'never';
+    const timeSinceLastApiCall = this.item._lastApiCall ? now - this.item._lastApiCall : 'never';
+    const apiCallCount = this.item._apiCallCount || 0;
+    
+    this.log.msg('1', `Feature ${this.feature_id} optimization status:`, 'feature-item-list');
+    this.log.msg('1', `  - Component active: ${this.isComponentActive}`, 'feature-item-list');
+    this.log.msg('1', `  - Has valid data: ${this.hasValidFeatureData()}`, 'feature-item-list');
+    this.log.msg('1', `  - Cached data fresh: ${this.isCachedDataFresh()}`, 'feature-item-list');
+    this.log.msg('1', `  - Should skip reload: ${this.shouldSkipDataReload()}`, 'feature-item-list');
+    this.log.msg('1', `  - Time since last check: ${typeof timeSinceLastCheck === 'number' ? Math.round(timeSinceLastCheck / 1000) + 's' : timeSinceLastCheck}`, 'feature-item-list');
+    this.log.msg('1', `  - Time since last API call: ${typeof timeSinceLastApiCall === 'number' ? Math.round(timeSinceLastApiCall / 1000) + 's' : timeSinceLastApiCall}`, 'feature-item-list');
+    this.log.msg('1', `  - API call count in window: ${apiCallCount}`, 'feature-item-list');
+    this.log.msg('1', `  - Feature running: ${this.running}`, 'feature-item-list');
+    this.log.msg('1', `  - Feature status: ${this.item.status}`, 'feature-item-list');
+  }
+
+  /**
+   * Get optimization summary for this feature
+   * This method provides a quick overview of the optimization status
+   */
+  public getOptimizationSummary(): string {
+    const now = Date.now();
+    const timeSinceLastCheck = this.item._lastDataCheck ? Math.round((now - this.item._lastDataCheck) / 1000) : 0;
+    const timeSinceLastApiCall = this.item._lastApiCall ? Math.round((now - this.item._lastApiCall) / 1000) : 0;
+    const apiCallCount = this.item._apiCallCount || 0;
+    
+    let summary = `Feature ${this.feature_id} Optimization Summary:\n`;
+    summary += `• Data freshness: ${timeSinceLastCheck}s ago\n`;
+    summary += `• Last API call: ${timeSinceLastApiCall}s ago\n`;
+    summary += `• API calls in window: ${apiCallCount}/10\n`;
+    summary += `• Feature status: ${this.item.status}\n`;
+    summary += `• Running: ${this.running}\n`;
+    summary += `• Has valid data: ${this.hasValidFeatureData()}\n`;
+    summary += `• Cache fresh: ${this.isCachedDataFresh()}\n`;
+    
+    return summary;
   }
 
 }

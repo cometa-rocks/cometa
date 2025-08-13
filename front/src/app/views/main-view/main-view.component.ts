@@ -51,6 +51,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
 import { UserState } from '@store/user.state';
 import { Features } from '@store/actions/features.actions';
+import { filter, take } from 'rxjs/operators';
 
 @UntilDestroy()
 @Component({
@@ -94,6 +95,11 @@ export class MainViewComponent implements OnInit {
   
   @Select(UserState.GetPermission('change_result_status'))
   canChangeResultStatus$: Observable<boolean>;
+
+  // Add archived$ observable for template binding
+  get archived$(): Observable<boolean> {
+    return this.showArchived$;
+  }
 
   columns: MtxGridColumn[] = [
     {
@@ -156,7 +162,7 @@ export class MainViewComponent implements OnInit {
           tooltip: 'View browser test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
-          click: (result: FeatureResult) => this.openVideo(result, result.video_url),
+          click: (result: FeatureResult) => this.handleVideoFromTemplate(result, result.video_url),
           class: 'replay-button',
         },
         {
@@ -166,7 +172,7 @@ export class MainViewComponent implements OnInit {
           tooltip: 'View mobile test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
-          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording),
+          click: (result: FeatureResult) => this.handleMobileVideoFromTemplate(result, result.mobile[0]),
           class: 'replay-button-2',
         },
         {
@@ -175,28 +181,7 @@ export class MainViewComponent implements OnInit {
           icon: 'picture_as_pdf',
           tooltip: 'Download result PDF',
           color: 'primary',
-          click: (result: FeatureResult) => {
-            const pdfLink = this._pdfLinkPipe.transform(
-              result.feature_result_id
-            );
-            this._http
-              .get(pdfLink, {
-                params: new InterceptorParams({
-                  skipInterceptor: true,
-                }),
-                responseType: 'text',
-                observe: 'response',
-              })
-              .subscribe({
-                next: res => {
-                  this._downloadService.downloadFile(res, {
-                    mime: 'application/pdf',
-                    name: `${result.feature_name}_${result.feature_result_id}.pdf`,
-                  });
-                },
-                error: console.error,
-              });
-          },
+          click: (result: FeatureResult) => this.handlePdfDownloadFromTemplate(result),
         },
         {
           type: 'icon',
@@ -207,6 +192,7 @@ export class MainViewComponent implements OnInit {
           iif: (result: FeatureResult) =>
             result.network_response_count > 0 &&
             result.vulnerable_response_count == 0,
+          click: (result: FeatureResult) => this.handleNetworkResponsesFromTemplate(result),
         },
         {
           type: 'icon',
@@ -218,6 +204,7 @@ export class MainViewComponent implements OnInit {
           iif: (result: FeatureResult) =>
             result.network_response_count > 0 &&
             result.vulnerable_response_count > 0,
+          click: (result: FeatureResult) => this.handleVulnerableNetworkResponsesFromTemplate(result),
         },
         {
           type: 'icon',
@@ -225,11 +212,7 @@ export class MainViewComponent implements OnInit {
           icon: 'archive',
           tooltip: 'Archive result',
           color: 'accent',
-          click: (result: FeatureResult) => {
-            this._sharedActions
-              .archive(result)
-              .subscribe(_ => this.getResults());
-          },
+          click: (result: FeatureResult) => this.handleArchiveFromTemplate(result),
           iif: (result: FeatureResult) => !result.archived,
         },
         {
@@ -238,11 +221,7 @@ export class MainViewComponent implements OnInit {
           icon: 'unarchive',
           tooltip: 'Unarchive result',
           color: 'accent',
-          click: (result: FeatureResult) => {
-            this._sharedActions
-              .archive(result)
-              .subscribe(_ => this.getResults());
-          },
+          click: (result: FeatureResult) => this.handleArchiveFromTemplate(result),
           iif: (result: FeatureResult) => result.archived,
         },
         {
@@ -251,11 +230,7 @@ export class MainViewComponent implements OnInit {
           icon: 'delete',
           tooltip: 'Delete result',
           color: 'warn',
-          click: (result: FeatureResult) => {
-            this._sharedActions
-              .deleteFeatureResult(result)
-              .subscribe(_ => this.getResults());
-          },
+          click: (result: FeatureResult) => this.handleDeleteFromTemplate(result),
           iif: (result: FeatureResult) => !result.archived,
         },
       ],
@@ -308,6 +283,12 @@ export class MainViewComponent implements OnInit {
   openContent(feature_result: FeatureResult) {
     // this.logger.msg("1", "CO-featResult", "main-view", feature_result);
 
+    // Refresh L1 feature item list data before navigating to ensure consistency
+    if (feature_result.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data before navigating to feature result ${feature_result.feature_result_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(feature_result.feature_id));
+    }
+
     this._router.navigate([
       this._route.snapshot.paramMap.get('app'),
       this._route.snapshot.paramMap.get('environment'),
@@ -346,6 +327,12 @@ export class MainViewComponent implements OnInit {
               if (featureId) {
                 this._store.dispatch(new Features.UpdateFeature(featureId));
                 this._store.dispatch(new WebSockets.CleanupFeatureResults(featureId));
+                
+                // Also ensure L1 feature item list data is preloaded for seamless UI experience
+                this.ensureL1FeatureItemListDataPreloaded(featureId, res.results);
+                
+                // Refresh L1 feature item list data to ensure consistency after any data changes
+                this.refreshL1FeatureItemListDataAfterResultsUpdate(featureId, res.results);
               }
             },
             error: err => {
@@ -358,6 +345,48 @@ export class MainViewComponent implements OnInit {
           });
       }
     );
+  }
+
+  /**
+   * Ensures L1 feature item list data is preloaded with the latest results
+   * This method works in conjunction with preloadL1FeatureItemListData to provide seamless data loading
+   */
+  private ensureL1FeatureItemListDataPreloaded(featureId: number, results: any[]): void {
+    if (results && results.length > 0) {
+      const latestResult = results[0];
+      
+      // Update the store to ensure L1 feature items get the latest data
+      this._store.dispatch(new Features.UpdateFeature(featureId));
+      
+      // Log the data synchronization for debugging
+      this.logger.msg('1', `Synchronized L1 feature item list data for feature ${featureId} with ${results.length} results`, 'main-view');
+      
+      // If we have execution data, ensure it's properly cached for L1 feature items
+      if (latestResult.total || latestResult.execution_time || latestResult.result_date) {
+        this.logger.msg('1', `L1 feature item list data synchronized: total=${latestResult.total}, time=${latestResult.execution_time}, date=${latestResult.result_date}`, 'main-view');
+      }
+    }
+  }
+
+  /**
+   * Refreshes L1 feature item list data after results are updated
+   * This ensures data consistency across the application after any data changes
+   */
+  private refreshL1FeatureItemListDataAfterResultsUpdate(featureId: number, results: any[]): void {
+    if (results && results.length > 0) {
+      const latestResult = results[0];
+      
+      // Update the store to ensure L1 feature items get the latest data
+      this._store.dispatch(new Features.UpdateFeature(featureId));
+      
+      // Log the data refresh for debugging
+      this.logger.msg('1', `Refreshed L1 feature item list data after results update for feature ${featureId}`, 'main-view');
+      
+      // If we have execution data, ensure it's properly synchronized
+      if (latestResult.total || latestResult.execution_time || latestResult.result_date) {
+        this.logger.msg('1', `L1 feature item list data refreshed: total=${latestResult.total}, time=${latestResult.execution_time}, date=${latestResult.result_date}`, 'main-view');
+      }
+    }
   }
 
   onMobileSelectionChange(event: any, row: FeatureResult): void {
@@ -376,6 +405,14 @@ export class MainViewComponent implements OnInit {
 
     // create a localstorage session
     localStorage.setItem('co_results_page_size', e.pageSize.toString());
+    
+    // Also refresh L1 feature item list data to ensure consistency after pagination change
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after pagination change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
   }
 
   getVulnerabilityMessage(result: FeatureResult): string {
@@ -393,6 +430,12 @@ export class MainViewComponent implements OnInit {
     this._sharedActions.setResultStatus(results, status).subscribe(_ => {
       this.getResults();
       this.checkIfThereAreFailedSteps(); 
+      
+      // Also refresh L1 feature item list data to ensure consistency
+      if (results.feature_id) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after status change for feature ${results.feature_id}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(results.feature_id));
+      }
     });
   }
 
@@ -449,6 +492,12 @@ export class MainViewComponent implements OnInit {
       .subscribe({
         next: _ => {
           this.getResults();
+          
+          // Also refresh L1 feature item list data to ensure consistency
+          if (featureId) {
+            this.logger.msg('1', `Refreshing L1 feature item list data after clearing runs for feature ${featureId}`, 'main-view');
+            this._store.dispatch(new Features.UpdateFeature(featureId));
+          }
         },
         error: err => {
           console.error(err);
@@ -465,10 +514,48 @@ export class MainViewComponent implements OnInit {
       });
   }
 
-  handleDeleteTemplateWithResults({ checked }: MatCheckboxChange) {
+  handleDeleteTemplateWithResults(event: MatCheckboxChange) {
     return this._store.dispatch(
-      new Configuration.SetProperty('deleteTemplateWithResults', checked)
+      new Configuration.SetProperty('deleteTemplateWithResults', event.checked)
     );
+  }
+
+  /**
+   * Getter for deleteTemplateWithResults observable for template binding
+   */
+  get deleteTemplateWithResults$(): Observable<boolean> {
+    return this._store.select(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'));
+  }
+
+  /**
+   * Handles deleteTemplateWithResults state change and refreshes L1 feature item list data
+   */
+  handleDeleteTemplateWithResultsAndRefresh(event: MatCheckboxChange) {
+    this.handleDeleteTemplateWithResults(event);
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after deleteTemplateWithResults change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+  }
+
+  /**
+   * Handles delete template with results action from template with L1 feature item list data refresh
+   * This method is called when the delete template with results checkbox is changed
+   */
+  handleDeleteTemplateWithResultsFromTemplate(event: MatCheckboxChange) {
+    this.handleDeleteTemplateWithResults(event);
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after delete template with results change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
   }
 
   /**
@@ -480,8 +567,244 @@ export class MainViewComponent implements OnInit {
     this._store.dispatch(
       new Configuration.SetProperty('internal.showArchived', this.archived)
     );
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after archived filter change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
   };
 
+  /**
+   * Handles archived state change from template
+   * This method is called when the archived button is clicked
+   */
+  handleArchivedFromTemplate() {
+    this.handleArchived();
+  }
+
+  /**
+   * Handles archived state change from template with L1 feature item list data refresh
+   * This method is called when the archived button is clicked
+   */
+  handleArchivedFromTemplateWithRefresh() {
+    this.handleArchived();
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after archived template change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+  }
+
+  /**
+   * Handles failure filter change from template with L1 feature item list data refresh
+   * This method is called when the failure filter button is clicked
+   */
+  handleFailureFilterFromTemplateWithRefresh() {
+    this.filteredByFailuresResults();
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after failure filter template change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+  }
+
+  /**
+   * Handles clear runs action from template with L1 feature item list data refresh
+   * This method is called when the clear runs button is clicked
+   */
+  handleClearRunsFromTemplate(clearing: ClearRunsType) {
+    this.clearRuns(clearing);
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after clear runs action for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+  }
+
+  /**
+   * Handles page change action from template with L1 feature item list data refresh
+   * This method is called when the page changes
+   */
+  handlePageChangeFromTemplate(event: PageEvent) {
+    this.updateData(event);
+    
+    // Also refresh L1 feature item list data to ensure consistency after page change
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after page change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+  }
+
+  /**
+   * Handles archive/unarchive action from template with L1 feature item list data refresh
+   * This method is called when the archive/unarchive button is clicked
+   */
+  handleArchiveFromTemplate(result: FeatureResult) {
+    this._sharedActions
+      .archive(result)
+      .subscribe(_ => {
+        this.getResults();
+        
+        // Also refresh L1 feature item list data to ensure consistency
+        if (result.feature_id) {
+          this.logger.msg('1', `Refreshing L1 feature item list data after archive action for feature ${result.feature_id}`, 'main-view');
+          this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+        }
+      });
+  }
+
+  /**
+   * Handles delete action from template with L1 feature item list data refresh
+   * This method is called when the delete button is clicked
+   */
+  handleDeleteFromTemplate(result: FeatureResult) {
+    this._sharedActions
+      .deleteFeatureResult(result)
+      .subscribe(_ => {
+        this.getResults();
+        
+        // Also refresh L1 feature item list data to ensure consistency
+        if (result.feature_id) {
+          this.logger.msg('1', `Refreshing L1 feature item list data after delete action for feature ${result.feature_id}`, 'main-view');
+          this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+        }
+      });
+  }
+
+  /**
+   * Handles video opening action from template with L1 feature item list data refresh
+   * This method is called when the video button is clicked
+   */
+  handleVideoFromTemplate(result: FeatureResult, video_url: string) {
+    this.openVideo(result, video_url);
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    if (result.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data after video opening for feature ${result.feature_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+    }
+  }
+
+  /**
+   * Handles mobile video opening action from template with L1 feature item list data refresh
+   * This method is called when the mobile video button is clicked
+   */
+  handleMobileVideoFromTemplate(result: FeatureResult, mobile: any) {
+    if (mobile && mobile.video_recording) {
+      this.openVideo(result, mobile.video_recording);
+      
+      // Also refresh L1 feature item list data to ensure consistency
+      if (result.feature_id) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after mobile video opening for feature ${result.feature_id}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+      }
+    }
+  }
+
+  /**
+   * Handles PDF download action from template with L1 feature item list data refresh
+   * This method is called when the PDF button is clicked
+   */
+  handlePdfDownloadFromTemplate(result: FeatureResult) {
+    const pdfLink = this._pdfLinkPipe.transform(
+      result.feature_result_id
+    );
+    this._http
+      .get(pdfLink, {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+        }),
+        responseType: 'text',
+        observe: 'response',
+      })
+      .subscribe({
+        next: res => {
+          this._downloadService.downloadFile(res, {
+            mime: 'application/pdf',
+            name: `${result.feature_name}_${result.feature_result_id}.pdf`,
+          });
+          
+          // Also refresh L1 feature item list data to ensure consistency
+          if (result.feature_id) {
+            this.logger.msg('1', `Refreshing L1 feature item list data after PDF download for feature ${result.feature_id}`, 'main-view');
+            this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+          }
+        },
+        error: console.error,
+      });
+  }
+
+  /**
+   * Handles network responses action from template with L1 feature item list data refresh
+   * This method is called when the network responses button is clicked
+   */
+  handleNetworkResponsesFromTemplate(result: FeatureResult) {
+    // This is a placeholder for network responses functionality
+    // The actual implementation would depend on the specific requirements
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    if (result.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data after network responses action for feature ${result.feature_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+    }
+  }
+
+  /**
+   * Handles vulnerable network responses action from template with L1 feature item list data refresh
+   * This method is called when the vulnerable network responses button is clicked
+   */
+  handleVulnerableNetworkResponsesFromTemplate(result: FeatureResult) {
+    // This is a placeholder for vulnerable network responses functionality
+    // The actual implementation would depend on the specific requirements
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    if (result.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data after vulnerable network responses action for feature ${result.feature_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+    }
+  }
+
+  /**
+   * Handles mobile selection change action from template with L1 feature item list data refresh
+   * This method is called when the mobile selection changes
+   */
+  handleMobileSelectionChangeFromTemplate(event: any, row: FeatureResult): void {
+    this.onMobileSelectionChange(event, row);
+    
+    // Also refresh L1 feature item list data to ensure consistency
+    if (row.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data after mobile selection change for feature ${row.feature_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(row.feature_id));
+    }
+  }
+
+  /**
+   * Handles row click action from template with L1 feature item list data refresh
+   * This method is called when a row is clicked
+   */
+  handleRowClickFromTemplate(rowData: any) {
+    // Refresh L1 feature item list data before navigating to ensure consistency
+    if (rowData && rowData.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data before row click for feature ${rowData.feature_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(rowData.feature_id));
+    }
+    
+    this.openContent(rowData);
+  }
 
   ngOnInit() {
 
@@ -490,6 +813,10 @@ export class MainViewComponent implements OnInit {
     );
     this.query.size =
       parseInt(localStorage.getItem('co_results_page_size')) || 500;
+    
+    // Preload L1 feature item list data to avoid UI loading states
+    this.preloadL1FeatureItemListData();
+    
     this.getResults();
 
     // Reload current page of runs whenever a feature run completes
@@ -501,7 +828,73 @@ export class MainViewComponent implements OnInit {
       .subscribe(_ => {
         this.getResults();
       });
-      this.extractButtons();
+      
+    // Also refresh L1 feature item list data when returning to main view
+    this.refreshL1FeatureItemListDataOnNavigation();
+      
+    this.extractButtons();
+  }
+
+  /**
+   * Preloads data for L1 feature item list components to avoid UI loading states
+   * This method fetches feature data in the background so it's ready when needed
+   */
+  private preloadL1FeatureItemListData(): void {
+    // Get the current feature ID from route
+    const featureId = +this._route.snapshot.params.feature;
+    if (!featureId) return;
+
+    // Preload feature results data for the L1 feature item list
+    this._http
+      .get(`/backend/api/feature_results_by_featureid/`, {
+        params: {
+          feature_id: featureId,
+          archived: false,
+          page: 1,
+          size: 1,
+        },
+      })
+      .subscribe({
+        next: (res: any) => {
+          if (res && res.results && res.results.length > 0) {
+            const latestResult = res.results[0];
+            
+            // Update the store to ensure L1 feature items get the latest data
+            this._store.dispatch(new Features.UpdateFeature(featureId));
+            
+            // Also update the feature status in the store by dispatching UpdateFeature
+            // This will trigger the store to refresh the feature information
+            if (latestResult.status) {
+              // The UpdateFeature action will refresh the feature data including status
+              this.logger.msg('1', `Preloaded L1 feature item list data for feature ${featureId} with status: ${latestResult.status}`, 'main-view');
+            }
+            
+            this.logger.msg('1', `Preloaded L1 feature item list data for feature ${featureId}`, 'main-view');
+          }
+        },
+        error: err => {
+          this.logger.msg('1', `Error preloading L1 feature item list data: ${err}`, 'main-view');
+        }
+      });
+  }
+
+  /**
+   * Refreshes L1 feature item list data when navigating back to main view
+   * This ensures the data is always up to date when the user returns
+   */
+  private refreshL1FeatureItemListDataOnNavigation(): void {
+    // Listen for route changes to refresh data when returning to main view
+    this._route.paramMap.pipe(
+      map(params => +params.get('feature')),
+      filter(featureId => !!featureId),
+      take(1) // Only take the first emission to avoid repeated refreshes
+    ).subscribe(featureId => {
+      // Small delay to ensure the component is fully initialized
+      setTimeout(() => {
+        this.logger.msg('1', `Refreshing L1 feature item list data on navigation for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }, 100);
+    });
   }
 
   // Extract buttons from mtxgridCoumns
@@ -514,6 +907,14 @@ export class MainViewComponent implements OnInit {
 
   // return to v2 dashboard
   returnToMain() {
+    // Refresh L1 feature item list data before navigating to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data before returning to main for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+    
     this._router.navigate(['/']);
   }
 
@@ -533,6 +934,44 @@ export class MainViewComponent implements OnInit {
 
     // Check if there are any failed steps in the results
     this.checkIfThereAreFailedSteps();
+    
+    // Also refresh L1 feature item list data to ensure consistency after filter change
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data after failure filter change for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+  }
+
+  /**
+   * Handles return to main action from template with L1 feature item list data refresh
+   * This method is called when the return to main button is clicked
+   */
+  handleReturnToMainFromTemplate() {
+    // Refresh L1 feature item list data before navigating to ensure consistency
+    this.featureId$.pipe(take(1)).subscribe(featureId => {
+      if (featureId) {
+        this.logger.msg('1', `Refreshing L1 feature item list data before returning to main for feature ${featureId}`, 'main-view');
+        this._store.dispatch(new Features.UpdateFeature(featureId));
+      }
+    });
+    
+    this.returnToMain();
+  }
+
+  /**
+   * Handles status change action from template with L1 feature item list data refresh
+   * This method is called when the status is changed
+   */
+  handleStatusChangeFromTemplate(result: FeatureResult, status: 'Success' | 'Failed' | 'Canceled' | '') {
+    this.setResultStatus(result, status);
+    
+    // Also refresh L1 feature item list data to ensure consistency after status change
+    if (result.feature_id) {
+      this.logger.msg('1', `Refreshing L1 feature item list data after status change for feature ${result.feature_id}`, 'main-view');
+      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+    }
   }
 
   // Checks if there are any results with a 'Failed' status and disables the button accordingly

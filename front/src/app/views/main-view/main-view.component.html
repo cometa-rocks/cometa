@@ -6,7 +6,7 @@
 
 <div class="chart-section" [ngClass]="{ noChart: total < 10 }">
   <div class="return">
-    <div (click)="returnToMain()" class="return-item">
+    <div (click)="handleReturnToMainFromTemplate()" class="return-item">
       <i></i>
       <div class="return-text">Main</div>
     </div>
@@ -67,7 +67,7 @@
   [pageIndex]="query.page"
   [pageSize]="query.size"
   [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
-  (rowClick)="openContent($event.rowData)"
+  (rowClick)="handleRowClickFromTemplate($event.rowData)"
   [cellTemplate]="{
     status: statusTpl,
     result_date: dateTpl,
@@ -81,7 +81,7 @@
   [noResultTemplate]="noResultTpl"
   [showPaginator]="showPagination"
   [toolbarTemplate]="toolbarTpl"
-  (page)="updateData($event)">
+  (page)="handlePageChangeFromTemplate($event)">
 </mtx-grid>
 
 <!-- ROW TEMPLATES -->
@@ -110,17 +110,17 @@
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
       <div class="menu-header">Override run status:</div>
-      <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
+      <button (click)="handleStatusChangeFromTemplate(row, 'Success')" mat-menu-item>
         <div class="status-option passed">Passed</div>
       </button>
-      <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
+      <button (click)="handleStatusChangeFromTemplate(row, 'Failed')" mat-menu-item>
         <div class="status-option failed">Failed</div>
       </button>
-      <button (click)="setResultStatus(row, 'Canceled')" mat-menu-item>
+      <button (click)="handleStatusChangeFromTemplate(row, 'Canceled')" mat-menu-item>
         <div class="status-option canceled">Canceled</div>
       </button>
       <mat-divider></mat-divider>
-      <button (click)="setResultStatus(row, '')" mat-menu-item>
+      <button (click)="handleStatusChangeFromTemplate(row, '')" mat-menu-item>
         <div class="status-option default">Default</div>
       </button>
     </mat-menu>
@@ -154,7 +154,7 @@
             [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
             matTooltip="{{ button.tooltip }}"
             [matTooltipPosition]="'above'"
-            (click)="row.mobile.length === 1 && onMobileSelectionChange({ value: row.mobile[0] }, row)">
+            (click)="row.mobile.length === 1 && handleMobileSelectionChangeFromTemplate({ value: row.mobile[0] }, row)">
             <mat-icon
               class="mobile-mat-icon-replay"
               [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
@@ -166,7 +166,7 @@
               <mat-select
                 stopPropagation
                 class="mobile-selector"
-                (selectionChange)="onMobileSelectionChange($event, row)"
+                (selectionChange)="handleMobileSelectionChangeFromTemplate($event, row)"
                 [(value)]="selectMobile[row.feature_result_id]">
                 <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
                   <mat-label>
@@ -244,15 +244,15 @@
       [matTooltip]="showingFiltered ? ('mainView.allResults' | translate) : ('mainView.failureResults' | translate)"
       matTooltipPosition="above"
       mat-stroked-button 
-      (click)="filteredByFailuresResults()">
+      (click)="handleFailureFilterFromTemplateWithRefresh()">
      {{ showingFiltered ? "All features" : "Failed features" }}
     </button>
     <button
       class="archivedItems"
       mat-stroked-button
       color="primary"
-      [checked]="archived$ | async"
-      (click)="handleArchived()">
+      [checked]="archived"
+      (click)="handleArchivedFromTemplateWithRefresh()">
     <ng-container *ngIf="archived; else showIcon">
       <i class="material-icons">visibility_off</i>
       Hide archived items
@@ -272,11 +272,11 @@
   <mat-menu #clearRunsTemplate>
     <div stopPropagation class="mat-menu-panel-category">Clear results</div>
     <!-- All 4 options to delete runs -->
-    <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
-    <button mat-menu-item (click)="clearRuns('all_failed')">
+    <button mat-menu-item (click)="handleClearRunsFromTemplate('all')">Clear all</button>
+    <button mat-menu-item (click)="handleClearRunsFromTemplate('all_failed')">
       Clear all failed
     </button>
-    <button mat-menu-item (click)="clearRuns('all_except_last')">
+    <button mat-menu-item (click)="handleClearRunsFromTemplate('all_except_last')">
       Clear all except last run
     </button>
     <mat-divider></mat-divider>
@@ -287,7 +287,7 @@
         [matTooltip]="'tooltips.delete_templates_with_features' | translate"
         matTooltipPosition="below"
         [checked]="deleteTemplateWithResults$ | async"
-        (change)="handleDeleteTemplateWithResults($event)"
+        (change)="handleDeleteTemplateWithResultsFromTemplate($event)"
         color="primary">
         Also delete templates
       </mat-checkbox>
