@@ -97,46 +97,46 @@
       [headerTemplate]="headTemplate"
       [injectIndex]="true"
       [itemTemplate]="listItem">
-      <ng-template #listItem let-item>
+      <ng-template #listItem let-item let-i="index">
         <ng-container
           *ngLet="
             item.status === 'Success' || 
             (!item.status && item.success) as passed
           ">
+          <!-- Only show feature reference if it's different from previous step's feature -->
+          <div class="feature-reference-row"
+          stopPropagation
+          (click)="
+            _sharedActions.openEditFeature(
+              item.belongs_to.feature_id,
+              'edit'
+            )
+          "
+          *ngIf="shouldShowFeatureName(item, i)"
+          class="feature-reference">
+            <div           
+              [matTooltip]="'tooltips.edit_feature' | translate"
+              class="feature-reference-text">Feature: {{ item.belongs_to.feature_name }}
+            </div>
+          </div>
           <div #nameElement class="step-row" (click)="onStepRowClick($event, item.step_result_id)">
             <div
               class="status-bar"
               [ngClass]="passed ? 'success' : 'failed'"></div>
             <div class="name">
-              <div class="step-index">{{ item.index }}</div>
               <div class="step-content">
-                <ng-container *ngLet="featureId$ | async as featureId">
-                  <div
-                    stopPropagation
-                    (click)="
-                      _sharedActions.openEditFeature(
-                        item.belongs_to.feature_id,
-                        'edit'
-                      )
-                    "
-                    [matTooltip]="'tooltips.edit_feature' | translate"
-                    matTooltipPosition="after"
-                    *ngIf="
-                      item.belongs_to &&
-                      featureId !== item.belongs_to.feature_id
-                    "
-                    class="feature-reference">
-                    From feature: {{ item.belongs_to.feature_name }}
+
+                <div class="step-index">{{ item.index }}</div>
+                <div class="step-name">{{ item?.step_name | truncateApiBody }} 
+                  <div *ngIf="item?.error" class="step-error" [id]="'row-' + item.step_result_id" #stepError>
+                    <span class="error-label">CUSTOM ERROR:</span>
+                    <pre class="error-content">{{ item?.error }}</pre>
                   </div>
-                </ng-container>
-                <div class="step-name">{{ item?.step_name | truncateApiBody }}</div>
-                <div *ngIf="item?.error" class="step-error" [id]="'row-' + item.step_result_id" #stepError>
-                  <span class="error-label">CUSTOM ERROR:</span>
-                  <pre class="error-content">{{ item?.error }}</pre>
                 </div>
+                
               </div>
             </div>
-            <div class="status"  >
+            <div class="status">
               <!-- Status Box -->
               <div *ngIf="!(canChangeResultStatus$ | async)"
                 class="status-box {{item.status.toLowerCase()}}"
@@ -191,13 +191,26 @@
             </div>
             <!-- Icon options for each step result -->
             <div class="item-options">
+              <!-- Edit Feature -->
+              <div class="option">
+                <button  
+                  stopPropagation
+                  mat-icon-button
+                  matTooltip="Edit the related feature"
+                  (click)="_sharedActions.openEditFeature(
+                  item.belongs_to.feature_id,
+                  'edit'
+                )">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </div>
+              <!-- View Screenshot -->
               <div
                 class="option view-screenshot"
                 *ngIf="item?.screenshot_current">
                 <button
                   (click)="loadImages(item.screenshot_current)"
                   matTooltip="View Screenshot"
-                  matTooltipPosition="before"
                   stopPropagation
                   mat-icon-button>
                   <mat-icon>insert_photo</mat-icon>
@@ -208,7 +221,6 @@
                 <button
                   (click)="loadRestApi(item.rest_api)"
                   matTooltip="View REST API Call"
-                  matTooltipPosition="before"
                   stopPropagation
                   mat-icon-button>
                   <mat-icon>http</mat-icon>
@@ -225,7 +237,6 @@
                         ' response received with vulnerable headers'
                       : ''
                   }}"
-                  matTooltipPosition="before"
                   stopPropagation
                   mat-icon-button>
                   <mat-icon
@@ -243,7 +254,6 @@
                 <button
                   (click)="_sharedActions.openHTMLDiff(item.step_result_id)"
                   matTooltip="View HTML difference"
-                  matTooltipPosition="before"
                   stopPropagation
                   mat-icon-button>
                   <mat-icon>code</mat-icon>
@@ -254,7 +264,6 @@
                 <button
                   (click)="openStepNotes(item)"
                   [matTooltip]="item.notes.title"
-                  matTooltipPosition="before"
                   stopPropagation
                   mat-icon-button>
                   <mat-icon>description</mat-icon>

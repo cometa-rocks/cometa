@@ -227,6 +227,7 @@ export class StepViewComponent implements OnInit {
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
   @ViewChildren('div.status-bar') statusBars!: QueryList<ElementRef>;
+  errorCount: number = 0;
 
   ngOnInit() {
 
@@ -432,5 +433,36 @@ export class StepViewComponent implements OnInit {
       return;
     }
     this.goToDetail(stepId);
+  }
+
+  /**
+   * Determines if a feature name should be shown for the current step
+   * @param currentItem The current step item
+   * @param currentIndex The current index in the list
+   * @returns true if the feature name should be displayed
+   */
+  shouldShowFeatureName(currentItem: any, currentIndex: number): boolean {
+    if (!currentItem?.belongs_to?.feature_id) {
+      return false;
+    }
+    
+    // Always show for the first item
+    if (currentIndex === 0) {
+      return true;
+    }
+    
+    // Get the current list of items
+    const currentSteps = this.paginatedList?.pagination$?.getValue();
+    if (!currentSteps?.results || currentIndex >= currentSteps.results.length) {
+      return true;
+    }
+    
+    // Check if the previous item has a different feature ID
+    const previousItem = currentSteps.results[currentIndex - 1];
+    if (!previousItem?.belongs_to?.feature_id) {
+      return true;
+    }
+    
+    return previousItem.belongs_to.feature_id !== currentItem.belongs_to.feature_id;
   }
 }
