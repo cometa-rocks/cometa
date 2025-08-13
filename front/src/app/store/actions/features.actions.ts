@@ -20,6 +20,17 @@ export namespace Features {
   }
 
   /**
+   * @description Updates only specific feature data without affecting other features
+   * This prevents cross-contamination when scheduled features complete
+   * @param {number} feature_id Feature ID
+   * @param {any} result_data Feature result data to update
+   */
+  export class UpdateFeatureResultData {
+    static readonly type = '[Features] Update feature result data only';
+    constructor(public feature_id: number, public result_data: any) {}
+  }
+
+  /**
    * @description Update specific feature with new info with local info
    * @param {number} feature_id Feature ID
    * @param {Partial<Feature>} info Feature object (any property is optional)

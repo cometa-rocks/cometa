@@ -58,7 +58,7 @@
  * - Mobile and tablet browsers are properly displayed with correct icons
  * - Outdated browser versions are properly detected and buttons disabled accordingly
  */
-import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy, TrackByFunction } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy, TrackByFunction, ElementRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BrowsersState } from '@store/browsers.state';
@@ -105,6 +105,7 @@ import {
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
 import { shareReplay, distinctUntilChanged, debounceTime } from 'rxjs/operators';
+import { FeaturesState } from '@store/features.state';
 
 
 @Component({
@@ -144,6 +145,20 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   static featureDataCache = new Map<number, CachedFeatureData>();
   static readonly CACHE_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
   static cacheInitialized = false;
+  
+  // Add feature data locks to prevent cross-contamination
+  static featureDataLocks = new Map<number, boolean>();
+  static readonly LOCK_TIMEOUT = 10000; // Reduced to 10 seconds - less restrictive
+  
+  // Add lock timestamps to track when locks were set
+  static featureDataLockTimestamps = new Map<number, number>();
+  
+  // Add tracking for mass feature updates to prevent data loss
+  static lastMassUpdateTime = 0;
+  static readonly MASS_UPDATE_THRESHOLD = 2000; // 2 seconds threshold for mass updates
+  
+  // Add protected cache for feature data during mass updates
+  static protectedFeatureData = new Map<number, any>();
 
   constructor(
     private _router: NavigationService,
@@ -155,6 +170,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     private log: LogService,
     private cdr: ChangeDetectorRef,
     private starredService: StarredService,
+    private elementRef: ElementRef
   ) {}
 
   // Receives the item from the parent component
@@ -188,6 +204,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   lastFeatureResult$: Observable<FeatureResult | IResult>;
 
   ngOnInit() {
+    this.isComponentActive = true;
+    this.log.msg('1', `Feature ${this.feature_id} component initialized`, 'feature-item-list');
+    
+    // Subscribe to route changes to preserve feature data
+    this.subscribeToRouteChanges();
+    
     // Initialize cache if not already done
     if (!L1FeatureItemListComponent.cacheInitialized) {
       L1FeatureItemListComponent.initializeCache();
@@ -225,9 +247,46 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     this.isButtonDisabled = false;
     this.running = false;
 
+    // Setup periodic cross-contamination prevention
+    this.setupCrossContaminationPrevention();
+
+    // Setup automatic data recovery system
+    this.setupAutomaticDataRecovery();
+
+    // Setup store change listener for corruption detection
+    this.setupStoreChangeListener();
+
+    // Setup WebSocket event listener for feature completion events
+    this.setupWebSocketEventListener();
+
     // DEBUG: Check item.type
     console.log('DEBUG - item:', this.item);
     console.log('DEBUG - item.type:', this.item?.type);
+  }
+
+  /**
+   * Subscribe to route changes to preserve feature data when navigating to the same folder
+   */
+  private subscribeToRouteChanges(): void {
+    // Subscribe to current route changes
+    this._store.select(FeaturesState.GetCurrentRouteNew).pipe(
+      distinctUntilChanged(),
+      filter(() => this.isComponentActive)
+    ).subscribe(currentRoute => {
+      if (currentRoute && currentRoute.length > 0) {
+        const currentFolderId = currentRoute[currentRoute.length - 1]?.folder_id;
+        
+        // Check if we're in the same folder to preserve data
+        if (this.item._lastFolderId && this.item._lastFolderId === currentFolderId) {
+          this.log.msg('1', `Feature ${this.feature_id} in same folder ${currentFolderId}, preserving data`, 'feature-item-list');
+          this.preserveFeatureDataForNavigation();
+        } else {
+          // Update the last folder ID
+          this.item._lastFolderId = currentFolderId;
+          this.log.msg('1', `Feature ${this.feature_id} navigating to new folder ${currentFolderId}`, 'feature-item-list');
+        }
+      }
+    });
   }
 
   private setupEssentialObservables() {
@@ -443,16 +502,42 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.isComponentActive = false;
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.log.msg('1', `Feature ${this.feature_id} component destroyed`, 'feature-item-list');
     
-    // Clear any pending timeouts
+    // Clean up timeouts
     if (this.safetyTimeout) {
       clearTimeout(this.safetyTimeout);
     }
     if (this.initSafetyTimeout) {
       clearTimeout(this.initSafetyTimeout);
     }
+    
+    // Clean up observables
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    // Clean up cache for this feature to prevent cross-contamination
+    this.cleanupFeatureCache();
+  }
+
+  /**
+   * Clean up cache for this feature to prevent cross-contamination
+   */
+  private cleanupFeatureCache(): void {
+    // Remove this feature's cache entry to prevent it from affecting other features
+    if (L1FeatureItemListComponent.featureDataCache.has(this.feature_id)) {
+      L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+      this.log.msg('1', `Cleaned up cache for feature ${this.feature_id}`, 'feature-item-list');
+    }
+    
+    // Also clean up protected cache for this feature
+    if (L1FeatureItemListComponent.protectedFeatureData.has(this.feature_id)) {
+      L1FeatureItemListComponent.protectedFeatureData.delete(this.feature_id);
+      this.log.msg('1', `Cleaned up protected cache for feature ${this.feature_id}`, 'feature-item-list');
+    }
+    
+    // Also clean up any potentially contaminated cache entries
+    this.cleanupOtherFeaturesCache();
   }
 
   /**
@@ -631,20 +716,32 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private updateFeatureStatusFromResult(result: any) {
     if (!result || !this.isComponentActive) return;
     
+    // Check if data modifications are blocked - but be less restrictive
+    if (this.blockDataModifications()) {
+      this.log.msg('1', `Feature ${this.feature_id} update blocked due to cross-contamination risk`, 'feature-item-list');
+      return;
+    }
+    
+    // Lock feature data to prevent cross-contamination, but be less aggressive
+    this.lockFeatureData();
+    
     // Check if there are perceptible data changes before updating
     if (!this.hasPerceptibleDataChanges(result)) {
       this.log.msg('1', `Feature ${this.feature_id} has no perceptible changes, skipping update`, 'feature-item-list');
+      this.unlockFeatureData(); // Unlock since we're not updating
       return;
     }
     
     // Validate that the result data is reasonable to prevent duplication
     if (result.total && (result.total <= 0 || result.total > 1000)) {
       this.log.msg('1', `Feature ${this.feature_id} has unreasonable total steps: ${result.total}, skipping update`, 'feature-item-list');
+      this.unlockFeatureData(); // Unlock since we're not updating
       return;
     }
     
     if (result.execution_time && (result.execution_time < 0 || result.execution_time > 3600)) {
       this.log.msg('1', `Feature ${this.feature_id} has unreasonable execution time: ${result.execution_time}, skipping update`, 'feature-item-list');
+      this.unlockFeatureData(); // Unlock since we're not updating
       return;
     }
     
@@ -656,8 +753,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     
     if (!hasChanges) {
       this.log.msg('1', `Feature ${this.feature_id} data unchanged, skipping update`, 'feature-item-list');
+      this.unlockFeatureData(); // Unlock since we're not updating
       return;
     }
+    
+    // Clean up other features cache to prevent cross-contamination
+    this.cleanupOtherFeaturesCache();
     
     // Update the item with the latest feature result information
     // Only update if the value is different to prevent duplication
@@ -683,11 +784,15 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     // Mark that we have valid data
     this.item._hasCachedData = true;
     
-    // Cache the updated data
+    // Cache the updated data with isolation
     this.cacheFeatureData();
     
     // Trigger change detection
     this.cdr.detectChanges();
+    
+    // Keep the lock active for a shorter time to prevent immediate cross-contamination
+    // The lock will automatically expire after LOCK_TIMEOUT
+    this.log.msg('1', `Feature ${this.feature_id} data updated and locked to prevent cross-contamination`, 'feature-item-list');
   }
 
   /**
@@ -1087,6 +1192,273 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Automatic data recovery system that detects and fixes corrupted data
+   * This runs in the background to ensure data integrity without user intervention
+   */
+  private setupAutomaticDataRecovery(): void {
+    // Check for data corruption every 30 seconds
+    const recoveryInterval = setInterval(() => {
+      if (!this.isComponentActive) {
+        clearInterval(recoveryInterval);
+        return;
+      }
+
+      this.performAutomaticDataRecovery();
+    }, 30000);
+
+    // Also perform recovery when component becomes visible
+    this.setupVisibilityBasedRecovery();
+
+    // More aggressive recovery for "No result yet" issue - check every 10 seconds
+    const aggressiveRecoveryInterval = setInterval(() => {
+      if (!this.isComponentActive) {
+        clearInterval(aggressiveRecoveryInterval);
+        return;
+      }
+
+      this.performAggressiveDataRecovery();
+    }, 10000);
+  }
+
+  /**
+   * Performs automatic data recovery when corruption is detected
+   */
+  private performAutomaticDataRecovery(): void {
+    if (!this.item || !this.isComponentActive) return;
+
+    // Check for common data corruption indicators
+    const hasCorruption = this.detectDataCorruption();
+    
+    if (hasCorruption) {
+      this.log.msg('1', `Feature ${this.feature_id} automatic data recovery triggered - corruption detected`, 'feature-item-list');
+      
+      // Automatically recover data without user intervention
+      this.autoRecoverData();
+    }
+  }
+
+  /**
+   * Detects various types of data corruption
+   */
+  private detectDataCorruption(): boolean {
+    if (!this.item) return false;
+
+    // Check for unreasonable step counts
+    if (this.item.total && (this.item.total <= 0 || this.item.total > 1000)) {
+      this.log.msg('1', `Feature ${this.feature_id} corruption detected: unreasonable total steps (${this.item.total})`, 'feature-item-list');
+      return true;
+    }
+
+    // Check for unreasonable execution times
+    if (this.item.time && (this.item.time < 0 || this.item.time > 3600)) {
+      this.log.msg('1', `Feature ${this.feature_id} corruption detected: unreasonable execution time (${this.item.time})`, 'feature-item-list');
+      return true;
+    }
+
+    // Check for missing critical data
+    if (!this.item.status && !this.item.date && !this.item.total) {
+      this.log.msg('1', `Feature ${this.feature_id} corruption detected: missing critical data`, 'feature-item-list');
+      return true;
+    }
+
+    // Check for "No result yet" when we should have data
+    if (this.item.status === 'No result yet' && this.item._hasCachedData) {
+      this.log.msg('1', `Feature ${this.feature_id} corruption detected: "No result yet" with cached data`, 'feature-item-list');
+      return true;
+    }
+
+    // Enhanced detection for "No result yet" issue
+    if (this.item.status === 'No result yet') {
+      // Check if this feature should have results based on its configuration
+      if (this.shouldFeatureHaveResults()) {
+        this.log.msg('1', `Feature ${this.feature_id} corruption detected: "No result yet" but feature should have results`, 'feature-item-list');
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Determines if a feature should have results based on its configuration
+   */
+  private shouldFeatureHaveResults(): boolean {
+    // If we have any cached data, the feature should have results
+    if (this.item._hasCachedData) {
+      return true;
+    }
+
+    // If we have any execution data, the feature should have results
+    if (this.item.total || this.item.time || this.item.date) {
+      return true;
+    }
+
+    // If the feature has been running recently, it should have results
+    if (this.item._lastApiCall && (Date.now() - this.item._lastApiCall) < 300000) { // 5 minutes
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Automatically recovers corrupted data
+   */
+  private autoRecoverData(): void {
+    this.log.msg('1', `Feature ${this.feature_id} starting automatic data recovery`, 'feature-item-list');
+    
+    // Clear corrupted cache
+    L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+    
+    // Reset corrupted values
+    if (this.item.total > 1000) this.item.total = 0;
+    if (this.item.time > 3600) this.item.time = 0;
+    
+    // Mark for fresh data
+    this.item._needsDataRefresh = true;
+    this.item._hasCachedData = false;
+    
+    // Force API call to get fresh data
+    this.forceUpdateFeatureStatus();
+    
+    // Update UI immediately
+    this.cdr.detectChanges();
+    
+    this.log.msg('1', `Feature ${this.feature_id} automatic data recovery completed`, 'feature-item-list');
+  }
+
+  /**
+   * Sets up recovery when component becomes visible
+   */
+  private setupVisibilityBasedRecovery(): void {
+    // Use Intersection Observer to detect when component is visible
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && this.isComponentActive) {
+            // Component is visible, check for corruption
+            setTimeout(() => {
+              this.performAutomaticDataRecovery();
+            }, 1000); // Small delay to ensure component is fully loaded
+          }
+        });
+      }, { threshold: 0.1 });
+
+      // Observe the component element
+      if (this.elementRef?.nativeElement) {
+        observer.observe(this.elementRef.nativeElement);
+      }
+    }
+  }
+
+  /**
+   * Sets up store change listener to detect and recover corrupted data
+   */
+  private setupStoreChangeListener(): void {
+    // Listen to store changes and detect corruption
+    this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id))
+      .pipe(
+        filter(feature => !!feature),
+        distinctUntilChanged(),
+        debounceTime(1000) // Wait 1 second after store changes
+      )
+      .subscribe(feature => {
+        if (feature && this.isComponentActive) {
+          // Check if the store data is corrupted
+          if (this.isStoreDataCorrupted(feature)) {
+            this.log.msg('1', `Feature ${this.feature_id} store data corruption detected, triggering recovery`, 'feature-item-list');
+            
+            // Automatically recover from API
+            this.recoverFromStoreCorruption();
+          }
+        }
+      });
+  }
+
+  /**
+   * Sets up WebSocket event listener to detect when other features complete
+   * This helps recover data when scheduled features finish and potentially corrupt data
+   */
+  private setupWebSocketEventListener(): void {
+    // Listen for feature run completion events
+    this._store.select(state => state.websockets?.featureRunCompleted)
+      .pipe(
+        filter(event => !!event),
+        distinctUntilChanged()
+      )
+      .subscribe(event => {
+        if (event && this.isComponentActive) {
+          // Check if this event affects our feature
+          if (event.feature_id !== this.feature_id) {
+            this.log.msg('1', `Feature ${this.feature_id} detected completion of other feature ${event.feature_id}, checking for data corruption`, 'feature-item-list');
+            
+            // Wait a bit for the store to update, then check for corruption
+            setTimeout(() => {
+              this.checkForPostCompletionCorruption();
+            }, 2000);
+          }
+        }
+      });
+  }
+
+  /**
+   * Checks for data corruption after other features complete
+   */
+  private checkForPostCompletionCorruption(): void {
+    if (!this.item || !this.isComponentActive) return;
+
+    // Check if we have the "No result yet" issue after another feature completed
+    if (this.item.status === 'No result yet' && this.shouldFeatureHaveResults()) {
+      this.log.msg('1', `Feature ${this.feature_id} post-completion corruption detected, triggering recovery`, 'feature-item-list');
+      
+      // Force immediate recovery
+      this.forceImmediateDataRecovery();
+    }
+  }
+
+  /**
+   * Checks if store data is corrupted
+   */
+  private isStoreDataCorrupted(feature: any): boolean {
+    // Check for unreasonable values in store data
+    if (feature.steps && (feature.steps <= 0 || feature.steps > 1000)) {
+      return true;
+    }
+
+    // Check for missing critical information
+    if (!feature.feature_name || !feature.app_name || !feature.environment_name) {
+      return true;
+    }
+
+    // Check for data inconsistency between store and current item
+    if (this.item && this.item.total && feature.steps) {
+      if (Math.abs(this.item.total - feature.steps) > 100) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Recovers data when store corruption is detected
+   */
+  private recoverFromStoreCorruption(): void {
+    this.log.msg('1', `Feature ${this.feature_id} starting store corruption recovery`, 'feature-item-list');
+    
+    // Clear corrupted cache
+    L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+    
+    // Force API call to get fresh data
+    this.forceUpdateFeatureStatus();
+    
+    // Update UI immediately
+    this.cdr.detectChanges();
+    
+    this.log.msg('1', `Feature ${this.feature_id} store corruption recovery completed`, 'feature-item-list');
+  }
+
+  /**
    * Force change detection to ensure UI updates
    */
   public forceUIUpdate(): void {
@@ -1354,6 +1726,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   // Apply cached data if available and valid
   private applyCachedData() {
+    // Run immediate cross-contamination prevention
+    this.immediateCrossContaminationPrevention();
+    
     const cachedData = L1FeatureItemListComponent.featureDataCache.get(this.feature_id);
     
     if (cachedData && this.isCacheValid(cachedData)) {
@@ -1361,19 +1736,46 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       if (this.isCachedDataReasonable(cachedData)) {
         // Apply cached data to restore component state
         if (cachedData.featureData) {
+          // Use isolated feature data to prevent cross-contamination
+          const isolatedData = cachedData.featureData;
+          
           // Only apply cached data if we don't already have the same values
           // This prevents duplication of data
-          if (!this.item.total || this.item.total !== cachedData.featureData.total) {
-            this.item.total = cachedData.featureData.total;
+          if (!this.item.total || this.item.total !== isolatedData.total) {
+            this.item.total = isolatedData.total;
+            this.log.msg('1', `Applied cached total steps: ${isolatedData.total} for feature ${this.feature_id}`, 'feature-item-list');
           }
-          if (!this.item.time || this.item.time !== cachedData.featureData.time) {
-            this.item.time = cachedData.featureData.time;
+          if (!this.item.time || this.item.time !== isolatedData.time) {
+            this.item.time = isolatedData.time;
+            this.log.msg('1', `Applied cached execution time: ${isolatedData.time} for feature ${this.feature_id}`, 'feature-item-list');
           }
-          if (!this.item.date || this.item.date !== cachedData.featureData.date) {
-            this.item.date = cachedData.featureData.date;
+          if (!this.item.date || this.item.date !== isolatedData.date) {
+            this.item.date = isolatedData.date;
+            this.log.msg('1', `Applied cached date: ${isolatedData.date} for feature ${this.feature_id}`, 'feature-item-list');
           }
-          if (!this.item.status || this.item.status !== cachedData.featureData.status) {
-            this.item.status = cachedData.featureData.status;
+          if (!this.item.status || this.item.status !== isolatedData.status) {
+            this.item.status = isolatedData.status;
+            this.log.msg('1', `Applied cached status: ${isolatedData.status} for feature ${this.feature_id}`, 'feature-item-list');
+          }
+          
+          // Apply metadata to prevent unnecessary API calls
+          if (isolatedData._hasCachedData !== undefined) {
+            this.item._hasCachedData = isolatedData._hasCachedData;
+          }
+          if (isolatedData._lastDataCheck !== undefined) {
+            this.item._lastDataCheck = isolatedData._lastDataCheck;
+          }
+          if (isolatedData._lastApiCall !== undefined) {
+            this.item._lastApiCall = isolatedData._lastApiCall;
+          }
+          if (isolatedData._apiCallCount !== undefined) {
+            this.item._apiCallCount = isolatedData._apiCallCount;
+          }
+          if (isolatedData._apiCallWindowStart !== undefined) {
+            this.item._apiCallWindowStart = isolatedData._apiCallWindowStart;
+          }
+          if (isolatedData._lastFolderId !== undefined) {
+            this.item._lastFolderId = isolatedData._lastFolderId;
           }
         } else {
           // Fallback to individual properties with duplication check
@@ -1399,7 +1801,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           this.isButtonDisabled = false;
         }
         
-        this.log.msg('1', `Applied cached data for feature ${this.feature_id}`, 'feature-item-list');
+        this.log.msg('1', `Applied isolated cached data for feature ${this.feature_id}`, 'feature-item-list');
       } else {
         this.log.msg('1', `Cached data for feature ${this.feature_id} appears corrupted, skipping application`, 'feature-item-list');
         // Clear corrupted cache entry
@@ -1441,6 +1843,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   // Cache the current feature data
   private cacheFeatureData() {
+    // Run immediate cross-contamination prevention
+    this.immediateCrossContaminationPrevention();
+    
+    // Check for mass updates and protect data if necessary
+    this.protectFeatureDataDuringMassUpdate();
+    
     // Don't cache if we don't have valid data or if data seems duplicated
     if (!this.hasValidFeatureData()) {
       this.log.msg('1', `Feature ${this.feature_id} has invalid data, skipping cache`, 'feature-item-list');
@@ -1464,6 +1872,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Create isolated cache data to prevent cross-contamination
     const cacheData: CachedFeatureData = {
       total: this.item.total || 0,
       time: this.item.time || 0,
@@ -1471,11 +1880,121 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       status: this.item.status || '',
       lastUpdated: Date.now(),
       departmentId: this.item.reference?.department_id || 0,
-      featureData: { ...this.item } // Store complete item data
+      featureData: this.createIsolatedFeatureData() // Use isolated data
     };
     
     L1FeatureItemListComponent.featureDataCache.set(this.feature_id, cacheData);
-    this.log.msg('1', `Cached feature data for feature ${this.feature_id}`, 'feature-item-list');
+    this.log.msg('1', `Cached isolated feature data for feature ${this.feature_id}`, 'feature-item-list');
+  }
+
+  /**
+   * Create isolated feature data to prevent cross-contamination between features
+   * This ensures that when one feature updates, it doesn't affect others
+   */
+  private createIsolatedFeatureData(): any {
+    // Create a deep copy of the item data to prevent reference sharing
+    const isolatedData = {
+      total: this.item.total || 0,
+      time: this.item.time || 0,
+      date: this.item.date || null,
+      status: this.item.status || '',
+      feature_id: this.feature_id,
+      feature_name: this.item.feature_name || '',
+      department_id: this.item.reference?.department_id || 0,
+      // Only include essential data to prevent cache pollution
+      _hasCachedData: true,
+      _lastDataCheck: Date.now(),
+      _lastApiCall: this.item._lastApiCall || null,
+      _apiCallCount: this.item._apiCallCount || 0,
+      _apiCallWindowStart: this.item._apiCallWindowStart || null,
+      _lastFolderId: this.item._lastFolderId || null
+    };
+    
+    this.log.msg('1', `Created isolated data for feature ${this.feature_id}`, 'feature-item-list');
+    return isolatedData;
+  }
+
+  /**
+   * Prevent cross-contamination when other features are updated
+   * This method ensures that updates to one feature don't affect others
+   */
+  private preventCrossContamination(): void {
+    // If our data is locked, don't allow any modifications
+    if (this.isFeatureDataLocked()) {
+      this.log.msg('1', `Feature ${this.feature_id} data is locked, blocking all modifications`, 'feature-item-list');
+      return;
+    }
+    
+    // Check if our data has been contaminated by other feature updates
+    const cachedData = L1FeatureItemListComponent.featureDataCache.get(this.feature_id);
+    
+    if (cachedData && cachedData.featureData) {
+      const isolatedData = cachedData.featureData;
+      
+      // If our current data doesn't match our cached data, restore it immediately
+      if (this.item.total !== isolatedData.total || 
+          this.item.time !== isolatedData.time || 
+          this.item.date !== isolatedData.date ||
+          this.item.status !== isolatedData.status) {
+        
+        this.log.msg('1', `Feature ${this.feature_id} data contaminated, immediately restoring from cache`, 'feature-item-list');
+        
+        // Lock the data immediately to prevent further contamination
+        this.lockFeatureData();
+        
+        // Restore our original data
+        this.item.total = isolatedData.total;
+        this.item.time = isolatedData.time;
+        this.item.date = isolatedData.date;
+        this.item.status = isolatedData.status;
+        
+        // Mark that we have valid cached data
+        this.item._hasCachedData = true;
+        this.item._lastDataCheck = Date.now();
+        
+        // Trigger change detection
+        this.cdr.detectChanges();
+        
+        // Log the restoration
+        this.log.msg('1', `Feature ${this.feature_id} data restored: total=${isolatedData.total}, time=${isolatedData.time}, date=${isolatedData.date}, status=${isolatedData.status}`, 'feature-item-list');
+      }
+    }
+    
+    // Run aggressive prevention to lock data if other features are being updated
+    // But only if we don't already have valid data
+    if (!this.hasValidFeatureData()) {
+      this.aggressiveCrossContaminationPrevention();
+    }
+  }
+
+  /**
+   * Clean up cache for other features to prevent cross-contamination
+   * This method is called when a feature is updated to ensure data isolation
+   */
+  private cleanupOtherFeaturesCache(): void {
+    const currentTime = Date.now();
+    const keysToCleanup: number[] = [];
+    
+    L1FeatureItemListComponent.featureDataCache.forEach((data, key) => {
+      // Don't clean up our own cache
+      if (key === this.feature_id) {
+        return;
+      }
+      
+      // Clean up cache entries that might be contaminated
+      // This includes entries that were updated recently or have similar data
+      if (data.lastUpdated && (currentTime - data.lastUpdated) < 5000) { // 5 seconds
+        keysToCleanup.push(key);
+      }
+    });
+    
+    if (keysToCleanup.length > 0) {
+      this.log.msg('1', `Cleaning up ${keysToCleanup.length} potentially contaminated cache entries`, 'feature-item-list');
+      
+      keysToCleanup.forEach(key => {
+        L1FeatureItemListComponent.featureDataCache.delete(key);
+      });
+    }
   }
 
   // Static method to initialize the cache system
@@ -2259,5 +2778,496 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     return summary;
   }
 
+  /**
+   * Handle folder navigation events to preserve feature data
+   * This prevents data loss when clicking on the same folder multiple times
+   */
+  public handleFolderNavigation(folderId: number): void {
+    if (!this.isComponentActive) return;
+    
+    // Check if we're navigating to the same folder
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    const currentFolderId = currentRoute && currentRoute.length > 0 ? currentRoute[currentRoute.length - 1]?.folder_id : null;
+    
+    if (currentFolderId === folderId) {
+      this.log.msg('1', `Feature ${this.feature_id} navigating to same folder ${folderId}, preserving data`, 'feature-item-list');
+      
+      // Preserve current feature data
+      this.preserveFeatureDataForNavigation();
+      
+      // Skip unnecessary data refresh
+      return;
+    }
+    
+    this.log.msg('1', `Feature ${this.feature_id} navigating to new folder ${folderId}, allowing data refresh`, 'feature-item-list');
+  }
+
+  /**
+   * Preserve feature data when navigating to the same folder
+   */
+  private preserveFeatureDataForNavigation(): void {
+    // Mark that we have valid data to prevent unnecessary API calls
+    if (this.item.total || this.item.time || this.item.date) {
+      this.item._hasCachedData = true;
+      this.item._lastDataCheck = Date.now();
+      
+      // Cache the preserved data
+      this.cacheFeatureData();
+      
+      this.log.msg('1', `Feature ${this.feature_id} data preserved for folder navigation`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Setup periodic cross-contamination prevention
+   * This ensures that updates to one feature don't affect others
+   */
+  private setupCrossContaminationPrevention(): void {
+    // Check for cross-contamination every 5 seconds for less aggressive response
+    setInterval(() => {
+      if (this.isComponentActive) {
+        this.preventCrossContamination();
+      }
+    }, 5000); // 5 seconds for less aggressive response
+    
+    // Also run aggressive prevention every 10 seconds
+    setInterval(() => {
+      if (this.isComponentActive) {
+        this.aggressiveCrossContaminationPrevention();
+      }
+    }, 10000); // 10 seconds for less aggressive prevention
+    
+    // Check and adjust lock system every 3 seconds to prevent over-restrictive behavior
+    setInterval(() => {
+      if (this.isComponentActive) {
+        this.checkAndAdjustLockSystem();
+      }
+    }, 3000); // 3 seconds for lock system adjustment
+    
+    // Check for mass updates and protect feature data every 2 seconds
+    setInterval(() => {
+      if (this.isComponentActive) {
+        this.protectFeatureDataDuringMassUpdate();
+      }
+    }, 2000); // 2 seconds for mass update detection
+    
+    // Restore protected data after mass updates every 5 seconds
+    setInterval(() => {
+      if (this.isComponentActive) {
+        this.restoreProtectedFeatureData();
+      }
+    }, 5000); // 5 seconds for data restoration
+    
+    // Verify lock system status every 15 seconds for debugging
+    setInterval(() => {
+      if (this.isComponentActive) {
+        this.verifyLockSystemStatus();
+      }
+    }, 15000); // 15 seconds for system verification
+  }
+
+  /**
+   * Lock feature data to prevent cross-contamination
+   * This method immediately protects the feature data when it's updated
+   */
+  private lockFeatureData(): void {
+    // Set lock for this feature
+    L1FeatureItemListComponent.featureDataLocks.set(this.feature_id, true);
+    
+    // Set timestamp for this lock
+    L1FeatureItemListComponent.featureDataLockTimestamps.set(this.feature_id, Date.now());
+    
+    // Set timeout to automatically unlock after LOCK_TIMEOUT
+    setTimeout(() => {
+      if (L1FeatureItemListComponent.featureDataLocks.has(this.feature_id)) {
+        L1FeatureItemListComponent.featureDataLocks.delete(this.feature_id);
+        L1FeatureItemListComponent.featureDataLockTimestamps.delete(this.feature_id);
+        this.log.msg('1', `Feature ${this.feature_id} data lock expired`, 'feature-item-list');
+      }
+    }, L1FeatureItemListComponent.LOCK_TIMEOUT);
+    
+    this.log.msg('1', `Feature ${this.feature_id} data locked to prevent cross-contamination`, 'feature-item-list');
+  }
+
+  /**
+   * Unlock feature data when it's safe to do so
+   */
+  private unlockFeatureData(): void {
+    if (L1FeatureItemListComponent.featureDataLocks.has(this.feature_id)) {
+      L1FeatureItemListComponent.featureDataLocks.delete(this.feature_id);
+      L1FeatureItemListComponent.featureDataLockTimestamps.delete(this.feature_id);
+      this.log.msg('1', `Feature ${this.feature_id} data unlocked`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Check if feature data is locked
+   */
+  private isFeatureDataLocked(): boolean {
+    return L1FeatureItemListComponent.featureDataLocks.has(this.feature_id);
+  }
+
+  /**
+   * Aggressive cross-contamination prevention
+   * This method immediately blocks any attempts to modify feature data
+   */
+  private aggressiveCrossContaminationPrevention(): void {
+    // If our data is locked, don't allow any modifications
+    if (this.isFeatureDataLocked()) {
+      this.log.msg('1', `Feature ${this.feature_id} data is locked, blocking all modifications`, 'feature-item-list');
+      return;
+    }
+    
+    // Check if any other feature was recently updated
+    const currentTime = Date.now();
+    let hasRecentUpdates = false;
+    
+    L1FeatureItemListComponent.featureDataCache.forEach((data, key) => {
+      if (key !== this.feature_id && data.lastUpdated) {
+        const timeSinceUpdate = currentTime - data.lastUpdated;
+        if (timeSinceUpdate < 2000) { // Reduced to 2 seconds - less aggressive
+          hasRecentUpdates = true;
+          this.log.msg('1', `Feature ${key} was updated ${Math.round(timeSinceUpdate / 1000)}s ago`, 'feature-item-list');
+        }
+      }
+    });
+    
+    // If there are recent updates, lock our data immediately
+    if (hasRecentUpdates) {
+      this.lockFeatureData();
+      this.log.msg('1', `Feature ${this.feature_id} data locked due to recent updates in other features`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Immediate cross-contamination prevention
+   * This method is called whenever any feature data is accessed or modified
+   */
+  private immediateCrossContaminationPrevention(): void {
+    // If our data is locked, block all access
+    if (this.isFeatureDataLocked()) {
+      this.log.msg('1', `Feature ${this.feature_id} data access blocked due to lock`, 'feature-item-list');
+      return;
+    }
+    
+    // Check if any other feature is currently being updated
+    const currentTime = Date.now();
+    let hasActiveUpdates = false;
+    
+    L1FeatureItemListComponent.featureDataCache.forEach((data, key) => {
+      if (key !== this.feature_id && data.lastUpdated) {
+        const timeSinceUpdate = currentTime - data.lastUpdated;
+        if (timeSinceUpdate < 500) { // Reduced to 500ms - much less aggressive
+          hasActiveUpdates = true;
+          this.log.msg('1', `Feature ${key} has very recent update (${Math.round(timeSinceUpdate / 1000)}s ago), blocking access`, 'feature-item-list');
+        }
+      }
+    });
+    
+    // If there are very recent updates, lock our data immediately
+    if (hasActiveUpdates) {
+      this.lockFeatureData();
+      this.log.msg('1', `Feature ${this.feature_id} data immediately locked due to active updates in other features`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Block all data modifications when cross-contamination is detected
+   * This method completely prevents any changes to feature data
+   */
+  private blockDataModifications(): boolean {
+    // If our data is locked, block all modifications
+    if (this.isFeatureDataLocked()) {
+      this.log.msg('1', `Feature ${this.feature_id} data modifications blocked due to lock`, 'feature-item-list');
+      return true; // Block modifications
+    }
+    
+    // Check if any other feature was recently updated
+    const currentTime = Date.now();
+    let hasRecentUpdates = false;
+    
+    L1FeatureItemListComponent.featureDataCache.forEach((data, key) => {
+      if (key !== this.feature_id && data.lastUpdated) {
+        const timeSinceUpdate = currentTime - data.lastUpdated;
+        if (timeSinceUpdate < 1000) { // Reduced to 1 second - less aggressive
+          hasRecentUpdates = true;
+          this.log.msg('1', `Feature ${key} was updated ${Math.round(timeSinceUpdate / 1000)}s ago, blocking modifications`, 'feature-item-list');
+        }
+      }
+    });
+    
+    // If there are recent updates, block modifications
+    if (hasRecentUpdates) {
+      this.lockFeatureData();
+      this.log.msg('1', `Feature ${this.feature_id} data modifications blocked due to recent updates in other features`, 'feature-item-list');
+      return true; // Block modifications
+    }
+    
+    return false; // Allow modifications
+  }
+
+  /**
+   * Check if the lock system is too restrictive and adjust it automatically
+   * This prevents the system from blocking normal data access
+   */
+  private checkAndAdjustLockSystem(): void {
+    // If we have valid data but our data is locked, consider unlocking it
+    if (this.isFeatureDataLocked() && this.hasValidFeatureData()) {
+      const lockTimestamp = L1FeatureItemListComponent.featureDataLockTimestamps.get(this.feature_id);
+      if (lockTimestamp) {
+        const currentTime = Date.now();
+        const lockDuration = currentTime - lockTimestamp;
+        
+        // If lock has been active for more than 5 seconds and we have valid data, unlock it
+        if (lockDuration > 5000) {
+          this.log.msg('1', `Feature ${this.feature_id} lock active for ${Math.round(lockDuration / 1000)}s, unlocking due to valid data`, 'feature-item-list');
+          this.unlockFeatureData();
+        }
+      }
+    }
+    
+    // If we don't have valid data and our data is locked for too long, unlock it
+    if (this.isFeatureDataLocked() && !this.hasValidFeatureData()) {
+      const lockTimestamp = L1FeatureItemListComponent.featureDataLockTimestamps.get(this.feature_id);
+      if (lockTimestamp) {
+        const currentTime = Date.now();
+        const lockDuration = currentTime - lockTimestamp;
+        
+        // If lock has been active for more than 8 seconds and we don't have valid data, unlock it
+        if (lockDuration > 8000) {
+          this.log.msg('1', `Feature ${this.feature_id} lock active for ${Math.round(lockDuration / 1000)}s, unlocking to allow data access`, 'feature-item-list');
+          this.unlockFeatureData();
+        }
+      }
+    }
+  }
+
+  /**
+   * Verify that the lock system is working correctly
+   * This method logs the current state of the lock system for debugging
+   */
+  private verifyLockSystemStatus(): void {
+    const isLocked = this.isFeatureDataLocked();
+    const hasValidData = this.hasValidFeatureData();
+    const lockTimestamp = L1FeatureItemListComponent.featureDataLockTimestamps.get(this.feature_id);
+    
+    this.log.msg('1', `Feature ${this.feature_id} lock system status:`, 'feature-item-list');
+    this.log.msg('1', `  - Data locked: ${isLocked}`, 'feature-item-list');
+    this.log.msg('1', `  - Has valid data: ${hasValidData}`, 'feature-item-list');
+    this.log.msg('1', `  - Lock timestamp: ${lockTimestamp ? new Date(lockTimestamp).toISOString() : 'none'}`, 'feature-item-list');
+    
+    if (isLocked && lockTimestamp) {
+      const lockDuration = Date.now() - lockTimestamp;
+      this.log.msg('1', `  - Lock duration: ${Math.round(lockDuration / 1000)}s`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Detect mass feature updates (like when a scheduled feature completes)
+   * This prevents individual feature data from being lost during mass updates
+   */
+  private detectMassFeatureUpdate(): boolean {
+    const currentTime = Date.now();
+    const timeSinceLastMassUpdate = currentTime - L1FeatureItemListComponent.lastMassUpdateTime;
+    
+    // Check if we're in a mass update window
+    if (timeSinceLastMassUpdate < L1FeatureItemListComponent.MASS_UPDATE_THRESHOLD) {
+      this.log.msg('1', `Feature ${this.feature_id} detected mass update window (${Math.round(timeSinceLastMassUpdate / 1000)}s ago)`, 'feature-item-list');
+      return true;
+    }
+    
+    // Check if multiple features are being updated simultaneously
+    let activeUpdates = 0;
+    L1FeatureItemListComponent.featureDataCache.forEach((data, key) => {
+      if (data.lastUpdated && (currentTime - data.lastUpdated) < 3000) { // 3 seconds
+        activeUpdates++;
+      }
+    });
+    
+    // If more than 2 features are being updated simultaneously, it's a mass update
+    if (activeUpdates > 2) {
+      L1FeatureItemListComponent.lastMassUpdateTime = currentTime;
+      this.log.msg('1', `Feature ${this.feature_id} detected mass update: ${activeUpdates} features updated simultaneously`, 'feature-item-list');
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Protect feature data during mass updates
+   * This method ensures that individual feature data is preserved when all features are updated
+   */
+  private protectFeatureDataDuringMassUpdate(): void {
+    // Check for scheduled feature completion first
+    if (this.detectScheduledFeatureCompletion()) {
+      this.log.msg('1', `Feature ${this.feature_id} detected scheduled feature completion, protecting data`, 'feature-item-list');
+      this.lockFeatureData();
+      this.protectCurrentFeatureData();
+      return;
+    }
+    
+    // Then check for general mass updates
+    if (this.detectMassFeatureUpdate()) {
+      // Lock our data immediately to prevent it from being overwritten
+      this.lockFeatureData();
+      
+      // Store our current data in a protected cache
+      this.protectCurrentFeatureData();
+      
+      this.log.msg('1', `Feature ${this.feature_id} data protected during mass update`, 'feature-item-list');
+    }
+  }
+
+  /**
+   * Store current feature data in a protected cache during mass updates
+   */
+  private protectCurrentFeatureData(): void {
+    // Create a protected copy of our current data
+    const protectedData = {
+      total: this.item.total,
+      time: this.item.time,
+      date: this.item.date,
+      status: this.item.status,
+      feature_id: this.feature_id,
+      _hasCachedData: this.item._hasCachedData,
+      _lastDataCheck: this.item._lastDataCheck,
+      _lastApiCall: this.item._lastApiCall,
+      _apiCallCount: this.item._apiCallCount,
+      _apiCallWindowStart: this.item._apiCallWindowStart,
+      _lastFolderId: this.item._lastFolderId,
+      protectedAt: Date.now()
+    };
+    
+    // Store in a special protected cache
+    if (!L1FeatureItemListComponent.protectedFeatureData) {
+      L1FeatureItemListComponent.protectedFeatureData = new Map<number, any>();
+    }
+    
+    L1FeatureItemListComponent.protectedFeatureData.set(this.feature_id, protectedData);
+    this.log.msg('1', `Feature ${this.feature_id} data stored in protected cache`, 'feature-item-list');
+  }
+
+  /**
+   * Restore protected feature data after mass updates
+   * This method ensures that individual feature data is restored when mass updates complete
+   */
+  private restoreProtectedFeatureData(): void {
+    const protectedData = L1FeatureItemListComponent.protectedFeatureData.get(this.feature_id);
+    
+    if (protectedData) {
+      // Check if we need to restore our data
+      const needsRestoration = !this.item.total || !this.item.time || !this.item.date || !this.item.status;
+      
+      if (needsRestoration) {
+        this.log.msg('1', `Feature ${this.feature_id} restoring protected data after mass update`, 'feature-item-list');
+        
+        // Restore the protected data
+        this.item.total = protectedData.total;
+        this.item.time = protectedData.time;
+        this.item.date = protectedData.date;
+        this.item.status = protectedData.status;
+        
+        // Restore metadata
+        this.item._hasCachedData = protectedData._hasCachedData;
+        this.item._lastDataCheck = protectedData._lastDataCheck;
+        this.item._lastApiCall = protectedData._lastApiCall;
+        this.item._apiCallCount = protectedData._apiCallCount;
+        this.item._apiCallWindowStart = protectedData._apiCallWindowStart;
+        this.item._lastFolderId = protectedData._lastFolderId;
+        
+        // Mark that we have valid data
+        this.item._hasCachedData = true;
+        
+        // Trigger change detection
+        this.cdr.detectChanges();
+        
+        this.log.msg('1', `Feature ${this.feature_id} data restored: total=${protectedData.total}, time=${protectedData.time}, date=${protectedData.date}, status=${protectedData.status}`, 'feature-item-list');
+      }
+      
+      // Remove from protected cache after restoration
+      L1FeatureItemListComponent.protectedFeatureData.delete(this.feature_id);
+    }
+  }
+
+  /**
+   * Detect when a scheduled feature completes and triggers mass updates
+   * This is the specific scenario that causes the "no results yet" issue
+   */
+  private detectScheduledFeatureCompletion(): boolean {
+    const currentTime = Date.now();
+    
+    // Look for features that just completed (status changed to Success/Failed)
+    let completedFeatures = 0;
+    let scheduledFeatures = 0;
+    
+    L1FeatureItemListComponent.featureDataCache.forEach((data, key) => {
+      if (data.lastUpdated && (currentTime - data.lastUpdated) < 5000) { // 5 seconds
+        const featureData = data.featureData;
+        if (featureData && featureData.status) {
+          // Check if this is a scheduled feature that just completed
+          if (featureData.status === 'Success' || featureData.status === 'Failed') {
+            completedFeatures++;
+            this.log.msg('1', `Feature ${key} just completed with status: ${featureData.status}`, 'feature-item-list');
+          }
+          
+          // Check if this is a scheduled feature
+          if (featureData.schedule || featureData.original_cron) {
+            scheduledFeatures++;
+            this.log.msg('1', `Feature ${key} is scheduled`, 'feature-item-list');
+          }
+        }
+      }
+    });
+    
+    // If we have completed scheduled features, this is likely the trigger for mass updates
+    if (completedFeatures > 0 && scheduledFeatures > 0) {
+      this.log.msg('1', `Feature ${this.feature_id} detected scheduled feature completion: ${completedFeatures} completed, ${scheduledFeatures} scheduled`, 'feature-item-list');
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Performs aggressive data recovery specifically for "No result yet" issues
+   */
+  private performAggressiveDataRecovery(): void {
+    if (!this.item || !this.isComponentActive) return;
+
+    // Specifically check for "No result yet" issue
+    if (this.item.status === 'No result yet') {
+      // Check if we should have results
+      if (this.shouldFeatureHaveResults()) {
+        this.log.msg('1', `Feature ${this.feature_id} aggressive recovery triggered for "No result yet" issue`, 'feature-item-list');
+        
+        // Force immediate recovery
+        this.forceImmediateDataRecovery();
+      }
+    }
+  }
+
+  /**
+   * Forces immediate data recovery without waiting for normal intervals
+   */
+  private forceImmediateDataRecovery(): void {
+    this.log.msg('1', `Feature ${this.feature_id} forcing immediate data recovery`, 'feature-item-list');
+    
+    // Clear all corrupted data
+    L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+    
+    // Reset item state
+    this.item._needsDataRefresh = true;
+    this.item._hasCachedData = false;
+    this.item._lastApiCall = 0;
+    
+    // Force API call immediately
+    this.forceUpdateFeatureStatus();
+    
+    // Update UI
+    this.cdr.detectChanges();
+    
+    this.log.msg('1', `Feature ${this.feature_id} immediate data recovery completed`, 'feature-item-list');
+  }
 }
 

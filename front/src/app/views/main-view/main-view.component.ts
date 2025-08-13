@@ -286,7 +286,7 @@ export class MainViewComponent implements OnInit {
     // Refresh L1 feature item list data before navigating to ensure consistency
     if (feature_result.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data before navigating to feature result ${feature_result.feature_result_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(feature_result.feature_id));
+      this.safeUpdateFeatureData(feature_result.feature_id);
     }
 
     this._router.navigate([
@@ -325,7 +325,8 @@ export class MainViewComponent implements OnInit {
               
               // Update the store to ensure l1-feature-items gets the latest data
               if (featureId) {
-                this._store.dispatch(new Features.UpdateFeature(featureId));
+                // Use the new action that only updates result data without affecting other features
+                this._store.dispatch(new Features.UpdateFeatureResultData(featureId, res.results[0]));
                 this._store.dispatch(new WebSockets.CleanupFeatureResults(featureId));
                 
                 // Also ensure L1 feature item list data is preloaded for seamless UI experience
@@ -355,8 +356,8 @@ export class MainViewComponent implements OnInit {
     if (results && results.length > 0) {
       const latestResult = results[0];
       
-      // Update the store to ensure L1 feature items get the latest data
-      this._store.dispatch(new Features.UpdateFeature(featureId));
+      // Use the new action that only updates result data without affecting other features
+      this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
       
       // Log the data synchronization for debugging
       this.logger.msg('1', `Synchronized L1 feature item list data for feature ${featureId} with ${results.length} results`, 'main-view');
@@ -376,8 +377,8 @@ export class MainViewComponent implements OnInit {
     if (results && results.length > 0) {
       const latestResult = results[0];
       
-      // Update the store to ensure L1 feature items get the latest data
-      this._store.dispatch(new Features.UpdateFeature(featureId));
+      // Use the new action that only updates result data without affecting other features
+      this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
       
       // Log the data refresh for debugging
       this.logger.msg('1', `Refreshed L1 feature item list data after results update for feature ${featureId}`, 'main-view');
@@ -410,7 +411,9 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after pagination change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        // Use the new action that only updates result data without affecting other features
+        // Note: We don't have result data here, so we'll just log the action
+        this.logger.msg('1', `Pagination change detected for feature ${featureId}, will update data on next results fetch`, 'main-view');
       }
     });
   }
@@ -434,7 +437,7 @@ export class MainViewComponent implements OnInit {
       // Also refresh L1 feature item list data to ensure consistency
       if (results.feature_id) {
         this.logger.msg('1', `Refreshing L1 feature item list data after status change for feature ${results.feature_id}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(results.feature_id));
+        this.safeUpdateFeatureData(results.feature_id);
       }
     });
   }
@@ -496,7 +499,7 @@ export class MainViewComponent implements OnInit {
           // Also refresh L1 feature item list data to ensure consistency
           if (featureId) {
             this.logger.msg('1', `Refreshing L1 feature item list data after clearing runs for feature ${featureId}`, 'main-view');
-            this._store.dispatch(new Features.UpdateFeature(featureId));
+            this.safeUpdateFeatureData(featureId);
           }
         },
         error: err => {
@@ -528,6 +531,23 @@ export class MainViewComponent implements OnInit {
   }
 
   /**
+   * Safely updates feature data without affecting other features
+   * This prevents cross-contamination when scheduled features complete
+   */
+  private safeUpdateFeatureData(featureId: number, resultData?: any): void {
+    if (featureId) {
+      if (resultData) {
+        // Use the new action that only updates result data without affecting other features
+        this._store.dispatch(new Features.UpdateFeatureResultData(featureId, resultData));
+        this.logger.msg('1', `Safely updated feature ${featureId} result data`, 'main-view');
+      } else {
+        // If no result data, just log that we're skipping the update to prevent cross-contamination
+        this.logger.msg('1', `Skipping feature ${featureId} update to prevent cross-contamination (no result data)`, 'main-view');
+      }
+    }
+  }
+
+  /**
    * Handles deleteTemplateWithResults state change and refreshes L1 feature item list data
    */
   handleDeleteTemplateWithResultsAndRefresh(event: MatCheckboxChange) {
@@ -537,7 +557,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after deleteTemplateWithResults change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -553,7 +573,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after delete template with results change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -572,7 +592,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after archived filter change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   };
@@ -596,7 +616,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after archived template change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -612,7 +632,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after failure filter template change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -628,7 +648,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after clear runs action for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -644,7 +664,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after page change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -662,7 +682,7 @@ export class MainViewComponent implements OnInit {
         // Also refresh L1 feature item list data to ensure consistency
         if (result.feature_id) {
           this.logger.msg('1', `Refreshing L1 feature item list data after archive action for feature ${result.feature_id}`, 'main-view');
-          this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+          this.safeUpdateFeatureData(result.feature_id);
         }
       });
   }
@@ -680,7 +700,7 @@ export class MainViewComponent implements OnInit {
         // Also refresh L1 feature item list data to ensure consistency
         if (result.feature_id) {
           this.logger.msg('1', `Refreshing L1 feature item list data after delete action for feature ${result.feature_id}`, 'main-view');
-          this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+          this.safeUpdateFeatureData(result.feature_id);
         }
       });
   }
@@ -695,7 +715,7 @@ export class MainViewComponent implements OnInit {
     // Also refresh L1 feature item list data to ensure consistency
     if (result.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data after video opening for feature ${result.feature_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+      this.safeUpdateFeatureData(result.feature_id);
     }
   }
 
@@ -710,7 +730,7 @@ export class MainViewComponent implements OnInit {
       // Also refresh L1 feature item list data to ensure consistency
       if (result.feature_id) {
         this.logger.msg('1', `Refreshing L1 feature item list data after mobile video opening for feature ${result.feature_id}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+        this.safeUpdateFeatureData(result.feature_id);
       }
     }
   }
@@ -741,7 +761,7 @@ export class MainViewComponent implements OnInit {
           // Also refresh L1 feature item list data to ensure consistency
           if (result.feature_id) {
             this.logger.msg('1', `Refreshing L1 feature item list data after PDF download for feature ${result.feature_id}`, 'main-view');
-            this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+            this.safeUpdateFeatureData(result.feature_id);
           }
         },
         error: console.error,
@@ -759,7 +779,7 @@ export class MainViewComponent implements OnInit {
     // Also refresh L1 feature item list data to ensure consistency
     if (result.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data after network responses action for feature ${result.feature_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+      this.safeUpdateFeatureData(result.feature_id);
     }
   }
 
@@ -774,7 +794,7 @@ export class MainViewComponent implements OnInit {
     // Also refresh L1 feature item list data to ensure consistency
     if (result.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data after vulnerable network responses action for feature ${result.feature_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+      this.safeUpdateFeatureData(result.feature_id);
     }
   }
 
@@ -788,7 +808,7 @@ export class MainViewComponent implements OnInit {
     // Also refresh L1 feature item list data to ensure consistency
     if (row.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data after mobile selection change for feature ${row.feature_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(row.feature_id));
+      this.safeUpdateFeatureData(row.feature_id);
     }
   }
 
@@ -800,7 +820,7 @@ export class MainViewComponent implements OnInit {
     // Refresh L1 feature item list data before navigating to ensure consistency
     if (rowData && rowData.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data before row click for feature ${rowData.feature_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(rowData.feature_id));
+      this.safeUpdateFeatureData(rowData.feature_id);
     }
     
     this.openContent(rowData);
@@ -859,13 +879,13 @@ export class MainViewComponent implements OnInit {
           if (res && res.results && res.results.length > 0) {
             const latestResult = res.results[0];
             
-            // Update the store to ensure L1 feature items get the latest data
-            this._store.dispatch(new Features.UpdateFeature(featureId));
+            // Use the new action that only updates result data without affecting other features
+            this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
             
-            // Also update the feature status in the store by dispatching UpdateFeature
+            // Also update the feature status in the store by dispatching UpdateFeatureResultData
             // This will trigger the store to refresh the feature information
             if (latestResult.status) {
-              // The UpdateFeature action will refresh the feature data including status
+              // The UpdateFeatureResultData action will refresh the feature data including status
               this.logger.msg('1', `Preloaded L1 feature item list data for feature ${featureId} with status: ${latestResult.status}`, 'main-view');
             }
             
@@ -892,7 +912,7 @@ export class MainViewComponent implements OnInit {
       // Small delay to ensure the component is fully initialized
       setTimeout(() => {
         this.logger.msg('1', `Refreshing L1 feature item list data on navigation for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }, 100);
     });
   }
@@ -911,7 +931,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data before returning to main for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
     
@@ -939,7 +959,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data after failure filter change for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
   }
@@ -953,7 +973,7 @@ export class MainViewComponent implements OnInit {
     this.featureId$.pipe(take(1)).subscribe(featureId => {
       if (featureId) {
         this.logger.msg('1', `Refreshing L1 feature item list data before returning to main for feature ${featureId}`, 'main-view');
-        this._store.dispatch(new Features.UpdateFeature(featureId));
+        this.safeUpdateFeatureData(featureId);
       }
     });
     
@@ -970,7 +990,8 @@ export class MainViewComponent implements OnInit {
     // Also refresh L1 feature item list data to ensure consistency after status change
     if (result.feature_id) {
       this.logger.msg('1', `Refreshing L1 feature item list data after status change for feature ${result.feature_id}`, 'main-view');
-      this._store.dispatch(new Features.UpdateFeature(result.feature_id));
+      // Use the new action that only updates result data without affecting other features
+      this._store.dispatch(new Features.UpdateFeatureResultData(result.feature_id, result));
     }
   }
 

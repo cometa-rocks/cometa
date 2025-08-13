@@ -175,8 +175,48 @@ export class FolderItemTreeComponent implements OnInit {
     this.expanded$.next(status);
   }
 
+  /**
+   * Test method to verify folder navigation is working correctly
+   */
+  private testFolderNavigation(currentRoute: any[], clickedFolder: any): void {
+    this.log.msg('1', '=== FOLDER NAVIGATION TEST ===', 'folder-item-tree');
+    this.log.msg('1', `Clicked folder: ${clickedFolder.name} (ID: ${clickedFolder.folder_id})`, 'folder-item-tree');
+    this.log.msg('1', `Current route: ${JSON.stringify(currentRoute)}`, 'folder-item-tree');
+    
+    if (currentRoute && currentRoute.length > 0) {
+      const currentDestination = currentRoute[currentRoute.length - 1];
+      this.log.msg('1', `Current destination: ${currentDestination.name} (ID: ${currentDestination.folder_id})`, 'folder-item-tree');
+      this.log.msg('1', `Same destination: ${currentDestination.folder_id === clickedFolder.folder_id}`, 'folder-item-tree');
+    } else {
+      this.log.msg('1', 'No current route', 'folder-item-tree');
+    }
+    
+    this.log.msg('1', '=== END TEST ===', 'folder-item-tree');
+  }
+
   // toggles clicked department/folder
   toggleExpand() {
+    // Check if we're already in this folder to prevent unnecessary data clearing
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    const isAlreadyInFolder = this.isAlreadyInCurrentFolder(currentRoute);
+    
+    // Test folder navigation for debugging
+    this.testFolderNavigation(currentRoute, this.folder);
+    
+    this.log.msg('1', `Toggle expand for folder ${this.folder.name} (ID: ${this.folder.folder_id})`, 'folder-item-tree');
+    this.log.msg('1', `Current route: ${JSON.stringify(currentRoute)}`, 'folder-item-tree');
+    this.log.msg('1', `Is already in folder: ${isAlreadyInFolder}`, 'folder-item-tree');
+    
+    if (isAlreadyInFolder) {
+      this.log.msg('1', `Already in folder ${this.folder.name}, toggling without clearing data`, 'folder-item-tree');
+      // Just toggle the folder state without clearing data
+      this.toggleRow();
+      this.updateFolderState();
+      return;
+    }
+    
+    this.log.msg('1', `Navigating to new folder ${this.folder.name}, proceeding with normal navigation`, 'folder-item-tree');
+    
     // update state incase it has been changed.
     this.getOrSetDefaultFolderState();
 
@@ -211,6 +251,53 @@ export class FolderItemTreeComponent implements OnInit {
       this._store.dispatch(new Features.SetFolderRoute(this.parent));
     }
     this.toggleSearch();
+  }
+
+  /**
+   * Check if we're already in the current folder to prevent unnecessary data clearing
+   */
+  private isAlreadyInCurrentFolder(currentRoute: any[]): boolean {
+    if (!currentRoute || currentRoute.length === 0) {
+      this.log.msg('1', 'No current route, allowing navigation', 'folder-item-tree');
+      return false;
+    }
+    
+    // Only prevent navigation if this is the exact same destination folder
+    // Allow navigation to different folders even if they're in the same route
+    const currentDestinationFolderId = currentRoute[currentRoute.length - 1]?.folder_id;
+    const clickedFolderId = this.folder.folder_id;
+    
+    this.log.msg('1', `Current destination folder ID: ${currentDestinationFolderId}`, 'folder-item-tree');
+    this.log.msg('1', `Clicked folder ID: ${clickedFolderId}`, 'folder-item-tree');
+    
+    // Only return true if we're clicking on the exact same destination folder
+    if (currentDestinationFolderId === clickedFolderId) {
+      this.log.msg('1', `Folder ${this.folder.name} (ID: ${this.folder.folder_id}) is already the current destination`, 'folder-item-tree');
+      return true;
+    }
+    
+    // Allow navigation to any other folder
+    this.log.msg('1', `Folder ${this.folder.name} (ID: ${this.folder.folder_id}) is different from current destination ${currentDestinationFolderId}`, 'folder-item-tree');
+    return false;
+  }
+
+  /**
+   * Update folder state without clearing data
+   */
+  private updateFolderState(): void {
+    // modify existing folder state, or add new instance of folder with its state
+    this.folderState[this.folder.name] = {
+      open: this.expanded$.getValue(),
+    };
+
+    // refresh localstorage
+    this.log.msg(
+      '1',
+      'Updating folder tree state in localstorage...',
+      'folder-item-tree',
+      this.folderState
+    );
+    localStorage.setItem('co_folderState', JSON.stringify(this.folderState));
   }
 
   getOrSetDefaultFolderState(): void {

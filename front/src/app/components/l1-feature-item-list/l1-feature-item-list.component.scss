@@ -248,7 +248,7 @@
     .browser-content {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
     }
     
     .browser-icons {
@@ -287,8 +287,8 @@
         
         .browser-version-warning {
           position: absolute;
-          bottom: -2px;
-          right: -2px;
+          bottom: -4px;
+          right: -1px;
           font-size: 12px;
           width: 12px;
           height: 12px;

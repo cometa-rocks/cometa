@@ -89,6 +89,42 @@ export class FeaturesState {
   }
 
   /**
+   * Updates only specific feature result data without affecting other features
+   * This prevents cross-contamination when scheduled features complete
+   */
+  @Action(Features.UpdateFeatureResultData)
+  updateFeatureResultData(
+    { setState }: StateContext<IFeaturesState>,
+    { feature_id, result_data }: Features.UpdateFeatureResultData
+  ) {
+    setState(
+      produce((ctx: IFeaturesState) => {
+        // Only update if the feature exists in the store
+        if (ctx.details[feature_id]) {
+          // Update only the result-related fields, preserving other feature data
+          ctx.details[feature_id] = {
+            ...ctx.details[feature_id],
+            // Update only the fields that exist in Feature interface and are relevant
+            steps: result_data.total || ctx.details[feature_id].steps,
+            success: result_data.success !== undefined ? result_data.success : ctx.details[feature_id].success,
+            // Update the info field if it exists and contains FeatureResult data
+            info: result_data ? {
+              ...ctx.details[feature_id].info,
+              total: result_data.total,
+              execution_time: result_data.execution_time,
+              result_date: result_data.result_date,
+              status: result_data.status,
+              success: result_data.success,
+              running: result_data.running,
+            } : ctx.details[feature_id].info,
+            // Preserve all other feature data
+          };
+        }
+      })
+    );
+  }
+
+  /**
    * Programmatically adds a new featureId to main root folder
    */
   @Action(Features.PushNewFeatureId)
@@ -376,9 +412,27 @@ export class FeaturesState {
    */
   @Action(Features.SetFolderRoute)
   setFolderRoute(
-    { setState, dispatch }: StateContext<IFeaturesState>,
+    { setState, dispatch, getState }: StateContext<IFeaturesState>,
     { folder }: Features.SetFolderRoute
   ) {
+    // Check if we're already in the same folder to prevent unnecessary data clearing
+    const currentState = getState();
+    const isSameRoute = this.isSameRoute(currentState.currentRouteNew, folder);
+    
+    if (isSameRoute) {
+      // Don't clear data if we're already in the same folder
+      console.log('SetFolderRoute: Same route detected, preserving feature data', {
+        currentRoute: currentState.currentRouteNew,
+        newRoute: folder
+      });
+      return;
+    }
+    
+    console.log('SetFolderRoute: New route detected, clearing filters and updating route', {
+      currentRoute: currentState.currentRouteNew,
+      newRoute: folder
+    });
+    
     setState(
       produce((ctx: IFeaturesState) => {
         if (folder) {
@@ -405,7 +459,9 @@ export class FeaturesState {
             path = folder;
           }
           path.forEach(f => delete f['route']); // Remove all the route variables
-          ctx.filters = []; // Remove the filters
+          
+          // Clear filters and update route for new navigation
+          ctx.filters = [];
           ctx.currentRouteNew = path || []; // Set the new current route
         }
       })
@@ -415,6 +471,109 @@ export class FeaturesState {
     // save the last selected folder's path in localstorage in order to maintain it on reload, on view destory, etc...
     this.saveLastFolderPath(folder);
     // #3399 ------------------------------------------------------------------------------en
+  }
+
+  /**
+   * Check if the new route is the same as the current route to prevent unnecessary data clearing
+   */
+  private isSameRoute(currentRoute: any[], newRoute: any[]): boolean {
+    if (!currentRoute || !newRoute) {
+      console.log('isSameRoute: One of the routes is null/undefined', { currentRoute, newRoute });
+      return false;
+    }
+    
+    // Only consider routes the same if they have exactly the same structure
+    if (currentRoute.length !== newRoute.length) {
+      console.log('isSameRoute: Routes have different lengths', { 
+        currentRouteLength: currentRoute.length, 
+        newRouteLength: newRoute.length 
+      });
+      return false;
+    }
+    
+    // Compare each folder in the route - must be exactly identical
+    for (let i = 0; i < currentRoute.length; i++) {
+      const currentFolderId = currentRoute[i]?.folder_id;
+      const newFolderId = newRoute[i]?.folder_id;
+      const currentDepartment = currentRoute[i]?.department;
+      const newDepartment = newRoute[i]?.department;
+      
+      if (currentFolderId !== newFolderId) {
+        console.log(`isSameRoute: Folder ID mismatch at position ${i}`, { 
+          currentFolderId, 
+          newFolderId 
+        });
+        return false;
+      }
+      
+      // Also check department for department-level routes
+      if (currentDepartment !== newDepartment) {
+        console.log(`isSameRoute: Department mismatch at position ${i}`, { 
+          currentDepartment, 
+          newDepartment 
+        });
+        return false;
+      }
+    }
+    
+    // Only return true if routes are exactly identical
+    console.log('isSameRoute: Routes are identical, preserving data', { currentRoute, newRoute });
+    return true;
+  }
+
+  /**
+   * Preserve feature data when navigating to the same folder
+   * This prevents the "no results yet" issue when clicking on the same folder multiple times
+   */
+  private preserveFeatureData(state: IFeaturesState): any {
+    // Store current feature data that should be preserved
+    const preservedData = {
+      filters: state.filters,
+      details: state.details,
+      folders: state.folders,
+      currentRouteNew: state.currentRouteNew
+    };
+    
+    console.log('Preserving feature data:', preservedData);
+    return preservedData;
+  }
+
+  /**
+   * Restore preserved feature data when navigating to the same folder
+   */
+  private restoreFeatureData(ctx: IFeaturesState, preservedData: any): void {
+    if (preservedData) {
+      // Restore the preserved data
+      ctx.filters = preservedData.filters || [];
+      ctx.details = preservedData.details || {};
+      ctx.folders = preservedData.folders || {};
+      ctx.currentRouteNew = preservedData.currentRouteNew || [];
+      
+      console.log('Restored preserved feature data:', preservedData);
+    }
+  }
+
+  /**
+   * Check if the folder structure is similar enough to preserve feature data
+   * This helps prevent data loss when navigating between similar folder structures
+   */
+  private isSimilarFolderStructure(currentRoute: any[], newRoute: any[]): boolean {
+    if (!currentRoute || !newRoute) {
+      return false;
+    }
+    
+    // If routes have the same length and same department, consider them similar
+    if (currentRoute.length === newRoute.length && currentRoute.length > 0) {
+      const currentDepartment = currentRoute[0]?.department || currentRoute[0]?.folder_id;
+      const newDepartment = newRoute[0]?.department || newRoute[0]?.folder_id;
+      
+      if (currentDepartment === newDepartment) {
+        console.log('Similar folder structure detected, preserving feature data');
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   @Action(Features.ReturnToFolderRoute)
