@@ -36,7 +36,7 @@ import random
 import copy
 # import PIL
 from subprocess import call, run
-from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException, StaleElementReferenceException, ElementClickInterceptedException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -139,6 +139,7 @@ def step_impl(context):
 @step(u'I move mouse to "{css_selector}" and click')
 @done(u'I move mouse to "{css_selector}" and click')
 def step_impl(context,css_selector):
+    start_time = time.time()
     send_step_details(context, 'Looking for selector')
     elem = waitSelector(context, "css", css_selector)
     generate_dataset = context.feature_info.get('generate_dataset', False)
@@ -156,12 +157,21 @@ def step_impl(context,css_selector):
         if generate_dataset:
             payload['success'] = True
             requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+    except ElementClickInterceptedException as err:
+        logger.debug(f"ElementClickInterceptedException: {err}, \nretrying...")
+        ActionChains(context.browser).move_to_element(elem[0]).perform()
+        # Calculate remaining time for the step to complete and call common click method to handle click with retry logic
+        get_element_using_common_selector_and_click(context, selector_value=css_selector, 
+        selector_type="css", start_time=start_time)
+        if generate_dataset:
+            payload['success'] = True
+            requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
     except Exception as err:
         if isCommandNotSupported(err):
             # I move mouse is not supported in the current device, falling back to "click element with css"
             send_step_details(context, 'Incompatible step, falling back to "I click on css selector"')
-            click_element_by_css(context, css_selector)
-
+            get_element_using_common_selector_and_click(context, selector_value=css_selector, 
+            selector_type="css", start_time=start_time)
             if generate_dataset:
                 payload['success'] = False
                 requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
@@ -1139,8 +1149,8 @@ def step_impl(context):
 @done(u'I can click on button "{button_name}"')
 def step_impl(context, button_name):
     send_step_details(context, 'Looking for button')
-    elem = waitSelector(context, "xpath", '//button[.="'+button_name+'"] | //button[@*="'+button_name+'"]')
-    elem[0].click()
+    locator = '//button[.="'+button_name+'"] | //button[@*="'+button_name+'"]'
+    get_element_using_common_selector_and_click(context, selector_value=locator, selector_type="xpath")
 
 # Checks if can click in a button with the specified title attribute text
 # Example: I can click on button "//button[@title='Add_button']"
@@ -1148,8 +1158,9 @@ def step_impl(context, button_name):
 @done(u'I can click on button with title "{button_title}"')
 def step_impl(context, button_title):
     send_step_details(context, 'Looking for button')
-    elem = waitSelector(context, "css", 'button[title^="'+button_title+'"]')
-    elem[0].click()
+    get_element_using_common_selector_and_click(context, 
+                                                selector_value='button[title^="'+button_title+'"]', 
+                                                selector_type="css")
 
 # Checks if it can click on an element using a CSS Selector
 # Example: I can click on element with css selector "//button[@title='Add_button']"
@@ -1157,7 +1168,7 @@ def step_impl(context, button_title):
 @done(u'I can click on element with css selector "{css_selector}"')
 def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
-    click_element_by_css(context, css_selector)
+    get_element_using_common_selector_and_click(context, selector_value=css_selector, selector_type="css")
 
 # Checks if it can see an element using a CSS Selector
 # Example: I can see element with css selector "//button[@title='Add_button']"
@@ -1417,8 +1428,7 @@ def step_impl(context, classname):
     start_time = time.time()
     try:
         send_step_details(context, 'Looking for classname')
-        elem = waitSelector(context, "class", classname)
-        elem[0].click()
+        get_element_using_common_selector_and_click(context, selector_value=classname, selector_type="class")
         return True
     except Exception as e:
         raise CustomError("Could not interact with element having classname %s ." % classname)
@@ -1426,7 +1436,6 @@ def step_impl(context, classname):
         return False
 
 def click_on_element(elem):
-    start_time = time.time()
     try:
         elem.click()
         return True
@@ -1434,61 +1443,60 @@ def click_on_element(elem):
         logger.error(str(e))
         return False
 
-def find_and_click_link_text(context,linktext):
-    start_time = time.time()
-    elem = context.browser.find_elements(By.LINK_TEXT, linktext)
-    if ( len(elem)>0 ):
-        if ( click_on_element(elem[0]) ):
-            return True
-    else:
-        return False
+# def find_and_click_link_text(context,linktext):
+#     elem = context.browser.find_elements(By.LINK_TEXT, linktext)
+#     if ( len(elem)>0 ):
+#         if ( click_on_element(context, selector_type=By.LINK_TEXT, selector_value=linktext) ):
+#             return True
+#     else:
+#         return False
 
-def find_and_click_custom_css(context, linktext):
-    start_time = time.time()
-    elem = context.browser.find_elements(By.CSS_SELECTOR, linktext)
-    if ( len(elem)>0 ):
-        if ( click_on_element(elem[0]) ):
-            return True
-    else:
-        return False
+# def find_and_click_custom_css(context, linktext):
+#     elem = context.browser.find_elements(By.CSS_SELECTOR, linktext)
+#     if ( len(elem)>0 ):
+#         if ( click_on_element(elem[0], context, linktext) ):
+#             return True
+#     else:
+#         return False
 
-def find_and_click_link_td(context,linktext):
-    start_time = time.time()
-    elem = context.browser.find_elements(By.XPATH, "//td[text()='"+linktext+"']")
-    if ( len(elem)>0 ):
-        if ( click_on_element(elem[0]) ):
-            return True
-    else:
-        return False
+# def find_and_click_link_td(context,linktext):
+#     elem = context.browser.find_elements(By.XPATH, "//td[text()='"+linktext+"']")
+#     if ( len(elem)>0 ):
+#         if ( click_on_element(elem[0], context, linktext) ):
+#             return True
+#     else:
+#         return False
 
-def find_and_click_link_div(context,linktext):
-    start_time = time.time()
-    elem = context.browser.find_elements(By.XPATH, "//div[text()='"+linktext+"']")
-    if ( len(elem)>0 ):
-        if ( click_on_element(elem[0]) ):
-            return True
-    else:
-        return False
+# def find_and_click_link_div(context,linktext):
+#     elem = context.browser.find_elements(By.XPATH, "//div[text()='"+linktext+"']")
+#     if ( len(elem)>0 ):
+#         if ( click_on_element(elem[0], context, linktext) ):
+#             return True
+#     else:
+#         return False
 
-def find_and_click_link_id(context,linktext):
-    start_time = time.time()
-    try:
-        elem = context.browser.find_element(By.ID, linktext)
-        if ( click_on_element(elem) ):
-            return True
-        else:
-            return False
-    except:
-        return False
+# def find_and_click_link_id(context,linktext):
+#     try:
+#         elem = context.browser.find_element(By.ID, linktext)
+#         if ( click_on_element(elem, context, linktext) ):
+#             return True
+#         else:
+#             return False
+#     except:
+#         return False
 
-# try find the element in css_selector, xpath or as a link_text
-# @timeout("Unable to find specified element in <seconds> seconds.")
-def find_element(context, linktext):
-    counter = 0
-    while True:
-        if ( find_and_click_link_text(context,linktext) or find_and_click_link_td(context,linktext) or find_and_click_link_div(context,linktext) or find_and_click_link_id(context,linktext) or find_and_click_custom_css(context,linktext)):
-            return True
-        time.sleep(1)
+# # try find the element in css_selector, xpath or as a link_text
+# # @timeout("Unable to find specified element in <seconds> seconds.")
+# def find_element(context, linktext):
+#     counter = 0
+#     while True:
+#         if ( find_and_click_link_text(context,linktext) or 
+#             find_and_click_link_td(context,linktext) or 
+#             find_and_click_link_div(context,linktext) or 
+#             find_and_click_link_id(context,linktext) or 
+#             find_and_click_custom_css(context,linktext)):
+#             return True
+#         time.sleep(1)
 
 # Tries to make a click on link, it can be a css selector, a text link, inside a td, or a link id
 # Example: I click on "About us"
@@ -1496,7 +1504,10 @@ def find_element(context, linktext):
 @done(u'I click on "{linktext}"')
 def step_impl(context, linktext):
     send_step_details(context, 'Looking for text link')
-    find_element(context, linktext)
+    get_element_using_common_selector_and_click(context, 
+                                                selector_value=linktext,
+                                                selector_type="link_text")
+
 
 # Scroll till the very bottom of the current folder
 def cognos_scroll_folder_till_bottom(context, resetTop = False):
@@ -1672,9 +1683,10 @@ def step_impl(context, selector, function):
 @done(u'click on element with xpath "{xpath}"')
 def step_impl(context, xpath):
     send_step_details(context, 'Looking for xpath element')
-    elem = waitSelector(context, "xpath", xpath)
-    if not click_on_element(elem[0]):
-        raise CustomError("Unable to click on element with XPATH %s" % xpath)
+    get_element_using_common_selector_and_click(context,
+                                                selector_value=xpath,
+                                                selector_type="xpath")
+    
 
 # Use this step when a message or popup disappears so quickly 
 # Examples: 
@@ -1684,9 +1696,7 @@ def step_impl(context, xpath):
 @done(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
 def step_impl(context, click_element, wait_element, appeared_or_present):
     send_step_details(context, 'Looking for xpath element')
-    elem = waitSelector(context, "css", click_element)
-    if not click_on_element(elem[0]):
-        raise CustomError("Unable to click on element %s" % click_element)
+    get_element_using_common_selector_and_click(context, selector_value=click_element, selector_type="css")
     
     if appeared_or_present not in ["present","appeared"]:
         raise CustomError("'appear_or_present' value can be 'present' or 'appeared' ")
@@ -2240,13 +2250,7 @@ def step_imp(context, linktext):
 
     # find and click on the element
     send_step_details(context, 'Looking for download link element')
-    elem = waitSelector(context, 'css', linktext)
-    send_step_details(context, 'Clicking on download element')
-    # click on element
-    try:
-        elem[0].click()
-    except:
-        elem.click()
+    get_element_using_common_selector_and_click(context, selector_value=linktext, selector_type="css")
 
     # timer in seconds to wait until the file is downloaded
     counter = 0

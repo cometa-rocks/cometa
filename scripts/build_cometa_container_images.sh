@@ -1,10 +1,10 @@
 cd ..
-IMAGE_PATHS=("front" "backend/behave" "backend/src" "backend/scheduler" "backend/ws-server")
-IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django" "cometa/scheduler" "cometa/socket")
-VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json" "backend/scheduler/version.json" "backend/ws-server/version.json")
+IMAGE_PATHS=("front" "backend/behave" "backend/src" "backend/scheduler" "backend/ws-server" "backend/redis")
+IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django" "cometa/scheduler" "cometa/socket" "cometa/redis")
+VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json" "backend/scheduler/version.json" "backend/ws-server/version.json" "backend/redis/version.json")
 for i in "${!IMAGE_PATHS[@]}"; do
   IMAGE_DIR="${IMAGE_PATHS[$i]}"
-  IMAGE_NAME="${IMAGE_NAMES[$i]}"
+  IMAGE_NAME="${IMAGE_NAMES[$i]}"   
   VERSION_PATH="${VERSION_PATHS[$i]}" 
   BUILD_VERSION=$(jq -r '.version' "$VERSION_PATH")
   echo "Processing image: $IMAGE_NAME"

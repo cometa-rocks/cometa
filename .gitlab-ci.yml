@@ -174,7 +174,7 @@ deploy:amvara2.stage:
 
 # create a deploy job for amvara3 for branch prod
 deploy:amvara3.prod:
-  <<: *deployment_script
+  <<: *docker_deployment_script
   extends: .amvara3.prod
 
 # create a deploy job for amvara3 for branch prod
