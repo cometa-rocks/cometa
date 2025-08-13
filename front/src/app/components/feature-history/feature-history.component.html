@@ -65,7 +65,7 @@ Author: Nico
             <p *ngIf="entry.description" class="description">{{ entry.description }}</p>
             
             <div class="entry-stats">
-              <button class="stat-chip" (click)="showSteps(entry.backup_id)" [class.selected]="selectedBackupId === entry.backup_id">
+              <button class="stat-chip" (click)="showSteps(entry.backup_id)" [class.selected]="isStepsExpanded(entry.backup_id)">
                 <mat-icon>list</mat-icon>
                 {{ entry.steps_count }} steps
               </button>
@@ -75,7 +75,7 @@ Author: Nico
                 *ngIf="!isCurrentVersion(entry.backup_id)"
                 class="stat-chip difference-chip" 
                 (click)="showChanges(entry.backup_id)" 
-                [class.selected]="selectedChangesBackupId === entry.backup_id">
+                [class.selected]="isChangesExpanded(entry.backup_id)">
                 <mat-icon>compare_arrows</mat-icon>
                 Changes
               </button>
@@ -88,7 +88,7 @@ Author: Nico
             </div>
             
             <!-- Steps Display Section -->
-            <div *ngIf="selectedBackupId === entry.backup_id && entry.steps && entry.steps.length > 0" class="steps-section">
+            <div *ngIf="isStepsExpanded(entry.backup_id) && entry.steps && entry.steps.length > 0" class="steps-section">
               <div class="steps-header">
                 <h4>Steps for this backup:</h4>
                 <button mat-button (click)="showSteps(entry.backup_id)" class="close-steps">
@@ -136,7 +136,7 @@ Author: Nico
             </div>
 
             <!-- Changes Display Section -->
-            <div *ngIf="selectedChangesBackupId === entry.backup_id" class="changes-section">
+            <div *ngIf="isChangesExpanded(entry.backup_id)" class="changes-section">
               <div class="changes-header">
                 <h4>Changes compared to current version:</h4>
                 <button mat-button (click)="showChanges(entry.backup_id)" class="close-changes">
@@ -152,33 +152,33 @@ Author: Nico
                 </div>
                 
                 <!-- Changes comparison -->
-                <div *ngIf="!loadingChanges && getChangesForSelectedBackup()" class="changes-comparison">
+                <div *ngIf="!loadingChanges && getChangesForBackup(entry.backup_id)" class="changes-comparison">
                   <!-- Error state -->
-                  <div *ngIf="getChangesForSelectedBackup().error" class="comparison-error">
+                  <div *ngIf="getChangesForBackup(entry.backup_id).error" class="comparison-error">
                     <mat-icon>error</mat-icon>
-                    <p>{{ getChangesForSelectedBackup().error }}</p>
+                    <p>{{ getChangesForBackup(entry.backup_id).error }}</p>
                   </div>
                   
                   <!-- No changes state -->
-                  <div *ngIf="!getChangesForSelectedBackup().error && !getChangesForSelectedBackup().hasChanges" class="no-changes">
+                  <div *ngIf="!getChangesForBackup(entry.backup_id).error && !getChangesForBackup(entry.backup_id).hasChanges" class="no-changes">
                     <mat-icon>check_circle</mat-icon>
                     <p>No changes detected between this backup and the current version.</p>
                   </div>
                   
                   <!-- Changes list -->
-                  <div *ngIf="!getChangesForSelectedBackup().error && getChangesForSelectedBackup().hasChanges" class="changes-list">
+                  <div *ngIf="!getChangesForBackup(entry.backup_id).error && getChangesForBackup(entry.backup_id).hasChanges" class="changes-list">
                     <h5>Detected Changes:</h5>
-                    <div class="change-item" *ngFor="let change of getChangesForSelectedBackup().changes | keyvalue">
+                    <div class="change-item" *ngFor="let change of getChangesForBackup(entry.backup_id).changes | keyvalue">
                       <div *ngIf="change.value" class="change-field">
                         <span class="change-label">{{ getChangeLabel(change.key) }}:</span>
                         <div class="change-values">
                           <div class="change-old">
                             <strong>Backup:</strong> 
-                            <span class="old-value">{{ getChangeValue(getChangesForSelectedBackup().backup, change.key) }}</span>
+                            <span class="old-value">{{ getChangeValue(getChangesForBackup(entry.backup_id).backup, change.key) }}</span>
                           </div>
                           <div class="change-new">
                             <strong>Current:</strong> 
-                            <span class="new-value">{{ getChangeValue(getChangesForSelectedBackup().current, change.key) }}</span>
+                            <span class="new-value">{{ getChangeValue(getChangesForBackup(entry.backup_id).current, change.key) }}</span>
                           </div>
                         </div>
                       </div>

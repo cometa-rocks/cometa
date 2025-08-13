@@ -42,11 +42,11 @@ export class FeatureHistoryComponent implements OnInit {
   history: FeatureHistoryEntry[] = [];
   loading: boolean = false;
   error: string | null = null;
-  selectedBackupId: string | null = null;
-  selectedChangesBackupId: string | null = null;
+  selectedBackupIds: Set<string> = new Set(); // Track multiple open step expansions
+  selectedChangesBackupIds: Set<string> = new Set(); // Track multiple open change expansions
   currentFeature: any = null;
   loadingChanges: boolean = false;
-  cachedChanges: any = null; // Cache for comparison results
+  cachedChanges: Map<string, any> = new Map(); // Cache for comparison results by backup ID
 
   constructor(
     private _api: ApiService,
@@ -72,6 +72,13 @@ export class FeatureHistoryComponent implements OnInit {
       next: (response: FeatureHistoryResponse) => {
         if (response.success) {
           this.history = response.history;
+          console.log('loadFeatureHistory - loaded history:', this.history);
+          
+          // Log the first backup entry to see its structure
+          if (this.history.length > 0) {
+            console.log('loadFeatureHistory - first backup entry:', this.history[0]);
+            console.log('loadFeatureHistory - first backup entry steps:', this.history[0].steps);
+          }
         } else {
           this.error = response.error || 'Failed to load feature history';
         }
@@ -85,24 +92,24 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   showSteps(backupId: string): void {
-    if (this.selectedBackupId === backupId) {
+    if (this.selectedBackupIds.has(backupId)) {
       // If clicking the same backup, hide it
-      this.selectedBackupId = null;
+      this.selectedBackupIds.delete(backupId);
     } else {
       // Show the selected backup's steps
-      this.selectedBackupId = backupId;
+      this.selectedBackupIds.add(backupId);
     }
   }
 
   showChanges(backupId: string): void {
-    if (this.selectedChangesBackupId === backupId) {
+    if (this.selectedChangesBackupIds.has(backupId)) {
       // If clicking the same backup, hide it
-      this.selectedChangesBackupId = null;
-      this.cachedChanges = null; // Clear cache when hiding
+      this.selectedChangesBackupIds.delete(backupId);
+      this.cachedChanges.delete(backupId); // Clear cache when hiding
     } else {
       // Show the selected backup's changes
-      this.selectedChangesBackupId = backupId;
-      this.cachedChanges = null; // Clear cache when switching to new backup
+      this.selectedChangesBackupIds.add(backupId);
+      this.cachedChanges.delete(backupId); // Clear cache when switching to new backup
       this.loadCurrentFeature();
     }
   }
@@ -113,15 +120,18 @@ export class FeatureHistoryComponent implements OnInit {
       this._api.getFeature(this.featureId).subscribe({
         next: (feature) => {
           this.currentFeature = feature;
-          this.cachedChanges = null; // Clear cache when feature changes
+          this.cachedChanges.clear(); // Clear cache when feature changes
           this.loadingChanges = false;
           
           // Also fetch the detailed steps for proper comparison
           this.loadCurrentFeatureSteps();
+          //console log of current feature object
+          console.log(this.currentFeature);
         },
         error: (err) => {
           this.loadingChanges = false;
         }
+        
       });
     }
   }
@@ -132,7 +142,7 @@ export class FeatureHistoryComponent implements OnInit {
       next: (steps) => {
         if (this.currentFeature) {
           this.currentFeature.detailedSteps = steps;
-          this.cachedChanges = null; // Clear cache when steps change
+          this.cachedChanges.clear(); // Clear cache when steps change
         }
       },
       error: (err) => {
@@ -143,29 +153,32 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   getSelectedBackupChanges(): any {
-    if (!this.selectedChangesBackupId) return null;
-    const selectedEntry = this.history.find(entry => entry.backup_id === this.selectedChangesBackupId);
+    if (this.selectedChangesBackupIds.size === 0) return null;
+    const selectedBackupId = Array.from(this.selectedChangesBackupIds)[0]; // Get the first selected backup ID
+    const selectedEntry = this.history.find(entry => entry.backup_id === selectedBackupId);
     return selectedEntry || null;
   }
 
   getChangesForSelectedBackup(): any {
     // Only run comparison when we actually have a selected backup for changes
-    if (!this.selectedChangesBackupId || !this.currentFeature) {
+    if (this.selectedChangesBackupIds.size === 0 || !this.currentFeature) {
       return null;
     }
     
     // Don't show changes for the current version (topmost backup)
-    if (this.isCurrentVersion(this.selectedChangesBackupId)) {
+    if (this.isCurrentVersion(Array.from(this.selectedChangesBackupIds)[0])) {
       return null;
     }
     
     // Return cached result if available
-    if (this.cachedChanges) {
-      return this.cachedChanges;
+    const selectedBackupId = Array.from(this.selectedChangesBackupIds)[0];
+    if (this.cachedChanges.has(selectedBackupId)) {
+      return this.cachedChanges.get(selectedBackupId);
     }
     
-    this.cachedChanges = this.compareFeatureVersions();
-    return this.cachedChanges;
+    const changes = this.compareFeatureVersions();
+    this.cachedChanges.set(selectedBackupId, changes);
+    return changes;
   }
 
   isCurrentVersion(backupId: string): boolean {
@@ -177,10 +190,13 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   compareFeatureVersions(): any {
-    if (!this.currentFeature || !this.selectedChangesBackupId) return null;
+    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return null;
     
     const backupEntry = this.getSelectedBackupChanges();
     if (!backupEntry) return null;
+
+    console.log('compareFeatureVersions - backupEntry:', backupEntry);
+    console.log('compareFeatureVersions - backupEntry.steps:', backupEntry.steps);
 
     try {
       // Helper function to safely compare boolean values
@@ -213,6 +229,8 @@ export class FeatureHistoryComponent implements OnInit {
         send_telegram_notification: compareBoolean(this.currentFeature.send_telegram_notification, backupEntry.send_telegram_notification, 'send_telegram_notification')
       };
 
+      console.log('compareFeatureVersions - changes:', changes);
+
       return {
         hasChanges: Object.values(changes).some(change => change === true),
         changes: changes,
@@ -220,6 +238,7 @@ export class FeatureHistoryComponent implements OnInit {
         backup: backupEntry
       };
     } catch (error) {
+      console.error('compareFeatureVersions - error:', error);
       return {
         hasChanges: false,
         changes: {},
@@ -231,122 +250,52 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   hasStepCountChanged(backupEntry: any): boolean {
-    // Use detailed steps count for current feature to ensure consistency with backup counting
-    const currentSteps = this.currentFeature.detailedSteps ? this.currentFeature.detailedSteps.length : (this.currentFeature.steps || 0);
-    const backupSteps = backupEntry.steps_count || 0;
+    // Simple step count comparison
+    const currentSteps = this.currentFeature.detailedSteps ? this.currentFeature.detailedSteps.length : 0;
+    const backupSteps = this.getBackupStepCount(backupEntry);
     
-    // Check if step count changed
-    if (currentSteps !== backupSteps) {
-      return true;
-    }
-
-    // If step count is the same, check if any steps have different flags or enabled status
-    if (this.currentFeature.steps && backupEntry.steps && backupEntry.steps.length > 0) {
-      
-      // For now, let's be more conservative and only detect changes if we can actually compare
-      // Since we don't have detailed step-by-step comparison yet, return false if counts are the same
-      return false;
-    }
-
-    return false;
+    console.log('hasStepCountChanged - currentSteps:', currentSteps, 'backupSteps:', backupSteps);
+    
+    return currentSteps !== backupSteps;
   }
 
   hasStepContentChanged(backupEntry: any): boolean {
-    if (!this.currentFeature || !this.selectedChangesBackupId) return false;
-    
-    const backupEntrySteps = backupEntry.steps || [];
-    const currentDetailedSteps = this.currentFeature.detailedSteps || [];
-    
-    // If no backup steps data, we can't compare
-    if (backupEntrySteps.length === 0) {
-      return false;
-    }
-
-    // If we don't have current detailed steps, we can't do detailed comparison
-    if (currentDetailedSteps.length === 0) {
-      return false;
-    }
-
-    // Compare step by step
-    for (let i = 0; i < Math.min(backupEntrySteps.length, currentDetailedSteps.length); i++) {
-      const currentStep = currentDetailedSteps[i];
-      const backupStep = backupEntrySteps[i];
-
-      if (this.hasStepChanged(currentStep, backupStep, i)) {
-        return true;
-      }
-    }
-
+    // For now, just return false - we'll implement step content comparison later
+    console.log('hasStepContentChanged - Step content comparison disabled for now');
     return false;
   }
 
+  // Helper method to get backup step count
+  getBackupStepCount(backupEntry: any): number {
+    const backupSteps = this.getBackupSteps(backupEntry);
+    return backupSteps.length;
+  }
+
+  // Helper method to get backup steps array
+  getBackupSteps(backupEntry: any): any[] {
+    console.log('getBackupSteps - backupEntry:', backupEntry);
+    
+    if (!backupEntry || !backupEntry.steps) {
+      console.log('getBackupSteps - No backup entry or steps');
+      return [];
+    }
+    
+    const backupSteps = backupEntry.steps;
+    console.log('getBackupSteps - backupSteps:', backupSteps);
+    
+    // The backup steps structure is: backupEntry.steps[0].step_content
+    if (backupSteps.length === 1 && backupSteps[0] && backupSteps[0].step_content) {
+      const actualSteps = backupSteps[0].step_content;
+      console.log('getBackupSteps - extracted actualSteps:', actualSteps);
+      return Array.isArray(actualSteps) ? actualSteps : [];
+    }
+    
+    console.log('getBackupSteps - Could not extract steps from backup structure');
+    return [];
+  }
+
   hasStepChanged(currentStep: any, backupStep: any, currentStepIndex: number): boolean {
-    // Handle different data structures between current and backup steps
-    let currentContent = '';
-    let backupContent = '';
-
-    // Extract content from current step
-    if (typeof currentStep === 'string') {
-      currentContent = currentStep;
-    } else if (currentStep.step_content) {
-      currentContent = currentStep.step_content;
-    } else if (currentStep.step_action) {
-      currentContent = currentStep.step_action;
-    }
-    
-    // Extract content from backup step - handle the array structure
-    if (Array.isArray(backupStep)) {
-      // Backup step is an array, extract the first item's content
-      if (backupStep.length > 0 && backupStep[0]) {
-        backupContent = backupStep[0].step_content || backupStep[0].step_action || '';
-      }
-    } else if (backupStep.step_content) {
-      // Handle the case where step_content is an array of steps
-      if (Array.isArray(backupStep.step_content)) {
-        // Get the step number we're currently comparing (0-based index)
-        if (currentStepIndex >= 0 && currentStepIndex < backupStep.step_content.length) {
-          const individualStep = backupStep.step_content[currentStepIndex];
-          backupContent = individualStep.step_content || individualStep.step_action || '';
-        } else {
-          backupContent = '';
-        }
-      } else {
-        // step_content is not an array, use it directly
-        backupContent = backupStep.step_content;
-      }
-    } else if (backupStep.step_action) {
-      backupContent = backupStep.step_action;
-    } else {
-      // Fallback for unknown backup step structure
-      backupContent = String(backupStep);
-    }
-    
-    // Compare content
-    if (currentContent !== backupContent) {
-      return true;
-    }
-
-    // For backup steps, we can't compare flags if they don't exist
-    // Only compare flags if both sides have them
-    if (backupStep && typeof backupStep === 'object' && !Array.isArray(backupStep)) {
-      // Compare other important properties only if backup has them
-      if (backupStep.enabled !== undefined && currentStep.enabled !== backupStep.enabled) {
-        return true;
-      }
-
-      if (backupStep.screenshot !== undefined && currentStep.screenshot !== backupStep.screenshot) {
-        return true;
-      }
-
-      if (backupStep.compare !== undefined && currentStep.compare !== backupStep.compare) {
-        return true;
-      }
-
-      if (backupStep.continue_on_failure !== undefined && currentStep.continue_on_failure !== backupStep.continue_on_failure) {
-        return true;
-      }
-    }
-
+    // This method is no longer needed with our new approach
     return false;
   }
 
@@ -462,7 +411,7 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   getStepCountChangeDescription(): string {
-    if (!this.currentFeature || !this.selectedChangesBackupId) return 'N/A';
+    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
     
     const backupEntry = this.getSelectedBackupChanges();
     if (!backupEntry) return 'N/A';
@@ -475,7 +424,7 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   getStepContentChangeDescription(): string {
-    if (!this.currentFeature || !this.selectedChangesBackupId) return 'N/A';
+    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
     
     const backupEntry = this.getSelectedBackupChanges();
     if (!backupEntry) return 'N/A';
@@ -527,7 +476,7 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   getScheduleChangeDescription(): string {
-    if (!this.currentFeature || !this.selectedChangesBackupId) return 'N/A';
+    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
     
     const backupEntry = this.getSelectedBackupChanges();
     if (!backupEntry) return 'N/A';
@@ -562,7 +511,7 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   getBrowsersChangeDescription(): string {
-    if (!this.currentFeature || !this.selectedChangesBackupId) return 'N/A';
+    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
     
     const backupEntry = this.getSelectedBackupChanges();
     if (!backupEntry) return 'N/A';
@@ -634,8 +583,9 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   getSelectedBackupSteps(): FeatureHistoryStep[] {
-    if (!this.selectedBackupId) return [];
-    const selectedEntry = this.history.find(entry => entry.backup_id === this.selectedBackupId);
+    if (this.selectedBackupIds.size === 0) return [];
+    const selectedBackupId = Array.from(this.selectedBackupIds)[0]; // Get the first selected backup ID
+    const selectedEntry = this.history.find(entry => entry.backup_id === selectedBackupId);
     return selectedEntry ? selectedEntry.steps : [];
   }
 
@@ -763,5 +713,96 @@ export class FeatureHistoryComponent implements OnInit {
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
     return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+  }
+
+  // Helper method to check if a specific backup has steps expanded
+  isStepsExpanded(backupId: string): boolean {
+    return this.selectedBackupIds.has(backupId);
+  }
+
+  // Helper method to check if a specific backup has changes expanded
+  isChangesExpanded(backupId: string): boolean {
+    return this.selectedChangesBackupIds.has(backupId);
+  }
+
+  // Helper method to get changes for a specific backup ID
+  getChangesForBackup(backupId: string): any {
+    if (!this.currentFeature) return null;
+    
+    // Don't show changes for the current version (topmost backup)
+    if (this.isCurrentVersion(backupId)) {
+      return null;
+    }
+    
+    // Return cached result if available
+    if (this.cachedChanges.has(backupId)) {
+      return this.cachedChanges.get(backupId);
+    }
+    
+    // Get the backup entry for this specific backup ID
+    const backupEntry = this.history.find(entry => entry.backup_id === backupId);
+    if (!backupEntry) return null;
+    
+    const changes = this.compareFeatureVersionsForBackup(backupEntry);
+    this.cachedChanges.set(backupId, changes);
+    return changes;
+  }
+
+  // Compare feature versions for a specific backup entry
+  compareFeatureVersionsForBackup(backupEntry: any): any {
+    if (!this.currentFeature || !backupEntry) return null;
+
+    console.log('compareFeatureVersionsForBackup - backupEntry:', backupEntry);
+    console.log('compareFeatureVersionsForBackup - backupEntry.steps:', backupEntry.steps);
+
+    try {
+      // Helper function to safely compare boolean values
+      const compareBoolean = (current: any, backup: any, field: string) => {
+        // Convert both values to boolean for comparison
+        const currentVal = Boolean(current);
+        const backupVal = Boolean(backup);
+        
+        // If both are false (or undefined/null which become false), it's not a change
+        if (!currentVal && !backupVal) {
+          return false;
+        }
+        
+        // Otherwise, compare their boolean values
+        return currentVal !== backupVal;
+      };
+
+      const changes = {
+        feature_name: this.currentFeature.feature_name !== backupEntry.feature_name,
+        description: this.currentFeature.description !== backupEntry.description,
+        step_count_changed: this.hasStepCountChanged(backupEntry),
+        step_content_changed: this.hasStepContentChanged(backupEntry),
+        schedule_changed: this.hasScheduleChanged(backupEntry),
+        browsers_changed: this.hasBrowsersChanged(backupEntry),
+        send_mail: compareBoolean(this.currentFeature.send_mail, backupEntry.send_mail, 'send_mail'),
+        send_mail_on_error: compareBoolean(this.currentFeature.send_mail_on_error, backupEntry.send_mail_on_error, 'send_mail_on_error'),
+        network_logging: compareBoolean(this.currentFeature.network_logging, backupEntry.network_logging, 'network_logging'),
+        generate_dataset: compareBoolean(this.currentFeature.generate_dataset, backupEntry.generate_dataset, 'generate_dataset'),
+        continue_on_failure: compareBoolean(this.currentFeature.continue_on_failure, backupEntry.continue_on_failure, 'continue_on_failure'),
+        send_telegram_notification: compareBoolean(this.currentFeature.send_telegram_notification, backupEntry.send_telegram_notification, 'send_telegram_notification')
+      };
+
+      console.log('compareFeatureVersionsForBackup - changes:', changes);
+
+      return {
+        hasChanges: Object.values(changes).some(change => change === true),
+        changes: changes,
+        current: this.currentFeature,
+        backup: backupEntry
+      };
+    } catch (error) {
+      console.error('compareFeatureVersionsForBackup - error:', error);
+      return {
+        hasChanges: false,
+        changes: {},
+        current: this.currentFeature,
+        backup: backupEntry,
+        error: 'Error comparing versions'
+      };
+    }
   }
 }
