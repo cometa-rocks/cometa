@@ -14,16 +14,15 @@ from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import (
-    InvalidSelectorException, 
-    NoSuchElementException, 
+    InvalidSelectorException,
+    NoSuchElementException,
     WebDriverException,
-    TimeoutException
+    TimeoutException,
+    ElementClickInterceptedException
 )
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from .exceptions import *
-from .variables import *
+import time, requests, json, os, datetime, sys, subprocess, re, shutil, random, string
 
 sys.path.append("/opt/code/behave_django")
 
@@ -625,12 +624,82 @@ def send_step_screen_shot_details(feature_id, feature_result_id, user_id, browse
     
     logger.debug(f"response : {response} {response.text}")
 
-def click_element_by_css(context, selector):
-    elem = waitSelector(context, "css", selector)
-    for el in elem:
-        if el.is_displayed():
-            el.click()
+
+def get_element_using_common_selector_and_click(context, selector_value, selector_type="css", start_time=None):
+    # start_time is used to calculate the remaining time for the step to complete
+    # if start_time is not provided, it will be calculated using time.time() 
+    # considering that step have not used any time before calling this method
+    start_time = time.time() if start_time is None else start_time
+    elements = waitSelector(context, selector_type, selector_value)
+    element = elements[0]
+    step_timeout = context.step_data.get('timeout', 30)
+
+    # 1. Wait for the element to be displayed using EC.visibility_of
+    elapsed = time.time() - start_time
+    remaining_time = max(0.5, step_timeout - elapsed)
+    logger.debug(f"Waiting for element to be displayed, remaining time {remaining_time}")
+    try:
+        wait_displayed = WebDriverWait(context.browser, remaining_time)
+        wait_displayed.until(EC.visibility_of(element))
+    except TimeoutException:
+        raise CometaTimeoutException(f"Element with css selector '{selector_value}' was not displayed after {remaining_time:.1f} seconds")
+    elapsed = time.time() - start_time
+    remaining_time = max(0.5, step_timeout - elapsed)
+    click_on_element_with_retry(context, element, selector_value, remaining_time, start_time, step_timeout)  
+
+
+# This function is used to get an element using a selector type and value
+# it waits for the element for the step timeout using given selector type 
+# unlike waitSelector which uses all selector type
+def get_element_using_selector_type_and_click(context, selector_type, selector_value, start_time=None):
+    # start_time is used to calculate the remaining time for the step to complete
+    # if start_time is not provided, it will be calculated using time.time() 
+    # considering that step have not used any time before calling this method
+    start_time = time.time() if start_time is None else start_time
+    step_timeout = context.step_data.get('timeout', 60)
+
+    # 1. Wait for the element to be displayed using EC.visibility_of
+    logger.debug(f"Waiting for element to be displayed, remaining time {step_timeout}")
+    try:
+        wait_displayed = WebDriverWait(context.browser, step_timeout)
+        element = wait_displayed.until(EC.visibility_of_element_located(by=selector_type, value=selector_value))
+    except TimeoutException:
+        raise CometaTimeoutException(f"Element '{selector_type}:{selector_value}' was not displayed after {remaining_time:.1f} seconds")
+    
+    # total elapsed time to complete above logic
+    elapsed = time.time() - start_time
+    # total time remaining to complete click action
+    remaining_time = max(0.5, step_timeout - elapsed)
+    click_on_element_with_retry(context, element, selector_value, remaining_time, start_time, step_timeout)  
+
+
+
+# This function is used to click on an element with a selector type and value
+# it handles the retry logic for the click operation and avoids ElementClickInterceptedException
+# by retrying the click operation with a delay of 0.5 seconds
+# this method should be used to perform click operation on an element
+def click_on_element_with_retry(context, element, selector_value, remaining_time, start_time, step_timeout):
+    error = None
+    while remaining_time > 0:
+        try:
+            WebDriverWait(context.browser, max(0.5, remaining_time)).until(EC.element_to_be_clickable(element))
+            logger.debug(f"Clicking element '{selector_value}', remaining time {remaining_time:.1f}s")
+            element.click()
+            return  # success
+        except ElementClickInterceptedException as e:
+            logger.debug(f"Click intercepted on '{selector_value}', retrying...")
+            error = e
+            time.sleep(0.5)
+        except Exception as e:
+            logger.debug(f"Unhandled exception when clicking '{selector_value}'")
+            error = e
             break
+
+        elapsed = time.time() - start_time
+        remaining_time = step_timeout - elapsed
+
+    # Raise the last encountered error if retries fail
+    raise error if error else Exception(f"Failed to click element '{selector_value}' after {step_timeout}s")
 
 
 def click_element(context, element):
@@ -653,10 +722,11 @@ def tempFile(source):
             logger.error("Unable to remove the file.")
             logger.exception(err)
 
-            # get the timestamp
+            # get the timestamp and add more random text
             ts = time.time()
-            logger.debug(f"Setting a different filename: /tmp/{ts}-{filename}")
-            target = f"/tmp/{ts}-{filename}"
+            additional_random = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+            logger.debug(f"Setting a different filename: /tmp/{ts}_{additional_random}_{filename}")
+            target = f"/tmp/{ts}_{additional_random}_{filename}"
 
     logger.info(f"TMP file will be created at {target} for {source}.")
 

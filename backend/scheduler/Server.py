@@ -40,6 +40,7 @@ update_jobs(scheduler, jobs, called_by="Server start")
 # Run HTTP server in a separate thread to keep it non-blocking
 server_thread = threading.Thread(target=run_server)
 server_thread.start()
+server_thread.join() 
 
 # Keep the script running to maintain the scheduler
 try:

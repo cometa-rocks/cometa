@@ -613,4 +613,80 @@
   z-index: 5 !important;
 }
 
+// Schedule icon font weight and color styling
+:host ::ng-deep {
+  // Default: All schedule icons are gray and bold
+  button[ng-reflect-message*="Schedule"] .mat-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon {
+    font-weight: 600 !important;
+    color: #666666 !important; // Default gray color
+  }
+  
+  // Blue color for schedule icons with the has-schedule-icon class (higher specificity)
+  button[ng-reflect-message*="Schedule"] .mat-icon.has-schedule-icon,
+  button[ng-reflect-message*="schedule"] .mat-icon.has-schedule-icon {
+    color: $blue !important; // Primary blue
+  }
+
+  // Uploading status styling
+  .status-uploading {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Scanning status styling
+  .status-scanning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Encrypting status styling
+  .status-encrypting {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue; // Primary blue to indicate active process
+    font-weight: 500;
+    
+    .status-spinner {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  // Spinner animation
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  // Error status styling
+  .status-error {
+    color: #f44336;
+    font-weight: 500;
+  }
+}
+
 

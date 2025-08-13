@@ -458,19 +458,30 @@ app.get('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
 app.post('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
   const runId = +req.params.dataDrivenRunID;
   const isRunning = req.body.running === true || req.body.running === 'True';
+  const userId = req.body.user_id;
+  const departmentId = req.body.department_id;
 
-  console.log('Received dataDrivenStatus update:', runId, 'Running:', isRunning, 'Body:', req.body);
+  console.log('Received dataDrivenStatus update:', runId, 'Running:', isRunning, 'User:', userId, 'Department:', departmentId);
   
-  // Extract metrics from request body if available
+  // Extract metrics from request body if available, ensuring proper types
   const metrics = {
     status: req.body.status,
-    total: req.body.total,
-    ok: req.body.ok,
-    fails: req.body.fails,
-    skipped: req.body.skipped,
-    execution_time: req.body.execution_time,
-    pixel_diff: req.body.pixel_diff
+    total: req.body.total !== undefined ? parseInt(req.body.total, 10) : undefined,
+    ok: req.body.ok !== undefined ? parseInt(req.body.ok, 10) : undefined,
+    fails: req.body.fails !== undefined ? parseInt(req.body.fails, 10) : undefined,
+    skipped: req.body.skipped !== undefined ? parseInt(req.body.skipped, 10) : undefined,
+    execution_time: req.body.execution_time !== undefined ? parseInt(req.body.execution_time, 10) : undefined,
+    pixel_diff: req.body.pixel_diff !== undefined ? parseFloat(req.body.pixel_diff) : undefined
   };
+  
+  console.log('[WS] Raw metrics received:', {
+    total_raw: req.body.total,
+    total_parsed: metrics.total,
+    ok_raw: req.body.ok,
+    ok_parsed: metrics.ok,
+    fails_raw: req.body.fails,
+    fails_parsed: metrics.fails
+  });
   
   // Update internal status with all available metrics
   setDataDrivenRunningStatus(runId, isRunning, metrics);
@@ -484,11 +495,145 @@ app.post('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
     ...metrics
   };
 
-  // Emit the message to all connected clients
-  io.emit('message', payload);
-  console.log('Emitted DataDrivenStatusUpdate to clients:', payload);
+  let totalSent = 0;
+  
+  // Send to specific user if user_id is provided
+  if (userId) {
+    // Convert userId to number for proper comparison (it comes as string from request)
+    const userIdNum = parseInt(userId, 10);
+    console.log(`[DEBUG] Looking for user_id: ${userIdNum} (converted from ${userId})`);
+    
+    // Find clients belonging to the specific user
+    for (const [clientId, client] of Object.entries(clients)) {
+      if (client && client.user_id === userIdNum) {
+        io.to(clientId).emit('message', payload);
+        totalSent++;
+        console.log(`Sent DataDrivenStatusUpdate to user ${userIdNum} (client: ${clientId})`);
+      }
+    }
+    
+    // If no clients found for the specific user, try department-based fallback
+    if (totalSent === 0 && departmentId) {
+      console.log(`No clients found for user ${userId}, falling back to department ${departmentId}`);
+      for (const [clientId, client] of Object.entries(clients)) {
+        if (client && client.departments && client.departments.some(dept => dept.department_id === departmentId)) {
+          io.to(clientId).emit('message', payload);
+          totalSent++;
+        }
+      }
+    }
+  } else {
+    // Fallback to broadcasting to all clients (original behavior)
+    io.emit('message', payload);
+    totalSent = Object.keys(clients).length;
+    console.log('No user_id provided, broadcasting to all clients');
+  }
 
-  res.status(200).json({ success: true });
+  console.log(`Emitted DataDrivenStatusUpdate to ${totalSent} clients:`, payload);
+  
+  // Debug: Log current client status
+  console.log(`[DEBUG] Current clients connected: ${Object.keys(clients).length}`);
+  for (const [clientId, client] of Object.entries(clients)) {
+    console.log(`[DEBUG] Client ${clientId}: User ${client.user_id} (${client.email}), Departments: ${JSON.stringify(client.departments?.map(d => d.department_id) || 'none')}`);
+  }
+  
+  res.status(200).json({ success: true, sentCount: totalSent });
+})
+
+// add health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ success: true, message: 'WS server is running' });
+})
+
+/* WS Endpoint: Mobile container status update */
+app.post('/mobile/container/status', (req, res) => {
+  const containerId = req.body.container_id;
+  const containerUpdate = req.body.containerUpdate;
+  const userId = req.body.user_id;
+  const departmentId = req.body.department_id;
+
+  console.log('Received mobile container status update:', containerId, 'User:', userId, 'Department:', departmentId);
+  
+  const payload = {
+    type: '[MobileWebSockets] Container Status Update',
+    containerUpdate: containerUpdate
+  };
+
+  let totalSent = 0;
+  
+  // Send to specific user if user_id is provided
+  if (userId) {
+    const userIdNum = parseInt(userId, 10);
+    for (const [clientId, client] of Object.entries(clients)) {
+      if (client && client.user_id === userIdNum) {
+        io.to(clientId).emit('message', payload);
+        totalSent++;
+      }
+    }
+    
+    // Fallback to department-based if no user clients found
+    if (totalSent === 0 && departmentId) {
+      for (const [clientId, client] of Object.entries(clients)) {
+        if (client && client.departments && client.departments.some(dept => dept.department_id === departmentId)) {
+          io.to(clientId).emit('message', payload);
+          totalSent++;
+        }
+      }
+    }
+  } else {
+    // Broadcast to all clients
+    io.emit('message', payload);
+    totalSent = Object.keys(clients).length;
+  }
+
+  console.log(`Emitted mobile container status update to ${totalSent} clients:`, payload);
+  res.status(200).json({ success: true, sentCount: totalSent });
+})
+
+/* WS Endpoint: Mobile container shared status update */
+app.post('/mobile/container/shared', (req, res) => {
+  const containerId = req.body.container_id;
+  const shared = req.body.shared;
+  const userId = req.body.user_id;
+  const departmentId = req.body.department_id;
+
+  console.log('Received mobile container shared update:', containerId, 'Shared:', shared, 'User:', userId, 'Department:', departmentId);
+  
+  const payload = {
+    type: '[MobileWebSockets] Container Shared Update',
+    container_id: containerId,
+    shared: shared
+  };
+
+  let totalSent = 0;
+  
+  // Send to specific user if user_id is provided
+  if (userId) {
+    const userIdNum = parseInt(userId, 10);
+    for (const [clientId, client] of Object.entries(clients)) {
+      if (client && client.user_id === userIdNum) {
+        io.to(clientId).emit('message', payload);
+        totalSent++;
+      }
+    }
+    
+    // Fallback to department-based if no user clients found
+    if (totalSent === 0 && departmentId) {
+      for (const [clientId, client] of Object.entries(clients)) {
+        if (client && client.departments && client.departments.some(dept => dept.department_id === departmentId)) {
+          io.to(clientId).emit('message', payload);
+          totalSent++;
+        }
+      }
+    }
+  } else {
+    // Broadcast to all clients
+    io.emit('message', payload);
+    totalSent = Object.keys(clients).length;
+  }
+
+  console.log(`Emitted mobile container shared update to ${totalSent} clients:`, payload);
+  res.status(200).json({ success: true, sentCount: totalSent });
 })
 
 /* WS Endpoint: Reload actions in front */
@@ -687,6 +832,7 @@ io.on('connection', function(socket){
     if (user.user_id != undefined && user.email != undefined) {
       clients[socket.id] = user
       console.log(`[${user.email} (${user.user_id})] has connected successfully.`)
+      //console.log(`[DEBUG] User auth data:`, JSON.stringify(user, null, 2));
     } else {
       throw Error("Missing user data. Connection failed.")
     }
@@ -706,9 +852,12 @@ io.on('connection', function(socket){
   // Update user info from front
   socket.on('updateUser', function(data) {
     try {
-      clients[socket.id] = JSON.parse(data);
+      // Handle both object and string data
+      const userData = typeof data === 'string' ? JSON.parse(data) : data;
+      clients[socket.id] = userData;
+      console.log(`[updateUser] Updated user info for ${userData.email} (${userData.user_id})`);
     } catch (err) {
-      console.log('updateUser', 'Couldn\'t parse user info.');
+      console.log('updateUser', 'Couldn\'t parse user info:', err.message);
     }
   })
   // Front asks to know previous messages for a given feature_id
@@ -721,7 +870,13 @@ io.on('connection', function(socket){
     // Emit feature messages only to requesting client
     socket.emit('message', messages[lastRunId])
   })
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
+    const user = clients[socket.id];
+    if (user) {
+      console.log(`[${user.email} (${user.user_id})] disconnected. Reason: ${reason}`);
+    } else {
+      console.log(`Unknown client ${socket.id} disconnected. Reason: ${reason}`);
+    }
     delete clients[socket.id];
   });
 })

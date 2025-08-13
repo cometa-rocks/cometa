@@ -101,7 +101,7 @@ def takeScreenshot(device_driver):
             logger.error(f"Unable to take screenshot ...{(str(err))}")
             return None
 #
-# some usefull functions
+# some useful functions
 #
 # def takeScreenshot(device_driver, screenshots_step_path):
     # pass
@@ -288,7 +288,7 @@ def addVariable(context, variable_name, result, encrypted=False, save_to_step_re
 # check if encrypted
 def returnDecrypted(value):
     # encrypted string start
-
+    value = str(value)
     if value.startswith(ENCRYPTION_START):
         value = decrypt(value)
         # append value to be masked in logger
@@ -431,6 +431,9 @@ def done(*_args, **_kwargs):
                         logger.debug(f"args[0].text {args[0].text}")
                         found_vars.extend(found_vars_in_text)
                     # logger.debug(f"Found variables for {parameter_value} value {found_vars}")
+                    # Replace variables which are present in between of values provided in the step parameter
+                    # i.e. if value is [@resource-id="undefined.item_$year-$month"]
+                    # then $year and $month will be replaced with the value of the variable
                     for raw_var in found_vars:
                         # logger.debug(f"Iterating for {raw_var}")
                         if raw_var.startswith('%'):
@@ -442,9 +445,9 @@ def done(*_args, **_kwargs):
                             # Clean $VAR and ${VAR}
                             variable_name = raw_var.strip('${}$')
 
-                        # Find the variable in the env_variables list
+                        # # Find the variable in the env_variables list
                         # logger.debug(f"Trying to find value for variable {variable_name}")
-                        # logger.debug(f"env_variables {variable_name}")
+                        # logger.debug(f"env_variables {env_variables}")
                         index = [
                             i for i, _ in enumerate(env_variables)
                             if _["variable_name"] == variable_name
@@ -477,8 +480,11 @@ def done(*_args, **_kwargs):
                             # Then use lambda to avoid re.sub interpreting escape sequences
                             safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
                             kwargs[parameter] = re.sub(pattern, lambda m: safe_value, parameter_value)
+                        parameter_value = parameter_value.replace(("$%s" % variable_name), returnDecrypted(env_var["variable_value"]))
 
-                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                    # Assign back parameter_value value to kwargs[parameter] which will be passed in the step parameter
+                    kwargs[parameter] = parameter_value
+                            
                     # replace job parameters
                     for (
                         parameter_key
@@ -753,7 +759,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
     excluded = ["Close the browser"]
     
     start_time = time.time()  # Add timing start
-    logger.debug("Starting execution of saveToDatabase")
+    logger.debug("Starting execution of take_screenshot_and_process")
     
     # Exclude banned steps
     if step_name in excluded:
@@ -775,7 +781,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
             logger.debug("No driver found skipping screenshot")
             return
         
-        screenshot_file_name = SCREENSHOT_PREFIX + "current.png"
+        screenshot_file_name = SCREENSHOT_PREFIX + f"step_{step_execution_sequence}.png"
         logger.debug("Screenshot filename: %s" % screenshot_file_name)
         final_screenshot_file = os.path.join(screenshots_step_path, screenshot_file_name)
         logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
@@ -785,7 +791,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
         if final_screenshot_file is None:
             return
         
-        logger.debug(f"Started the screenshot prcessing step thread for step {context.counters['index']}")
+        logger.debug(f"Started the screenshot processing step thread for step {context.counters['index']}")
         _async_process_screen_shot(
                   step_execution_sequence, 
                   feature_result_id,

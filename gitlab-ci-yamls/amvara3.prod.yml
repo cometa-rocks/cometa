@@ -26,18 +26,10 @@
     # Replace the data path
     - sed -i 's|\.\/data|$COMETA_DATA_FOLDER|g' docker-compose.yml
     # Replace google client information
-    - echo $COMETA_GOOGLE_OIDC_SECRET > $COMETA_DATA_FOLDER/front/apache2/metadata/accounts.google.com.client
+    - echo $COMETA_GOOGLE_CLIENTID_SECRETKEY > $COMETA_DATA_FOLDER/front/apache2/metadata/accounts.google.com.client
     # Replace git client secret for access to git.amvara.de
     - echo $GITLAB_OIDC_SECRETS > $COMETA_DATA_FOLDER/front/apache2/metadata/git.amvara.de.client
   
-
-    # # These changes are client specific it should not run in the all deployments 
-    # # Replace google client information
-    # - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
-    # - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
-    # # Replace git client secret for access to git.amvara.de
-    # - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
-    # - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
 
 
   tags: # on what runners we'd like to run this job

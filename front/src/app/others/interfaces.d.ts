@@ -319,7 +319,7 @@ interface BrowserResult {
 interface Department {
   department_id: number;
   department_name: string;
-  files?: [];
+  files?: UploadedFile[];
   slug?: string;
   settings?: any;
   users?: IAccount[];
@@ -576,6 +576,7 @@ interface Config {
   copyright: string;
   license: string;
   featuresView: FeatureViewItems;
+  mobileView: FeatureViewItems;
   disableAnimations: boolean;
   translations: 'en' | 'de' | any;
   changelog: ChangelogItem[];
@@ -667,7 +668,8 @@ interface UploadedFile {
     | 'Encrypting'
     | 'DataDriven'
     | 'Done'
-    | 'Error';
+    | 'Error'
+    | 'Uploading';
 }
 
 interface Uploader {
@@ -1177,6 +1179,7 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+  checked?: boolean;
 }
 
 interface ContainerServiceResponse {
@@ -1199,3 +1202,11 @@ interface FeatureData {
   depends_on_others?: boolean;
   schedule?: string;
 }
+
+interface MobileValidationErrorData {
+  title?: string;
+  message?: string;
+  errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>;
+}
+
+type MobileValidationAction = 'ignore' | 'correct';

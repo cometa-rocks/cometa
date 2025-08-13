@@ -87,6 +87,26 @@
             APKs available: {{ data.uploadedAPKsList.length }} APKs
           </mat-panel-description>
         </mat-expansion-panel-header>
+        
+        <!-- Warning message about noVNC verification -->
+        <div class="warning-message">
+          <mat-icon class="warning-icon">warning</mat-icon>
+          <div class="warning-content">
+            <div class="warning-text">
+              <strong>Important:</strong> Before installing any APK, please verify through noVNC that the mobile device is fully loaded and ready. This ensures proper installation and prevents potential issues.
+            </div>
+            <button 
+              mat-stroked-button 
+              color="primary" 
+              class="novnc-button"
+              (click)="openNoVNC()"
+              matTooltip="Open noVNC to verify mobile status">
+              <mat-icon>visibility</mat-icon>
+              Open noVNC
+            </button>
+          </div>
+        </div>
+        
         <div class="edit-feature-info">
           <mat-form-field appearance="fill" class="edit-app">
             <mat-label>Application</mat-label>
@@ -106,6 +126,7 @@
         <div *ngIf="selectedApks.length === 0" class="no-apks-message">
           <p>No APKs selected yet. Please select an APK to add it here.</p>
         </div>
+        
         <div class="">
           <mat-chip-grid #installChipGrid>
             <mat-chip-row
@@ -151,10 +172,13 @@
               <span class="chip-text" matTooltip="{{ apk.name }}" matTooltipPosition="above">
                 {{ apk.name }}
               </span>
-              <!-- <button mat-icon-button (click)="removeInstalledApk(apk)" [disabled]="isRemovingApk?.[apk.id]">
+              <button matChipRemove 
+                      (click)="removeInstalledApk(apk)" 
+                      [disabled]="isRemovingApk?.[apk.id]"
+                      [attr.aria-label]="'remove ' + apk.name">
                 <mat-icon *ngIf="!isRemovingApk?.[apk.id]">cancel</mat-icon>
                 <mat-spinner *ngIf="isRemovingApk?.[apk.id]" diameter="20"></mat-spinner>
-              </button> -->
+              </button>
             </mat-chip-row>
           </mat-chip-grid>
           <input matInput [matChipInputFor]="installedChipGrid" class="hidden-input" />
@@ -202,6 +226,21 @@
       mat-dialog-close
       mat-button
       (click)="closeDialog()">Cancel</button>
-    <button mat-stroked-button color="primary" (click)="saveChanges()">Save</button>
+    <button 
+      mat-stroked-button 
+      color="primary" 
+      (click)="saveChanges()"
+      [disabled]="isSaving"
+      class="save-button">
+      <div class="button-content">
+        <mat-spinner 
+          *ngIf="isSaving" 
+          diameter="16" 
+          color="primary"
+          class="save-spinner">
+        </mat-spinner>
+        <span *ngIf="!isSaving">Save</span>
+      </div>
+    </button>
   </mat-dialog-actions>
 </form>

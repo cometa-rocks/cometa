@@ -5,6 +5,7 @@ import json
 import sys
 import sys, requests, re, json, rstr
 import sys, requests, re, json, traceback, html
+import unicodedata
 
 import pandas as pd
 import os
@@ -27,6 +28,125 @@ from tools.common_functions import *
 logger = logging.getLogger("FeatureExecution")
 
 use_step_matcher("parse")
+
+
+def normalize(s):
+    """Normalize Unicode string to handle hidden characters and problematic Unicode"""
+    if not isinstance(s, str):
+        return s
+    
+    # First normalize to NFC form
+    normalized = unicodedata.normalize('NFC', s)
+    
+    # Replace common problematic Unicode characters
+    replacements = {
+        '\xa0': ' ',  # Non-breaking space -> regular space
+        '\u200b': '',  # Zero-width space -> remove
+        '\u200c': '',  # Zero-width non-joiner -> remove
+        '\u200d': '',  # Zero-width joiner -> remove
+        '\u2060': '',  # Word joiner -> remove
+        '\u00a0': ' ',  # Another non-breaking space -> regular space
+    }
+    
+    for old_char, new_char in replacements.items():
+        normalized = normalized.replace(old_char, new_char)
+    
+    return normalized
+
+def has_unicode_chars(s):
+    """Check if string contains non-ASCII Unicode characters"""
+    return any(ord(char) > 127 for char in s)
+
+def get_unicode_info(s):
+    """Get information about Unicode characters in the string"""
+    unicode_chars = []
+    for i, char in enumerate(s):
+        if ord(char) > 127:
+            unicode_chars.append({
+                'position': i,
+                'char': char,
+                'unicode_name': unicodedata.name(char, f'U+{ord(char):04X}'),
+                'unicode_code': f'U+{ord(char):04X}'
+            })
+    return unicode_chars
+
+
+
+# This step compares two values to ensure they are identical. If they are not the same, an error will be raised, indicating the mismatch
+# Example: Assert "hello" to be same as "hello"
+@step(u'Assert "{value_one}" to be same as "{value_two}"')
+@done(u'Assert "{value_one}" to be same as "{value_two}"')
+def assert_equal(context, value_one, value_two):
+    value_one = value_one.strip()
+    value_two = value_two.strip()
+    
+    # Check if strings contain Unicode characters
+    unicode_info_value_one = get_unicode_info(value_one)
+    unicode_info_value_two = get_unicode_info(value_two)
+    
+    addStepVariableToContext(context,                              
+                            {
+                                "value_one": value_one,
+                                "value_two": value_two,
+                            }, 
+                            save_to_step_report=True)
+    
+    if value_one != value_two:
+        # Build detailed error message with Unicode information
+        error_msg = f"\"{value_one}\" does not match \"{value_two}\""
+        
+        # Add Unicode information if present
+        unicode_details = []
+        if unicode_info_value_one:
+            unicode_chars_one = [f"{u['char']}({u['unicode_code']})" for u in unicode_info_value_one]
+            unicode_details.append(f"Value one contains Unicode: {unicode_chars_one}")
+        if unicode_info_value_two:
+            unicode_chars_two = [f"{u['char']}({u['unicode_code']})" for u in unicode_info_value_two]
+            unicode_details.append(f"Value two contains Unicode: {unicode_chars_two}")
+        
+        if unicode_details:
+            error_msg += f" [Unicode details: {'; '.join(unicode_details)}]"
+        
+        assert_failed_error = logger.mask_values(error_msg)
+        raise AssertionError(assert_failed_error)
+    
+
+# This step checks if one string contains another. If the second string is not found within the first string, an error will be raised
+# Example: Assert "The quick brown fox" to contain "quick"'
+@step(u'Assert "{value_one}" to contain "{value_two}"')
+@done(u'Assert "{value_one}" to contain "{value_two}"')
+def assert_contains(context, value_one, value_two):
+    value_one = value_one.strip()
+    value_two = value_two.strip()
+    
+    # Check if strings contain Unicode characters
+    unicode_info_value_one = get_unicode_info(value_one)
+    unicode_info_value_two = get_unicode_info(value_two)
+    
+    addStepVariableToContext(context,{
+                                    "value_one": value_one,
+                                    "value_two": value_two,
+                                    }, 
+                            save_to_step_report=True)
+
+    if not value_two in value_one:
+        # Build detailed error message with Unicode information
+        error_msg = f"\"{value_one}\" does not contain \"{value_two}\""
+        
+        # Add Unicode information if present
+        unicode_details = []    
+        if unicode_info_value_one:
+            unicode_chars_one = [f"{u['char']}({u['unicode_code']})" for u in unicode_info_value_one]
+            unicode_details.append(f"Value one contains Unicode: {unicode_chars_one}")
+        if unicode_info_value_two:
+            unicode_chars_two = [f"{u['char']}({u['unicode_code']})" for u in unicode_info_value_two]
+            unicode_details.append(f"Value two contains Unicode: {unicode_chars_two}")
+        
+        if unicode_details:
+            error_msg += f" [Unicode details: {'; '.join(unicode_details)}]"
+        
+        assert_failed_error = logger.mask_values(error_msg)
+        raise AssertionError(assert_failed_error)
 
 
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
@@ -302,13 +422,50 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
     except Exception as e:
         logger.exception(e)
         raise CustomError(e)
-
-
-use_step_matcher("re")
+    
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
-@step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"')
+@step(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}" with extraction type "{extraction_type}"')
+@done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}" with extraction type "{extraction_type}"')
+def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name, extraction_type="text"):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+
+    variable_value = getVariable(context, variable_name) 
+    
+    # Check if the value is a string and attempt JSON loading
+    if isinstance(variable_value, str):
+        try:
+            variable_value = json.loads(variable_value)
+        except json.JSONDecodeError as e:
+            raise CustomError(f"Failed to parse JSON: {e}")
+
+    try:
+        parsed_value = None
+        if extraction_type == "text":
+            parsed_value = jq.compile(jq_pattern).input(variable_value).text()
+        else:   
+            result = jq.compile(jq_pattern).input(variable_value).first()
+            if extraction_type == "str":
+                parsed_value = str(result)
+            elif extraction_type == "int":
+                parsed_value = int(result)
+            elif extraction_type == "float":
+                parsed_value = float(result)
+        
+        if parsed_value==None:
+            raise CustomError(f"Invalid extraction type: {extraction_type}")
+
+        addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
+    except Exception as err:
+        logger.error(err)
+        traceback.print_exc()
+        raise CustomError(f"Invalid JQ pattern : {str(err)}")
+
+
+# Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+@step(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
 @done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
 def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
@@ -333,8 +490,9 @@ def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name)
         traceback.print_exc()
         raise CustomError(f"Invalid JQ pattern : {str(err)}")
 
-use_step_matcher("parse")
 
+
+    
 
 def get_faker_public_methods():
     fake = Faker()
@@ -407,8 +565,54 @@ def generate_random_string(context, regex_pattern, variable):
         # logger.exception(e)
         raise CustomError(f"'Exception while processing regex, {str(e)}")
     
-
-        
+# Step to normalize a variable and store the result in a new variable
+@step(u'Normalize variable name "{variable_name}" and store in "{variable}"')
+@done(u'Normalize variable name "{variable_name}" and store in "{variable}"')
+def normalize_variable_step(context, variable_name, variable):
+    value = getVariable(context, variable_name)
+    normalized_value = normalize(value)
+    send_step_details(context, f'Normalized value of {variable_name} stored in {variable}')
+    addTestRuntimeVariable(context, variable, normalized_value, save_to_step_report=True)
     
+
+    
+# Step to parse a value to a specific type and store the result in a new variable
+# Example:
+# Parse value "123" to "int" and store in "parsed_value"
+# Parse value "123.45" to "float" and store in "parsed_value"
+# Parse value "true" to "boolean" and store in "parsed_value"
+# Parse value "123" to "string" and store in "parsed_value"
+# Parse value "123" to "byte" and store in "parsed_value"
+@step(u'Parse value "{value}" to "{target_type}" and store in "{variable}"')
+@done(u'Parse value "{value}" to "{target_type}" and store in "{variable}"')
+def parse_value_to_type(context, value: str, target_type: str, variable: str):
+    """
+    Parses a string value into the specified type.
+    
+    Supported types: int, float, double, string, byte, boolean
+    """
+    target_type = target_type.lower()
+    new_value = value
+    if target_type == "int":
+        new_value = int(value)
+    elif target_type in ("float", "double"):
+        new_value = float(value)
+    elif target_type == "string":
+        new_value = str(value)
+    elif target_type == "byte":
+        # Converts string to bytes using UTF-8
+        new_value = bytes(value, encoding="utf-8")
+    elif target_type == "boolean":
+        val = value.strip().lower()
+        if val in ("true", "1", "yes", "y"):
+            new_value = True
+        elif val in ("false", "0", "no", "n"):
+            new_value = False
+        else:
+            raise ValueError(f"Cannot convert '{value}' to boolean.")
+    else:
+        raise TypeError(f"Unsupported target type: {target_type}")
+    
+    addTestRuntimeVariable(context, variable, str(new_value), save_to_step_report=True)
     
     

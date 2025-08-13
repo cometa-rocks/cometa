@@ -264,6 +264,11 @@ def before_all(context):
     # logger.debug(context.VARIABLES)
     # job parameters if executed using schedule step
     context.PARAMETERS = os.environ["PARAMETERS"]
+    # telegram notification data if executed from telegram
+    telegram_env = os.environ.get("telegram_notification", "{}")
+    context.telegram_notification = json.loads(telegram_env)
+    if telegram_env != "{}":
+        logger.info(f"Telegram notification data loaded: {context.telegram_notification}")
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ["BROWSER_INFO"])
     # get the connection URL for the browser
@@ -444,15 +449,15 @@ def before_all(context):
         
         response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
                              data=json.dumps(container_configuration))
-        logger.debug(f"Browser container response status: {response.status_code}")
-        logger.debug(f"Browser container response body: {response.json()}")
+        
+        response_data = response.json()
+        logger.debug(f"Browser creation response data: {response_data}")
         if response.status_code not in [200, 201]:
-            logger.error(f"Expected status 200 or 201 but got {response.status_code}")
-            raise Exception("Error while starting browser, Please contact administrator")    
+            raise Exception(response_data['message'])
 
         logger.debug(response.json())
-        if not response or not response.json()['success'] == True:
-            raise Exception("Error while starting browser, Please contact administrator")    
+        if response_data['success'] == False:
+            raise Exception(response_data['message'])    
         
         # service_id = response.json()['containerservice']['hostname']
         data = response.json()['containerservice']
@@ -873,12 +878,11 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
-    files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
-    file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
-
-    meta_file_path = f"{files_path}/features/{file_name}_meta.json"
-    feature_file_path = f"{files_path}/features/{file_name}.feature"
-    feature_json_file_path = f"{files_path}/features/{file_name}.json"
+    files_path = os.environ['FOLDERPATH']
+    file_name = os.environ['FEATURE_NAME']
+    meta_file_path = os.environ['JSON_FILE']
+    feature_file_path = os.environ['FEATURE_FILE']
+    feature_json_file_path = os.environ['FEATURE_JSON_FILE']
     xmlFilePath = f"{files_path}/junit_reports/TESTS-features.{file_name}.xml"
 
     logger.debug("Adding path to temp files for housekeeping")
@@ -1004,7 +1008,11 @@ def after_all(context):
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
     
     import threading       
-    # FIXME This code seems not working need to verify
+    # Store context data for thread access
+    telegram_notification_data = getattr(context, 'telegram_notification', {})
+    download_dir = context.downloadDirectoryOutsideSelenium
+    temp_files = context.tempfiles
+    
     def clean_up_and_notification():
         
         # Clean up dedicated Healenium proxy if created
@@ -1019,6 +1027,12 @@ def after_all(context):
         notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
         headers = {'Host': 'cometa.local'}
         logger.debug(f"Sending notification request on URL : {notifications_url}")
+        
+        # If this was a telegram execution, pass the telegram notification data
+        if telegram_notification_data and telegram_notification_data.get('telegram_chat_id'):
+            headers['X-Telegram-Notification'] = json.dumps(telegram_notification_data)
+            logger.info(f"Including telegram notification data for chat_id: {telegram_notification_data.get('telegram_chat_id')}")
+        
         response = requests.get(notifications_url, headers=headers)
         
   
@@ -1033,14 +1047,14 @@ def after_all(context):
             logger.error(f"Notification request failed with status {response.status_code}: {response.text}")
     
         # remove download folder if no files where downloaded during the testcase
-        downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
+        downloadedFiles = glob.glob(download_dir + "/*")
         if len(downloadedFiles) == 0:
-            if os.path.exists(context.downloadDirectoryOutsideSelenium):
-                os.rmdir(context.downloadDirectoryOutsideSelenium)
+            if os.path.exists(download_dir):
+                os.rmdir(download_dir)
 
         # do some cleanup and remove all the temp files generated during the feature
-        logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
-        for tempfile in set(context.tempfiles):
+        logger.debug("Cleaning temp files: {}".format(pformat(temp_files)))
+        for tempfile in set(temp_files):
             try:
                 os.remove(tempfile)
             except Exception as err:

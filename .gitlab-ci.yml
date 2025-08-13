@@ -55,7 +55,7 @@ stages:
     # update docker-compose file depending on server variables
     - sed -i 's/<outside_port>/'$DOCKER_HTTP_PORT'/g;s/<server>/'$DOCKER_OPENIDC_CONFIG_EXT'/g' docker-compose.yml
     # Replace secrets in openidc
-    - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache-conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
+    - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache2/conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
     # Replace Stripe client keys
     # - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
     # - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
@@ -147,9 +147,9 @@ stages:
     # Reload project files in gunicorn
     - echo -e "\e[0Ksection_start:`date +%s`:reloading_gunicorn\r\e[0KPreparing to reload project in gunicorn"
     - echo -e "Now reloading gunicorn for django"
-    - docker exec cometa_django fuser -k -HUP 8000/tcp
+    - docker exec cometa_django pkill -HUP -f gunicorn || true
     - echo -e "Now reloading gunicorn for behave"
-    - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    - docker exec cometa_behave pkill -HUP -f gunicorn || true
     - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
@@ -160,14 +160,21 @@ stages:
   script:
     bash scripts/kubernetes_cicd_deployment.sh
 
+.docker_deployment_script: &docker_deployment_script
+  stage: deploy
+  # main script anchor to avoid code
+  # redundancy. 
+  script:
+    bash scripts/docker_cicd_deployment.sh
+
 # create a deploy job for amvara2 for branch stage
 deploy:amvara2.stage: 
-  <<: *deployment_script
+  <<: *docker_deployment_script
   extends: .amvara2.stage
 
 # create a deploy job for amvara3 for branch prod
 deploy:amvara3.prod:
-  <<: *deployment_script
+  <<: *docker_deployment_script
   extends: .amvara3.prod
 
 # create a deploy job for amvara3 for branch prod

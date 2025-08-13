@@ -147,7 +147,10 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(os.path.dirname(__file__), '../templates/pdf')],
+        'DIRS': [
+            os.path.join(os.path.dirname(__file__), '../templates/pdf'),
+            os.path.join(os.path.dirname(__file__), '../templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -234,6 +237,8 @@ if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "T
     if COMETA_EMAIL_PASSWORD != '':
         EMAIL_HOST_PASSWORD = COMETA_EMAIL_PASSWORD
     EMAIL_USE_TLS = ConfigurationManager.get_configuration('COMETA_EMAIL_TLS', 'False') == "True"
+    # Default sender email address
+    DEFAULT_FROM_EMAIL = ConfigurationManager.get_configuration('COMETA_DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
     
 # Static files (CSS, JavaScript, Images)

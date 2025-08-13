@@ -123,7 +123,7 @@ def AddOIDCAccount(name, email):
 def UserRelatedDepartments(user_email, type="id"):
     account = OIDCAccount.objects.filter(email=user_email)
     user_id = account[0].user_id
-    DepartmentsRelated = Account_role.objects.all().filter(user=user_id)
+    DepartmentsRelated = Account_role.objects.all().filter(user_id=user_id)
     departmentsList = []
     for d in DepartmentsRelated:
         departmentsList.append(
@@ -311,7 +311,7 @@ def GetStepResultsData(request, *args, **kwargs):
     response = HttpResponse(
         content_type="text/csv",
         headers={
-            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")}.csv"'
+            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{timezone.now().strftime("%Y%m%d%H%M%S")}.csv"'
         },
     )
 
@@ -325,7 +325,316 @@ def GetStepResultsData(request, *args, **kwargs):
 
 @csrf_exempt
 def CreateOIDCAccount(request):
-    return JsonResponse(request.session['user'], status=200)
+    # Check if there's a target_link_uri parameter for Telegram OAuth completion
+    target_link_uri = request.GET.get('target_link_uri')
+    if target_link_uri and '/telegram/complete/' in target_link_uri:
+        logger.info(f"Processing Telegram OAuth completion")
+        
+        # Check if this is an AJAX request (from Angular app)
+        is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest' or \
+                  request.META.get('HTTP_ACCEPT', '').startswith('application/json')
+        
+        if is_ajax:
+            # For AJAX requests, return a special JSON response that tells frontend to redirect
+            logger.info("AJAX request detected, returning JSON with redirect instruction")
+            return JsonResponse({
+                'success': False,  # Required by interceptor
+                'type': 'redirect',  # Tells interceptor this is a redirect
+                'url': target_link_uri  # Where to redirect
+            }, status=200)
+        else:
+            # For regular browser requests, do a normal redirect
+            logger.info("Regular request detected, performing HTTP redirect")
+            return redirect(target_link_uri)
+    
+    # For normal AJAX requests, return user JSON
+    user_data = request.session.get('user')
+    if not user_data:
+        logger.warning("No user data in session for CreateOIDCAccount")
+        return JsonResponse({'error': 'No user session found'}, status=401)
+    
+    return JsonResponse(user_data, status=200)
+
+
+@csrf_exempt
+def _send_telegram_auth_success_notification(chat_id, user_info, reactivated_count=0):
+    """Helper function to send Telegram authentication success notification"""
+    try:
+        bot_token = ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_TOKEN", None)
+        if not bot_token:
+            return
+            
+        message = (
+            f"✅ *Authentication Successful!*\n\n"
+            f"Your Telegram account has been successfully linked to Cometa.\n\n"
+            f"*Account Details:*\n"
+            f"👤 Name: {user_info.get('name', 'User')}\n"
+            f"📧 Email: {user_info.get('email', '')}\n\n"
+        )
+        if reactivated_count > 0:
+            message += f"🔄 *Restored {reactivated_count} subscription{'s' if reactivated_count > 1 else ''}* from your previous session!\n\n"
+        message += (
+            f"You can now receive test execution notifications!\n"
+            f"Use `/subscribe` to select which features to monitor."
+        )
+        
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown"
+        }
+        requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        logger.error(f"Failed to send Telegram notification: {str(e)}")
+
+
+def telegram_auth_callback(request, token):
+    """
+    Handle Telegram authentication callback
+    This provides two paths:
+    1. If user has existing session -> link Telegram account
+    2. If no session -> redirect to OAuth for authentication
+    """
+    logger.info(f"telegram_auth_callback called with token: {token[:8]}...")  # Only log first 8 chars for security
+    
+    try:
+        from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
+        
+        # Log request details for debugging
+        logger.info(f"Request method: {request.method}")
+        logger.info(f"Request path: {request.path}")
+        logger.info(f"Session keys: {list(request.session.keys())}")
+        
+        # Verify the token is valid
+        user_link = TelegramAuthenticationHandler.verify_telegram_token(token)
+        if not user_link:
+            logger.error(f"Token verification failed for token: {token[:8]}...")
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Invalid or expired authentication token. Please try again from Telegram.'
+            })
+        
+        # Check if user has valid OAuth session via mod_auth_openidc
+        has_valid_oauth_cookie = request.COOKIES.get('mod_auth_openidc_session')
+        
+        if request.session.get('user') and has_valid_oauth_cookie:
+            # User has both Django session AND OAuth cookie - validate it's current
+            user_id = request.session['user'].get('user_id')
+            
+            # Verify the OAuth session is still valid by checking user_info
+            # The middleware will have already validated this if the cookie is valid
+            if not request.session.get('user_info'):
+                logger.warning(f"User has session but no user_info - OAuth session likely expired")
+                request.session.flush()
+                oauth_provider = "GitLab"
+                template_context = {
+                    'oauth_provider': oauth_provider,
+                    'token': token
+                }
+                return render(request, 'telegram_auth_redirect.html', template_context)
+            
+            # This ensures they went through proper GitLab OAuth
+            from backend.models import OIDCAccount
+            try:
+                oidc_account = OIDCAccount.objects.get(user_id=user_id)
+                logger.info(f"User authenticated via valid OAuth session (user_id: {user_id}), completing Telegram linking")
+            except OIDCAccount.DoesNotExist:
+                logger.warning(f"Session exists but no OIDCAccount for user_id {user_id} - forcing re-authentication")
+                # Clear invalid session
+                request.session.flush()
+                # Force OAuth authentication
+                oauth_provider = "GitLab"
+                template_context = {
+                    'oauth_provider': oauth_provider,
+                    'token': token
+                }
+                return render(request, 'telegram_auth_redirect.html', template_context)
+            
+            # Complete the linking
+            from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
+            success = TelegramAuthenticationHandler.complete_telegram_linking(request, user_link.chat_id)
+            
+            if success:
+                # Send success notification to Telegram
+                from backend.ee.modules.notification.managers import TelegramSubscriptionManager
+                try:
+                    # Reactivate any previous subscriptions
+                    reactivated_count = TelegramSubscriptionManager.reactivate_user_subscriptions(
+                        user_id=user_id,
+                        chat_id=user_link.chat_id
+                    )
+                    
+                    # Send notification to Telegram
+                    _send_telegram_auth_success_notification(
+                        user_link.chat_id, 
+                        request.session['user'], 
+                        reactivated_count
+                    )
+                except Exception as e:
+                    logger.error(f"Error during Telegram linking completion: {str(e)}")
+                
+                return render(request, 'telegram_oauth_complete.html', {
+                    'bot_username': ConfigurationManager.get_configuration("COMETA_TELEGRAM_BOT_USERNAME", "CometaBot")
+                })
+            else:
+                return render(request, 'telegram_auth_error.html', {
+                    'error_code': 'LINKING_FAILED',
+                    'error_message': 'Failed to link your Telegram account. Please try again.'
+                })
+        
+        # User is not authenticated, redirect to OAuth
+        # SECURITY: Always require OAuth authentication for new sessions
+        
+        # Always redirect to OAuth provider - no shortcuts
+        oauth_provider = "GitLab"
+        
+        # Prepare context for template
+        template_context = {
+            'oauth_provider': oauth_provider,
+            'token': token
+        }
+        
+        return render(request, 'telegram_auth_redirect.html', template_context)
+            
+    except Exception as e:
+        logger.error(f"Error in telegram_auth_callback: {str(e)}")
+        return render(request, 'telegram_auth_error.html', {
+            'message': 'An error occurred during authentication. Please try again.'
+        })
+
+
+def telegram_auth_complete(request):
+    """
+    Handle users who return after OAuth authentication
+    Complete the Telegram linking process
+    """
+    try:
+        # Check if user has a telegram auth token in URL parameters
+        telegram_token = request.GET.get('token')
+        if not telegram_token:
+            # Try to get it from the query parameter passed through OAuth
+            telegram_token = request.GET.get('telegram_auth_token')
+        
+        if not telegram_token:
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'No Telegram authentication token found. Please try again from Telegram.'
+            })
+        
+        # SECURITY: Token verification is done through database lookup only
+        # We don't store tokens in sessions to avoid session-based vulnerabilities
+        
+        # Verify the token is still valid
+        from backend.ee.modules.notification.telegram_auth import TelegramAuthenticationHandler
+        user_link = TelegramAuthenticationHandler.verify_telegram_token(telegram_token)
+        if not user_link:
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Invalid or expired authentication token. Please try again from Telegram.'
+            })
+        
+        # Chat ID is verified through the token lookup in database
+        # No need for session-based verification
+        
+        # Check if user session exists
+        if not request.session.get('user'):
+            # This should not happen if Apache OAuth worked correctly
+            logger.error("No user session found after OAuth authentication")
+            
+            # Log more details for debugging
+            logger.info(f"Session keys: {list(request.session.keys())}")
+            logger.info(f"User info in session: {request.session.get('user_info', 'None')}")
+            logger.info(f"Cookie mod_auth_openidc_session: {request.COOKIES.get('mod_auth_openidc_session', 'None')[:20]}...")
+            
+            # Check if we have user_info but not user (middleware might not have run yet)
+            if request.session.get('user_info'):
+                logger.info("Found user_info but not user - attempting to create user session")
+                # Try to trigger session creation by accessing a protected endpoint
+                # This is a workaround for the middleware not being triggered properly
+                from backend.middlewares.authentication import AuthenticationMiddleware
+                auth_middleware = AuthenticationMiddleware(lambda r: None)
+                auth_middleware.user_info = request.session.get('user_info')
+                if auth_middleware.createSession(request):
+                    logger.info("Successfully created user session")
+                    # Continue with the flow
+                else:
+                    logger.error("Failed to create user session")
+                    return render(request, 'telegram_auth_error.html', {
+                        'message': 'Failed to create authentication session. Please try again from Telegram.'
+                    })
+            else:
+                return render(request, 'telegram_auth_error.html', {
+                    'message': 'Authentication session not found. Please close this window and try again from Telegram.'
+                })
+        
+        # Validate the session has a valid OAuth user
+        user_data = request.session.get('user', {})
+        user_id = user_data.get('user_id')
+        if user_id:
+            from backend.models import OIDCAccount
+            try:
+                OIDCAccount.objects.get(user_id=user_id)
+                logger.info(f"OAuth validation successful for user_id {user_id}")
+            except OIDCAccount.DoesNotExist:
+                logger.error(f"Session exists but no OIDCAccount for user_id {user_id}")
+                return render(request, 'telegram_auth_error.html', {
+                    'message': 'Invalid authentication session. Please close this window and try again from Telegram.'
+                })
+        else:
+            logger.error("No user_id in session")
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Invalid session data. Please close this window and try again from Telegram.'
+            })
+        
+        # Import here to avoid circular import
+        from backend.ee.modules.notification.views import complete_telegram_auth
+        
+        # Complete the Telegram authentication
+        result = complete_telegram_auth(request, telegram_token)
+        if isinstance(result, tuple):
+            success, reactivated_count = result
+        else:
+            # Backward compatibility if function returns just boolean
+            success = result
+            reactivated_count = 0
+        
+        if success:
+            # No session cleanup needed since we don't store tokens in session anymore
+            
+            # Send success notification to Telegram
+            _send_telegram_auth_success_notification(
+                user_link.chat_id,
+                request.session.get('user', {}),
+                reactivated_count
+            )
+            
+            return render(request, 'telegram_auth_success.html', {
+                'message': 'Authentication successful! You can now close this window and return to Telegram.',
+                'user_name': request.session.get('user', {}).get('name', 'User'),
+                'user_email': request.session.get('user', {}).get('email', ''),
+                'reactivated_count': reactivated_count
+            })
+        else:
+            return render(request, 'telegram_auth_error.html', {
+                'message': 'Authentication failed. Please try again from Telegram.'
+            })
+            
+    except Exception as e:
+        logger.error(f"Error in telegram_auth_complete: {str(e)}")
+        logger.exception(e)  # Full stack trace
+        return render(request, 'telegram_auth_error.html', {
+            'message': 'An error occurred during authentication. Please try again.'
+        })
+
+
+def telegram_auth_success(request):
+    """
+    Success page after Telegram authentication is completed.
+    """
+    return render(request, 'telegram_auth_success.html', {
+        'message': 'Your Telegram account has been successfully linked!',
+        'user_name': request.session.get('user', {}).get('name', 'User'),
+        'user_email': request.session.get('user', {}).get('email', ''),
+        'reactivated_count': 0
+    })
 
 
 """ def Screenshot(request, screenshot_name):
@@ -852,7 +1161,6 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
 
     return features
 
-
 # Checks if the selected browser is valid using the array of available browsers
 # for the selected cloud, it also tries to repair the selected browser object
 def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
@@ -963,11 +1271,38 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     if feature.department_id not in userDepartments:
         return {'success': False, 'error': 'Provided Feature ID does not exist..'}
 
+    browsers_provided_by_datadriven = [v for v in additional_variables if v['variable_name'] == 'co_browser']
+
+    if len(browsers_provided_by_datadriven) > 0:
+        browser_and_version = browsers_provided_by_datadriven[0].get('variable_value').split(':')
+        if len(browser_and_version) == 2:
+            browser = browser_and_version[0]
+            version = browser_and_version[1]
+        else:
+            browser = browser_and_version[0]
+            version = "latest"
+
+        # set default browsers for the feature
+        feature.browsers =  [
+            {
+                "os": "Generic",
+                "cloud": "local",
+                "device": None,
+                "browser": browser,
+                "os_version": "Selenium",
+                "real_mobile": False,
+                "browser_version": version,
+                "selectedTimeZone": "Etc/UTC"
+            }
+        ] 
+        logger.info(f"Feature {feature.feature_id} will be run with browsers provided by datadriven settings \n {json.dumps(feature.browsers, indent=4)} ")
+
+    # check if feature has any browsers
     if len(feature.browsers) == 0:
-        return JsonResponse({
+        return {
             'success': False,
             'error': 'No browsers selected.'
-        }, status=400)
+        }
 
     # Verify access to submitted browsers
     try:
@@ -1009,7 +1344,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                     return {'success': False, 'error': str(err)}
 
     # create a run id for the executed test
-    date_time = datetime.datetime.utcnow()
+    date_time = timezone.now()
     fRun = Feature_Runs(feature=feature, date_time=date_time)
     fRun.save()
 
@@ -1017,18 +1352,24 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         get_feature_browsers = getFeatureBrowsers(feature)
 
     except Exception as err:
-        return JsonResponse({
+        return {
             'success': False,
             'error': str(err)
-        }, status=400)
+        }
 
     # update feature info
     feature.info = fRun
 
-    # Make sure feature files exists
-    steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-    feature.save(steps=list(steps))
-    json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
+    # # Make sure feature files exist - only create if missing to prevent step duplication
+    # feature_path = get_feature_path(feature)['fullPath']
+    # if not os.path.exists(feature_path + '.feature'):
+    #     logger.info(f"Feature files missing for {feature_id}, creating them...")
+    #     steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+    #     feature.save(steps=list(steps))
+    # else:
+    #     # Files exist, just save feature metadata without regenerating steps
+    #     feature.save(dontSaveSteps=True)
+    # json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
     frs = []
@@ -1057,7 +1398,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             # create a feature_result
             feature_result = Feature_result(
                 feature_id_id=feature.feature_id,
-                result_date=datetime.datetime.utcnow(),
+                result_date=timezone.now(),
                 run_hash=run_hash,
                 running=True,
                 network_logging_enabled = feature.network_logging,
@@ -1108,11 +1449,28 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # user data
     user = request.session['user']
 
+    # Check if this is a telegram execution and include notification info
+    telegram_notification_data = {}
+    cometa_origin = request.META.get('HTTP_COMETA_ORIGIN', '')
+    logger.debug(f"HTTP_COMETA_ORIGIN: {cometa_origin}")
+    
+    if cometa_origin == 'TELEGRAM':
+        telegram_chat_id = request.META.get('HTTP_TELEGRAM_CHAT_ID')
+        logger.info(f"Telegram execution detected! Chat ID: {telegram_chat_id}")
+        if telegram_chat_id:
+            telegram_notification_data = {
+                'telegram_chat_id': telegram_chat_id,
+                'telegram_user_id': user['user_id'],
+                'notify_on_completion': True
+            }
+            logger.info(f"Telegram notification data prepared for feature {feature.feature_id}, chat_id: {telegram_chat_id}")
+    
     datum = {
-        'json_path': json_path,
         'feature_run': fRun.run_id,
         'HTTP_PROXY_USER': json.dumps(user),
         'HTTP_X_SERVER': request.META.get("HTTP_X_SERVER", "none"),
+        'HTTP_COMETA_ORIGIN': request.META.get("HTTP_COMETA_ORIGIN", ""),
+        'telegram_notification': json.dumps(telegram_notification_data) if telegram_notification_data else "{}",
         "variables": json.dumps(additional_variables),
         "browsers": json.dumps(executions),
         "feature_id": feature.feature_id,
@@ -1131,6 +1489,30 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         }
     except Exception as e:
         return {'success': False, 'error': str(e)}
+
+@csrf_exempt
+@require_permissions("run_feature")
+def generateFeatureFile(request, *args, **kwargs):
+    # This api method should be called from behave container to make sure that feature file is generated
+    # Before running the test, because housekeeping running in behave after test cleans the feature test files
+    # Useful when running the the parallel tests in datadriven
+
+    # Verify body can be parsed as JSON
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Unable to parse request body.'})
+    try:
+        feature_id = data.get('feature_id', None)
+        feature_result_id = data.get('feature_result_id', None)
+        feature = Feature.objects.get(pk=feature_id)
+        # generate feature file, kwargs is empty as we are not passing any steps
+        response = generate_feature_test_file_and_save_steps(feature=feature, kwargs={'save_steps': False}, new_feature=True, feature_result_id=feature_result_id)
+        return JsonResponse(response, status=200 if response.get("success") else 400)
+    except Feature.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Feature not found.'}, status=400)
+    except Exception as err:
+        return JsonResponse({'success': False, 'error': str(err)}, status=500)
 
 
 @csrf_exempt
@@ -1184,6 +1566,7 @@ def GetSteps(request, feature_id):
 @csrf_exempt
 def GetInfo(request):
     return JsonResponse({'version': version})
+
 
 
 @csrf_exempt
@@ -1874,7 +2257,7 @@ class AccountViewset(viewsets.ModelViewSet):
                                          'error': 'You do not have permissions to set higher role than your current role.'},
                                         status=403)
             if 'departments' in data and not kwargs['usersOwn']:
-                Account_role.objects.filter(user=user_id).delete()
+                Account_role.objects.filter(user_id=user_id).delete()
                 for department in data['departments']:
                     department = Department.objects.filter(department_id=department)[0]
                     Account_role.objects.create(
@@ -2695,7 +3078,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             generate_dataset=request.data.get('generate_dataset', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
-            last_edited_date=datetime.datetime.utcnow(),
+            last_edited_date=timezone.now(),
             created_by_id=request.session['user']['user_id']
         )
  
@@ -2757,7 +3140,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Retrieve feature model fields
         fields = feature._meta.get_fields()
         # Make some exceptions
-        exceptions = ['feature_id', 'schedule', 'telegram_options']
+        exceptions = ['feature_id', 'schedule', 'telegram_options', 'created_by_id']
         # Iterate over each field of model
         for field in fields:
             # Check if the field exists in data payload
@@ -2772,7 +3155,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Update last edited fields
         """
         feature.last_edited_id = request.session['user']['user_id']
-        feature.last_edited_date = datetime.datetime.utcnow()
+        feature.last_edited_date = timezone.now()
+
+        """
+        Set created_by for new features
+        """
+        if int(featureId) == 0:  # New feature or clone
+            feature.created_by_id = request.session['user']['user_id']
 
         """
         Save submitted feature steps
@@ -2782,10 +3171,10 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save with steps
             steps = data['steps']['steps_content'] or []
             feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps)
+            result = feature.save(steps=steps, backup_feature_info=True)
         else:
             # Save without steps
-            result = feature.save()  
+            result = feature.save(backup_feature_info=True)  
 
         # Only process telegram_options if feature save was successful and feature exists in database
         if result['success'] and 'telegram_options' in data and feature.feature_id is not None:
@@ -4332,3 +4721,179 @@ def ValidateCron(request, *args, **kwargs):
             'valid': False,
             'error': str(err)
         })
+
+# ========================= NEW: Schedule for Data-Driven Files =============================
+
+def schedule_update_file(file_id: int, schedule: str, user_id: int, original_cron: str = None, original_timezone: str = None):
+    """Create or update a schedule entry for a data-driven file.
+
+    This mimics schedule_update() but stores the file_id inside Schedule.parameters.
+    """
+    # Remove any existing schedules for this file (soft approach: delete)
+    Schedule.objects.filter(parameters__file_id=file_id).delete()
+
+    if schedule and schedule.lower() not in ("now",):
+        logger.info(f"Creating new data-driven schedule for file {file_id} – schedule '{schedule}' (orig tz={original_timezone})")
+        new_schedule = Schedule.objects.create(
+            feature=None,
+            parameters={"file_id": file_id},
+            schedule=schedule,
+            original_cron=original_cron,
+            original_timezone=original_timezone,
+            owner_id=user_id,
+            delete_after_days=0,
+        )
+        return new_schedule
+    else:
+        # schedule is disabled / empty – nothing else to do
+        logger.info(f"Disabled schedule for data-driven file {file_id} (input schedule string: '{schedule}').")
+        return None
+
+
+@csrf_exempt
+@require_permissions('edit_feature')
+def UpdateFileSchedule(request, file_id, *args, **kwargs):
+    """HTTP handler to get/create/update schedules for data-driven files."""
+    
+    # Validate file exists and user has access
+    try:
+        user_departments = GetUserDepartments(request)
+        _ = File.all_objects.get(pk=file_id, department_id__in=user_departments)
+    except File.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'File not found or access denied.'})
+
+    if request.method == 'GET':
+        # Get existing schedule for the file
+        try:
+            schedule_obj = Schedule.objects.get(parameters__file_id=file_id)
+            return JsonResponse({
+                'success': True,
+                'schedule': schedule_obj.original_cron or schedule_obj.schedule,
+                'original_cron': schedule_obj.original_cron,
+                'original_timezone': schedule_obj.original_timezone
+            })
+        except Schedule.DoesNotExist:
+            return JsonResponse({
+                'success': True,
+                'schedule': '',
+                'original_cron': None,
+                'original_timezone': None
+            })
+    
+    elif request.method in ['POST', 'PATCH']:
+        # Update/create schedule
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON payload.'})
+
+        schedule = data.get('schedule', None)
+        if schedule is None:
+            return JsonResponse({'success': False, 'error': 'Schedule not provided.'})
+
+        original_cron = schedule
+        original_timezone = data.get('original_timezone', None)
+        schedule_to_store = schedule
+
+        # Convert to UTC if timezone provided
+        if original_timezone and original_cron:
+            converted = convert_cron_to_utc(original_cron, original_timezone)
+            if converted is not None:
+                schedule_to_store = converted
+
+        try:
+            schedule_update_file(
+                file_id=file_id,
+                schedule=schedule_to_store,
+                user_id=request.session['user']['user_id'],
+                original_cron=original_cron,
+                original_timezone=original_timezone,
+            )
+        except Exception as err:
+            logger.exception(err)
+            return JsonResponse({'success': False, 'error': str(err)})
+
+        return JsonResponse({'success': True})
+    
+    else:
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
+
+
+@csrf_exempt
+def GetBulkFileSchedules(request):
+    """HTTP handler to get schedule data for multiple files at once."""
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=200)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON payload.'})
+    
+    file_ids = data.get('file_ids', [])
+    if not file_ids or not isinstance(file_ids, list):
+        return JsonResponse({'success': False, 'error': 'file_ids must be a non-empty list.'})
+    
+    # Validate user has access to all files
+    try:
+        user_departments = GetUserDepartments(request)
+        accessible_files = File.all_objects.filter(
+            pk__in=file_ids, 
+            department_id__in=user_departments
+        ).values_list('id', flat=True)
+        
+        # Check if all requested files are accessible
+        inaccessible_files = set(file_ids) - set(accessible_files)
+        if inaccessible_files:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Access denied to files: {list(inaccessible_files)}'
+            })
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({'success': False, 'error': 'Error validating file access.'})
+    
+    # Get schedule data for all accessible files
+    try:
+        # Convert file_ids to strings since they're stored as strings in the JSON field
+        file_ids_as_strings = [str(file_id) for file_id in file_ids]
+        
+        # Query for schedules using Django ORM
+        schedules = Schedule.objects.filter(
+            parameters__file_id__in=file_ids_as_strings
+        ).values(
+            'parameters__file_id',
+            'schedule',
+            'original_cron',
+            'original_timezone'
+        )
+        
+        # Create a mapping of file_id to schedule data
+        schedule_data = {}
+        for schedule in schedules:
+            file_id = schedule['parameters__file_id']
+            schedule_data[file_id] = {
+                'schedule': schedule['original_cron'] or schedule['schedule'],
+                'original_cron': schedule['original_cron'],
+                'original_timezone': schedule['original_timezone']
+            }
+        
+        # Add empty entries for files without schedules
+        for file_id in file_ids:
+            file_id_str = str(file_id)  # Convert to string to match database keys
+            if file_id_str not in schedule_data:
+                schedule_data[file_id_str] = {
+                    'schedule': '',
+                    'original_cron': None,
+                    'original_timezone': None
+                }
+        
+        return JsonResponse({
+            'success': True,
+            'schedules': schedule_data
+        })
+        
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({'success': False, 'error': 'Error retrieving schedule data.'})

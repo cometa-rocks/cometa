@@ -26,7 +26,7 @@
         </mat-form-field>
         
         <mat-form-field appearance="fill" class="edit-file" *ngIf="department?.files">
-          <mat-label>File Filter</mat-label>
+          <mat-label>Test Results by File Filter</mat-label>
           <mat-select
             [(value)]="displayFilterValue"
             (selectionChange)="onFilterSelectionChange($event)">
@@ -71,7 +71,8 @@
     (fileExecute)="onFileExecute($event)"
     (panelToggled)="onFilePanelToggled($event)"
     (paginationChanged)="onFilePaginationChanged($event)"
-    (searchFocusChange)="onSearchFocusChanged($event)">
+    (searchFocusChange)="onSearchFocusChanged($event)"
+    (scheduleDataUpdated)="onScheduleDataUpdated($event)">
   </app-files-management>
 
   <!-- Results Panel -->
@@ -129,22 +130,29 @@
   <div class="cell status">
     <!-- Running state -->
     <div>
-      <div class="status-box running" stopPropagation *ngIf="row.running; else checkPassed">
+      <div class="status-box running" stopPropagation *ngIf="row.running && row.status !== 'Queued'; else checkQueued">
         Running
       </div>
       
-      <ng-template #checkPassed>
-        <!-- Passed state -->
-        <div class="status-box passed" stopPropagation *ngIf="row.status === 'Success' || row.status === 'Passed'; else failed">
-      Passed
-    </div>
+      <ng-template #checkQueued>
+        <!-- Queued state -->
+        <div class="status-box queued" stopPropagation *ngIf="row.status === 'Queued'; else checkPassed">
+          Queued
+        </div>
         
-        <!-- Failed state -->
-    <ng-template #failed>
-          <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">
-            {{ row.status || 'Failed' }}
-      </div>
-    </ng-template>
+        <ng-template #checkPassed>
+          <!-- Passed state -->
+          <div class="status-box passed" stopPropagation *ngIf="row.status === 'Success' || row.status === 'Passed'; else failed">
+            Passed
+          </div>
+          
+          <!-- Failed state -->
+          <ng-template #failed>
+            <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">
+              {{ row.status || 'Failed' }}
+            </div>
+          </ng-template>
+        </ng-template>
       </ng-template>
     </div>
     

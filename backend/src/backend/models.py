@@ -59,7 +59,7 @@ variable_base = (
 # utility functions
 
 
-def get_feature_path(feature):
+def get_feature_path(feature, feature_result_id=""):
     """
     Returns the store path for the given feature meta and steps files
     """
@@ -75,8 +75,12 @@ def get_feature_path(feature):
     os.makedirs(path + 'junit_reports',exist_ok=True)
     os.makedirs(path + 'metrics',exist_ok=True)
 
-    # Create the filename
-    featureFileName = str(feature.feature_id)+'_'+feature.slug
+    if len(feature_result_id) > 0:
+        # Create the filename   
+        featureFileName = str(feature.feature_id)+'_'+str(feature_result_id)+'_'+feature.slug
+    else:
+        # Create the filename
+        featureFileName = str(feature.feature_id)+'_'+feature.slug
     
     # Create full path
     fullpath = path + "features/" + featureFileName
@@ -283,130 +287,159 @@ def checkLoop(step):
 # @param featureFileName: string - Contains file of the feature
 # @param steps: Array - Array of the steps definition
 # @param feature_id: Feature - Info of the feature
-def create_feature_file(feature, steps, featureFileName):
-    logger.debug(f"Creating feature file {featureFileName}")
-    with open(featureFileName+'.feature', 'w+') as featureFile:
-        featureFile.write('Feature: '+feature.feature_name+'\n\n')
-        logger.debug("Feature name added to file")
-        # save the steps to save to database before removing old steps
-        stepsToAdd = []
+def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True):
+    # check if feature lock file exists
+    feature_lock_file_path = featureFilePathWithName+'.feature.lock'
+    # check if file 20 seconds old then delete it
+    if os.path.exists(feature_lock_file_path):
+        if os.path.getmtime(feature_lock_file_path) < time.time() - 20:
+            os.remove(feature_lock_file_path)
 
-        featureFile.write('\tScenario: First')
-        logger.debug(f"Checking steps : Steps Length {len(steps)}")
-        count = 1
-        analyzed_features = []
-        for step in steps:
-            # Comment this debugging
-            # logger.debug(f"{count} Checking Step {step}")
-            count+=1
-            # check if for some reason substeps are sent us from front and ignore them
-            if "step_type" in step and step['step_type'] == "substep":
-                continue
-            # remove the step type before adding it to the stepsToAdd to avoid old feature to show wrong steps
-            step['step_type'] = None
-            # add current step to the list to be added to the database
-            stepsToAdd.append(step)
-            # check if step is set to enabled
-            if step['enabled'] == True:
-                # remove belongs to from step
-                step.pop('belongs_to', None)
-                # check if current feature is a sub feature execution
-                subFeature = re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content'])
-                # check if its a loop related step
-                result = checkLoop(step)
-                if not result['success']:
-                    return result
-                if subFeature:
-                    try:
-                        recursive_step_level = 0
-                        logger.debug(f"Sending feature length  {len(analyzed_features)} ")
-                        # get recursive steps from the sub feature
-                        subSteps, analyzed_features = recursiveSubSteps([step], [feature.feature_id], analyzed_features, feature.department_id, recursive_step_level)
-                        logger.debug(f"Analyzed feature length  {len(analyzed_features)} ")
-                    except Exception as error:
-                        return {"success": False, "error": str(error)}
-                    # otherwise loop over substeps
-                    for subStep in subSteps:
-                        # check if substep is enabled
-                        if subStep['enabled']:
-                            # check if its a loop related step
-                            subResult = checkLoop(subStep)
-                            if not subResult['success']:
-                                return subResult
-                            subStep['step_type'] = "substep"
-                            # add the substep found in substep
-                            stepsToAdd.append(subStep)
-                            # save to the file
-                            add_step_to_feature_file(subStep, featureFile)
-                else:
-                    # if enabled and not a sub feature execution add to the file
-                    add_step_to_feature_file(step, featureFile)
-        featureFile.write('\n')
-        
-        logger.debug("Step checks completed")
+    if os.path.exists(feature_lock_file_path):
+        return {"success": True, "message": "Feature file is already being created. Please try again later."}
     
-    from django.db import IntegrityError, transaction
+    feature_file_path = featureFilePathWithName+'.feature'
+    feature_file_lock_path = featureFilePathWithName+'.feature.lock'
+
     try:
-        with transaction.atomic():
-            # delete all the steps from the database 
-            Step.objects.filter(feature_id=feature.feature_id).delete()
-            # gather all the variables found during the save steps
-            variables_used = []
+        logger.debug(f"Creating feature file {feature_file_lock_path}")
+        with open(feature_file_lock_path, 'w+') as featureFile:
+            featureFile.write('Feature: '+feature.feature_name+'\n\n')
+            logger.debug("Feature name added to file")
+            # save the steps to save to database before removing old steps
+            stepsToAdd = []
 
-            # save all the steps found in stepsToAdd to the database
-            logger.debug(f"Preparing steps to add | Steps Length {len(stepsToAdd)}")
+            featureFile.write('\tScenario: First')
+            logger.debug(f"Checking steps : Steps Length {len(steps)}")
             count = 1
-            for step in stepsToAdd:
+            analyzed_features = []
+            for step in steps:
                 # Comment this debugging
-                # logger.debug(f"{count} Processing Step {step}")
+                # logger.debug(f"{count} Checking Step {step}")
                 count+=1
-                if step.get("step_type", None) == None:
-                    step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
-                    # check if step contains a variable
-                    regexPattern = r'\$(?P<var_name_one>.+?\b)|variable "(?P<var_name_two>.+?\b)|save .+?to "(?P<var_name_three>.+?\b)'
-                    matches = re.findall(regexPattern, step['step_content'].replace('\\xa0', ' '))
-                    if matches: 
-                        for match in matches:
-                            # get the variable var_name
-                            variable_name = match[0] or match[1] or match[2]
-                            if variable_name:
-                                variables_used.append(variable_name)
+                # check if for some reason substeps are sent us from front and ignore them
+                if "step_type" in step and step['step_type'] == "substep":
+                    continue
+                # remove the step type before adding it to the stepsToAdd to avoid old feature to show wrong steps
+                step['step_type'] = None
+                # add current step to the list to be added to the database
+                stepsToAdd.append(step)
+                # check if step is set to enabled
+                if step['enabled'] == True:
+                    # remove belongs to from step
+                    step.pop('belongs_to', None)
+                    # check if current feature is a sub feature execution
+                    subFeature = re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content'])
+                    # check if its a loop related step
+                    result = checkLoop(step)
+                    if not result['success']:
+                        return result
+                    if subFeature:
+                        try:
+                            recursive_step_level = 0
+                            logger.debug(f"Sending feature length  {len(analyzed_features)} ")
+                            # get recursive steps from the sub feature
+                            subSteps, analyzed_features = recursiveSubSteps([step], [feature.feature_id], analyzed_features, feature.department_id, recursive_step_level)
+                            logger.debug(f"Analyzed feature length  {len(analyzed_features)} ")
+                        except Exception as error:
+                            return {"success": False, "error": str(error)}
+                        # otherwise loop over substeps
+                        for subStep in subSteps:
+                            # check if substep is enabled
+                            if subStep['enabled']:
+                                # check if its a loop related step
+                                subResult = checkLoop(subStep)
+                                if not subResult['success']:
+                                    return subResult
+                                subStep['step_type'] = "substep"
+                                # add the substep found in substep
+                                stepsToAdd.append(subStep)
+                                # save to the file
+                                add_step_to_feature_file(subStep, featureFile)
+                    else:
+                        # if enabled and not a sub feature execution add to the file
+                        add_step_to_feature_file(step, featureFile)
+            featureFile.write('\n')
+            logger.debug("Step checks completed")
+        
+        # While running test feature files is created that time we don't want to save steps to the database
+        # this is to avoid step duplication in the database, because multiple thread try to create feature files at same time
+        if True:
+            
+            from django.db import IntegrityError, transaction
+            try:
+                with transaction.atomic():
+                    # delete all the steps from the database 
+                    Step.objects.filter(feature_id=feature.feature_id).delete()
+                    # gather all the variables found during the save steps
+                    variables_used = []
 
-                # change sleep step timeout
-                sleep_match = re.findall(r'I (?:can )?sleep "(.*?)".*', step['step_content'].replace('\\xa0', ' '))
-                if sleep_match:
-                    try:
-                        step['timeout'] = int(sleep_match[0]) + 5
-                    except ValueError:
-                        # default timeout will be set later on
-                        pass
-                Step.objects.create(
-                    feature_id = feature.feature_id,
-                    step_keyword = step['step_keyword'],
-                    step_content = step['step_content'].replace('\\xa0', ' '),
-                    step_action = step['step_action'],
-                    enabled = step['enabled'],
-                    step_type = step['step_type'],
-                    screenshot = step['screenshot'],
-                    compare = step['compare'],
-                    continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
-                    belongs_to = step.get('belongs_to', feature.feature_id),
-                    timeout = step.get('timeout', 60)
-                )
+                    # save all the steps found in stepsToAdd to the database
+                    logger.debug(f"Preparing steps to add | Steps Length {len(stepsToAdd)}")
+                    count = 1
+                    for step in stepsToAdd:
+                        # Comment this debugging
+                        # logger.debug(f"{count} Processing Step {step}")
+                        count+=1
+                        if step.get("step_type", None) == None:
+                            step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
+                            # check if step contains a variable
+                            regexPattern = r'\$(?P<var_name_one>.+?\b)|variable "(?P<var_name_two>.+?\b)|save .+?to "(?P<var_name_three>.+?\b)'
+                            matches = re.findall(regexPattern, step['step_content'].replace('\\xa0', ' '))
+                            if matches: 
+                                for match in matches:
+                                    # get the variable var_name
+                                    variable_name = match[0] or match[1] or match[2]
+                                    if variable_name:
+                                        variables_used.append(variable_name)
 
-    except IntegrityError as e:
+                        # change sleep step timeout
+                        sleep_match = re.findall(r'I (?:can )?sleep "(.*?)".*', step['step_content'].replace('\\xa0', ' '))
+                        if sleep_match:
+                            try:
+                                step['timeout'] = int(sleep_match[0]) + 5
+                            except ValueError:
+                                # default timeout will be set later on
+                                pass
+                        Step.objects.create(
+                            feature_id = feature.feature_id,
+                            step_keyword = step['step_keyword'],
+                            step_content = step['step_content'].replace('\\xa0', ' '),
+                            step_action = step['step_action'],
+                            enabled = step['enabled'],
+                            step_type = step['step_type'],
+                            screenshot = step['screenshot'],
+                            compare = step['compare'],
+                            continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
+                            belongs_to = step.get('belongs_to', feature.feature_id),
+                            timeout = step.get('timeout', 60)
+                        )
+
+            except IntegrityError as e:
+                logger.debug(f"Exception while saving steps with transactions | Feature ID : {feature.feature_id}")
+                logger.exception(e)
+
+            logger.debug("Finding Variables")
+            # update all the variables
+            # get all the variable with this name and from same department as the current feature
+            vars = Variable.objects.filter(department_id=feature.department_id, variable_name__in=variables_used)
+            # reset variables used in the feature
+            logger.debug("Setting used variable in feature")
+            feature.variable_in_use.set(vars)
+
+        #move feature lock file to the feature file
+        logger.debug(f"Feature file {feature_file_lock_path} created successfully")
+        os.rename(feature_file_lock_path, feature_file_path)
+        return {"success": True,'feature_file_path': feature_file_path}
+    except Exception as e:
         logger.debug(f"Exception while saving steps with transactions | Feature ID : {feature.feature_id}")
         logger.exception(e)
-
-    logger.debug("Finding Variables")
-    # update all the variables
-    # get all the variable with this name and from same department as the current feature
-    vars = Variable.objects.filter(department_id=feature.department_id, variable_name__in=variables_used)
-    # reset variables used in the feature
-    logger.debug("Setting used variable in feature")
-    feature.variable_in_use.set(vars)
+        if os.path.exists(feature_file_lock_path):
+            os.remove(feature_file_lock_path)
+        return {"success": False, "error": str(e)}
+    
     # return success true
-    return {"success": True}
+    
 
 def write_multiline_javascript_step(featureFile, step):
     global insideLoop
@@ -443,16 +476,21 @@ def write_multiline_send_keys_step(featureFile, step):
 # @param featureFileName: string - Contains file of the feature
 # @param steps: Array - Array of the steps definition
 def create_json_file(feature, steps, featureFileName):
-    with open(featureFileName+'.json', 'w') as file:
+    json_file_path = featureFileName+'.json'
+    with open(json_file_path, 'w') as file:
         json.dump(steps, file)
+    return json_file_path
 
 # create_meta_file
 # Creates the _meta.json file
 # @param featureFileName: string - Contains file of the feature
 # @param feature: Feature - Information of the feature
 def create_meta_file(feature, featureFileName):
-    with open(featureFileName+'_meta.json', 'w') as file:
+    meta_file_path = featureFileName+'_meta.json'
+    with open(meta_file_path, 'w') as file:
         json.dump(model_to_dict(feature), file, default=str)
+    return meta_file_path
+    
 
 class SoftDeletableQuerySetMixin:
     """
@@ -661,8 +699,8 @@ class OIDCAccount(models.Model):
     name = models.CharField(max_length=250)
     email = models.EmailField(max_length=100)
     user_permissions = models.ForeignKey(Permissions, on_delete=models.SET_NULL, null=True, default=Permissions.get_default_permission)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    last_login = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    last_login = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     login_counter = models.IntegerField(default=0, help_text="+1 on each login.")
     favourite_browsers = models.JSONField(default=list, blank=True)
     settings = models.JSONField(default=dict, blank=True)
@@ -688,7 +726,7 @@ class Application(models.Model):
     app_id = models.AutoField(primary_key=True)
     app_name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     def __str__( self ):
         return u"Application_name = %s" % self.app_name
     def save(self, *args, **kwargs):
@@ -703,7 +741,7 @@ class Application(models.Model):
 class Environment(models.Model):
     environment_id = models.AutoField(primary_key=True)
     environment_name = models.CharField(max_length=100)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     def __str__( self ):
         return f"{self.environment_name} ({self.environment_id})"
     class Meta:
@@ -732,7 +770,7 @@ class Department(models.Model):
     department_name = models.CharField(max_length=100)
     slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
     settings = models.JSONField(default=dict, blank=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     readonly_fields = ('department_id',)
     def save(self, *args, **kwargs):
         self.slug = slugify(self.department_name)
@@ -793,8 +831,8 @@ class Feature(models.Model):
     browsers = models.JSONField(default=list)
     mobiles = models.JSONField(default=list)
     last_edited = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="last_edited")
-    last_edited_date = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    last_edited_date = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="created_by")
     send_mail = models.BooleanField(default=False)
     send_mail_on_error = models.BooleanField(default=False)
@@ -814,8 +852,10 @@ class Feature(models.Model):
     continue_on_failure = models.BooleanField(default=False)
     need_help = models.BooleanField(default=False)
     send_telegram_notification = models.BooleanField(default=False)
+    is_feature_file_being_created = models.BooleanField(default=False, blank=True, null=True)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
     readonly_fields=('feature_id',)
+
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
@@ -828,8 +868,11 @@ class Feature(models.Model):
         # create backup only if feature is being modified
         if self.feature_id is not None:
             new_feature = False
-            # Backup feature info before saving
-            backup_feature_info(self)
+
+            # We don't want to backup feature info if feature is being updated by backend api calls
+            # backup should only be created if feature is being created or modified by the user    
+            if kwargs.get('backup_feature_info', False)==True:
+                backup_feature_info(self)
             
 
         # save to get the feature_id in case it is a new feature
@@ -837,28 +880,11 @@ class Feature(models.Model):
 
         # Save feature except in FeatureResultSerializer
         if not kwargs.get('dontSaveSteps', False):
-            # get featureFileName
-            featureFileName = get_feature_path(self)['fullPath']
-            # Create / Update .feature and jsons whenever feature info is updated / created
-            steps = kwargs.get('steps', list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values()))
-            logger.debug(f"Saving steps received from Front: {steps}")
-            # Create .feature
-            response = create_feature_file(self, steps, featureFileName)
-            logger.debug("Feature file created")
-            # check if infinite loop was found
+
+            response = generate_feature_test_file_and_save_steps(self, kwargs, new_feature)
             if not response['success']:
-                if new_feature:
-                    logger.debug("Creation of feature was not success. Abort")
-                    self.delete()
-                return response # {"success": False, "error": "infinite loop found"}
+                return response
             
-            # Create .json
-            logger.debug(f"Creating Json file : {featureFileName}")
-            create_json_file(self, steps, featureFileName)
-            # Create _meta.json
-            logger.debug(f"Creating meta file : {featureFileName}")
-            create_meta_file(self, featureFileName)
-            logger.debug(f"meta file Created")
         return {"success": True}
     
     def delete(self, *args, **kwargs):
@@ -892,6 +918,37 @@ class Feature(models.Model):
         indexes = [
             models.Index(fields=['feature_name']),   
         ]
+
+def generate_feature_test_file_and_save_steps(feature, kwargs, new_feature, feature_result_id=""):
+    # get featureFileName
+    feature_dir_info = get_feature_path(feature, feature_result_id)
+    featureFilePathWithName = feature_dir_info['fullPath']
+    # Create / Update .feature and jsons whenever feature info is updated / created
+    steps = kwargs.get('steps', list(Step.objects.filter(feature_id=feature.feature_id).order_by('id').values()))
+    logger.debug(f"Saving steps received from Front: {steps}")
+    # Create .feature
+    # on success files_path  should contain feature_file_path and success=True
+    files_path = create_feature_file(feature, steps, featureFilePathWithName, save_steps=kwargs.get('save_steps', True))
+    logger.debug("Feature file created")
+    # check if infinite loop was found
+    if not files_path['success']:
+        if new_feature:
+            logger.debug("Creation of feature was not success. Abort")
+            feature.delete()
+        return files_path 
+    
+    # Create .json
+    logger.debug(f"Creating Json file : {featureFilePathWithName}")
+    files_path['json_file_path'] = create_json_file(feature, steps, featureFilePathWithName)
+    # Create _meta.json
+    logger.debug(f"Creating meta file : {featureFilePathWithName}")
+    files_path['meta_file_path'] = create_meta_file(feature, featureFilePathWithName)
+    logger.debug(f"meta file Created")
+    files_path['feature_name'] = feature_dir_info['featureFileName']
+    files_path['feature_folder_path'] = feature_dir_info['path']
+    # The feature_file_path is already set by create_feature_file function
+    return files_path
+
 
 class Feature_result(SoftDeletableModel):
     feature_result_id = models.AutoField(primary_key=True)
@@ -1115,7 +1172,7 @@ class Folder(models.Model):
     owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True) # will be removed once new settings has been settled. 
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
     parent_id = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name='child')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     def __str__( self ):
         return self.name
     class Meta:
@@ -1286,7 +1343,7 @@ class EnvironmentVariables(models.Model):
     variable_name = models.CharField(max_length=100, default=None, blank=False, null=False)
     variable_value = models.TextField()
     encrypted = models.BooleanField(default=False)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     
     class Meta:
         ordering = ['variable_name']
@@ -1304,11 +1361,11 @@ class Variable(models.Model):
     in_use = models.ManyToManyField(Feature, editable=False, related_name="variable_in_use")
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_owner", null=True)
     updated_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_modifier", null=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
-    updated_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
+    updated_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
     
     def save(self, *args, **kwargs):
-        self.updated_on = datetime.datetime.utcnow()
+        self.updated_on = timezone.now()
         return super(Variable, self).save(*args, **kwargs)
 
     class Meta:
@@ -1353,7 +1410,7 @@ class Invite(models.Model):
     issuer = models.ForeignKey(OIDCAccount, on_delete=models.CASCADE)
     code = models.CharField(max_length=255, default=None, blank=False, null=False, unique=True)
     departments = models.ManyToManyField(Department)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
 
     class Meta:
         ordering = ['id']
@@ -1369,7 +1426,7 @@ class Schedule(models.Model):
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
     owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)
     
@@ -1387,8 +1444,27 @@ class Schedule(models.Model):
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
         # create the command
         if self.command is None:
-            # self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
-            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            if self.feature is not None:
+                # Standard feature execution command
+                self.command = (
+                    "curl --silent --data '{\"feature_id\":%d, \"jobId\":<jobId>}' "
+                    "-H \"Content-Type: application/json\" -H \"COMETA-ORIGIN: CRONTAB\" "
+                    "-H \"COMETA-USER: %d\" -X POST %s/exectest/"
+                ) % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            elif self.parameters and isinstance(self.parameters, dict) and self.parameters.get('file_id'):
+                # Data-driven file execution command
+                raw_file_id = self.parameters['file_id']
+                try:
+                    file_id = int(raw_file_id)
+                except (TypeError, ValueError):
+                    raise Exception(f"Invalid file_id '{raw_file_id}' in schedule parameters; expected integer.")
+                self.command = (
+                    "curl --silent --data '{\"file_id\":%d, \"jobId\":<jobId>}' "
+                    "-H \"Content-Type: application/json\" -H \"COMETA-ORIGIN: CRONTAB\" "
+                    "-H \"COMETA-USER: %d\" -X POST %s/exec_data_driven/"
+                ) % (file_id, self.owner.user_id, get_cometa_backend_url())
+            else:
+                raise Exception("Schedule must be linked to a feature or contain 'file_id' parameter.")
         # create the comment
         if self.comment is None:
             self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
@@ -1429,7 +1505,7 @@ class Integration(models.Model):
     send_on = models.JSONField(default=dict)
     application = models.CharField(null=False, blank=False, max_length=255, choices=IntegrationApplications)
     active = models.BooleanField(default=True)
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
 
     class Meta:
         ordering = ['id']
@@ -1440,7 +1516,7 @@ class IntegrationPayload(models.Model):
     send_on = models.CharField(blank=False, null=False, max_length=255)
     application = models.CharField(null=False, blank=False, max_length=255, choices=IntegrationApplications)
     payload = models.TextField()
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False)
 
     class Meta:
         ordering = ['id']
@@ -1491,7 +1567,7 @@ class PaymentRequest(models.Model):
     stripe_session_id = models.CharField(blank=True, max_length=255, help_text='Session ID created with Stripe SDK for payment')
     status = models.CharField(null=False, max_length=50, blank=False, help_text='Current status of the Stripe Payment Request')
     error = models.TextField(null=True, blank=True, help_text='If there was an error during payment, it will appear here')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When the Payment Request was created')
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When the Payment Request was created')
 
     class Meta:
         ordering = ['-created_on']
@@ -1503,7 +1579,7 @@ class StripeWebhook(models.Model):
     event_type = models.CharField(blank=True, max_length=255, help_text='Type of event sended by Stripe')
     handled = models.BooleanField(default=False, help_text='True if there was a handler available for the event type and it was successful')
     event_json = models.JSONField(default=dict, blank=True, help_text='All the JSON info sended by Stripe')
-    received_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was received')
+    received_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When was received')
 
     class Meta:
         ordering = ['received_on']
@@ -1558,7 +1634,7 @@ class File(SoftDeletableModel):
     extras = models.JSONField(default=dict)
     column_order = models.JSONField(default=list, null=True, help_text='Original column order from the file')
     sheet_names = models.JSONField(default=list, null=True, blank=True, help_text='List of sheet names in the file')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
         # restore the file back to original state if exists
@@ -1588,7 +1664,7 @@ class FileData(SoftDeletableModel):
     data = models.JSONField(default=dict)
     extras = models.JSONField(default=dict)
     sheet = models.CharField(max_length=255, blank=True, null=True, help_text='Sheet name for Excel files')
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+    created_on = models.DateTimeField(default=timezone.now, editable=True, null=False, blank=False, help_text='When was created')
 
     class Meta:
         verbose_name_plural = "Files Data"

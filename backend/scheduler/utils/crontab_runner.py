@@ -6,17 +6,26 @@ from utils.curl_processor import parse_curl_command
 import requests
 import json
 from requests.exceptions import ConnectionError
+import traceback
 
 def get_schedules():
-    """Fetches scheduled tasks from a Django API and updates them in the scheduler."""
-    url = f"{get_django_server_url()}/api/schedule/"
-    response = requests.get(url)
+    try:
+        """Fetches scheduled tasks from a Django API and updates them in the scheduler."""
+        url = f"{get_django_server_url()}/api/schedule/"
+        response = requests.get(url)
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+        logger.error(f"Connection error while making HTTP request to Django server at {url}, maybe the server is starting up")
+        return []
+    except Exception as e:
+        logger.error(f"Failed to fetch schedules, {e}")
+        traceback.print_exc()
+        return []
 
     if response.status_code == 200:
         schedules = response.json().get('schedules', [])
         return schedules
     else:
-        print("Failed to fetch schedules:", response.text)
+        logger.error(f"Failed to fetch schedules: {response.text}")
         return []
 
 
@@ -34,9 +43,22 @@ def run_command(command: str):
             else:
                 request_body = None
 
+            # Enhanced logging for scheduled executions
+            is_data_driven = "/exec_data_driven/" in parsed_info['url']
+            is_feature = "/exectest/" in parsed_info['url']
+            
+            if is_data_driven:
+                file_id = request_body.get('file_id') if request_body else 'Unknown'
+                logger.info(f"[CRON SCHEDULER] Executing SCHEDULED DATA-DRIVEN test - File ID: {file_id}, URL: {parsed_info['url']}")
+            elif is_feature:
+                feature_id = request_body.get('feature_id') if request_body else 'Unknown'
+                logger.info(f"[CRON SCHEDULER] Executing SCHEDULED FEATURE test - Feature ID: {feature_id}, URL: {parsed_info['url']}")
+            else:
+                logger.info(f"[CRON SCHEDULER] Executing SCHEDULED command - URL: {parsed_info['url']}")
+
             try:
                 logger.info(
-                    f"Sending HTTP request to {parsed_info['url']}, Request Method : {parsed_info.get('method')}, Request body : {request_body}"
+                    f"[CRON SCHEDULER] Sending HTTP request to {parsed_info['url']}, Request Method : {parsed_info.get('method')}, Request body : {request_body}"
                 )
                 response = requests.request(
                     method=parsed_info.get("method"),
@@ -46,10 +68,16 @@ def run_command(command: str):
                 )
 
                 logger.info(
-                    f"Sent HTTP request to {parsed_info['url']}, Response status : {response.status_code}, Response body : {response.text}"
+                    f"[CRON SCHEDULER] HTTP response - URL: {parsed_info['url']}, Status: {response.status_code}, Body: {response.text}"
                 )
+                
+                if is_data_driven and response.status_code == 200:
+                    logger.info(f"[CRON SCHEDULER] Data-driven test started successfully for file {file_id}")
+                elif response.status_code != 200:
+                    logger.error(f"[CRON SCHEDULER] Failed to execute scheduled task - Status: {response.status_code}")
+                    
             except ConnectionError as e:
-                logger.exception("Exception while making HTTP request to Django server", exc_info=e)
+                logger.exception("[CRON SCHEDULER] Connection error while making HTTP request to Django server", exc_info=e)
 
         else:
             result = subprocess.run(command, shell=True, capture_output=True, text=True)

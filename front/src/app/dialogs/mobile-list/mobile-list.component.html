@@ -269,7 +269,9 @@
                           matTooltipPosition="after"
                           class="emulatorOptions"
                           mat-icon-button
-                          [matMenuTriggerFor]="emulatorOptions">
+                          [matMenuTriggerFor]="emulatorOptions"
+                          (menuOpened)="onMenuOpened()"
+                          (menuClosed)="onMenuClosed()">
                           <mat-icon>more_vert</mat-icon>
                         </button>
 
@@ -419,18 +421,18 @@
                             class="emulator-info">
                             <mat-icon
                               [matBadge]="runningContainer?.apk_file?.length"
-
                               class="get-app"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
-                              matTooltipPosition="above">
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              matTooltipPosition="above"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)">
                               file_download
                             </mat-icon>
                             <p
                               class="installedApp"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               matTooltipPosition="above">
                               Number installed Apps
-
                             </p>
                           </div>
                         </div>
@@ -552,7 +554,6 @@
                       <mat-menu #moreInfo="matMenu">
                         <mat-menu-item class="pop-up-info">
 
-
                           <mat-menu-item>
                             <i class="material-icons">info</i>
                             <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
@@ -572,6 +573,7 @@
                             <i class="material-icons">layers</i>
                             <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
                           </mat-menu-item>
+                          
                         </mat-menu-item>
                       </mat-menu>
                     </div>
@@ -614,10 +616,43 @@
 
       <div class="notDialog-landing">
 
+
         <div class="mobile-devices-header">
           <p>
             Found <span class="mobile-results"> {{ mobiles.length }} </span> mobile devices and <span class="mobile-results"> {{ sharedMobileContainers.length }} </span> shared mobile devices.
           </p>
+
+          <!-- Mobile list view selector -->
+          <div class="mobile-view-header">
+            <div class="view-selector">
+              <!-- Disabled tree view with working tooltip -->
+              <div
+                matRipple
+                matTooltip="Tree view is not available in this modality"
+                matTooltipPosition="above"
+                matTooltipClass="disabled-tooltip"
+                [matTooltipShowDelay]="500"
+                [matTooltipHideDelay]="0"
+                (click)="handleDisabledViewClick('tree')"
+                [class.selected]="mobileViewWith === 'tree'"
+                [class.disabled]="true"
+                class="tree view disabled-view">
+              </div>
+              <div
+                matRipple
+                (click)="setView('with', 'tiles')"
+                matTooltip="Tiles view"
+                [class.selected]="mobileViewWith === 'tiles'"
+                class="tiles view"></div>
+              <div
+                matRipple
+                (click)="setView('with', 'list')"
+                matTooltip="Table view"
+                [class.selected]="mobileViewWith === 'list'"
+                class="list view"></div>
+            </div>
+          </div>
+          
         </div>
 
         <div class="columns-button-wrapper">
@@ -655,14 +690,18 @@
         </div>
 
         <div class="not-dialog-scrollable-content" *ngIf="selectedDepartment">
-            <!-- <h2 mat-dialog-title>Mobile Devices</h2> -->
-            <!-- Available Devices -->
-            <div class="devices">
-              <!-- Mobile selection section -->
-              <div class="mobile-selector-box">
-                <div class="mobiles">
-                  <!-- Iterate over mobile containers list -->
-                  <div class="mobile" *ngFor="let mobile of mobiles">
+          <!-- <h2 mat-dialog-title>Mobile Devices</h2> -->
+          <!-- Available Devices -->
+          
+          <div class="devices">
+            <!-- Mobile selection section -->
+              
+              <!-- Mobile tiles view -->
+            <ng-container *ngIf="mobileViewWith === 'tiles'">
+                <div class="mobile-selector-box">
+                  <div class="mobiles">
+                    <!-- Iterate over mobile containers list -->
+                    <div class="mobile" *ngFor="let mobile of mobiles">
                     <div *ngLet="isThisMobileContainerRunning(mobile.mobile_id) as runningContainer">
                       <!-- In developement -->
                       <div class="container-buttons">
@@ -673,8 +712,7 @@
                             (click)="inspectMobile(runningContainer, mobile)"
                             mat-raised-button
                             class="start-stop-inpect-buttons"
-                            [disabled]="runningContainer.isTerminating"
-
+                            [disabled]="runningContainer.isTerminating || isInspectingMobile"
                             [matTooltip]="'mobile_list.inspect_emulator' | translate" matTooltipPosition="above">
                             <span class="inspect-text">Inspect</span>
                             <i class="material-icons icon-on-hover">visibility</i>
@@ -790,7 +828,9 @@
                           matTooltipPosition="after"
                           class="emulatorOptions"
                           mat-icon-button
-                          [matMenuTriggerFor]="emulatorOptions">
+                          [matMenuTriggerFor]="emulatorOptions"
+                          (menuOpened)="onMenuOpened()"
+                          (menuClosed)="onMenuClosed()">
                           <mat-icon>more_vert</mat-icon>
                         </button>
 
@@ -941,13 +981,15 @@
                             <mat-icon
                               [matBadge]="runningContainer?.apk_file?.length"
                               class="get-app"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               matTooltipPosition="above">
                               file_download
                             </mat-icon>
                             <p
                               class="installedApp"
-                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              [matTooltip]="hasInstalledApks(runningContainer) ? getApkTooltipText(runningContainer) : ''"
+                              [matTooltipDisabled]="!hasInstalledApks(runningContainer)"
                               matTooltipPosition="above">
                               Number installed Apps
 
@@ -973,142 +1015,564 @@
                   </div>
                 </div>
 
+                <!-- Shared Mobile Devices Section (only in tiles view) -->
+                <ng-container class="shared-mobile-section">
+                  <div class="dialog-header">
+                    <h3 class="not-dialog-title">Shared Mobile Devices</h3>
+                  </div>
+                  <div class="mobiles">
+                    <!-- Iterate over shared containers list -->
+                    <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackBySharedContainerId">
+                      <div *ngLet="container.service_status == 'Running' as isRunning">
+                        <!-- Shared device details -->
+                        <div class="mobile-details-shared">
+                          <!-- <h4>Shared Device Information</h4>
+                          <mat-divider></mat-divider> -->
+                          <div class="container-buttons-shared">
+                            <div
+                              class="container-novnc-left-shared">
+                              <div
+                                (click)="noVNCMobile(container, mobile)"
+                                mat-raised-button
+                                class="start-stop-inpect-buttons"
+                                [disabled]="container.service_status !== 'Running'"
+                                [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
+                                matTooltipPosition="above">
+                                <span class="inspect-text">noVNC</span>
+                                <i class="material-icons icon-on-hover">visibility</i>
+                              </div>
+                              <div class="hideShadow"></div>
+                            </div>
 
+                            <div
+                              class="container-inspect-left-shared">
+                              <div
+                                (click)="inspectMobile(container, container.image)"
+                                mat-raised-button
+                                class="start-stop-inpect-buttons"
+                                [disabled]="container.service_status !== 'Running'"
+                                [matTooltip]="'mobile_list.inspect_emulator_shared' | translate"
+                                matTooltipPosition="above">
+                                <span class="inspect-text">Inspect</span>
+                                <i class="material-icons icon-on-hover">visibility</i>
+                              </div>
+                              <div class="hideShadow"></div>
+                            </div>
+                          </div>
+                          <div class="mobile-information-shared">
+                            <div class="emulator-info">
+                              <i class="material-icons">adb</i>
+                              <strong>Mobile Name:</strong>
+                              {{ container.image.mobile_image_name }}
+                              <i
+                                (click)="importClipboard(container.image.mobile_image_name)"
+                                [ngClass]="{ active: isIconActive[container.image.mobile_image_name] }"
+                                class="material-icons copyClipboardIcon"
+                                [color]="isIconActive[container.image.mobile_image_name] ? 'primary' : ''">
+                                content_copy
+                              </i>
+                            </div>
+                            <div class="emulator-info">
+                              <i class="material-icons">code</i>
+                              <strong>Device Code:</strong>
+                              {{ container.hostname }}
+                              <i
+                                (click)="importClipboard(container.hostname)"
+                                [ngClass]="{ active: isIconActive }"
+                                class="material-icons copyClipboardIcon"
+                                [color]="isIconActive ? 'primary' : ''">
+                                content_copy
+                              </i>
+                            </div>
+                            <ng-container>
+                              <div class="status-container">
+                                <i class="material-icons">{{ isRunning ? 'check_circle' : 'highlight_off' }}</i>
+                                <strong>Status:</strong>
+                                <span [ngClass]="{ 'running-text': isRunning, 'stopped-text': !isRunning }">
+                                  {{ container.service_status}}
+                                </span>
+                                <span [ngClass]="{ 'running': isRunning, 'paused': !isRunning }" class="status-circle"></span>
+                              </div>
+                            </ng-container>
 
+                            <div class="emulator-info">
+                              <button
+                                class="moreInfoShared"
+                                matTooltip="Show more information"
+                                matTooltipPosition="above"
+                                mat-icon-button
+                                [matMenuTriggerFor]="moreInfo">
+                                <i class="material-icons">more_vert</i>
+                              </button>
+                              <strong class="moreInfoStrongShared">
+                                More information
+                              </strong>
+                            </div>
 
+                            <mat-menu #moreInfo="matMenu">
+                              <mat-menu-item class="pop-up-info">
+                                <mat-menu-item>
+                                  <i class="material-icons">info</i>
+                                  <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
+                                </mat-menu-item>
 
+                                <mat-menu-item>
+                                  <i class="material-icons">memory</i>
+                                  <strong>Architecture:</strong> {{ container.image.mobile_json.architecture }}
+                                </mat-menu-item>
+
+                                <mat-menu-item>
+                                  <i class="material-icons">phone_android</i>
+                                  <strong>Android Version:</strong> {{ container.image.mobile_json.android_version }}
+                                </mat-menu-item>
+
+                                <mat-menu-item>
+                                  <i class="material-icons">layers</i>
+                                  <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
+                                </mat-menu-item>
+                              </mat-menu-item>
+                            </mat-menu>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="created-by">
+                        <strong>Created by:</strong> {{ container.created_by_name }}
+                      </div>
+                    </div>
+                    <p *ngIf="sharedMobileContainers.length == 0" class="nonMobileShared">
+                      There are no shared mobiles available for you. You can ask your
+                      teammates to share their mobile emulators so you can collaborate on
+                      the same machine.
+                    </p>
+                  </div>
+                </ng-container>
+              </div>
+
+              <!-- </ng-container> -->             
+
+            </ng-container>
+
+             <!-- Mobile list view -->
+             <ng-container *ngIf="mobileViewWithLocal === 'list'">
+    
+              <!-- Mobile Devices Table -->
+              <div class="mobile-table-view">
+                <div class="table_container">
+                  <mtx-grid
+                    [data]="getMobileTableData()"
+                    [columns]="mobileTableColumns"
+                    [showToolbar]="true"
+                    [sortOnFront]="true"
+                    [sortDisableClear]="true"
+                    [sortDisabled]="false"
+                    [pageSize]="getMobileTableData().length >= 10 ? 25 : getMobileTableData().length"
+                    [multiSelectable]="multiSelectable"
+                    [rowSelectable]="rowSelectable"
+                    [columnHideable]="columnHideable"
+                    [columnHideableChecked]="columnHideableChecked"
+                    [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+                    [columnMovable]="columnMovable"
+                    [showColumnMenuHeader]="true"
+                    [columnMenuHeaderText]="'Columns Settings'"
+                    (columnChange)="saveMobileColumnSettings($event)"
+                    [cellTemplate]="{
+                      actions: actionsTpl,
+                      mobile_image_name: mobileNameTpl,
+                      deviceName: deviceNameTpl,
+                      android_version: androidVersionTpl,
+                      api_level: apiLevelTpl,
+                      architecture: architectureTpl,
+                      status: statusTpl,
+                      hostname: hostnameTpl,
+                      installedApps: installedAppsTpl,
+                      shared: sharedTpl,
+                      options: optionsTpl
+                    }"
+                    [pageSizeOptions]="getMobileTableData().length >= 10 ? [10, 25, 50, 100] : []">
+                  </mtx-grid>
+                </div>
+              </div>
+
+              <!-- Shared Mobile Devices Section for Table View -->
+              <div class="shared-mobile-section">
                 <div class="dialog-header">
                   <h3 class="not-dialog-title">Shared Mobile Devices</h3>
                 </div>
-                <div class="mobiles">
-                  <!-- Iterate over shared containers list -->
-                  <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackByContainerId">
-                    <div *ngLet="container.service_status == 'Running' as isRunning">
-                      <!-- Shared device details -->
-                      <div class="mobile-details-shared">
-                        <!-- <h4>Shared Device Information</h4>
-                        <mat-divider></mat-divider> -->
-                        <div class="container-buttons-shared">
-                          <div
-                            class="container-novnc-left-shared">
-                            <div
-                              (click)="noVNCMobile(container, mobile)"
-                              mat-raised-button
-                              class="start-stop-inpect-buttons"
-                              [disabled]="container.service_status !== 'Running'"
-                              [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
-                              matTooltipPosition="above">
-                              <span class="inspect-text">noVNC</span>
-                              <i class="material-icons icon-on-hover">visibility</i>
-                            </div>
-                            <div class="hideShadow"></div>
-                          </div>
-
-                          <div
-                            class="container-inspect-left-shared">
-                            <div
-                              (click)="inspectMobile(container, container.image)"
-                              mat-raised-button
-                              class="start-stop-inpect-buttons"
-                              [disabled]="container.service_status !== 'Running'"
-                              [matTooltip]="'mobile_list.inspect_emulator_shared' | translate"
-                              matTooltipPosition="above">
-                              <span class="inspect-text">Inspect</span>
-                              <i class="material-icons icon-on-hover">visibility</i>
-                            </div>
-                            <div class="hideShadow"></div>
-                          </div>
-                        </div>
-                        <div class="mobile-information-shared">
-                          <div class="emulator-info">
-                            <i class="material-icons">adb</i>
-                            <strong>Mobile Name:</strong>
-                            {{ container.image.mobile_image_name }}
-                            <i
-                              (click)="importClipboard(container.image.mobile_image_name)"
-                              [ngClass]="{ active: isIconActive[container.image.mobile_image_name] }"
-                              class="material-icons copyClipboardIcon"
-                              [color]="isIconActive[container.image.mobile_image_name] ? 'primary' : ''">
-                              content_copy
-                            </i>
-                          </div>
-                          <div class="emulator-info">
-                            <i class="material-icons">code</i>
-                            <strong>Device Code:</strong>
-                            {{ container.hostname }}
-                            <i
-                              (click)="importClipboard(container.hostname)"
-                              [ngClass]="{ active: isIconActive }"
-                              class="material-icons copyClipboardIcon"
-                              [color]="isIconActive ? 'primary' : ''">
-                              content_copy
-                            </i>
-                          </div>
-                          <ng-container>
-                            <div class="status-container">
-                              <i class="material-icons">{{ isRunning ? 'check_circle' : 'highlight_off' }}</i>
-                              <strong>Status:</strong>
-                              <span [ngClass]="{ 'running-text': isRunning, 'stopped-text': !isRunning }">
-                                {{ container.service_status}}
-                              </span>
-                              <span [ngClass]="{ 'running': isRunning, 'paused': !isRunning }" class="status-circle"></span>
-                            </div>
-                          </ng-container>
-
-                          <div class="emulator-info">
-                            <button
-                              class="moreInfoShared"
-                              matTooltip="Show more information"
-                              matTooltipPosition="above"
-                              mat-icon-button
-                              [matMenuTriggerFor]="moreInfo">
-                              <i class="material-icons">more_vert</i>
-                            </button>
-                            <strong class="moreInfoStrongShared">
-                              More information
-                            </strong>
-                          </div>
-
-                          <mat-menu #moreInfo="matMenu">
-                            <mat-menu-item class="pop-up-info">
-                              <mat-menu-item>
-                                <i class="material-icons">info</i>
-                                <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
-                              </mat-menu-item>
-
-                              <mat-menu-item>
-                                <i class="material-icons">memory</i>
-                                <strong>Architecture:</strong> {{ container.image.mobile_json.architecture }}
-                              </mat-menu-item>
-
-                              <mat-menu-item>
-                                <i class="material-icons">phone_android</i>
-                                <strong>Android Version:</strong> {{ container.image.mobile_json.android_version }}
-                              </mat-menu-item>
-
-                              <mat-menu-item>
-                                <i class="material-icons">layers</i>
-                                <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
-                              </mat-menu-item>
-                            </mat-menu-item>
-                          </mat-menu>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="created-by">
-                      <strong>Created by:</strong> {{ container.created_by_name }}
-                    </div>
+                <div class="mobile-table-view" *ngIf="sharedMobileContainers.length > 0">
+                  <div class="table_container">
+                    <mtx-grid
+                      [data]="getSharedMobileTableData()"
+                      [columns]="sharedMobileTableColumns"
+                      [showToolbar]="true"
+                      [sortOnFront]="true"
+                      [sortDisableClear]="true"
+                      [sortDisabled]="false"
+                      [pageSize]="getSharedMobileTableData().length >= 10 ? 25 : getSharedMobileTableData().length"
+                      [multiSelectable]="multiSelectable"
+                      [rowSelectable]="rowSelectable"
+                      [columnHideable]="columnHideable"
+                      [columnHideableChecked]="columnHideableChecked"
+                      [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+                      [columnMovable]="columnMovable"
+                      [showColumnMenuHeader]="true"
+                      [columnMenuHeaderText]="'Columns Settings'"
+                      (columnChange)="saveSharedMobileColumnSettings($event)"
+                      [cellTemplate]="{
+                        actions: sharedActionsTpl,
+                        mobile_image_name: sharedMobileNameTpl,
+                        deviceName: deviceNameTpl,
+                        android_version: androidVersionTpl,
+                        api_level: apiLevelTpl,
+                        architecture: architectureTpl,
+                        status: statusTpl,
+                        hostname: hostnameTpl,
+                        installedApps: installedAppsTpl,
+                        options: sharedOptionsTpl
+                      }"
+                      [pageSizeOptions]="getSharedMobileTableData().length >= 10 ? [10, 25, 50, 100] : []">
+                    </mtx-grid>
                   </div>
-                  <p *ngIf="sharedMobileContainers.length == 0" class="nonMobileShared">
-                    There are no shared mobiles available for you. You can ask your
-                    teammates to share their mobile emulators so you can collaborate on
-                    the same machine.
-                  </p>
                 </div>
+                <p *ngIf="sharedMobileContainers.length == 0" class="nonMobileSharedList">
+                  There are no shared mobiles available for you. You can ask your
+                  teammates to share their mobile emulators so you can collaborate on
+                  the same machine.
+                </p>
               </div>
-            </div>
+            </ng-container>
+
+          </div>
         </div>
       </div>
     </ng-template>
   </ng-template>
 </div>
+
+<!-- Table templates for mobile devices -->
+
+<!-- Actions column template -->
+<ng-template #actionsTpl let-row let-index="index" let-col="colDef">
+  <div class="table-actions">
+    <button
+      *ngIf="row.runningContainer"
+      (click)="noVNCMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [disabled]="isNoVNCMobile"
+      [matTooltip]="'mobile_list.inspect_novnc' | translate">
+      <div class="custom-mobile-arrow-icon">
+        <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+        <mat-icon class="arrow-icon">forward</mat-icon>
+      </div>
+    </button>
+
+    
+    <button
+      *ngIf="row.runningContainer"
+      (click)="inspectMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [disabled]="row.runningContainer.isTerminating || isInspectingMobile"
+      [matTooltip]="'mobile_list.inspect_emulator' | translate">
+      <mat-icon>developer_mode</mat-icon>
+    </button>
+    
+    
+    <button
+      *ngIf="!row.runningContainer"
+      (click)="startMobile(row.mobile_id)"
+      mat-icon-button
+      color="primary"
+      class="action-button start-button"
+      [disabled]="!selectedDepartment || !selectedDepartment.id || isStartingMobile"
+      [matTooltip]="'mobile_list.start_emulator' | translate">
+      <mat-icon>play_circle_filled</mat-icon>
+    </button>
+    
+    <button
+      *ngIf="row.runningContainer"
+      (click)="!row.runningContainer?.isTerminating && terminateMobile(row.runningContainer)"
+      mat-icon-button
+      color="warn"
+      class="action-button"
+      [disabled]="row.runningContainer?.isTerminating"
+      [ngClass]="{ 'spinner-active': row.runningContainer?.isTerminating }"
+      [matTooltip]="'mobile_list.close_emulator' | translate">
+      <ng-container *ngIf="!row.runningContainer?.isTerminating; else showSpinner">
+        <mat-icon>close</mat-icon>
+      </ng-container>
+      <ng-template #showSpinner>
+        <mat-spinner
+          class="spinner"
+          color="accent"
+          diameter="16">
+        </mat-spinner>
+      </ng-template>
+    </button>
+  </div>
+</ng-template>
+
+<!-- Mobile name column template -->
+<ng-template #mobileNameTpl let-row let-index="index" let-col="colDef">
+  <div class="mobile-name-cell">
+    <i class="material-icons mobile-icon">phone_android</i>
+    <span>{{ row.mobile_image_name }}</span>
+    <button
+      (click)="importClipboard(row.mobile_image_name)"
+      mat-icon-button
+      class="copy-button"
+      [matTooltip]="'Copy to clipboard'">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+  </div>
+</ng-template>
+
+<!-- Device name column template -->
+<ng-template #deviceNameTpl let-row let-index="index" let-col="colDef">
+  <div>{{ row.deviceName }}</div>
+</ng-template>
+
+<!-- Android version column template -->
+<ng-template #androidVersionTpl let-row let-index="index" let-col="colDef">
+  <div>{{ row.android_version }}</div>
+</ng-template>
+
+<!-- API level column template -->
+<ng-template #apiLevelTpl let-row let-index="index" let-col="colDef">
+  <div>{{ row.api_level }}</div>
+</ng-template>
+
+<!-- Architecture column template -->
+<ng-template #architectureTpl let-row let-index="index" let-col="colDef">
+  <div>{{ row.architecture }}</div>
+</ng-template>
+
+<!-- Status column template -->
+<ng-template #statusTpl let-row let-index="index" let-col="colDef">
+  <div class="status-cell">
+    <span class="status-badge" [ngClass]="{
+      'running': row.status === 'Running',
+      'stopped': row.status === 'Stopped',
+      'terminating': row.isTerminating
+    }">
+      <mat-icon *ngIf="row.status === 'Running'">check_circle</mat-icon>
+      <mat-icon *ngIf="row.status === 'Stopped'">pause_circle</mat-icon>
+      <mat-spinner *ngIf="row.isTerminating" diameter="16"></mat-spinner>
+      {{ row.status }}
+    </span>
+  </div>
+</ng-template>
+
+<!-- Hostname column template -->
+<ng-template #hostnameTpl let-row let-index="index" let-col="colDef">
+  <div class="hostname-cell">
+    <span>{{ row.hostname }}</span>
+    <button
+      *ngIf="row.hostname !== 'Click Start to see device code'"
+      (click)="importClipboard(row.hostname)"
+      mat-icon-button
+      class="copy-button"
+      [matTooltip]="'Copy to clipboard'">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+  </div>
+</ng-template>
+
+<!-- Installed apps column template -->
+<ng-template #installedAppsTpl let-row let-index="index" let-col="colDef">
+  <div class="installed-apps-cell" 
+  [matTooltip]="hasInstalledApks(row.runningContainer) ? getApkTooltipText(row.runningContainer) : ''"
+  [matTooltipDisabled]="!hasInstalledApks(row.runningContainer)">
+    <div
+      [matBadge]="row.installedApps"
+      class="apps-badge">
+    </div>
+  </div>
+</ng-template>
+
+<!-- Shared column template -->
+<ng-template #sharedTpl let-row let-index="index" let-col="colDef">
+  <div class="shared-cell">
+    <mat-slide-toggle
+      *ngIf="row.runningContainer"
+      [matTooltip]="(row.shared ? 'mobile_list.shared' : 'mobile_list.not_shared') | translate"
+      color="primary"
+      [disabled]="row.runningContainer?.isTerminating || (row.runningContainer?.service_status !== 'Running' && row.runningContainer?.service_status !== 'Stopped')"
+      (change)="updateSharedStatus({checked: $event.checked}, row, row.runningContainer).subscribe()"
+      [checked]="row.shared">
+    </mat-slide-toggle>
+    <span *ngIf="!row.runningContainer">-</span>
+  </div>
+</ng-template>
+
+<!-- Options column template -->
+<ng-template #optionsTpl let-row let-index="index" let-col="colDef">
+  <div class="options-cell">
+    <button
+      [matTooltip]="'mobile_list.emulator_options' | translate"
+      mat-icon-button
+      [matMenuTriggerFor]="emulatorOptions"
+      (menuOpened)="onMenuOpened()"
+      (menuClosed)="onMenuClosed()">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+
+    <mat-menu #emulatorOptions="matMenu">
+      <!-- Start -->
+      <button
+        (click)="startMobile(row.mobile_id)"
+        class="startMenu"
+        [disabled]="row.runningContainer"
+        [matTooltip]="'tooltips.run_feature' | translate"
+        mat-menu-item>
+        <mat-icon>play_circle_filled</mat-icon>
+        <span>Start</span>
+      </button>
+
+      <!-- Restart -->
+      <button
+        (click)="restartMobile(row.runningContainer)"
+        class="restartMenu"
+        [disabled]="!row.runningContainer || row.runningContainer?.service_status === 'Running' || row.runningContainer?.service_status === 'Restarting' || row.runningContainer?.service_status === 'Stopping'"
+        mat-menu-item>
+        <img class="iconImgRestart" alt="Not started icon" src="assets/not_started.svg">
+        <span>Restart</span>
+      </button>
+
+      <!-- Pause -->
+      <button
+        (click)="pauseMobile(row.runningContainer)"
+        class="pauseMenu"
+        [disabled]="!row.runningContainer || row.runningContainer?.service_status === 'Stopped' || row.runningContainer?.service_status === 'Stopping' || row.runningContainer?.service_status === 'Restarting'"
+        mat-menu-item>
+        <mat-icon>pause_circle_filled</mat-icon>
+        <span>Pause</span>
+      </button>
+
+      <mat-divider></mat-divider>
+
+      <!-- Modify -->
+      <button
+        [disabled]="row.runningContainer?.service_status !== 'Running'"
+        [matTooltip]="(row.runningContainer?.service_status !== 'Running' ? 'mobile_list.modify_emulator_not_started' : 'mobile_list.modify_emulator_started') | translate"
+        (click)="openModifyEmulatorDialog(row, row.runningContainer)"
+        class="modifyMenu"
+        mat-menu-item>
+        <mat-icon>edit</mat-icon>
+        <span>Modify</span>
+      </button>
+
+      <mat-divider></mat-divider>
+
+      <!-- Close -->
+      <button
+        (click)="terminateMobile(row.runningContainer)"
+        class="closeMenu"
+        [disabled]="!row.runningContainer"
+        mat-menu-item>
+        <mat-icon class="close-icon">cancel</mat-icon>
+        <span class="modifySpan">Close</span>
+      </button>
+    </mat-menu>
+  </div>
+</ng-template>
+
+<!-- Shared mobile table templates -->
+
+<!-- Shared Actions column template -->
+<ng-template #sharedActionsTpl let-row let-index="index" let-col="colDef">
+  <div class="table-actions">
+    <button
+      *ngIf="row.runningContainer"
+      (click)="noVNCMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [matTooltip]="'mobile_list.inspect_novnc' | translate">
+      <div class="custom-mobile-arrow-icon">
+        <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+        <mat-icon class="arrow-icon">forward</mat-icon>
+      </div>
+    </button>
+
+    <button
+      *ngIf="row.runningContainer"
+      (click)="inspectMobile(row.runningContainer, row)"
+      mat-icon-button
+      class="action-button"
+      [matTooltip]="'mobile_list.inspect_emulator' | translate">
+      <mat-icon>developer_mode</mat-icon>
+    </button>
+  </div>
+</ng-template>
+
+<!-- Shared Mobile name column template -->
+<ng-template #sharedMobileNameTpl let-row let-index="index" let-col="colDef">
+  <div class="mobile-name-cell">
+    <i class="material-icons mobile-icon">phone_android</i>
+    <span>{{ row.mobile_image_name }}</span>
+    <button
+      (click)="importClipboard(row.mobile_image_name)"
+      mat-icon-button
+      class="copy-button"
+      [matTooltip]="'Copy to clipboard'">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+    <span class="shared-badge">Shared</span>
+  </div>
+</ng-template>
+
+<!-- Shared Options column template -->
+<ng-template #sharedOptionsTpl let-row let-index="index" let-col="colDef">
+  <div class="options-cell">
+    <button
+      [matTooltip]="'mobile_list.emulator_options' | translate"
+      mat-icon-button
+      [matMenuTriggerFor]="sharedEmulatorOptions"
+      (menuOpened)="onMenuOpened()"
+      (menuClosed)="onMenuClosed()">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+
+    <mat-menu #sharedEmulatorOptions="matMenu">
+      <!-- noVNC -->
+      <button
+        *ngIf="row.isRunning"
+        (click)="noVNCMobile(row.runningContainer, row)"
+        class="novncMenu"
+        [disabled]="row.runningContainer.service_status !== 'Running'"
+        [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
+        mat-menu-item>
+        <mat-icon>phone_iphone</mat-icon>
+        <span>noVNC</span>
+      </button>
+      
+      <!-- Inspect -->
+      <button
+        *ngIf="row.isRunning"
+        (click)="inspectMobile(row.runningContainer, row)"
+        class="inspectMenu"
+        [disabled]="row.runningContainer.service_status !== 'Running'"
+        [matTooltip]="'mobile_list.inspect_emulator_shared' | translate"
+        mat-menu-item>
+        <!-- <div class="custom-mobile-arrow-icon">
+          <mat-icon class="mobile-icon">phone_iphone</mat-icon>
+          <mat-icon class="arrow-icon">forward</mat-icon>
+        </div> -->
+        <mat-icon class="mobile-icon">developer_mode</mat-icon>
+        <span>Inspect</span>
+      </button>
+
+
+      <mat-divider></mat-divider>
+
+      <!-- Created by info -->
+      <button
+        class="infoMenu"
+        mat-menu-item
+        disabled>
+        <mat-icon>person</mat-icon>
+        <span>Created by: {{ row.created_by_name }}</span>
+      </button>
+    </mat-menu>
+  </div>
+</ng-template>

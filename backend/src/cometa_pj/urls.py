@@ -102,8 +102,11 @@ urlpatterns = [
     url(r'^killTaskPID/(?P<pid>[0-9]+)/', views.KillTaskPID),
     url(r'^stepsByName/', views.GetStepsByName),
     url(r'^schedule/(?P<feature_id>.+)/', views.UpdateSchedule),
+    url(r'^schedule_data_driven/(?P<file_id>.+)/', views.UpdateFileSchedule),
+    url(r'^bulk_file_schedules/', views.GetBulkFileSchedules),
     url(r'^validateCron/', views.ValidateCron),
     url(r'^exectest/', views.runTest),
+    url(r'^generateFeatureFile/', views.generateFeatureFile),
     url(r'^exec_batch/', views.runBatch),
     url(r'^info/', views.GetInfo),
     url(r'^migrateScreenshots', views.MigrateScreenshots),
@@ -139,6 +142,12 @@ urlpatterns = [
     url(r'^api/chat/completion/', ai_chat.chat_completion),
     url(r'^health', views.health_check),
     path('api/healenium/', include('healenium.urls')),
+    # Telegram authentication callback
+    url(r'^auth/telegram/(?P<token>[a-zA-Z0-9_-]+)/$', views.telegram_auth_callback, name='telegram_auth_callback'),
+    # Telegram post-OAuth callback
+    url(r'^telegram/complete/$', views.telegram_auth_complete, name='telegram_auth_complete'),
+    # Telegram auth success page
+    url(r'^telegram/success/$', views.telegram_auth_success, name='telegram_auth_success'),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 

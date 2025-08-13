@@ -31,7 +31,7 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
             'created_by': {'required': True},
             'shared': {'required': True},
             'apk_file': {'required': False},
-            'department_id': {'required': True},
+            'department_id': {'required': False},
         }
 
     def to_representation(self, instance):
@@ -42,6 +42,22 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
         else:
             rep['image_name'] = instance.image_name
         return rep
+
+    def update(self, instance, validated_data):
+        # Handle APK installation separately
+        if 'apk_file' in validated_data:
+            apk_id = validated_data.pop('apk_file')
+            # Call the model's save method with apk_file as kwargs
+            instance.save(apk_file=apk_id)
+        
+        # Handle shared status separately
+        if 'shared' in validated_data:
+            shared = validated_data.pop('shared')
+            instance.save(shared=shared)
+        
+        # Handle other fields normally
+        return super().update(instance, validated_data)
+    
     # def create(self, validated_data):
     #     if 'container_image' not in validated_data or not validated_data['container_image']:
     #         raise serializers.ValidationError({"container_image": "This field is required."})
