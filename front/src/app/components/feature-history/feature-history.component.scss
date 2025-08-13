@@ -131,6 +131,11 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         border-left: 4px solid $blue;
 
+        &.current-version {
+          border-left-color: $success;
+          background: linear-gradient(135deg, rgba(76, 175, 80, 0.02) 0%, rgba(76, 175, 80, 0.05) 100%);
+        }
+
         .entry-header {
           display: flex;
           justify-content: space-between;
@@ -149,6 +154,26 @@
             .user-name {
               font-weight: 600;
               color: $primary-color;
+            }
+
+            .current-version-badge {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              background: $success;
+              color: white;
+              padding: 4px 8px;
+              border-radius: 12px;
+              font-size: 11px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+
+              mat-icon {
+                font-size: 12px;
+                width: 12px;
+                height: 12px;
+              }
             }
           }
 
@@ -226,6 +251,17 @@
               &.backup-id {
                 background: $low-white;
                 color: $grey;
+                cursor: default;
+                
+                &:hover {
+                  transform: none;
+                  box-shadow: none;
+                }
+              }
+
+              &.current-version-chip {
+                background: $success;
+                color: white;
                 cursor: default;
                 
                 &:hover {
@@ -456,13 +492,13 @@
                             }
 
                             &.flag-accent {
-                              background: $folder;
-                              color: $secondary-color;
+                              background: $info-background-feature-item;
+                              color: $blue;
                             }
 
                             &.flag-warn {
-                              background: $folder-back;
-                              color: $orange;
+                              background: $info-background-feature-item;
+                              color: $blue;
                             }
 
                             &.flag-disabled {
@@ -564,6 +600,188 @@
               }
             }
           }
+
+          // Changes Section Styling
+          .changes-section {
+            margin-top: 16px;
+            border-top: 1px solid $border-color;
+            padding-top: 16px;
+
+            .changes-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+
+              h4 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: $primary-color;
+              }
+
+              .close-changes {
+                min-width: 32px;
+                padding: 0;
+                color: $grey;
+
+                &:hover {
+                  color: $primary-color;
+                }
+
+                mat-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                }
+              }
+            }
+
+            .changes-content {
+              .loading-changes {
+                text-align: center;
+                padding: 40px 20px;
+
+                .loading-icon {
+                  font-size: 32px;
+                  width: 32px;
+                  height: 32px;
+                  margin-bottom: 12px;
+                  color: $blue;
+                  animation: spin 2s linear infinite;
+                }
+
+                p {
+                  margin: 0;
+                  color: $grey;
+                  font-size: 14px;
+                }
+              }
+
+              .changes-comparison {
+                .comparison-error {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: rgba(198, 40, 40, 0.1);
+                  border-radius: 8px;
+                  border: 1px solid rgba(198, 40, 40, 0.3);
+
+                  mat-icon {
+                    font-size: 48px;
+                    width: 48px;
+                    height: 48px;
+                    margin-bottom: 16px;
+                    color: $remove;
+                  }
+
+                  p {
+                    margin: 0;
+                    color: $remove;
+                    font-size: 16px;
+                    font-weight: 500;
+                  }
+                }
+
+                .no-changes {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: $low-white;
+                  border-radius: 8px;
+                  border: 1px solid $border-color;
+
+                  mat-icon {
+                    font-size: 48px;
+                    width: 48px;
+                    height: 48px;
+                    margin-bottom: 16px;
+                    color: $success;
+                  }
+
+                  p {
+                    margin: 0;
+                    color: $primary-color;
+                    font-size: 16px;
+                    font-weight: 500;
+                  }
+                }
+
+                .changes-list {
+                  h5 {
+                    margin: 0 0 16px 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: $primary-color;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                  }
+
+                  .change-item {
+                    margin-bottom: 16px;
+
+                    &:last-child {
+                      margin-bottom: 0;
+                    }
+
+                    .change-field {
+                      background: $low-white;
+                      border-radius: 8px;
+                      padding: 16px;
+                      border-left: 4px solid $blue;
+
+                      .change-label {
+                        display: block;
+                        font-weight: 600;
+                        color: $primary-color;
+                        margin-bottom: 12px;
+                        font-size: 14px;
+                        text-transform: capitalize;
+                      }
+
+                      .change-values {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+
+                        .change-old, .change-new {
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          padding: 8px 12px;
+                          border-radius: 6px;
+                          font-size: 13px;
+
+                          strong {
+                            color: $primary-color;
+                            min-width: 60px;
+                          }
+                        }
+
+                        .change-old {
+                          background: rgba(255, 193, 7, 0.1);
+                          border: 1px solid rgba(255, 193, 7, 0.3);
+
+                          .old-value {
+                            color: $orange;
+                            font-weight: 500;
+                          }
+                        }
+
+                        .change-new {
+                          background: rgba(76, 175, 80, 0.1);
+                          border: 1px solid rgba(76, 175, 80, 0.3);
+
+                          .new-value {
+                            color: $success;
+                            font-weight: 500;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -616,6 +834,30 @@
 
             .entry-meta {
               align-items: flex-start;
+            }
+          }
+
+          .changes-section {
+            .changes-content {
+              .changes-comparison {
+                .changes-list {
+                  .change-item {
+                    .change-field {
+                      .change-values {
+                        .change-old, .change-new {
+                          flex-direction: column;
+                          align-items: flex-start;
+                          gap: 4px;
+
+                          strong {
+                            min-width: auto;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }

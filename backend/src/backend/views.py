@@ -4963,6 +4963,7 @@ def getFeatureHistory(request, feature_id):
                 
                 # Find corresponding step files for this backup
                 steps_data = []
+                total_steps_count = 0
                 for step_file in feature_backup_files_steps:
                     if step_file.startswith(backup_id) and not step_file.endswith('_meta.json'):
                         try:
@@ -4973,6 +4974,13 @@ def getFeatureHistory(request, feature_id):
                                     'step_file': step_file,
                                     'step_content': step_content
                                 })
+                                # Count individual steps within this step file
+                                if isinstance(step_content, list):
+                                    total_steps_count += len(step_content)
+                                elif isinstance(step_content, dict) and 'step_content' in step_content:
+                                    # Handle case where step_content is nested
+                                    if isinstance(step_content['step_content'], list):
+                                        total_steps_count += len(step_content['step_content'])
                         except Exception as e:
                             logger.warning(f"Failed to read step file {step_file}: {e}")
                             continue
@@ -4984,8 +4992,16 @@ def getFeatureHistory(request, feature_id):
                     'user_id': user_id,
                     'feature_name': meta_data.get('feature_name', ''),
                     'description': meta_data.get('description', ''),
-                    'steps_count': meta_data.get('steps', 0),
-                    'steps': steps_data
+                    'steps_count': total_steps_count,  # Use actual count of individual steps
+                    'steps': steps_data,
+                    'browsers': meta_data.get('browsers', []),
+                    'schedule': meta_data.get('schedule', ''),
+                    'send_mail': meta_data.get('send_mail', False),
+                    'send_mail_on_error': meta_data.get('send_mail_on_error', False),
+                    'network_logging': meta_data.get('network_logging', False),
+                    'generate_dataset': meta_data.get('generate_dataset', False),
+                    'continue_on_failure': meta_data.get('continue_on_failure', False),
+                    'send_telegram_notification': meta_data.get('send_telegram_notification', False)
                 })
             except Exception as e:
                 continue

@@ -43,11 +43,16 @@ Author: Nico
     <div *ngIf="!loading && !error" class="history-timeline">
       <div *ngFor="let entry of history; let i = index" class="history-entry">
         <!-- Entry Content -->
-        <div class="entry-content">
+        <div class="entry-content" [ngClass]="{'current-version': isCurrentVersion(entry.backup_id)}">
           <div class="entry-header">
             <div class="user-info">
               <mat-icon class="user-avatar">account_circle</mat-icon>
               <span class="user-name">{{ entry.user_name }}</span>
+              <!-- Current version badge -->
+              <span *ngIf="isCurrentVersion(entry.backup_id)" class="current-version-badge">
+                <mat-icon>star</mat-icon>
+                Current
+              </span>
             </div>
             <div class="entry-meta">
               <span class="timestamp">{{ formatDate(entry.timestamp) }}</span>
@@ -64,9 +69,21 @@ Author: Nico
                 <mat-icon>list</mat-icon>
                 {{ entry.steps_count }} steps
               </button>
-              <div class="stat-chip backup-id">
-                <mat-icon>backup</mat-icon>
-                {{ entry.backup_id }}
+              
+              <!-- Show changes button only for non-current versions -->
+              <button 
+                *ngIf="!isCurrentVersion(entry.backup_id)"
+                class="stat-chip difference-chip" 
+                (click)="showChanges(entry.backup_id)" 
+                [class.selected]="selectedChangesBackupId === entry.backup_id">
+                <mat-icon>compare_arrows</mat-icon>
+                Changes
+              </button>
+              
+              <!-- Show current version indicator for the topmost backup -->
+              <div *ngIf="isCurrentVersion(entry.backup_id)" class="stat-chip current-version-chip">
+                <mat-icon>check_circle</mat-icon>
+                Current Version
               </div>
             </div>
             
@@ -111,6 +128,59 @@ Author: Nico
                         [ngClass]="'flag-' + flag.color">
                         <mat-icon>{{ getFlagIcon(flag.label) }}</mat-icon>
                         {{ flag.label }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Changes Display Section -->
+            <div *ngIf="selectedChangesBackupId === entry.backup_id" class="changes-section">
+              <div class="changes-header">
+                <h4>Changes compared to current version:</h4>
+                <button mat-button (click)="showChanges(entry.backup_id)" class="close-changes">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              
+              <div class="changes-content">
+                <!-- Loading state -->
+                <div *ngIf="loadingChanges" class="loading-changes">
+                  <mat-icon class="loading-icon">hourglass_empty</mat-icon>
+                  <p>Loading current feature data...</p>
+                </div>
+                
+                <!-- Changes comparison -->
+                <div *ngIf="!loadingChanges && getChangesForSelectedBackup()" class="changes-comparison">
+                  <!-- Error state -->
+                  <div *ngIf="getChangesForSelectedBackup().error" class="comparison-error">
+                    <mat-icon>error</mat-icon>
+                    <p>{{ getChangesForSelectedBackup().error }}</p>
+                  </div>
+                  
+                  <!-- No changes state -->
+                  <div *ngIf="!getChangesForSelectedBackup().error && !getChangesForSelectedBackup().hasChanges" class="no-changes">
+                    <mat-icon>check_circle</mat-icon>
+                    <p>No changes detected between this backup and the current version.</p>
+                  </div>
+                  
+                  <!-- Changes list -->
+                  <div *ngIf="!getChangesForSelectedBackup().error && getChangesForSelectedBackup().hasChanges" class="changes-list">
+                    <h5>Detected Changes:</h5>
+                    <div class="change-item" *ngFor="let change of getChangesForSelectedBackup().changes | keyvalue">
+                      <div *ngIf="change.value" class="change-field">
+                        <span class="change-label">{{ getChangeLabel(change.key) }}:</span>
+                        <div class="change-values">
+                          <div class="change-old">
+                            <strong>Backup:</strong> 
+                            <span class="old-value">{{ getChangeValue(getChangesForSelectedBackup().backup, change.key) }}</span>
+                          </div>
+                          <div class="change-new">
+                            <strong>Current:</strong> 
+                            <span class="new-value">{{ getChangeValue(getChangesForSelectedBackup().current, change.key) }}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
