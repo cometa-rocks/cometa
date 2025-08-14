@@ -781,7 +781,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
             logger.debug("No driver found skipping screenshot")
             return
         
-        screenshot_file_name = SCREENSHOT_PREFIX + "current.png"
+        screenshot_file_name = SCREENSHOT_PREFIX + f"step_{step_execution_sequence}.png"
         logger.debug("Screenshot filename: %s" % screenshot_file_name)
         final_screenshot_file = os.path.join(screenshots_step_path, screenshot_file_name)
         logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
