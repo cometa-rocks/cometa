@@ -19,6 +19,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-feature-history',
@@ -34,6 +35,7 @@ import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDia
     MatCardModule,
     MatChipsModule,
     TitleCasePipe,
+    LogService
   ],
 })
 export class FeatureHistoryComponent implements OnInit {
@@ -51,7 +53,8 @@ export class FeatureHistoryComponent implements OnInit {
   constructor(
     private _api: ApiService,
     @Inject(MAT_DIALOG_DATA) public data: number,
-    private dialogRef: MatDialogRef<FeatureHistoryComponent>
+    private dialogRef: MatDialogRef<FeatureHistoryComponent>,
+    private log: LogService
   ) {
     this.featureId = data;
   }
@@ -67,18 +70,11 @@ export class FeatureHistoryComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Use your existing ApiService to call the backend
+    // Use existing ApiService to call the backend
     this._api.getFeatureHistory(this.featureId).subscribe({
       next: (response: FeatureHistoryResponse) => {
         if (response.success) {
           this.history = response.history;
-          console.log('loadFeatureHistory - loaded history:', this.history);
-          
-          // Log the first backup entry to see its structure
-          if (this.history.length > 0) {
-            console.log('loadFeatureHistory - first backup entry:', this.history[0]);
-            console.log('loadFeatureHistory - first backup entry steps:', this.history[0].steps);
-          }
         } else {
           this.error = response.error || 'Failed to load feature history';
         }
@@ -125,8 +121,6 @@ export class FeatureHistoryComponent implements OnInit {
           
           // Also fetch the detailed steps for proper comparison
           this.loadCurrentFeatureSteps();
-          //console log of current feature object
-          console.log(this.currentFeature);
         },
         error: (err) => {
           this.loadingChanges = false;
@@ -146,8 +140,7 @@ export class FeatureHistoryComponent implements OnInit {
         }
       },
       error: (err) => {
-        // If we can't load detailed steps, that's okay - we'll use the basic comparison
-        console.warn('Could not load detailed steps for comparison:', err);
+        this.log.msg(err, 'error', 'FeatureHistoryComponent', 'loadCurrentFeatureSteps');
       }
     });
   }
@@ -195,9 +188,6 @@ export class FeatureHistoryComponent implements OnInit {
     const backupEntry = this.getSelectedBackupChanges();
     if (!backupEntry) return null;
 
-    console.log('compareFeatureVersions - backupEntry:', backupEntry);
-    console.log('compareFeatureVersions - backupEntry.steps:', backupEntry.steps);
-
     try {
       // Helper function to safely compare boolean values
       const compareBoolean = (current: any, backup: any, field: string) => {
@@ -229,8 +219,6 @@ export class FeatureHistoryComponent implements OnInit {
         send_telegram_notification: compareBoolean(this.currentFeature.send_telegram_notification, backupEntry.send_telegram_notification, 'send_telegram_notification')
       };
 
-      console.log('compareFeatureVersions - changes:', changes);
-
       return {
         hasChanges: Object.values(changes).some(change => change === true),
         changes: changes,
@@ -238,7 +226,7 @@ export class FeatureHistoryComponent implements OnInit {
         backup: backupEntry
       };
     } catch (error) {
-      console.error('compareFeatureVersions - error:', error);
+      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'compareFeatureVersions');
       return {
         hasChanges: false,
         changes: {},
@@ -253,15 +241,12 @@ export class FeatureHistoryComponent implements OnInit {
     // Simple step count comparison
     const currentSteps = this.currentFeature.detailedSteps ? this.currentFeature.detailedSteps.length : 0;
     const backupSteps = this.getBackupStepCount(backupEntry);
-    
-    console.log('hasStepCountChanged - currentSteps:', currentSteps, 'backupSteps:', backupSteps);
-    
+        
     return currentSteps !== backupSteps;
   }
 
   hasStepContentChanged(backupEntry: any): boolean {
     // For now, just return false - we'll implement step content comparison later
-    console.log('hasStepContentChanged - Step content comparison disabled for now');
     return false;
   }
 
@@ -272,25 +257,19 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   // Helper method to get backup steps array
-  getBackupSteps(backupEntry: any): any[] {
-    console.log('getBackupSteps - backupEntry:', backupEntry);
-    
+  getBackupSteps(backupEntry: any): any[] {    
     if (!backupEntry || !backupEntry.steps) {
-      console.log('getBackupSteps - No backup entry or steps');
       return [];
     }
     
-    const backupSteps = backupEntry.steps;
-    console.log('getBackupSteps - backupSteps:', backupSteps);
-    
+    const backupSteps = backupEntry.steps;    
     // The backup steps structure is: backupEntry.steps[0].step_content
     if (backupSteps.length === 1 && backupSteps[0] && backupSteps[0].step_content) {
       const actualSteps = backupSteps[0].step_content;
-      console.log('getBackupSteps - extracted actualSteps:', actualSteps);
+
       return Array.isArray(actualSteps) ? actualSteps : [];
     }
-    
-    console.log('getBackupSteps - Could not extract steps from backup structure');
+
     return [];
   }
 
@@ -729,7 +708,7 @@ export class FeatureHistoryComponent implements OnInit {
       
       return utcDate;
     } catch (error) {
-      console.error('Error parsing backup timestamp:', error, 'Original timestamp:', timestamp);
+      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'parseBackupTimestamp');
       // Fallback: try to parse as regular date
       return new Date(timestamp);
     }
@@ -768,7 +747,7 @@ export class FeatureHistoryComponent implements OnInit {
         });
       }
     } catch (error) {
-      console.error('Error formatting date:', error);
+      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'formatDate');
       return timestamp; // Fallback to original timestamp if parsing fails
     }
   }
@@ -786,7 +765,7 @@ export class FeatureHistoryComponent implements OnInit {
       if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
       return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
     } catch (error) {
-      console.error('Error calculating relative time:', error);
+      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'getRelativeTime');
       return 'unknown time'; // Fallback if parsing fails
     }
   }
@@ -828,9 +807,6 @@ export class FeatureHistoryComponent implements OnInit {
   compareFeatureVersionsForBackup(backupEntry: any): any {
     if (!this.currentFeature || !backupEntry) return null;
 
-    console.log('compareFeatureVersionsForBackup - backupEntry:', backupEntry);
-    console.log('compareFeatureVersionsForBackup - backupEntry.steps:', backupEntry.steps);
-
     try {
       // Helper function to safely compare boolean values
       const compareBoolean = (current: any, backup: any, field: string) => {
@@ -862,8 +838,6 @@ export class FeatureHistoryComponent implements OnInit {
         send_telegram_notification: compareBoolean(this.currentFeature.send_telegram_notification, backupEntry.send_telegram_notification, 'send_telegram_notification')
       };
 
-      console.log('compareFeatureVersionsForBackup - changes:', changes);
-
       return {
         hasChanges: Object.values(changes).some(change => change === true),
         changes: changes,
@@ -871,7 +845,7 @@ export class FeatureHistoryComponent implements OnInit {
         backup: backupEntry
       };
     } catch (error) {
-      console.error('compareFeatureVersionsForBackup - error:', error);
+      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'compareFeatureVersionsForBackup');
       return {
         hasChanges: false,
         changes: {},
