@@ -216,16 +216,17 @@ services:
       - testing
 
   redis:
-    image: redis:7.2.0-alpine
+    image: redis:7.2.0
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_redis
     volumes:
-      - redis_data:/data
+      - ./data/redis/data:/data
     networks:
       - testing
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      start_period: 30s
     restart: always
 
 networks:

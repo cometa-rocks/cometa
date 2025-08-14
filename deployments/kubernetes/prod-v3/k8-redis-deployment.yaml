@@ -18,23 +18,18 @@ spec:
         operator: "Equal"
         value: "amd"
         effect: "NoSchedule"
-      securityContext:
-        fsGroup: 472
-        runAsGroup: 472
-        runAsNonRoot: true
-        runAsUser: 472
       restartPolicy: Always
       containers:
       - name: redis
-        image: cometa/redis:1.0
+        image: cometa/redis:1.1
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsGroup: 472
-          runAsUser: 472
+          runAsGroup: 1472
+          runAsUser: 1472
           seccompProfile:
             type: RuntimeDefault
         ports:
@@ -52,13 +47,20 @@ spec:
             cpu: "0.5"
             memory: "256Mi"
 
-        # readinessProbe:
-        #   exec:
-        #     command:
-        #     - redis-cli
-        #     - ping
-        #   initialDelaySeconds: 5
-        #   timeoutSeconds: 1
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
 
       volumes:
         - name: cometa-volume

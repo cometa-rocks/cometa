@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cron \
     curl \
     telnet \
+    psmisc \
     clamav \
     clamav-daemon && \
     rm -rf /var/lib/apt/lists/* 
