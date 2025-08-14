@@ -393,7 +393,20 @@ export class FeatureHistoryComponent implements OnInit {
     }
     
     if (key === 'browsers_changed') {
-      return this.getBrowsersChangeDescription();
+      // For browsers, return a clean list of browsers without verbose descriptions
+      const browsers = obj.browsers || [];
+      if (browsers.length === 0) {
+        return 'No browsers selected';
+      }
+      
+      // Create simplified browser strings
+      const browserStrings = browsers.map((b: any) => {
+        const browser = b.browser || b.browser_name || 'Unknown';
+        const version = b.browser_version || b.version || 'latest';
+        return `${browser}-${version}`;
+      });
+      
+      return browserStrings.join(', ');
     }
     
     // Handle boolean values - show consistent format
@@ -699,20 +712,83 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
+  // Helper method to parse backup filename timestamp format (YYYY-MM-DD_HH-MM-SS)
+  parseBackupTimestamp(timestamp: string): Date {
+    try {
+      // Handle the format: "2025-08-12 11:37:42" (from backup filename)
+      // Replace underscore with space to make it parseable
+      const normalizedTimestamp = timestamp.replace('_', ' ');
+      
+      // Parse as UTC and convert to local timezone
+      const utcDate = new Date(normalizedTimestamp + ' UTC');
+      
+      // Validate the parsed date
+      if (isNaN(utcDate.getTime())) {
+        throw new Error('Invalid date format');
+      }
+      
+      return utcDate;
+    } catch (error) {
+      console.error('Error parsing backup timestamp:', error, 'Original timestamp:', timestamp);
+      // Fallback: try to parse as regular date
+      return new Date(timestamp);
+    }
+  }
+
   formatDate(timestamp: string): string {
-    return new Date(timestamp).toLocaleString();
+    try {
+      // Parse the backup timestamp format and convert to local timezone
+      const localDate = this.parseBackupTimestamp(timestamp);
+      
+      // Get current date for comparison
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      const backupDate = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate());
+      
+      // Format based on how recent the backup is
+      if (backupDate.getTime() === today.getTime()) {
+        // Today: show time only
+        return `Today at ${localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else if (backupDate.getTime() === yesterday.getTime()) {
+        // Yesterday: show "Yesterday at time"
+        return `Yesterday at ${localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else if (now.getTime() - localDate.getTime() < 7 * 24 * 60 * 60 * 1000) {
+        // Within a week: show day name and time
+        return `${localDate.toLocaleDateString([], { weekday: 'long' })} at ${localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else {
+        // Older: show full date and time
+        return localDate.toLocaleDateString([], { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        }) + ' at ' + localDate.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return timestamp; // Fallback to original timestamp if parsing fails
+    }
   }
 
   getRelativeTime(timestamp: string): string {
-    const now = new Date();
-    const date = new Date(timestamp);
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+    try {
+      const now = new Date();
+      // Parse the backup timestamp format and convert to local timezone
+      const localDate = this.parseBackupTimestamp(timestamp);
+      const diffInSeconds = Math.floor((now.getTime() - localDate.getTime()) / 1000);
+      
+      if (diffInSeconds < 60) return 'just now';
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+      if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+      return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+    } catch (error) {
+      console.error('Error calculating relative time:', error);
+      return 'unknown time'; // Fallback if parsing fails
+    }
   }
 
   // Helper method to check if a specific backup has steps expanded
