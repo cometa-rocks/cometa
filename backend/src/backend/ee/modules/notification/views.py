@@ -37,7 +37,7 @@ from .exceptions import (
     DatabaseError, ConfigurationError, validate_required_fields,
     safe_int_conversion
 )
-
+import gc
 logger = getLogger()
 import threading
 
@@ -215,6 +215,10 @@ def notification_handler(request, feature_result_id, telegram_notification_data=
                 "error": str(e)
             }
         )
+    finally:
+        collected = gc.collect()
+        logger.info(f"Garbage collector: collected {collected} objects.")
+        
 
 # ========================= Telegram Webhook =========================
 @csrf_exempt

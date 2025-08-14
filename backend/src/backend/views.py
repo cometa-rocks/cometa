@@ -2593,15 +2593,15 @@ class StepResultViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         # get data from request
-        logger.debug(f"Create method started")
+        # logger.debug(f"Create method started")
         data = json.loads(request.body)
         if not isinstance(data['files'], list):
             data['files'] = json.loads(data['files'])
         
-        logger.debug(f"Saving Step {data['step_name']}")
-        logger.debug("Checking for last step")
+        # logger.debug(f"Saving Step {data['step_name']}")
+        # logger.debug("Checking for last step")
         last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id')
-        logger.debug("Last step result checked")
+        # logger.debug("Last step result checked")
         if last_step:
             # This will execute if it is not the report of the execution
             logger.debug("Found last step relative calculating time")
@@ -2610,9 +2610,9 @@ class StepResultViewSet(viewsets.ModelViewSet):
             # This will execute if it is a first step report of the execution
             logger.debug("Relative time Initated")
             data['relative_execution_time'] = data['execution_time']
-        logger.debug("Starting to save data to Step_result")
+        # logger.debug("Starting to save data to Step_result")
         step_result = Step_result.objects.create(**data)
-        logger.debug("Data saved to Step_result")
+        # logger.debug("Data saved to Step_result")
         response = StepResultSerializer(step_result, many=False).data
         return JsonResponse(response)
     
