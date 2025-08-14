@@ -241,6 +241,191 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     if (!this.item.total || !this.item.time || !this.item.date) {
       this.loadBasicFeatureData();
     }
+    
+    // Always try to get latest data from store when component initializes
+    this.loadLatestFeatureDataFromStore();
+  }
+
+  /**
+   * Loads the latest feature data from the store when component initializes
+   * This ensures the component has the most up-to-date data from main-view
+   */
+  private loadLatestFeatureDataFromStore(): void {
+    // Get the latest feature data from the store
+    this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
+      take(1) // Take only the first value to avoid subscription issues
+    ).subscribe(featureInfo => {
+      if (featureInfo && featureInfo.info) {
+        const storeData = featureInfo.info;
+        
+        // Update the item with the latest data from store
+        if (storeData.total !== undefined) {
+          this.item.total = storeData.total;
+        }
+        
+        if (storeData.execution_time !== undefined) {
+          this.item.time = storeData.execution_time;
+        }
+        
+        if (storeData.result_date !== undefined) {
+          this.item.date = storeData.result_date;
+        }
+        
+        if (storeData.status !== undefined) {
+          this.item.status = storeData.status === 'Success' ? 'success' : 
+                           storeData.status === 'Failed' ? 'failed' : 'canceled';
+        }
+        
+        // Force change detection to update the UI
+        this.cdr.detectChanges();
+      } else {
+        // Since main-view is not loaded, fetch data directly from API
+        this.fetchFeatureDataFromAPI();
+      }
+    });
+  }
+
+  /**
+   * Fetches feature data directly from the API since main-view is not loaded
+   */
+  private fetchFeatureDataFromAPI(): void {
+    // Make direct API call to get feature results
+    this._api.getFeatureResultsByFeatureId(this.feature_id, {
+      archived: false,
+      page: 1,
+      size: 1,
+    }).subscribe({
+      next: (res: any) => {
+        if (res && res.results && res.results.length > 0) {
+          const latestResult = res.results[0];
+          
+          // Update the item with the data from API
+          this.item.total = latestResult.total || 0;
+          this.item.time = latestResult.execution_time || 0;
+          this.item.date = latestResult.result_date || null;
+          this.item.status = latestResult.status === 'Success' ? 'success' : 
+                           latestResult.status === 'Failed' ? 'failed' : 'canceled';
+          this.item.ok = latestResult.ok || 0;
+          this.item.fails = latestResult.fails || 0;
+          this.item.skipped = latestResult.skipped || 0;
+          
+          // Force change detection by marking for check
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+          
+          // Also update the store for future use
+          this._store.dispatch(new Features.UpdateFeatureResultData(this.feature_id, {
+            total: latestResult.total || 0,
+            execution_time: latestResult.execution_time || 0,
+            result_date: latestResult.result_date || null,
+            status: latestResult.status || 'Unknown',
+            success: latestResult.success || false,
+            ok: latestResult.ok || 0,
+            fails: latestResult.fails || 0,
+            skipped: latestResult.skipped || 0,
+            browser: latestResult.browser || {},
+            mobile: latestResult.mobile || [],
+            description: latestResult.description || '',
+            pixel_diff: latestResult.pixel_diff || 0
+          }));
+          
+          // Force a complete UI refresh
+          this.refreshUI();
+        }
+      },
+      error: err => {
+        // Handle error silently
+      }
+    });
+  }
+
+  /**
+   * Retries loading feature data from the store after a delay
+   * This handles the case where main-view hasn't updated the store yet
+   */
+  private retryLoadFeatureDataFromStore(): void {
+    console.log('🔄 retryLoadFeatureDataFromStore() called for feature:', this.feature_id);
+    
+    this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
+      take(1)
+    ).subscribe(featureInfo => {
+      console.log('📡 Retry - Feature info from store:', featureInfo);
+      
+      if (featureInfo && featureInfo.info) {
+        const storeData = featureInfo.info;
+        console.log('📊 Retry - Store data:', storeData);
+        
+        // Update the item with the latest data from store
+        if (storeData.total !== undefined) {
+          this.item.total = storeData.total;
+          console.log('✅ Retry - Updated item.total:', this.item.total);
+        }
+        
+        if (storeData.execution_time !== undefined) {
+          this.item.time = storeData.execution_time;
+          console.log('✅ Retry - Updated item.time:', this.item.time);
+        }
+        
+        if (storeData.result_date !== undefined) {
+          this.item.date = storeData.result_date;
+          console.log('✅ Retry - Updated item.date:', this.item.date);
+        }
+        
+        if (storeData.status !== undefined) {
+          this.item.status = storeData.status === 'Success' ? 'success' : 
+                           storeData.status === 'Failed' ? 'failed' : 'canceled';
+          console.log('✅ Retry - Updated item.status:', this.item.status);
+        }
+        
+        // Force change detection to update the UI
+        this.cdr.detectChanges();
+        
+        console.log('🎯 Retry - Final item data after store update:', {
+          total: this.item.total,
+          time: this.item.time,
+          date: this.item.date,
+          status: this.item.status
+        });
+      } else {
+        console.log('⚠️ Retry - Still no feature info found in store for feature:', this.feature_id);
+        
+        // Try one more time after another delay
+        setTimeout(() => {
+          console.log('🔄 Final retry to get feature data from store...');
+          this.finalRetryLoadFeatureDataFromStore();
+        }, 2000); // Wait 2 more seconds
+      }
+    });
+  }
+
+  /**
+   * Final retry to load feature data from the store
+   */
+  private finalRetryLoadFeatureDataFromStore(): void {
+    console.log('🔄 finalRetryLoadFeatureDataFromStore() called for feature:', this.feature_id);
+    
+    this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
+      take(1)
+    ).subscribe(featureInfo => {
+      if (featureInfo && featureInfo.info) {
+        const storeData = featureInfo.info;
+        console.log('📊 Final retry - Store data:', storeData);
+        
+        // Update the item with the latest data from store
+        if (storeData.total !== undefined) this.item.total = storeData.total;
+        if (storeData.execution_time !== undefined) this.item.time = storeData.execution_time;
+        if (storeData.result_date !== undefined) this.item.date = storeData.result_date;
+        if (storeData.status !== undefined) {
+          this.item.status = storeData.status === 'Success' ? 'success' : 
+                           storeData.status === 'Failed' ? 'failed' : 'canceled';
+        }
+        
+        this.cdr.detectChanges();
+        console.log('✅ Final retry - Updated item data');
+      } else {
+        console.log('❌ Final retry - No feature info found in store for feature:', this.feature_id);
+      }
+    });
   }
 
   /**
@@ -2970,6 +3155,21 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private loadBasicFeatureData(): void {
     // Only load data if absolutely necessary - defer to when user interacts
     // This prevents API calls during initial page load
+  }
+
+  /**
+   * Forces a complete UI refresh to ensure all changes are displayed
+   */
+  private refreshUI(): void {
+    // Force change detection multiple times to ensure UI updates
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+    
+    // Also trigger change detection in the next tick
+    setTimeout(() => {
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+    }, 0);
   }
 
 }

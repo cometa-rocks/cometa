@@ -834,10 +834,19 @@ export class MainViewComponent implements OnInit {
     this.query.size =
       parseInt(localStorage.getItem('co_results_page_size')) || 500;
     
+    // Get feature ID from route
+    const featureId = +this._route.snapshot.params.feature;
+    
     // Preload L1 feature item list data to avoid UI loading states
     this.preloadL1FeatureItemListData();
     
+    // Get results and immediately update store with feature data
     this.getResults();
+    
+    // Also fetch feature results data directly and update store immediately
+    if (featureId) {
+      this.fetchAndUpdateFeatureResultsData(featureId);
+    }
 
     // Reload current page of runs whenever a feature run completes
     this._actions
@@ -853,6 +862,55 @@ export class MainViewComponent implements OnInit {
     this.refreshL1FeatureItemListDataOnNavigation();
       
     this.extractButtons();
+  }
+
+  /**
+   * Fetches feature results data directly and updates the store
+   * This ensures l1-feature-item-list has access to the latest results data
+   */
+  private fetchAndUpdateFeatureResultsData(featureId: number): void {
+    // Fetch the latest results for this feature
+    this._http
+      .get(`/backend/api/feature_results_by_featureid/`, {
+        params: {
+          feature_id: featureId,
+          archived: false,
+          page: 1,
+          size: 1,
+        },
+      })
+      .subscribe({
+        next: (res: any) => {
+          
+          if (res && res.results && res.results.length > 0) {
+            const latestResult = res.results[0];
+            
+            // Create the data structure that l1-feature-item-list expects
+            const featureData = {
+              total: latestResult.total || 0,
+              execution_time: latestResult.execution_time || 0,
+              result_date: latestResult.result_date || null,
+              status: latestResult.status || 'Unknown',
+              success: latestResult.success || false,
+              ok: latestResult.ok || 0,
+              fails: latestResult.fails || 0,
+              skipped: latestResult.skipped || 0,
+              browser: latestResult.browser || {},
+              mobile: latestResult.mobile || [],
+              description: latestResult.description || '',
+              pixel_diff: latestResult.pixel_diff || 0
+            };
+            
+            // Update the store so l1-feature-item-list can access this data
+            this._store.dispatch(new Features.UpdateFeatureResultData(featureId, featureData));
+            
+            this.logger.msg('1', `Updated store with feature results data for feature ${featureId}`, 'main-view');
+          }
+        },
+        error: err => {
+          this.logger.msg('1', `Error fetching feature results for feature ${featureId}: ${err}`, 'main-view');
+        }
+      });
   }
 
   /**
