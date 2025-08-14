@@ -19,7 +19,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
-import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-feature-history',
@@ -35,7 +34,6 @@ import { LogService } from '@services/log.service';
     MatCardModule,
     MatChipsModule,
     TitleCasePipe,
-    LogService
   ],
 })
 export class FeatureHistoryComponent implements OnInit {
@@ -54,7 +52,6 @@ export class FeatureHistoryComponent implements OnInit {
     private _api: ApiService,
     @Inject(MAT_DIALOG_DATA) public data: number,
     private dialogRef: MatDialogRef<FeatureHistoryComponent>,
-    private log: LogService
   ) {
     this.featureId = data;
   }
@@ -140,7 +137,7 @@ export class FeatureHistoryComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.log.msg(err, 'error', 'FeatureHistoryComponent', 'loadCurrentFeatureSteps');
+        console.error(err);
       }
     });
   }
@@ -226,7 +223,7 @@ export class FeatureHistoryComponent implements OnInit {
         backup: backupEntry
       };
     } catch (error) {
-      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'compareFeatureVersions');
+        console.error(error);
       return {
         hasChanges: false,
         changes: {},
@@ -708,7 +705,7 @@ export class FeatureHistoryComponent implements OnInit {
       
       return utcDate;
     } catch (error) {
-      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'parseBackupTimestamp');
+      console.error(error);
       // Fallback: try to parse as regular date
       return new Date(timestamp);
     }
@@ -747,7 +744,7 @@ export class FeatureHistoryComponent implements OnInit {
         });
       }
     } catch (error) {
-      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'formatDate');
+      console.error(error);
       return timestamp; // Fallback to original timestamp if parsing fails
     }
   }
@@ -765,7 +762,7 @@ export class FeatureHistoryComponent implements OnInit {
       if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
       return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
     } catch (error) {
-      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'getRelativeTime');
+      console.error(error);
       return 'unknown time'; // Fallback if parsing fails
     }
   }
@@ -845,7 +842,7 @@ export class FeatureHistoryComponent implements OnInit {
         backup: backupEntry
       };
     } catch (error) {
-      this.log.msg(error, 'error', 'FeatureHistoryComponent', 'compareFeatureVersionsForBackup');
+      console.error(error);
       return {
         hasChanges: false,
         changes: {},
