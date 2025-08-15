@@ -169,7 +169,7 @@
   .red {
     flex: 0 33.33333%;
     font-size: 40pt;
-    color: #d4145a;
+    color: $bad;
     text-transform: uppercase;
     @include for-tablet-portrait-up {
       flex: initial;
@@ -235,20 +235,20 @@
   background-size: contain;
 }
 
-:host::ng-deep network-paginated-list {
-  .header {
-    flex: 1 100%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    background-color: #474747;
-    color: white;
-    text-transform: uppercase;
-    padding: 16px 0; // Increased padding for better spacing
-    box-sizing: border-box;
-    border-radius: 8px 8px 0 0; // Rounded top corners for card effect
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); // Subtle shadow for depth
-    margin-bottom: 2px; // Small gap between header and content
+.network-paginated-list-step-view {
+  ::ng-deep .header-step-view {
+    flex: 1 100% ;
+    display: flex ;
+    align-items: center ;
+    text-align: center ;
+    background-color: $darker-step ;
+    color: $white-text ;
+    text-transform: uppercase ;
+    padding: 16px 0 ; // Increased padding for better spacing
+    box-sizing: border-box ;
+    border-radius: 8px 8px 0 0 ; // Rounded top corners for card effect
+    box-shadow: 0 2px 8px $transparent-bg ; // Subtle shadow for depth
+    margin-bottom: 2px ; // Small gap between header and content
 
     .name {
       flex: 0 40%;
@@ -300,10 +300,11 @@
       }
     }
   }
-  .step-row2 {
+  
+  .step-row-step-view {
     display: flex;
     align-items: center;
-
+    min-height: 65px; // Increased from 53px for better spacing
     box-sizing: border-box;
     font-weight: bold;
     cursor: pointer;
@@ -319,20 +320,20 @@
 
     &:nth-child(odd) {
       background-color: $white-grey-cell-bg;
-      border: 1px solid rgba(0, 0, 0, 0.08); // Subtle border instead of thick bottom border
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); // Subtle shadow for depth
+      border: 1px solid $transparent-bg; // Subtle border instead of thick bottom border
+      box-shadow: 0 1px 3px $transparent-bg; // Subtle shadow for depth
     }
 
     &:nth-child(even) {
       background-color: $white-cell-bg;
-      border: 1px solid rgba(0, 0, 0, 0.05); // Subtle border
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); // Subtle shadow
+      border: 1px solid $transparent-bg; // Subtle border
+      box-shadow: 0 1px 3px $transparent-bg; // Subtle shadow
     }
 
     &:hover {
       transform: translateY(-1px); // Slight lift effect on hover
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); // Enhanced shadow on hover
-      border-color: rgba(0, 0, 0, 0.12); // Slightly darker border on hover
+      box-shadow: 0 4px 12px $transparent-bg; // Enhanced shadow on hover
+      border-color: $transparent-bg-hover; // Slightly darker border on hover
       
       .name {
         color: $blue;
@@ -412,7 +413,7 @@
           word-break: break-all;
           margin-left: 0px;
           padding-left: 10px;
-          border-left: 3px solid rgba(black, 0.1);
+          border-left: 3px solid $transparent-bg;
           display: block;
           width: 100%;
           min-width: 300px;
@@ -427,9 +428,9 @@
           line-height: 1.5;
           margin-bottom: 16px; // Increased from 12px
           color: inherit;
-          background: rgba(212, 20, 90, 0.05); // Subtle error background
-          box-shadow: 0 2px 6px rgba(212, 20, 90, 0.1); // Subtle error shadow
-          border: 1px solid rgba(212, 20, 90, 0.2); // Subtle error border
+          background: $error-background; // Subtle error background
+          box-shadow: 0 2px 6px $error-box-shadow; // Subtle error shadow
+          border: 1px solid $error-border; // Subtle error border
 
           .error-label {
             display: block;
@@ -517,7 +518,7 @@
           margin-right: 0;
         }
         &:hover {
-          background: rgba(0, 0, 0, 0.05); // Subtle hover background
+          background: $transparent-bg; // Subtle hover background
           transform: scale(1.05); // Slight scale effect on hover
         }
       }
@@ -531,7 +532,7 @@
         border-radius: 4px; // Rounded corners for buttons
         transition: all 0.2s ease-in-out; // Smooth transitions
         &:hover {
-          background: rgba(0, 0, 0, 0.05); // Subtle hover background
+          background: $transparent-bg; // Subtle hover background
           transform: scale(1.05); // Slight scale effect on hover
         }
         
@@ -547,7 +548,7 @@
   background-color: $bad;
 }
 .skipped {
-  background-color: rgb(182, 182, 101);
+  background-color: $skipped;
 }
 
 .error-border {
@@ -561,7 +562,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  border: 1px solid red;
   border-radius: inherit; 
   pointer-events: none;
   animation: fade-border 3s ease-out forwards;
