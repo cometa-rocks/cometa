@@ -80,7 +80,7 @@ Author: dph000
           [class.run-disabled]="isButtonDisabled || shouldDisableRunButton()"
           [class.browser-version-disabled]="shouldDisableRunButton()"
           [class.running]="running"
-          [matTooltip]="shouldDisableRunButton() ? ('tooltips.modify_browser_version' | translate) : ''"
+          [matTooltip]="shouldDisableRunButton() ? getBrowserStatusInfo() : ''"
           [matTooltipDisabled]="!shouldDisableRunButton()"
           matTooltipPosition="above"
           stopPropagation 
@@ -270,7 +270,8 @@ Author: dph000
             matTooltipPosition="above">{{ item.browsers.length }} browsers</span>
         </div>
       </div>
-      <!-- Feature browser -->
+
+      <!-- Feature schedule -->
       <div class="schedule-container">
         <div class="schedule-data">
           <p *ngIf="item.schedule" class="schedule-active">
@@ -294,6 +295,7 @@ Author: dph000
           </p>
         </div>
       </div>
+
       <!-- Feature options button -->
       <button
         type="button"
@@ -315,12 +317,16 @@ Author: dph000
           <!-- Run feature button -->
           <button
             type="button"
-            (click)="_sharedActions.run(item.id)"
+            (click)="shouldDisableRunButton() ? $event.stopPropagation() : _sharedActions.run(item.id)"
             class="run-feature"
-            [matTooltip]="'tooltips.run_feature' | translate"
+            [disabled]="shouldDisableRunButton()"
+            [ngClass]="{'browser-obsolete': shouldDisableRunButton()}"
+            [matTooltip]="shouldDisableRunButton() ? getBrowserStatusInfo() : ''"
             matTooltipPosition="after"
             mat-menu-item>
-            <mat-icon>play_circle_filled</mat-icon>
+            <mat-icon 
+              [color]="shouldDisableRunButton() ? 'warn' : 'primary'"
+              [ngClass]="{'obsolete-icon': shouldDisableRunButton()}">play_circle_filled</mat-icon>
             <span>Run</span>
           </button>
           <mat-divider></mat-divider>

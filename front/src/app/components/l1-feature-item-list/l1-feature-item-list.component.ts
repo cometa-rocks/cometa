@@ -106,14 +106,14 @@ import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pip
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatLegacyCheckboxModule as MatCheckboxModule } from '@angular/material/legacy-checkbox';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatLegacyMenuModule as MatMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyProgressSpinnerModule as MatProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
 import { LetDirective } from '../../directives/ng-let.directive';
 import {
   NgIf,
@@ -229,6 +229,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     
     // Setup essential observables only
     this.setupEssentialObservables();
+    
+    // Setup heavy observables for permissions and other functionality
+    this.setupHeavyObservables();
     
     // Setup intersection observer for lazy loading
     this.setupIntersectionObserver();
@@ -522,6 +525,11 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+
+    // Set canCreateFeature based on edit permission
+    this.canEditFeature$.pipe(take(1)).subscribe(canEdit => {
+      this.canCreateFeature = canEdit;
+    });
 
     // Other observables - minimal setup
     this.isAnyFeatureRunning$ = new BehaviorSubject<boolean>(false).asObservable();
@@ -2236,13 +2244,17 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get detailed browser status information for outdated browsers only
+   * Get detailed browser status information for a specific row
    */
   getBrowserStatusInfo(): string {
     if (!this.item?.browsers || this.item.browsers.length === 0) {
       return 'No browsers configured';
     }
 
+    // Ensure browsers are loaded
+    this.ensureBrowsersLoaded();
+    
+    // Get the available browsers from both BrowserstackState and BrowsersState
     const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
     const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
     const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
@@ -2252,16 +2264,15 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     }
 
     const statusInfo: string[] = [];
+    const outdatedBrowsers = this.item.browsers.filter((browser: any) => this.isSpecificBrowserOutdated(browser));
+    
+    if (outdatedBrowsers.length === 0) {
+      return 'All browsers are up to date';
+    }
+    
     statusInfo.push('⚠️ BROWSER VERSION ISSUE DETECTED');
     statusInfo.push('Run button is disabled due to outdated browsers:');
     statusInfo.push('');
-    
-    // Only show information for browsers that are actually outdated
-    const outdatedBrowsers = this.item.browsers.filter(browser => this.isSpecificBrowserOutdated(browser));
-    
-    if (outdatedBrowsers.length === 0) {
-      return 'No outdated browsers found';
-    }
     
     outdatedBrowsers.forEach((browser: any, index: number) => {
       let status = 'OUTDATED';
@@ -2277,7 +2288,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           const availableVersions = chromeBrowsers.map(available => {
             const version = available.browser_version;
             if (version === 'latest') return 999;
-            // Fix: Don't add extra zeros, just get the version number
             return parseInt(version, 10) || 0;
           }).sort((a, b) => b - a);
           
