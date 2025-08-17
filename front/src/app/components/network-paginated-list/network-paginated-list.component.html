@@ -22,6 +22,7 @@
       <ng-container
         *ngFor="
           let item of pagination.results;
+          let $index = index;
           let $last = last;
           trackBy: trackFn.bind(this, trackByKey)
         "
@@ -29,7 +30,7 @@
         <ng-container
           *ngTemplateOutlet="
             itemTemplate;
-            context: { $implicit: item }
+            context: { $implicit: item, index: $index }
           "></ng-container>
       </ng-container>
     </div>

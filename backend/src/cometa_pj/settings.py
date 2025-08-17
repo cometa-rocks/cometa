@@ -51,8 +51,8 @@ if SENTRY_DJANGO and not IS_DEV:
 SECRET_KEY = ConfigurationManager.get_configuration('COMETA_DJANGO_SECRETKEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-COMETA_DEBUG = ConfigurationManager.get_configuration('COMETA_DEBUG', False)
-DEBUG = COMETA_DEBUG == 'True' or COMETA_DEBUG == True
+DEBUG = os.getenv('ENVIRONMENT', False)=="dev"
+
 
 ALLOWED_HOSTS = ['*']
 
