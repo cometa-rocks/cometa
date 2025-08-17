@@ -675,6 +675,11 @@ export class ResultsState {
   ) {
     setState(
       produce((ctx: IResults) => {
+        // Check if the feature exists in the state before proceeding
+        if (!ctx[feature_id] || !ctx[feature_id].results) {
+          return; // Exit early if feature or results don't exist
+        }
+        
         const featureResults = ctx[feature_id].results;
         const runsToRemove = [];
         // Check for every run
@@ -713,7 +718,7 @@ export class ResultsState {
   @ImmutableSelector()
   static GetFeatureStatus(state: IResults) {
     return (feature_id: number) => {
-      return feature_id in state && state[feature_id].status;
+      return feature_id in state && state[feature_id] && state[feature_id].status;
     };
   }
 
@@ -723,6 +728,10 @@ export class ResultsState {
     return (feature_id: number, feature_run_id: number, browser: string) => {
       return (
         feature_id in state &&
+        state[feature_id] &&
+        state[feature_id].results &&
+        state[feature_id].results[feature_run_id] &&
+        state[feature_id].results[feature_run_id][browser] &&
         state[feature_id].results[feature_run_id][browser].status
       );
     };
@@ -734,6 +743,7 @@ export class ResultsState {
     return (feature_id: number) => {
       return (
         feature_id in state &&
+        state[feature_id] &&
         (state[feature_id].running || state[feature_id].status === 'Queued')
       );
     };
@@ -743,7 +753,7 @@ export class ResultsState {
   @ImmutableSelector()
   static GetFeatureError(state: IResults) {
     return (feature_id: number) => {
-      return feature_id in state && state[feature_id].error;
+      return feature_id in state && state[feature_id] && state[feature_id].error;
     };
   }
 
@@ -765,8 +775,11 @@ export class ResultsState {
   @ImmutableSelector()
   static GetLastFeatureRunID(state: IResults) {
     return (feature_id: number) => {
+      if (!state[feature_id] || !state[feature_id].results) {
+        return 0; // Return 0 if feature or results don't exist
+      }
       const keys = Object.keys(state[feature_id].results).map(k => +k);
-      return Math.max(...keys);
+      return keys.length > 0 ? Math.max(...keys) : 0;
     };
   }
 
@@ -774,7 +787,10 @@ export class ResultsState {
   @ImmutableSelector()
   static GetLastFeatureRunSteps(state: IResults) {
     return (feature_id: number, run_id: number, browser: string) => {
-      return state[feature_id].results[run_id][browser].steps;
+      if (!state[feature_id] || !state[feature_id].results || !state[feature_id].results[run_id] || !state[feature_id].results[run_id][browser]) {
+        return []; // Return empty array if any part of the chain doesn't exist
+      }
+      return state[feature_id].results[run_id][browser].steps || [];
     };
   }
 
