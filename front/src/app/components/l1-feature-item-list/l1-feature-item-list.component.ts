@@ -84,6 +84,7 @@ import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BrowsersState } from '@store/browsers.state';
 import { BrowserstackState } from '@store/browserstack.state';
+import { LyridBrowsersState } from '@store/browserlyrid.state';
 import { Browserstack } from '@store/actions/browserstack.actions';
 import { Browsers } from '@store/actions/browsers.actions';
 import { Observable, switchMap, tap, map, filter, take, Subject, BehaviorSubject } from 'rxjs';
@@ -526,10 +527,8 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    // Set canCreateFeature based on edit permission
-    this.canEditFeature$.pipe(take(1)).subscribe(canEdit => {
-      this.canCreateFeature = canEdit;
-    });
+    // Note: canCreateFeature is already set by @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
+    // No need to manually set it here
 
     // Other observables - minimal setup
     this.isAnyFeatureRunning$ = new BehaviorSubject<boolean>(false).asObservable();
@@ -2145,8 +2144,8 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       const highestAvailable = availableVersions[0];
       
       
-      // For Chrome, be more strict - if it's more than 3 versions behind, consider it outdated
-      if (highestAvailable - selectedVersionNum > 3) {
+      // For Chrome, be less strict - only consider it outdated if it's more than 10 versions behind
+      if (highestAvailable - selectedVersionNum > 10) {
         return true;
       }
 
@@ -2172,9 +2171,23 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     });
 
     // If no matching browser is found, it means the version is outdated/not available
+    // But be more lenient - only return true if we're very confident it's outdated
     if (!matchingAvailableBrowser) {
-  
-      return true;
+      // Check if there are similar browsers (same OS, browser type) to be more confident
+      const similarBrowsers = availableBrowsers.filter((availableBrowser: any) => {
+        const osMatch = availableBrowser.os === selectedBrowser.os;
+        const browserMatch = availableBrowser.browser === selectedBrowser.browser;
+        return osMatch && browserMatch;
+      });
+      
+      // Only consider it outdated if we have similar browsers but no exact match
+      // This prevents false positives when browser data is incomplete
+      if (similarBrowsers.length > 0) {
+        return true;
+      }
+      
+      // If no similar browsers found, don't assume it's outdated
+      return false;
     }
     
     return false;
@@ -2427,17 +2440,30 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     // Ensure browsers are loaded
     this.ensureBrowsersLoaded();
     
-    // Get the available browsers from both BrowserstackState and BrowsersState
+    // Get the available browsers using the same method as BrowserSelectionComponent
+    // This ensures we have the same data that's shown in edit-feature
     const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
     const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    const lyridBrowsers = this._store.selectSnapshot(LyridBrowsersState) as any[];
     
-    // If no browsers available, can't determine
-    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+    // If no browsers available, can't determine - don't show warning
+    if ((!availableBrowsers || availableBrowsers.length === 0) && 
+        (!localBrowsers || localBrowsers.length === 0) && 
+        (!lyridBrowsers || lyridBrowsers.length === 0)) {
       return false;
     }
     
-    // Combine both browser sources
-    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    // Combine all browser sources (same as BrowserSelectionComponent)
+    const allAvailableBrowsers = [
+      ...(availableBrowsers || []), 
+      ...(localBrowsers || []), 
+      ...(lyridBrowsers || [])
+    ];
+    
+    // Check if the browser version is "latest" - this should never be outdated
+    if (browser.browser_version === 'latest') {
+      return false;
+    }
     
     // For local browsers, we need to handle them differently
     if (this.isLocalBrowser(browser)) {
@@ -3180,6 +3206,19 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
       this.cdr.detectChanges();
     }, 0);
+  }
+
+  /**
+   * Get safe tooltip text to prevent errors with special characters
+   */
+  public getSafeTooltipText(text: string): string {
+    if (!text) return '';
+    
+    // Remove any potentially problematic characters and limit length
+    return text
+      .replace(/[<>]/g, '') // Remove < and > characters
+      .replace(/"/g, "'") // Replace double quotes with single quotes
+      .substring(0, 100); // Limit length to prevent tooltip issues
   }
 
 }

@@ -185,7 +185,7 @@ Author: dph000
         *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification || true">
         
         <!-- edit-feature-button -->
-        <button stopPropagation mat-icon-button (click)="_sharedActions.openEditFeature(item.id, 'edit')" matTooltip="Edit {{ item.name }}" matTooltipPosition="above" class="edit-feature-button">
+        <button stopPropagation mat-icon-button (click)="_sharedActions.openEditFeature(item.id, 'edit')" [matTooltip]="'Edit ' + getSafeTooltipText(item.name)" matTooltipPosition="above" class="edit-feature-button">
           <mat-icon class="edit-feature-icon">edit</mat-icon>
         </button>
         
@@ -342,14 +342,14 @@ Author: dph000
         </button>
         <mat-divider></mat-divider>
         <!-- Edit feature -->
-        <button
-          type="button"
-          *ngIf="canEditFeature$ | async"
-          (click)="_sharedActions.openEditFeature(item.id, 'edit')"
-          matTooltip="Edit {{ item.name }} steps"
-          matTooltipPosition="before"
-          class="modify-feature"
-          mat-menu-item>
+                  <button
+            type="button"
+            *ngIf="canEditFeature$ | async"
+            (click)="_sharedActions.openEditFeature(item.id, 'edit')"
+            [matTooltip]="'Edit ' + getSafeTooltipText(item.name) + ' steps'"
+            matTooltipPosition="before"
+            class="modify-feature"
+            mat-menu-item>
           <mat-icon>edit</mat-icon>
           <span>Modify</span>
         </button>
@@ -358,7 +358,7 @@ Author: dph000
           type="button"
           *ngIf="canCreateFeature"
           (click)="_sharedActions.openEditFeature(item.id, 'clone')"
-          matTooltip="Clone {{ item.name }}"
+          [matTooltip]="'Clone ' + getSafeTooltipText(item.name)"
           matTooltipPosition="before"
           class="modify-feature"
           mat-menu-item>
@@ -369,7 +369,7 @@ Author: dph000
         <button
           type="button"
           (click)="SAmoveFeature(item.reference)"
-          matTooltip="Move {{ item.name }}"
+          [matTooltip]="'Move ' + getSafeTooltipText(item.name)"
           matTooltipPosition="before"
           class="move-feature"
           mat-menu-item>
@@ -390,7 +390,7 @@ Author: dph000
           type="button"
           *ngIf="canDeleteFeature$ | async"
           (click)="_sharedActions.deleteFeature(item.id)"
-          matTooltip="Delete feature {{ item.name }}"
+          [matTooltip]="'Delete feature ' + getSafeTooltipText(item.name)"
           matTooltipPosition="before"
           class="delete-feature"
           mat-menu-item>
@@ -454,7 +454,7 @@ Author: dph000
         </div>
       </div>
       <!-- Name of the folder  -->
-      <div class="name" [matTooltip]="item.name" matTooltipPosition="above">
+      <div class="name" [matTooltip]="getSafeTooltipText(item.name)" matTooltipPosition="above">
         <span>{{ item.name }}</span>
       </div>
       <!-- Department of the folder -->
