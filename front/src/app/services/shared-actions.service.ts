@@ -27,8 +27,10 @@ import { WebSockets } from '@store/actions/results.actions';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { FeaturesState } from '@store/features.state';
 import { LoadingActions } from '@store/loadings.state';
+import { BrowserstackState } from '@store/browserstack.state';
+import { BrowsersState } from '@store/browsers.state';
 import { deepClone } from 'ngx-amvara-toolbox';
-import { from, Observable, of, BehaviorSubject, combineLatest, Subject } from 'rxjs';
+import { from, Observable, of, BehaviorSubject, combineLatest, Subject, firstValueFrom } from 'rxjs';
 
 import {
   concatMap,
@@ -47,6 +49,8 @@ import { Console } from 'console';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { StarredService } from '@services/starred.service';
 import { take } from 'rxjs/operators';
+
+
 
 
 /**
@@ -542,13 +546,44 @@ export class SharedActionsService {
     );
   }
 
-  async runAllFeatures(folder: Folder){
-    // Create an array of observables for the running status of each feature in the folder
-    const featureStatuses: Observable<boolean>[] = folder.features.map(feature => 
+  /**
+   * IMPROVED: Runs all features in a folder, skipping those with outdated browsers
+   * @param folder - Folder object with properties: features (array of feature IDs)
+   */
+  async runAllFeatures(folder: any){
+    // IMPROVED: Get detailed information about which features can and cannot run
+    const featureStatus = await this.getFolderFeatureStatus(folder);
+    
+    if (featureStatus.canRunFeatures === 0) {
+      this._snackBar.open(
+        `No features with valid browsers available in this folder. ${featureStatus.totalFeatures} feature(s) have outdated browsers.`, 
+        'OK', 
+        { duration: 5000 }
+      );
+      return;
+    }
+
+    // Show detailed information about what will be run
+    if (featureStatus.invalidFeatures.length > 0) {
+      this._snackBar.open(
+        `Skipped ${featureStatus.invalidFeatures.length} feature(s) with outdated browsers. Running ${featureStatus.canRunFeatures} feature(s) with valid browsers.`, 
+        'OK', 
+        { duration: 5000 }
+      );
+    } else {
+      this._snackBar.open(
+        `Running all ${featureStatus.canRunFeatures} features in this folder.`, 
+        'OK', 
+        { duration: 3000 }
+      );
+    }
+
+    // Create an array of observables for the running status of each valid feature in the folder
+    const featureStatuses: Observable<boolean>[] = featureStatus.validFeatures.map(feature => 
       this._store.select(CustomSelectors.GetFeatureRunningStatus(feature))
     );
 
-    // Create an observable that emits the combined status of all features in the folder
+    // Create an observable that emits the combined status of all valid features in the folder
     const combinedStatus$ = combineLatest(featureStatuses).pipe(
       map(statuses => statuses.some(status => status))
     );
@@ -560,15 +595,13 @@ export class SharedActionsService {
       this.folderRunningStates.next(new Map(currentStates));
     });
 
-    if (folder.features.length <= 0) {
-      this._snackBar.open(`No features available in this folder`, 'OK');
-    } else {
-      await Promise.all(folder.features.map(feature => this.run(feature)));
-       // Update the running state of the folder to false after all executions are finished
-      const currentStates = this.folderRunningStates.getValue();
-      currentStates.set(folder.folder_id, false);
-      this.folderRunningStates.next(new Map(currentStates));
-    }
+    // Run only the valid features
+    await Promise.all(featureStatus.validFeatures.map(feature => this.run(feature)));
+    
+    // Update the running state of the folder to false after all executions are finished
+    const currentStates = this.folderRunningStates.getValue();
+    currentStates.set(folder.folder_id, false);
+    this.folderRunningStates.next(new Map(currentStates));
   }
 
   // Next update 2.8.77 config.json
@@ -604,6 +637,421 @@ export class SharedActionsService {
     
     // Clear feature cache when department changes to ensure fresh data
     this.clearFeatureCache();
+  }
+
+  /**
+   * IMPROVED: Filters features to only include those with valid (non-outdated) browsers
+   * This ensures that runAllFeatures only executes features that can actually run
+   */
+  public async filterFeaturesWithValidBrowsers(features: number[]): Promise<number[]> {
+    const validFeatures: number[] = [];
+    
+    for (const featureId of features) {
+      try {
+        // Check if this feature has outdated browsers
+        const hasOutdatedBrowsers = await this.checkFeatureBrowserStatus(featureId);
+        
+        if (!hasOutdatedBrowsers) {
+          validFeatures.push(featureId);
+        }
+      } catch (error) {
+        // If we can't determine browser status, BLOCK the feature for safety
+        // Don't add to validFeatures - it will be blocked
+      }
+    }
+    
+    return validFeatures;
+  }
+
+  /**
+   * IMPROVED: Gets detailed information about which features can and cannot run
+   * Returns an object with valid and invalid features for better user feedback
+   * @param folder - Folder object with properties: features (array of feature IDs)
+   * DEBUG: Enhanced with detailed validation information
+   * IMPROVED: Better handling when browsers are not loaded
+   */
+  public async getFolderFeatureStatus(folder: any): Promise<{
+    validFeatures: number[],
+    invalidFeatures: number[],
+    totalFeatures: number,
+    canRunFeatures: number,
+    detailedInfo: any[],
+    debugSummary: string,
+    browserStatus: string
+  }> {
+    const validFeatures: number[] = [];
+    const invalidFeatures: number[] = [];
+    const detailedInfo: any[] = [];
+    
+    // IMPROVED: Check browser status first
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const browserStatus = availableBrowsers && availableBrowsers.length > 0 
+      ? `✅ ${availableBrowsers.length} Browserstack browsers available`
+      : `⚠️ No Browserstack browsers loaded - validation may be incomplete`;
+    
+    
+    for (const featureId of folder.features) {
+      try {
+        
+        const hasOutdatedBrowsers = await this.checkFeatureBrowserStatus(featureId);
+        const browserDetails = await this.testBrowserChecking(featureId);
+        
+        if (hasOutdatedBrowsers) {
+          invalidFeatures.push(featureId);
+        } else {
+          validFeatures.push(featureId);
+        }
+        
+        detailedInfo.push({
+          featureId,
+          hasOutdatedBrowsers,
+          browserDetails
+        });
+      } catch (error) {
+        // If we can't determine, BLOCK the feature for safety
+        invalidFeatures.push(featureId);
+        detailedInfo.push({
+          featureId,
+          hasOutdatedBrowsers: true,
+          browserDetails: null,
+          error: error.message,
+          reason: 'Could not determine browser status - blocked for safety'
+        });
+      }
+    }
+    
+    const debugSummary = `
+      🔍 VALIDATION DEBUG SUMMARY:
+      Total features: ${folder.features.length}
+      Valid features: ${validFeatures.length} [${validFeatures.join(', ')}]
+      Invalid features: ${invalidFeatures.length} [${invalidFeatures.join(', ')}]
+      Can run: ${validFeatures.length}
+      Browser status: ${browserStatus}
+    `.trim();
+    
+    return {
+      validFeatures,
+      invalidFeatures,
+      totalFeatures: folder.features.length,
+      canRunFeatures: validFeatures.length,
+      detailedInfo,
+      debugSummary,
+      browserStatus
+    };
+  }
+
+  /**
+   * IMPROVED: Test method to verify browser checking functionality
+   * FOCUS: Only validates Browserstack browsers
+   * STRICT: Shows detailed validation results
+   */
+  public async testBrowserChecking(featureId: number): Promise<{
+    hasOutdatedBrowsers: boolean,
+    browserDetails: any[],
+    featureInfo: any,
+    validationSummary: string
+  }> {
+    try {
+      const featureInfo = await firstValueFrom(
+        this._store.select(CustomSelectors.GetFeatureInfo(featureId))
+      );
+      
+      if (!featureInfo || !featureInfo.browsers) {
+        return {
+          hasOutdatedBrowsers: true,
+          browserDetails: [],
+          featureInfo: featureInfo,
+          validationSummary: 'No feature info or browsers found - BLOCKED'
+        };
+      }
+      
+      // Get available Browserstack browsers
+      const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+      
+      if (!availableBrowsers || availableBrowsers.length === 0) {
+        return {
+          hasOutdatedBrowsers: true,
+          browserDetails: [],
+          featureInfo: featureInfo,
+          validationSummary: 'No Browserstack browsers available - BLOCKED'
+        };
+      }
+      
+      const browserDetails = featureInfo.browsers.map(browser => ({
+        browser: browser.browser,
+        version: browser.browser_version,
+        os: browser.os,
+        isLocal: !browser.os,
+        isOutdated: browser.os ? this.isCloudBrowserOutdated(browser, availableBrowsers) : false,
+        reason: this.getBrowserOutdatedReason(browser)
+      }));
+      
+      const hasOutdatedBrowser = browserDetails.some(browser => browser.isOutdated);
+      const localBrowsers = browserDetails.filter(browser => !browser.os);
+      const cloudBrowsers = browserDetails.filter(browser => browser.os);
+      const outdatedCloudBrowsers = cloudBrowsers.filter(browser => browser.isOutdated);
+      
+      const validationSummary = `
+        Total browsers: ${browserDetails.length}
+        Local browsers: ${localBrowsers.length} (always valid)
+        Cloud browsers: ${cloudBrowsers.length}
+        Outdated cloud browsers: ${outdatedCloudBrowsers.length}
+        Final result: ${hasOutdatedBrowser ? 'BLOCKED' : 'ALLOWED'}
+      `.trim();
+      
+      return {
+        hasOutdatedBrowsers: hasOutdatedBrowser,
+        browserDetails,
+        featureInfo: featureInfo,
+        validationSummary
+      };
+    } catch (error) {
+      return {
+        hasOutdatedBrowsers: true,
+        browserDetails: [],
+        featureInfo: null,
+        validationSummary: `Error during validation: ${error.message} - BLOCKED`
+      };
+    }
+  }
+
+  /**
+   * IMPROVED: Get detailed reason why a browser is considered outdated
+   * This helps with debugging and user feedback
+   * FOCUS: Only validates Browserstack browsers
+   */
+  private getBrowserOutdatedReason(browser: any): string {
+    try {
+      if (browser.browser_version === 'latest') {
+        return 'Latest version - never outdated';
+      }
+      
+      // FOCUS: Only validate cloud browsers (Browserstack) - skip local browsers
+      if (!browser.os) {
+        return 'Local browser - not validated';
+      }
+      
+      // Get only Browserstack browsers
+      const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+      
+      if (!availableBrowsers || availableBrowsers.length === 0) {
+        return 'No Browserstack browsers available for comparison';
+      }
+      
+      // Use the same logic as the component for cloud browsers
+      const isOutdated = this.isCloudBrowserOutdated(browser, availableBrowsers);
+      if (isOutdated) {
+        return `Browserstack browser ${browser.browser} ${browser.browser_version} not found in available browsers`;
+      }
+      
+      return 'Browserstack browser is up to date';
+    } catch (error) {
+      return 'Error checking browser status';
+    }
+  }
+
+  /**
+   * IMPROVED: Checks if a specific feature has outdated browsers
+   * Returns true if browsers are outdated, false if they're valid
+   * 
+   * FOCUS: Only validates Browserstack browsers using the same logic as the component
+   * IMPROVED: Fallback validation when browsers can't be loaded from store
+   * DEBUG: Enhanced with detailed logging
+   */
+  public async checkFeatureBrowserStatus(featureId: number): Promise<boolean> {
+    let featureInfo: any = null;
+    
+    try {
+      
+      // Get feature info from store to check browser configuration
+      featureInfo = await firstValueFrom(
+        this._store.select(CustomSelectors.GetFeatureInfo(featureId))
+      );
+      
+      if (!featureInfo) {
+        return true;
+      }
+      
+      if (!featureInfo.browsers || featureInfo.browsers.length === 0) {
+        return true;
+      }
+      
+ 
+      
+      // FOCUS: Only get Browserstack browsers (no local browsers)
+      let availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+      
+      // IMPROVED: If no browsers available, try to dispatch the action to load them
+      if (!availableBrowsers || availableBrowsers.length === 0) {
+       
+        
+        // Try to dispatch the action to load browsers
+        const { Browserstack } = await import('@store/actions/browserstack.actions');
+        this._store.dispatch(new Browserstack.GetBrowserstack());
+        
+        // Wait a bit and check again
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+        
+        if (!availableBrowsers || availableBrowsers.length === 0) {
+          // FALLBACK: Use basic validation when we can't get browsers from store
+          return this.fallbackBrowserValidation(featureInfo.browsers);
+        }
+      }
+      
+      // Check each browser using the SAME logic as the component for cloud browsers
+      const browsers = featureInfo.browsers;
+      const hasOutdatedBrowser = browsers.some(browser => {
+      
+        
+        // Only validate cloud browsers (Browserstack) - skip local browsers
+        if (browser.os) {
+          const isOutdated = this.isCloudBrowserOutdated(browser, availableBrowsers);
+          return isOutdated;
+        } else {
+          
+          return false;
+        }
+      });
+      return hasOutdatedBrowser;
+    } catch (error) {
+      
+      // If we can't determine due to error - use fallback validation
+      return this.fallbackBrowserValidation(featureInfo?.browsers || []);
+    }
+  }
+
+  /**
+   * FALLBACK: Dynamic browser validation when store browsers are not available
+   * This uses the SAME logic as the component: comparing with available versions
+   */
+  private fallbackBrowserValidation(browsers: any[]): boolean {
+    
+    // IMPROVED: Try to get browsers from store one more time
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    
+    if (availableBrowsers && availableBrowsers.length > 0) {
+
+      return this.dynamicBrowserValidation(browsers, availableBrowsers, localBrowsers);
+    }
+    
+    // Conservative approach: block all cloud browsers if we can't determine
+    return browsers.some(browser => {
+      if (!browser.os) {
+        return false;
+      }
+      
+      if (browser.browser_version === 'latest') {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  /**
+   * DYNAMIC: Uses the exact same logic as the component for browser validation
+   * Compares with available versions instead of hardcoded thresholds
+   */
+  private dynamicBrowserValidation(browsers: any[], availableBrowsers: any[], localBrowsers: any[]): boolean {
+    
+    const allAvailableBrowsers = [...availableBrowsers, ...localBrowsers];
+    
+    return browsers.some(browser => {
+      
+      // Skip local browsers (no OS property)
+      if (!browser.os) {
+        return false;
+      }
+      
+      // Skip 'latest' versions
+      if (browser.browser_version === 'latest') {
+        return false;
+      }
+      
+      // Use the EXACT same logic as the component
+      if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
+        return this.isLocalChromeOutdated(browser, allAvailableBrowsers);
+      } else {
+        return this.isCloudBrowserOutdated(browser, allAvailableBrowsers);
+      }
+    });
+  }
+
+  /**
+   * FOCUS: Only validates Browserstack browsers
+   * Local browsers are not validated and considered always valid
+   */
+  private isLocalBrowser(browser: any): boolean {
+    return !browser.os;
+  }
+
+  /**
+   * DYNAMIC: Check if a local Chrome browser is outdated (SAME logic as component)
+   * Compares with available versions instead of hardcoded thresholds
+   */
+  private isLocalChromeOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    // Get all available Chrome versions (both local and cloud)
+    const chromeBrowsers = availableBrowsers.filter(browser => 
+      browser.browser === 'chrome'
+    );
+    
+    if (chromeBrowsers.length === 0) {
+      return false; // Can't determine, allow running (same as component)
+    }
+    
+    // Extract version numbers and convert to integers for comparison
+    const availableVersions = chromeBrowsers.map(browser => {
+      const version = browser.browser_version;
+      if (version === 'latest') return 999; // Latest is always highest
+      return parseInt(version, 10) || 0;
+    }).sort((a, b) => b - a); // Sort descending
+    
+    const selectedVersion = selectedBrowser.browser_version;
+    if (selectedVersion === 'latest') {
+      return false; // Latest is never outdated
+    }
+    
+    const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+    
+    // Check if selected version is significantly outdated (more than 3 versions behind)
+    const highestAvailable = availableVersions[0];
+    
+    // For Chrome, be more strict - if it's more than 3 versions behind, consider it outdated
+    if (highestAvailable - selectedVersionNum > 3) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * IMPROVED: Check if a cloud browser is outdated (SAME logic as component)
+   * DEBUG: Enhanced with detailed logging
+   */
+  private isCloudBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    
+    // If the browser version is 'latest', it's never outdated
+    if (selectedBrowser.browser_version === 'latest') {
+      return false;
+    }
+    
+    // Find matching available browser by OS, OS version, browser type, and browser version
+    const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
+      const osMatch = availableBrowser.os === selectedBrowser.os;
+      const osVersionMatch = availableBrowser.os_version === selectedBrowser.os_version;
+      const browserMatch = availableBrowser.browser === selectedBrowser.browser;
+      const browserVersionMatch = availableBrowser.browser_version === selectedBrowser.browser_version;
+      
+      const isMatch = osMatch && osVersionMatch && browserMatch && browserVersionMatch;
+      
+      return isMatch;
+    });
+
+    // If no matching browser is found, it means the version is outdated/not available
+    if (!matchingAvailableBrowser) {
+      return true;
+    }
+    return false;
   }
 
   /**

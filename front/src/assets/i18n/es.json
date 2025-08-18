@@ -102,6 +102,7 @@
     "variables_requires": "Por favor seleccione un departamento y entorno para editar las variables",
     "run_feature": "Iniciar feature",
     "run_all_features": "Ejecutar todas las características",
+    "run_all_features_with_warning": "Ejecutar todas las características (las características con navegadores desactualizados se omitirán)",
     "runnning_all_features": "Ejecutando todas las características",
     "edit_schedule": "Editar programación",
     "edit_feature": "Modificar feature",
