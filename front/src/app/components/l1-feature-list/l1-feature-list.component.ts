@@ -496,7 +496,13 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
     const browsersByType = new Map<string, any[]>();
     
     row.browsers.forEach(browser => {
-      const browserType = browser.browser;
+      let browserType = browser.browser;
+      
+      // For mobile emulation, use OS as the type
+      if (browser.mobile_emulation) {
+        browserType = browser.os || browser.browser;
+      }
+      
       if (!browsersByType.has(browserType)) {
         browsersByType.set(browserType, []);
       }
@@ -509,16 +515,194 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
     browsersByType.forEach((browsers, browserType) => {
       if (browsers.length === 1) {
         // Single version
-        const version = browsers[0].browser_version || 'latest';
+        const browser = browsers[0];
+        let version = browser.browser_version || 'latest';
+        
+        // For mobile emulation, show device info if available
+        if (browser.mobile_emulation && browser.device) {
+          version = `${browser.device} ${version}`;
+        }
+        
         tooltipLines.push(`${browserType} ${version}`);
       } else {
         // Multiple versions
-        const versions = browsers.map(browser => browser.browser_version || 'latest').join(', ');
+        const versions = browsers.map(browser => {
+          let version = browser.browser_version || 'latest';
+          
+          // For mobile emulation, show device info if available
+          if (browser.mobile_emulation && browser.device) {
+            version = `${browser.device} ${version}`;
+          }
+          
+          return version;
+        }).join(', ');
+        
         tooltipLines.push(`${browserType} (${versions})`);
       }
     });
     
-    return tooltipLines.join('\n');
+    const tooltip = tooltipLines.join('\n');
+    return tooltip;
+  }
+
+  /**
+   * Get unique browser types with better mobile/tablet support
+   */
+  getUniqueBrowsersEnhancedForRow(row: any): any[] {
+    if (!row.browsers || row.browsers.length === 0) {
+      return [];
+    }
+    
+    // Group browsers by browser type and return unique ones
+    const uniqueBrowsers = new Map<string, any>();
+    
+    row.browsers.forEach(browser => {
+      // For mobile emulation, use OS as the key
+      let key = browser.browser;
+      if (browser.mobile_emulation) {
+        key = browser.os || browser.browser;
+      }
+      
+      if (!uniqueBrowsers.has(key)) {
+        uniqueBrowsers.set(key, browser);
+      }
+    });
+    
+    return Array.from(uniqueBrowsers.values());
+  }
+
+  /**
+   * Get enhanced tooltip for browser with mobile/tablet information
+   */
+  getEnhancedBrowserTooltipForRow(row: any, browser: any): string {
+    let tooltip = '';
+    
+    try {
+      // Check if it's a mobile or tablet browser
+      if (this.isMobileOrTablet(browser)) {
+        const deviceInfo = this.getDeviceInfo(browser);
+        const os = browser.os || browser.browser;
+        const version = browser.browser_version || 'latest';
+        
+        if (deviceInfo) {
+          tooltip = `${deviceInfo} (${os}) ${version}`;
+        } else {
+          tooltip = `${os} ${version}`;
+        }
+        
+        // Add mobile emulation info if available
+        if (browser.mobile_emulation) {
+          tooltip += ' (Emulated)';
+        } else if (browser.real_mobile) {
+          tooltip += ' (Real Device)';
+        }
+      } else {
+        // Regular browser
+        tooltip = this.getUniqueBrowserTooltipForRow(row, browser.browser);
+      }
+      
+      return tooltip;
+    } catch (error) {
+      return `${browser.browser || 'Unknown'} ${browser.browser_version || 'latest'}`;
+    }
+  }
+
+  /**
+   * Check if a browser is mobile or tablet
+   */
+  isMobileOrTablet(browser: any): boolean {
+    return browser.mobile_emulation || 
+           browser.real_mobile || 
+           browser.device || 
+           (browser.os && ['android', 'ios'].includes(browser.os.toLowerCase()));
+  }
+
+  /**
+   * Get device information for mobile/tablet browsers
+   */
+  getDeviceInfo(browser: any): string {
+    if (browser.device) {
+      return browser.device;
+    }
+    
+    if (browser.mobile_emulation) {
+      if (browser.os === 'ios') {
+        return browser.device || 'iPhone';
+      } else if (browser.os === 'android') {
+        return browser.device || 'Android';
+      }
+    }
+    
+    if (browser.real_mobile) {
+      return 'Mobile Device';
+    }
+    
+    return '';
+  }
+
+  /**
+   * Get enhanced browsers tooltip for a row with mobile/tablet support
+   */
+  getEnhancedBrowsersTooltipForRow(row: any): string {
+    if (!row.browsers || row.browsers.length === 0) {
+      return 'No browsers selected';
+    }
+    
+    try {
+      // Group browsers by type
+      const browsersByType = new Map<string, any[]>();
+      
+      row.browsers.forEach((browser, index) => {
+        let browserType = browser.browser;
+        
+        // For mobile emulation, use OS as the type
+        if (browser.mobile_emulation) {
+          browserType = browser.os || browser.browser;
+        }
+        
+        if (!browsersByType.has(browserType)) {
+          browsersByType.set(browserType, []);
+        }
+        browsersByType.get(browserType)!.push(browser);
+      });
+      
+      // Build organized tooltip text
+      const tooltipLines: string[] = [];
+      
+      browsersByType.forEach((browsers, browserType) => {
+        if (browsers.length === 1) {
+          // Single version
+          const browser = browsers[0];
+          let version = browser.browser_version || 'latest';
+          
+          // For mobile emulation, show device info if available
+          if (browser.mobile_emulation && browser.device) {
+            version = `${browser.device} ${version}`;
+          }
+          
+          tooltipLines.push(`${browserType} ${version}`);
+        } else {
+          // Multiple versions
+          const versions = browsers.map(browser => {
+            let version = browser.browser_version || 'latest';
+            
+            // For mobile emulation, show device info if available
+            if (browser.mobile_emulation && browser.device) {
+              version = `${browser.device} ${version}`;
+            }
+            
+            return version;
+          }).join(', ');
+          
+          tooltipLines.push(`${browserType} (${versions})`);
+        }
+      });
+      
+      const tooltip = tooltipLines.join('\n');
+      return tooltip;
+    } catch (error) {
+      return `${row.browsers.length} browsers configured`;
+    }
   }
 
   private initializeFeatureLocations() {
@@ -1214,6 +1398,11 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
   public isSpecificBrowserOutdated(browser: any): boolean {
     if (!browser) return false;
     
+    // Skip mobile/tablet browsers - they are never considered outdated
+    if (this.isMobileOrTablet(browser)) {
+      return false;
+    }
+    
     // Ensure browsers are loaded
     this.ensureBrowsersLoaded();
     
@@ -1243,6 +1432,11 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
    */
   public getSimpleBrowserStatusInfo(browser: any): string {
     if (!browser) return '';
+    
+    // Skip version checks for mobile/tablet browsers - they don't need version warnings
+    if (this.isMobileOrTablet(browser)) {
+      return ''; // Mobile browsers don't show version warnings
+    }
     
     // Ensure browsers are loaded
     this.ensureBrowsersLoaded();
@@ -1332,26 +1526,22 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
     const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
     
     // Check if any of the selected browsers have outdated versions
-    const hasOutdatedBrowser = row.browsers.some((selectedBrowser: any, index: number) => {
-      this.log.msg('1', `Feature ${row.id} checking browser ${index + 1}: ${selectedBrowser.browser} ${selectedBrowser.browser_version}`, 'feature-list');
-      
-      // For local browsers, we need to handle them differently
+    // SKIP version checks for mobile/tablet browsers - they should always be allowed to run
+    const hasOutdatedBrowser = row.browsers.some((selectedBrowser: any) => {
+      // Skip mobile/tablet browsers
+      if (this.isMobileOrTablet(selectedBrowser)) {
+        return false; // Mobile browsers are never considered outdated
+      }
+
+      // For local browsers, handle differently
       if (this.isLocalBrowser(selectedBrowser)) {
-        this.log.msg('1', `Feature ${row.id} browser ${index + 1} detected as local`, 'feature-list');
-        const isOutdated = this.isLocalBrowserOutdated(selectedBrowser, allAvailableBrowsers);
-        this.log.msg('1', `Feature ${row.id} browser ${index + 1} local outdated: ${isOutdated}`, 'feature-list');
-        return isOutdated;
+        return this.isLocalBrowserOutdated(selectedBrowser, allAvailableBrowsers);
       }
       
       // For cloud browsers, use exact matching
-      this.log.msg('1', `Feature ${row.id} browser ${index + 1} detected as cloud`, 'feature-list');
-      const isOutdated = this.isCloudBrowserOutdated(selectedBrowser, allAvailableBrowsers);
-      this.log.msg('1', `Feature ${row.id} browser ${index + 1} cloud outdated: ${isOutdated}`, 'feature-list');
-      return isOutdated;
+      return this.isCloudBrowserOutdated(selectedBrowser, allAvailableBrowsers);
     });
 
-    this.log.msg('1', `Feature ${row.id} has outdated browsers: ${hasOutdatedBrowser}`, 'feature-list');
-    
     // Cache the result and timestamp to prevent excessive checks
     row._lastBrowserCheck = Date.now();
     row._browserCheckResult = hasOutdatedBrowser;
@@ -1381,7 +1571,14 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
     }
 
     const statusInfo: string[] = [];
-    const outdatedBrowsers = row.browsers.filter((browser: any) => this.isSpecificBrowserOutdated(browser));
+    // Filter out mobile/tablet browsers from outdated checks - they don't need version warnings
+    const outdatedBrowsers = row.browsers.filter((browser: any) => {
+      // Skip mobile/tablet browsers
+      if (this.isMobileOrTablet(browser)) {
+        return false;
+      }
+      return this.isSpecificBrowserOutdated(browser);
+    });
     
     if (outdatedBrowsers.length === 0) {
       return 'All browsers are up to date';

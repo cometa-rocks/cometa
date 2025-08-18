@@ -244,15 +244,38 @@ button.browser-obsolete {
   align-items: center;
   gap: 4px;
   
+  .browser-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .browser-icons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    span {
+      font-size: 12px;
+      color: $dark;
+      white-space: nowrap;
+      cursor: help;
+      
+      &:hover {
+        color: $blue;
+      }
+    }
+  }
+  
   .browser-icon-container {
     position: relative;
     margin-right: 4px;
     
     &:last-child {
-      margin-right: 8px;
+      margin-right: 0;
     }
     
-    .my-icons {
+    .browser-icon {
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
