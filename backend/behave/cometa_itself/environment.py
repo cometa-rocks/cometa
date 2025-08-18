@@ -647,19 +647,17 @@ def before_all(context):
     # update feature_result with session_id
     requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
-    # get all the steps from django
-    response = requests.get(f'{get_cometa_backend_url()}/steps/%s/?subSteps=True' % context.feature_id,
-                            headers={"Host": "cometa.local"})
 
-    # save the steps to environment variable ... this will overload ENV variables in bash size. Must use context, not env.
-    # os.environ['STEPS'] = json.dumps(response.json()['results'])
-
-    # Store all steps of this feature into the context for using it later
-    context.steps = response.json()["results"]
+    # read the steps from the step json file which is created by django container in the file system
+    logger.debug(f"FEATURE_JSON_FILE: {os.environ['FEATURE_JSON_FILE']}")
+    with open(os.environ['FEATURE_JSON_FILE'], 'r') as f:
+        context.steps = json.load(f)
+    logger.debug(f"context.steps: {context.steps}")
+        
     logger.debug(f"Total steps found: {len(context.steps)}")
 
     # update counters total
-    context.counters["total"] = len(response.json()["results"])
+    context.counters["total"] = len(context.steps)
 
     os.environ["total_steps"] = str(context.counters["total"])
 

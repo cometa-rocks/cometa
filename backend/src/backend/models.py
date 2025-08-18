@@ -303,11 +303,11 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
 
     try:
         logger.debug(f"Creating feature file {feature_file_lock_path}")
+        stepsToAdd = []
         with open(feature_file_lock_path, 'w+') as featureFile:
             featureFile.write('Feature: '+feature.feature_name+'\n\n')
             logger.debug("Feature name added to file")
             # save the steps to save to database before removing old steps
-            stepsToAdd = []
 
             featureFile.write('\tScenario: First')
             logger.debug(f"Checking steps : Steps Length {len(steps)}")
@@ -362,15 +362,15 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
             featureFile.write('\n')
             logger.debug("Step checks completed")
         
-        # While running test feature files is created that time we don't want to save steps to the database
-        # this is to avoid step duplication in the database, because multiple thread try to create feature files at same time
-        if True:
             
             from django.db import IntegrityError, transaction
             try:
                 with transaction.atomic():
-                    # delete all the steps from the database 
-                    Step.objects.filter(feature_id=feature.feature_id).delete()
+                    # DO NOT REMOVE THE IF CONDITION
+                    # Faced issue #6700 because of this 
+                    if save_steps:   
+                        # delete all the steps from the database 
+                        Step.objects.filter(feature_id=feature.feature_id).delete()
                     # gather all the variables found during the save steps
                     variables_used = []
 
@@ -401,19 +401,27 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
                             except ValueError:
                                 # default timeout will be set later on
                                 pass
-                        Step.objects.create(
-                            feature_id = feature.feature_id,
-                            step_keyword = step['step_keyword'],
-                            step_content = step['step_content'].replace('\\xa0', ' '),
-                            step_action = step['step_action'],
-                            enabled = step['enabled'],
-                            step_type = step['step_type'],
-                            screenshot = step['screenshot'],
-                            compare = step['compare'],
-                            continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
-                            belongs_to = step.get('belongs_to', feature.feature_id),
-                            timeout = step.get('timeout', 60)
-                        )
+                        
+                        
+                        # DO NOT REMOVE THE IF CONDITION
+                        # Faced issue #6700 because of this 
+                        # While running test feature files is created that time we don't want to save steps to the database
+                        # this is to avoid step duplication in the database, because multiple thread try to create feature files at same time
+
+                        if save_steps:                    
+                            Step.objects.create(
+                                feature_id = feature.feature_id,
+                                step_keyword = step['step_keyword'],
+                                step_content = step['step_content'].replace('\\xa0', ' '),
+                                step_action = step['step_action'],
+                                enabled = step['enabled'],
+                                step_type = step['step_type'],
+                                screenshot = step['screenshot'],
+                                compare = step['compare'],
+                                continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
+                                belongs_to = step.get('belongs_to', feature.feature_id),
+                                timeout = step.get('timeout', 60)
+                            )
 
             except IntegrityError as e:
                 logger.debug(f"Exception while saving steps with transactions | Feature ID : {feature.feature_id}")
@@ -430,7 +438,7 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
         #move feature lock file to the feature file
         logger.debug(f"Feature file {feature_file_lock_path} created successfully")
         os.rename(feature_file_lock_path, feature_file_path)
-        return {"success": True,'feature_file_path': feature_file_path}
+        return {"success": True, 'feature_file_path': feature_file_path, 'steps': stepsToAdd}
     except Exception as e:
         logger.debug(f"Exception while saving steps with transactions | Feature ID : {feature.feature_id}")
         logger.exception(e)
@@ -475,10 +483,34 @@ def write_multiline_send_keys_step(featureFile, step):
 # Creates the .json file
 # @param featureFileName: string - Contains file of the feature
 # @param steps: Array - Array of the steps definition
-def create_json_file(feature, steps, featureFileName):
+def create_json_file(feature, steps, featureFileName, feature_result_id):
+    steps_to_save = []
+    for step in steps:
+        if step.get("step_type", None) not in ["normal", "substep"]:
+            continue
+        # if step is not enabled, skip it
+        if step.get("enabled", False)==False:
+            continue
+        # if step belongs to is not set, set it to the feature id
+        if step.get('belongs_to', None) == None:
+            step['belongs_to'] = feature.feature_id
+        # add the step to the list to be saved
+        steps_to_save.append(step)
+    
+    # This is done to make sure that the steps are stored and available for the live execution 
+    # it will to reduce the saving of steps in the Step table and keeps record of the steps executed for perticular feature result
+    # refer issue #6639 for more details
+    if feature_result_id:
+        logger.debug(f"Saving steps to feature result {feature_result_id}")
+        feature_result = Feature_result.objects.get(feature_result_id=feature_result_id)
+        feature_result.feature_json_steps = steps_to_save
+        feature_result.save()
+
+    # save the steps to the json file
     json_file_path = featureFileName+'.json'
     with open(json_file_path, 'w') as file:
-        json.dump(steps, file)
+        json.dump(steps_to_save, file)
+    logger.debug(f"Saved steps json file at path {json_file_path}")
     return json_file_path
 
 # create_meta_file
@@ -928,8 +960,18 @@ def generate_feature_test_file_and_save_steps(feature, kwargs, new_feature, feat
     logger.debug(f"Saving steps received from Front: {steps}")
     # Create .feature
     # on success files_path  should contain feature_file_path and success=True
-    files_path = create_feature_file(feature, steps, featureFilePathWithName, save_steps=kwargs.get('save_steps', True))
+    step_data_and_files = create_feature_file(feature, steps, featureFilePathWithName, save_steps=kwargs.get('save_steps', True))
     logger.debug("Feature file created")
+    
+    # if there was no errors the steps will be in the step_data_and_files dictionary
+    if "steps" in step_data_and_files.keys():    
+        steps = step_data_and_files['steps']
+        del step_data_and_files['steps'] 
+    
+    # once steps are removed from the step_data_and_files dictionary, 
+    # the remaining dictionary will contain only the files_path and success=True
+    files_path = step_data_and_files
+
     # check if infinite loop was found
     if not files_path['success']:
         if new_feature:
@@ -939,7 +981,7 @@ def generate_feature_test_file_and_save_steps(feature, kwargs, new_feature, feat
     
     # Create .json
     logger.debug(f"Creating Json file : {featureFilePathWithName}")
-    files_path['json_file_path'] = create_json_file(feature, steps, featureFilePathWithName)
+    files_path['json_file_path'] = create_json_file(feature, steps, featureFilePathWithName, feature_result_id)
     # Create _meta.json
     logger.debug(f"Creating meta file : {featureFilePathWithName}")
     files_path['meta_file_path'] = create_meta_file(feature, featureFilePathWithName)
@@ -988,6 +1030,7 @@ class Feature_result(SoftDeletableModel):
     network_logging_enabled = models.BooleanField(default=False) # If set to false it will not query in NetworkResponse, will reduce query time
     house_keeping_done =  models.BooleanField(default=False) # If house keeping was done for this Feature result then do not process again
     pdf_result_file_path =  models.CharField(max_length=200, default='', blank=True) # If house keeping was done for this Feature result then do not process again
+    feature_json_steps = models.JSONField(default=list, null=True, blank=True)
     class Meta:
         ordering = ['result_date']
         verbose_name_plural = "Feature Results"

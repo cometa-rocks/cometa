@@ -193,6 +193,36 @@ def step_impl(context,selector):
         logger.exception(err)
         raise err
 
+# Moves the mouse to the css selector and double clicks
+# Example: I move mouse to "//div[contains(@class, 'showFolders')]" and double click
+@step(u'I move mouse from coordinates "{start_x},{start_y}" to "{end_x},{end_y}" on element "{element}"')  
+@done(u'I move mouse from coordinates "{start_x},{start_y}" to "{end_x},{end_y}" on element "{element}"')
+def step_impl(context,start_x,start_y,end_x,end_y,element):
+    send_step_details(context, 'Moving mouse from coordinates to coordinates on element')
+    try:
+        # Find the element first
+        elem = waitSelector(context, "css", element)
+        
+        # Use ActionChains to move mouse from start to end coordinates on the element
+        actions = ActionChains(context.browser)
+        
+        # Move to start coordinates relative to the element
+        actions.move_to_element_with_offset(elem[0], int(start_x), int(start_y))
+        actions.perform()
+        
+        # Add delay to see the movement
+        time.sleep(1)
+        
+        # Move to end coordinates relative to the element
+        actions = ActionChains(context.browser)
+        actions.move_to_element_with_offset(elem[0], int(end_x), int(end_y))
+        actions.perform()
+        
+    except Exception as err:
+        logger.error("Unable to move mouse to specified coordinates.")
+        logger.exception(err)
+        raise err
+
 # Moves the mouse to the center of css selector
 # Example: I move mouse over "(//mat-icon[text()='home'])[1]"
 @step(u'I move mouse over "{css_selector}"')
