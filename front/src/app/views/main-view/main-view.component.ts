@@ -324,7 +324,7 @@ export class MainViewComponent implements OnInit {
               this.checkIfThereAreFailedSteps();
               
               // Update the store to ensure l1-feature-items gets the latest data
-              if (featureId) {
+              if (featureId && res.results && res.results.length > 0) {
                 // Use the new action that only updates result data without affecting other features
                 this._store.dispatch(new Features.UpdateFeatureResultData(featureId, res.results[0]));
                 this._store.dispatch(new WebSockets.CleanupFeatureResults(featureId));
@@ -334,6 +334,9 @@ export class MainViewComponent implements OnInit {
                 
                 // Refresh L1 feature item list data to ensure consistency after any data changes
                 this.refreshL1FeatureItemListDataAfterResultsUpdate(featureId, res.results);
+              } else if (featureId) {
+                // Log when no results are available
+                this.logger.msg('1', `No results available for feature ${featureId}, skipping store update`, 'main-view');
               }
             },
             error: err => {
@@ -356,16 +359,23 @@ export class MainViewComponent implements OnInit {
     if (results && results.length > 0) {
       const latestResult = results[0];
       
-      // Use the new action that only updates result data without affecting other features
-      this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
-      
-      // Log the data synchronization for debugging
-      this.logger.msg('1', `Synchronized L1 feature item list data for feature ${featureId} with ${results.length} results`, 'main-view');
-      
-      // If we have execution data, ensure it's properly cached for L1 feature items
-      if (latestResult.total || latestResult.execution_time || latestResult.result_date) {
-        this.logger.msg('1', `L1 feature item list data synchronized: total=${latestResult.total}, time=${latestResult.execution_time}, date=${latestResult.result_date}`, 'main-view');
+      // Safely check if latestResult has the required properties before updating store
+      if (latestResult && typeof latestResult === 'object') {
+        // Use the new action that only updates result data without affecting other features
+        this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
+        
+        // Log the data synchronization for debugging
+        this.logger.msg('1', `Synchronized L1 feature item list data for feature ${featureId} with ${results.length} results`, 'main-view');
+        
+        // If we have execution data, ensure it's properly cached for L1 feature items
+        if (latestResult.total || latestResult.execution_time || latestResult.result_date) {
+          this.logger.msg('1', `L1 feature item list data synchronized: total=${latestResult.total}, time=${latestResult.execution_time}, date=${latestResult.result_date}`, 'main-view');
+        }
+      } else {
+        this.logger.msg('1', `Invalid result data for feature ${featureId}, skipping store update`, 'main-view');
       }
+    } else {
+      this.logger.msg('1', `No results available for feature ${featureId}, skipping L1 data preload`, 'main-view');
     }
   }
 
@@ -377,16 +387,23 @@ export class MainViewComponent implements OnInit {
     if (results && results.length > 0) {
       const latestResult = results[0];
       
-      // Use the new action that only updates result data without affecting other features
-      this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
-      
-      // Log the data refresh for debugging
-      this.logger.msg('1', `Refreshed L1 feature item list data after results update for feature ${featureId}`, 'main-view');
-      
-      // If we have execution data, ensure it's properly synchronized
-      if (latestResult.total || latestResult.execution_time || latestResult.result_date) {
-        this.logger.msg('1', `L1 feature item list data refreshed: total=${latestResult.total}, time=${latestResult.execution_time}, date=${latestResult.result_date}`, 'main-view');
+      // Safely check if latestResult has the required properties before updating store
+      if (latestResult && typeof latestResult === 'object') {
+        // Use the new action that only updates result data without affecting other features
+        this._store.dispatch(new Features.UpdateFeatureResultData(featureId, latestResult));
+        
+        // Log the data refresh for debugging
+        this.logger.msg('1', `Refreshed L1 feature item list data after results update for feature ${featureId}`, 'main-view');
+        
+        // If we have execution data, ensure it's properly synchronized
+        if (latestResult.total || latestResult.execution_time || latestResult.result_date) {
+          this.logger.msg('1', `L1 feature item list data refreshed: total=${latestResult.total}, time=${latestResult.execution_time}, date=${latestResult.result_date}`, 'main-view');
+        }
+      } else {
+        this.logger.msg('1', `Invalid result data for feature ${featureId}, skipping store refresh`, 'main-view');
       }
+    } else {
+      this.logger.msg('1', `No results available for feature ${featureId}, skipping L1 data refresh`, 'main-view');
     }
   }
 

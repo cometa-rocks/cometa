@@ -356,7 +356,7 @@ Author: dph000
         <!-- Clone feature -->
         <button
           type="button"
-          *ngIf="canCreateFeature"
+          *ngIf="localCanCreateFeature"
           (click)="_sharedActions.openEditFeature(item.id, 'clone')"
           [matTooltip]="'Clone ' + getSafeTooltipText(item.name)"
           matTooltipPosition="before"

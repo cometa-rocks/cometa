@@ -101,22 +101,29 @@ export class FeaturesState {
       produce((ctx: IFeaturesState) => {
         // Only update if the feature exists in the store
         if (ctx.details[feature_id]) {
+          // Safely check if result_data exists and has the required properties
+          if (!result_data) {
+            return; // Exit early if no data to update
+          }
+          
           // Update only the result-related fields, preserving other feature data
           ctx.details[feature_id] = {
             ...ctx.details[feature_id],
             // Update only the fields that exist in Feature interface and are relevant
-            steps: result_data.total || ctx.details[feature_id].steps,
+            // Use safe property access with fallbacks
+            steps: result_data.total !== undefined ? result_data.total : ctx.details[feature_id].steps,
             success: result_data.success !== undefined ? result_data.success : ctx.details[feature_id].success,
             // Update the info field if it exists and contains FeatureResult data
-            info: result_data ? {
+            info: {
               ...ctx.details[feature_id].info,
-              total: result_data.total,
-              execution_time: result_data.execution_time,
-              result_date: result_data.result_date,
-              status: result_data.status,
-              success: result_data.success,
-              running: result_data.running,
-            } : ctx.details[feature_id].info,
+              // Only update properties that exist in result_data
+              ...(result_data.total !== undefined && { total: result_data.total }),
+              ...(result_data.execution_time !== undefined && { execution_time: result_data.execution_time }),
+              ...(result_data.result_date !== undefined && { result_date: result_data.result_date }),
+              ...(result_data.status !== undefined && { status: result_data.status }),
+              ...(result_data.success !== undefined && { success: result_data.success }),
+              ...(result_data.running !== undefined && { running: result_data.running }),
+            },
             // Preserve all other feature data
           };
         }

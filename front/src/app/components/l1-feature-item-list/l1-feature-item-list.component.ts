@@ -84,7 +84,6 @@ import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BrowsersState } from '@store/browsers.state';
 import { BrowserstackState } from '@store/browserstack.state';
-import { LyridBrowsersState } from '@store/browserlyrid.state';
 import { Browserstack } from '@store/actions/browserstack.actions';
 import { Browsers } from '@store/actions/browsers.actions';
 import { Observable, switchMap, tap, map, filter, take, Subject, BehaviorSubject } from 'rxjs';
@@ -224,9 +223,15 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   departmentFolders$: Observable<Folder[]>;
   isStarred$: Observable<boolean>;
   lastFeatureResult$: Observable<FeatureResult | IResult>;
+  
+  // Local permission management - separate from store properties
+  private _localCanCreateFeature: boolean = false;
 
   ngOnInit() {
     this.isComponentActive = true;
+    
+    // Initialize local permissions from store values
+    this._localCanCreateFeature = this.canCreateFeature;
     
     // Setup essential observables only
     this.setupEssentialObservables();
@@ -527,8 +532,17 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    // Note: canCreateFeature is already set by @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
-    // No need to manually set it here
+    // Set canCreateFeature based on edit permission
+    this.canEditFeature$.pipe(take(1)).subscribe(canEdit => {
+      this._localCanCreateFeature = canEdit;
+    });
+    
+    // Also listen to changes in the store canCreateFeature and update local value
+    this._store.select(UserState.GetPermission('create_feature')).pipe(
+      distinctUntilChanged()
+    ).subscribe(storeCanCreate => {
+      this._localCanCreateFeature = storeCanCreate;
+    });
 
     // Other observables - minimal setup
     this.isAnyFeatureRunning$ = new BehaviorSubject<boolean>(false).asObservable();
@@ -1415,30 +1429,34 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   getEnhancedBrowserTooltip(browser: any): string {
     let tooltip = '';
     
-    // Check if it's a mobile or tablet browser
-    if (this.isMobileOrTablet(browser)) {
-      const deviceInfo = this.getDeviceInfo(browser);
-      const os = browser.os || browser.browser;
-      const version = browser.browser_version || 'latest';
-      
-      if (deviceInfo) {
-        tooltip = `${deviceInfo} (${os}) ${version}`;
+    try {
+      // Check if it's a mobile or tablet browser
+      if (this.isMobileOrTablet(browser)) {
+        const deviceInfo = this.getDeviceInfo(browser);
+        const os = browser.os || browser.browser;
+        const version = browser.browser_version || 'latest';
+        
+        if (deviceInfo) {
+          tooltip = `${deviceInfo} (${os}) ${version}`;
+        } else {
+          tooltip = `${os} ${version}`;
+        }
+        
+        // Add mobile emulation info if available
+        if (browser.mobile_emulation) {
+          tooltip += ' (Emulated)';
+        } else if (browser.real_mobile) {
+          tooltip += ' (Real Device)';
+        }
       } else {
-        tooltip = `${os} ${version}`;
+        // Regular browser
+        tooltip = this.getUniqueBrowserTooltip(browser.browser);
       }
       
-      // Add mobile emulation info if available
-      if (browser.mobile_emulation) {
-        tooltip += ' (Emulated)';
-      } else if (browser.real_mobile) {
-        tooltip += ' (Real Device)';
-      }
-    } else {
-      // Regular browser
-      tooltip = this.getUniqueBrowserTooltip(browser.browser);
+      return tooltip;
+    } catch (error) {
+      return `${browser.browser || 'Unknown'} ${browser.browser_version || 'latest'}`;
     }
-    
-    return tooltip;
   }
 
   /**
@@ -1533,41 +1551,31 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       return 'No browsers selected';
     }
     
-    // Group browsers by type
-    const browsersByType = new Map<string, any[]>();
-    
-    this.item.browsers.forEach(browser => {
-      let browserType = browser.browser;
+    try {
+      // Group browsers by type
+      const browsersByType = new Map<string, any[]>();
       
-      // For mobile emulation, use OS as the type
-      if (browser.mobile_emulation) {
-        browserType = browser.os || browser.browser;
-      }
-      
-      if (!browsersByType.has(browserType)) {
-        browsersByType.set(browserType, []);
-      }
-      browsersByType.get(browserType)!.push(browser);
-    });
-    
-    // Build organized tooltip text
-    const tooltipLines: string[] = [];
-    
-    browsersByType.forEach((browsers, browserType) => {
-      if (browsers.length === 1) {
-        // Single version
-        const browser = browsers[0];
-        let version = browser.browser_version || 'latest';
+      this.item.browsers.forEach((browser, index) => {
+        let browserType = browser.browser;
         
-        // For mobile emulation, show device info if available
-        if (browser.mobile_emulation && browser.device) {
-          version = `${browser.device} ${version}`;
+        // For mobile emulation, use OS as the type
+        if (browser.mobile_emulation) {
+          browserType = browser.os || browser.browser;
         }
         
-        tooltipLines.push(`${browserType} ${version}`);
-      } else {
-        // Multiple versions
-        const versions = browsers.map(browser => {
+        if (!browsersByType.has(browserType)) {
+          browsersByType.set(browserType, []);
+        }
+        browsersByType.get(browserType)!.push(browser);
+      });
+      
+      // Build organized tooltip text
+      const tooltipLines: string[] = [];
+      
+      browsersByType.forEach((browsers, browserType) => {
+        if (browsers.length === 1) {
+          // Single version
+          const browser = browsers[0];
           let version = browser.browser_version || 'latest';
           
           // For mobile emulation, show device info if available
@@ -1575,14 +1583,29 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
             version = `${browser.device} ${version}`;
           }
           
-          return version;
-        }).join(', ');
-        
-        tooltipLines.push(`${browserType} (${versions})`);
-      }
-    });
-    
-    return tooltipLines.join('\n');
+          tooltipLines.push(`${browserType} ${version}`);
+        } else {
+          // Multiple versions
+          const versions = browsers.map(browser => {
+            let version = browser.browser_version || 'latest';
+            
+            // For mobile emulation, show device info if available
+            if (browser.mobile_emulation && browser.device) {
+              version = `${browser.device} ${version}`;
+            }
+            
+            return version;
+          }).join(', ');
+          
+          tooltipLines.push(`${browserType} (${versions})`);
+        }
+      });
+      
+      const tooltip = tooltipLines.join('\n');
+      return tooltip;
+    } catch (error) {
+      return `${this.item.browsers.length} browsers configured`;
+    }
   }
 
   /**
@@ -1999,26 +2022,37 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Ensure browsers are loaded in the store
+   * Ensure browsers are loaded from the store, with better error handling
    */
   private ensureBrowsersLoaded(): void {
-    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
-    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
-    
-    if (!availableBrowsers || availableBrowsers.length === 0) {
-      try {
-        this._store.dispatch(new Browserstack.GetBrowserstack());
-      } catch (error) {
-        // Error dispatching browserstack refresh
+    try {
+      const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+      const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+      
+      // Only try to load if we don't have any browsers and haven't tried recently
+      const now = Date.now();
+      const lastBrowserLoadAttempt = this.item?._lastBrowserLoadAttempt || 0;
+      const shouldAttemptLoad = (now - lastBrowserLoadAttempt) > 30000; // 30 seconds between attempts
+      
+      if (shouldAttemptLoad && (!availableBrowsers || availableBrowsers.length === 0)) {
+        try {
+          this.item._lastBrowserLoadAttempt = now;
+          this._store.dispatch(new Browserstack.GetBrowserstack());
+        } catch (error) {
+          // Don't throw error, just log it
+        }
       }
-    }
-    
-    if (!localBrowsers || localBrowsers.length === 0) {
-      try {
-        this._store.dispatch(new Browsers.GetBrowsers());
-      } catch (error) {
-        // Error dispatching local browsers refresh
+      
+      if (shouldAttemptLoad && (!localBrowsers || localBrowsers.length === 0)) {
+        try {
+          this.item._lastBrowserLoadAttempt = now;
+          this._store.dispatch(new Browsers.GetBrowsers());
+        } catch (error) {
+          // Don't throw error, just log it
+        }
       }
+    } catch (error) {
+      // Don't throw error, just log it and continue
     }
   }
 
@@ -2039,51 +2073,67 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * Check if the run button should be disabled due to browser version issues
    */
   public shouldDisableRunButton(): boolean {
-    // Check if the feature has browsers configured
-    if (!this.item?.browsers || this.item.browsers.length === 0) {
-      return false;
-    }
-
-    // Throttle browser checks to prevent excessive execution
-    if (this.item._lastBrowserCheck && (Date.now() - this.item._lastBrowserCheck) < 5000) {
-      // Return cached result if checked recently
-      return this.item._browserCheckResult || false;
-    }
-
-    // Ensure browsers are loaded
-    this.ensureBrowsersLoaded();
-
-    // Get the available browsers from both BrowserstackState and BrowsersState
-    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
-    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
-    
-    // If still no browsers, return false (button will be enabled - allow running)
-    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
-      return false;
-    }
-
-    // Combine both browser sources
-    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
-    
-    // Check if any of the selected browsers have outdated versions
-    const hasOutdatedBrowser = this.item.browsers.some((selectedBrowser: any, index: number) => {
-      // For local browsers, we need to handle them differently
-      if (this.isLocalBrowser(selectedBrowser)) {
-        const isOutdated = this.isLocalBrowserOutdated(selectedBrowser, allAvailableBrowsers);
-        return isOutdated;
+    try {
+      // Check if the feature has browsers configured
+      if (!this.item?.browsers || this.item.browsers.length === 0) {
+        return false;
       }
+
+      // Throttle browser checks to prevent excessive execution
+      if (this.item._lastBrowserCheck && (Date.now() - this.item._lastBrowserCheck) < 5000) {
+        // Return cached result if checked recently
+        return this.item._browserCheckResult || false;
+      }
+
+      // Ensure browsers are loaded
+      this.ensureBrowsersLoaded();
+
+      // Get the available browsers from both BrowserstackState and BrowsersState
+      const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+      const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
       
-      // For cloud browsers, use exact matching
-      const isOutdated = this.isCloudBrowserOutdated(selectedBrowser, allAvailableBrowsers);
-      return isOutdated;
-    });
-    
-    // Cache the result and timestamp to prevent excessive checks
-    this.item._lastBrowserCheck = Date.now();
-    this.item._browserCheckResult = hasOutdatedBrowser;
-    
-    // Return true ONLY if there are outdated browsers (this will disable the button)
-    return hasOutdatedBrowser;
+      // If still no browsers, return false (button will be enabled - allow running)
+      // This prevents blocking the UI when there are network issues
+      if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+        return false;
+      }
+
+      // Combine both browser sources
+      const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+      
+      // Check if any of the selected browsers have outdated versions
+      // SKIP version checks for mobile/tablet browsers - they should always be allowed to run
+      const hasOutdatedBrowser = this.item.browsers.some((selectedBrowser: any, index: number) => {
+        try {
+          // Skip version checks for mobile/tablet browsers
+          if (this.isMobileOrTablet(selectedBrowser)) {
+            return false; // Mobile browsers are never considered outdated
+          }
+          
+          // For local browsers, we need to handle them differently
+          if (this.isLocalBrowser(selectedBrowser)) {
+            const isOutdated = this.isLocalBrowserOutdated(selectedBrowser, allAvailableBrowsers);
+            return isOutdated;
+          }
+          
+          // For cloud browsers, use exact matching
+          const isOutdated = this.isCloudBrowserOutdated(selectedBrowser, allAvailableBrowsers);
+          return isOutdated;
+        } catch (error) {
+          return false; // Don't disable button on error
+        }
+      });
+      
+      // Cache the result and timestamp to prevent excessive checks
+      this.item._lastBrowserCheck = Date.now();
+      this.item._browserCheckResult = hasOutdatedBrowser;
+      
+      // Return true ONLY if there are outdated browsers (this will disable the button)
+      return hasOutdatedBrowser;
+    } catch (error) {
+      // On error, don't disable the button - allow running
+      return false;
+    }
   }
 
   /**
@@ -2144,8 +2194,8 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       const highestAvailable = availableVersions[0];
       
       
-      // For Chrome, be less strict - only consider it outdated if it's more than 10 versions behind
-      if (highestAvailable - selectedVersionNum > 10) {
+      // For Chrome, be more strict - if it's more than 3 versions behind, consider it outdated
+      if (highestAvailable - selectedVersionNum > 3) {
         return true;
       }
 
@@ -2157,9 +2207,14 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if a cloud browser is outdated
+   * Check if a cloud browser is outdated by comparing with available browsers
    */
   private isCloudBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    // If the browser version is 'latest', it's never outdated
+    if (selectedBrowser.browser_version === 'latest') {
+      return false;
+    }
+    
     // Find matching available browser by OS, OS version, browser type, and browser version
     const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
       const osMatch = availableBrowser.os === selectedBrowser.os;
@@ -2171,89 +2226,87 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     });
 
     // If no matching browser is found, it means the version is outdated/not available
-    // But be more lenient - only return true if we're very confident it's outdated
     if (!matchingAvailableBrowser) {
-      // Check if there are similar browsers (same OS, browser type) to be more confident
-      const similarBrowsers = availableBrowsers.filter((availableBrowser: any) => {
-        const osMatch = availableBrowser.os === selectedBrowser.os;
-        const browserMatch = availableBrowser.browser === selectedBrowser.browser;
-        return osMatch && browserMatch;
-      });
-      
-      // Only consider it outdated if we have similar browsers but no exact match
-      // This prevents false positives when browser data is incomplete
-      if (similarBrowsers.length > 0) {
-        return true;
-      }
-      
-      // If no similar browsers found, don't assume it's outdated
-      return false;
+      return true;
     }
     
     return false;
   }
 
   /**
-   * Get simple browser status info for a specific browser
+   * Get simple browser status information for tooltips
    */
   public getSimpleBrowserStatusInfo(browser: any): string {
-    if (!browser) return '';
-    
-    // Ensure browsers are loaded
-    this.ensureBrowsersLoaded();
-    
-    // Get the available browsers from both BrowserstackState and BrowsersState
-    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
-    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
-    
-    // If no browsers available, can't determine
-    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
-      return 'Browser info not available';
-    }
-    
-    // Combine both browser sources
-    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
-    
-    if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
-      // Check local Chrome version
-      const chromeBrowsers = allAvailableBrowsers.filter(available => 
-        available.browser === 'chrome'
-      );
+    try {
+      // Skip version checks for mobile/tablet browsers - they don't need version warnings
+      if (this.isMobileOrTablet(browser)) {
+        return ''; // Mobile browsers don't show version warnings
+      }
       
-      if (chromeBrowsers.length > 0) {
-        const availableVersions = chromeBrowsers.map(available => {
-          const version = available.browser_version;
-          if (version === 'latest') return 999;
-          // Fix: Don't add extra zeros, just get the version number
-          return parseInt(version, 10) || 0;
-        }).sort((a, b) => b - a);
+      // Ensure browsers are loaded
+      this.ensureBrowsersLoaded();
+      
+      // Get the available browsers from both BrowserstackState and BrowsersState
+      const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+      const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+      
+
+      
+      // If no browsers available, provide helpful message instead of error
+      if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+
+      }
+      
+      // Combine both browser sources
+      const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+      
+      if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
+        // Check local Chrome version
+        const chromeBrowsers = allAvailableBrowsers.filter(available => 
+          available.browser === 'chrome'
+        );
         
-        const selectedVersion = browser.browser_version;
-        if (selectedVersion !== 'latest') {
-          // Fix: Don't add extra zeros, just get the version number
-          const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
-          const highestAvailable = availableVersions[0];
+        if (chromeBrowsers.length > 0) {
+          const availableVersions = chromeBrowsers.map(available => {
+            const version = available.browser_version;
+            if (version === 'latest') return 999;
+            // Fix: Don't add extra zeros, just get the version number
+            return parseInt(version, 10) || 0;
+          }).sort((a, b) => b - a);
           
-          if (highestAvailable - selectedVersionNum > 3) {
-            return `⚠️ Chrome ${selectedVersion} outdated\n\nLatest available: ${highestAvailable}`;
+          const selectedVersion = browser.browser_version;
+          if (selectedVersion !== 'latest') {
+            // Fix: Don't add extra zeros, just get the version number
+            const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+            const highestAvailable = availableVersions[0];
+            
+            if (highestAvailable - selectedVersionNum > 3) {
+              return `⚠️ Chrome ${selectedVersion} outdated\n\nLatest available: ${highestAvailable}`;
+            }
           }
         }
+      } else {
+        // Check cloud browser
+        const matchingBrowser = allAvailableBrowsers.find(available => 
+          available.os === browser.os &&
+          available.os_version === browser.os_version &&
+          available.browser === browser.browser &&
+          available.browser_version === browser.browser_version
+        );
+        
+        if (!matchingBrowser) {
+          // Special handling for 'latest' versions - they should always be considered available
+          if (browser.browser_version === 'latest') {
+            return ''; // Latest versions don't show warnings
+          }
+          return `⚠️ ${browser.browser} ${browser.browser_version}\n\nChecking availability...`;
+        }
       }
-    } else {
-      // Check cloud browser
-      const matchingBrowser = allAvailableBrowsers.find(available => 
-        available.os === browser.os &&
-        available.os_version === browser.os_version &&
-        available.browser === browser.browser &&
-        available.browser_version === browser.browser_version
-      );
-      
-      if (!matchingBrowser) {
-        return `⚠️ ${browser.browser} ${browser.browser_version}\n\nNot available in current browser list`;
-      }
+      return '';
+    } catch (error) {
+      console.error('❌ Error in getSimpleBrowserStatusInfo:', error);
+      return `Browser ${browser.browser || 'Unknown'} ${browser.browser_version || 'latest'}`;
     }
-    
-    return '';
   }
 
   /**
@@ -2277,7 +2330,14 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     }
 
     const statusInfo: string[] = [];
-    const outdatedBrowsers = this.item.browsers.filter((browser: any) => this.isSpecificBrowserOutdated(browser));
+    // Filter out mobile/tablet browsers from outdated checks - they don't need version warnings
+    const outdatedBrowsers = this.item.browsers.filter((browser: any) => {
+      // Skip mobile/tablet browsers
+      if (this.isMobileOrTablet(browser)) {
+        return false;
+      }
+      return this.isSpecificBrowserOutdated(browser);
+    });
     
     if (outdatedBrowsers.length === 0) {
       return 'All browsers are up to date';
@@ -2354,6 +2414,11 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     }
 
     this.item.browsers.forEach((browser: any, index: number) => {
+      // Skip mobile/tablet browsers - they don't need version checks
+      if (this.isMobileOrTablet(browser)) {
+        return;
+      }
+      
       if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
         // Check local Chrome version
         const chromeBrowsers = allAvailableBrowsers.filter(available => 
@@ -2437,33 +2502,25 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   public isSpecificBrowserOutdated(browser: any): boolean {
     if (!browser) return false;
     
+    // Skip mobile/tablet browsers - they are never considered outdated
+    if (this.isMobileOrTablet(browser)) {
+      return false;
+    }
+    
     // Ensure browsers are loaded
     this.ensureBrowsersLoaded();
     
-    // Get the available browsers using the same method as BrowserSelectionComponent
-    // This ensures we have the same data that's shown in edit-feature
+    // Get the available browsers from both BrowserstackState and BrowsersState
     const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
     const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
-    const lyridBrowsers = this._store.selectSnapshot(LyridBrowsersState) as any[];
     
-    // If no browsers available, can't determine - don't show warning
-    if ((!availableBrowsers || availableBrowsers.length === 0) && 
-        (!localBrowsers || localBrowsers.length === 0) && 
-        (!lyridBrowsers || lyridBrowsers.length === 0)) {
+    // If no browsers available, can't determine
+    if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
       return false;
     }
     
-    // Combine all browser sources (same as BrowserSelectionComponent)
-    const allAvailableBrowsers = [
-      ...(availableBrowsers || []), 
-      ...(localBrowsers || []), 
-      ...(lyridBrowsers || [])
-    ];
-    
-    // Check if the browser version is "latest" - this should never be outdated
-    if (browser.browser_version === 'latest') {
-      return false;
-    }
+    // Combine both browser sources
+    const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
     
     // For local browsers, we need to handle them differently
     if (this.isLocalBrowser(browser)) {
@@ -3209,16 +3266,20 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get safe tooltip text to prevent errors with special characters
+   * Safely get text for tooltips, handling null/undefined values
    */
-  public getSafeTooltipText(text: string): string {
-    if (!text) return '';
-    
-    // Remove any potentially problematic characters and limit length
-    return text
-      .replace(/[<>]/g, '') // Remove < and > characters
-      .replace(/"/g, "'") // Replace double quotes with single quotes
-      .substring(0, 100); // Limit length to prevent tooltip issues
+  public getSafeTooltipText(text: string | null | undefined): string {
+    if (!text) {
+      return '';
+    }
+    return text.toString().trim();
+  }
+
+  /**
+   * Get local can create feature permission (separate from store property)
+   */
+  public get localCanCreateFeature(): boolean {
+    return this._localCanCreateFeature;
   }
 
 }

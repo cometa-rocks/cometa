@@ -1179,9 +1179,14 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Check if a cloud browser is outdated
+   * Check if a cloud browser is outdated by comparing with available browsers
    */
   private isCloudBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    // If the browser version is 'latest', it's never outdated
+    if (selectedBrowser.browser_version === 'latest') {
+      return false;
+    }
+    
     // Find matching available browser by OS, OS version, browser type, and browser version
     const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
       const osMatch = availableBrowser.os === selectedBrowser.os;
@@ -1282,6 +1287,10 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
       );
       
       if (!matchingBrowser) {
+        // Special handling for 'latest' versions - they should always be considered available
+        if (browser.browser_version === 'latest') {
+          return ''; // Latest versions don't show warnings
+        }
         return `⚠️ ${browser.browser} ${browser.browser_version}\n\nNot available in current browser list`;
       }
     }
