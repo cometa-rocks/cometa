@@ -1,0 +1,867 @@
+// feature-history.component.scss
+
+// Scss file for the feature history page
+
+// Author: Nico
+
+@import 'color';
+@import 'breakpoints';
+
+.feature-history-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header {
+    margin-bottom: 32px;
+    text-align: center;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 600;
+      color: $primary-color;
+
+      mat-icon {
+        color: $blue;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      color: $grey;
+      font-size: 16px;
+    }
+  }
+
+  .content {
+    .loading-state, .error-state, .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+      }
+
+      p {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        color: $grey;
+      }
+    }
+
+    .loading-state {
+      .loading-icon {
+        color: $blue;
+        animation: spin 2s linear infinite;
+      }
+    }
+
+    .error-state {
+      .error-icon {
+        color: $remove;
+      }
+    }
+
+    .empty-state {
+      .empty-icon {
+        color: $border-color;
+      }
+
+      .empty-subtitle {
+        font-size: 14px;
+        color: $grey;
+      }
+    }
+  }
+
+  .history-timeline {
+    position: relative;
+    padding-left: 40px;
+
+    .history-entry {
+      position: relative;
+      margin-bottom: 32px;
+
+      .timeline-line {
+        position: absolute;
+        left: -20px;
+        top: 40px;
+        bottom: -32px;
+        width: 2px;
+        background: $blue;
+
+        &.last {
+          display: none;
+        }
+      }
+
+      .timeline-dot {
+        position: absolute;
+        left: -26px;
+        top: 16px;
+        width: 40px;
+        height: 40px;
+        background: $blue;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .entry-content {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid $blue;
+
+        &.current-version {
+          border-left-color: $success;
+          background: linear-gradient(135deg, rgba(76, 175, 80, 0.02) 0%, rgba(76, 175, 80, 0.05) 100%);
+        }
+
+        .entry-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+
+          .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .user-avatar {
+              color: $grey;
+            }
+
+            .user-name {
+              font-weight: 600;
+              color: $primary-color;
+            }
+
+            .current-version-badge {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              background: $success;
+              color: white;
+              padding: 4px 8px;
+              border-radius: 12px;
+              font-size: 11px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+
+              mat-icon {
+                font-size: 12px;
+                width: 12px;
+                height: 12px;
+              }
+            }
+          }
+
+          .entry-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+
+            .timestamp {
+              font-size: 14px;
+              color: $grey;
+            }
+
+            .relative-time {
+              font-size: 12px;
+              color: $grey;
+              background: $low-white;
+              padding: 2px 8px;
+              border-radius: 12px;
+            }
+          }
+        }
+
+        .entry-details {
+          .feature-name {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: $primary-color;
+          }
+
+          .description {
+            margin: 0 0 16px 0;
+            color: $grey;
+            line-height: 1.5;
+          }
+
+          .entry-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+
+            .stat-chip {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 12px;
+              cursor: pointer;
+              user-select: none;
+              border: none;
+              background: $low-white;
+              color: $grey;
+              padding: 8px 12px;
+              border-radius: 16px;
+              transition: all 0.2s ease;
+
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+              }
+
+              &.selected {
+                background: $blue !important;
+                color: white !important;
+                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
+              }
+
+              mat-icon {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+              }
+
+              &.backup-id {
+                background: $low-white;
+                color: $grey;
+                cursor: default;
+                
+                &:hover {
+                  transform: none;
+                  box-shadow: none;
+                }
+              }
+
+              &.current-version-chip {
+                background: $success;
+                color: white;
+                cursor: default;
+                
+                &:hover {
+                  transform: none;
+                  box-shadow: none;
+                }
+              }
+            }
+
+
+          }
+
+          // Steps Section Styling
+          .steps-section {
+            margin-top: 16px;
+            border-top: 1px solid $border-color;
+            padding-top: 16px;
+
+            .steps-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+
+              h4 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: $primary-color;
+              }
+
+              .close-steps {
+                min-width: 32px;
+                padding: 0;
+                color: $grey;
+
+                &:hover {
+                  color: $primary-color;
+                }
+
+                mat-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                }
+              }
+            }
+
+            .steps-list {
+              .step-item {
+                background: $low-white;
+                border-radius: 6px;
+                padding: 12px;
+                margin-bottom: 12px;
+                border-left: 3px solid $blue;
+
+                &:last-child {
+                  margin-bottom: 0;
+                }
+
+                .step-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 12px;
+
+                  .step-number {
+                    font-weight: 600;
+                    color: $blue;
+                    font-size: 14px;
+                  }
+
+                  .step-file {
+                    font-size: 12px;
+                    color: $grey;
+                    background: $low-white;
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-family: monospace;
+                  }
+                }
+
+                .step-text {
+                  font-size: 14px;
+                  color: $primary-color;
+                  line-height: 1.5;
+                  margin-bottom: 12px;
+                  font-weight: 500;
+                }
+
+                .step-content {
+                  .step-text {
+                    font-size: 14px;
+                    color: $primary-color;
+                    line-height: 1.5;
+                    margin-bottom: 12px;
+                    font-weight: 500;
+                  }
+
+                  .step-flags {
+                    display: flex;
+                    gap: 6px;
+                    flex-wrap: wrap;
+                    padding: 0 5 0 5 px;
+
+                    .flag-chip {
+                      font-size: 11px;
+                      height: 24px;
+                      padding: 0 8px;
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                      background: $low-white;
+                      border-radius: 12px;
+                      color: $grey;
+
+                      mat-icon {
+                        font-size: 14px;
+                        width: 14px;
+                        height: 14px;
+                      }
+
+                      &.flag-primary {
+                        background: $info-background-feature-item;
+                        color: $blue;
+                      }
+
+                      &.flag-accent {
+                        background: $info-background-feature-item;
+                        color: $blue;
+                      }
+
+                      &.flag-warn {
+                        background: $info-background-feature-item;
+                        color: $blue;
+                      }
+
+                      &.flag-disabled {
+                        background: $info-background-feature-item;
+                        color: $blue;
+                      }
+                    }
+                  }
+
+                  // Individual Steps Styling
+                  .individual-steps {
+                    margin-top: 16px;
+                    border-top: 1px solid $border-color;
+                    padding-top: 16px;
+
+                    .individual-step-compact {
+                      margin-bottom: 8px;
+
+                      &:last-child {
+                        margin-bottom: 0;
+                      }
+
+                      .step-line {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 8px 12px;
+                        background: $low-white;
+                        border-radius: 6px;
+                        //border-left: 3px solid $border-color;
+                        flex-wrap: wrap;
+
+                        .step-number-badge {
+                          background: $grey;
+                          color: white;
+                          width: 20px;
+                          height: 20px;
+                          border-radius: 50%;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          font-size: 11px;
+                          font-weight: 600;
+                          flex-shrink: 0;
+                        }
+
+                        .step-keyword {
+                          background: $low-white;
+                          color: $grey;
+                          padding: 2px 6px;
+                          border-radius: 10px;
+                          font-size: 10px;
+                          font-weight: 600;
+                          text-transform: uppercase;
+                          flex-shrink: 0;
+                        }
+
+                        .step-content-text {
+                          font-size: 13px;
+                          color: $primary-color;
+                          line-height: 1.3;
+                          flex: 1;
+                          min-width: 0;
+                        }
+
+                        .step-flags-inline {
+                          display: flex;
+                          gap: 4px;
+                          flex-wrap: wrap;
+                          margin-left: auto;
+
+                          .flag-chip-inline {
+                            font-size: 9px;
+                            height: 18px;
+                            padding: 0 4px;
+                            flex-shrink: 0;
+                            display: flex;
+                            align-items: center;
+                            gap: 2px;
+                            background: $low-white;
+                            border-radius: 9px;
+                            color: $grey;
+
+                            mat-icon {
+                              font-size: 10px;
+                              width: 10px;
+                              height: 10px;
+                            }
+
+                            &.flag-primary {
+                              background: $info-background-feature-item;
+                              color: $blue;
+                            }
+
+                            &.flag-accent {
+                              background: $info-background-feature-item;
+                              color: $blue;
+                            }
+
+                            &.flag-warn {
+                              background: $info-background-feature-item;
+                              color: $blue;
+                            }
+
+                            &.flag-disabled {
+                              background: $low-white;
+                              color: $grey;
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                    .individual-step {
+                      background: white;
+                      border: 1px solid $border-color;
+                      border-radius: 6px;
+                      padding: 12px;
+                      margin-bottom: 12px;
+
+                      &:last-child {
+                        margin-bottom: 0;
+                      }
+
+                      .individual-step-header {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        margin-bottom: 8px;
+
+                        .individual-step-number {
+                          background: $blue;
+                          color: white;
+                          width: 24px;
+                          height: 24px;
+                          border-radius: 50%;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          font-size: 12px;
+                          font-weight: 600;
+                        }
+
+                        .individual-step-keyword {
+                          background: $low-white;
+                          color: $primary-color;
+                          padding: 4px 8px;
+                          border-radius: 12px;
+                          font-size: 12px;
+                          font-weight: 600;
+                          text-transform: uppercase;
+                        }
+                      }
+
+                      .individual-step-content {
+                        font-size: 14px;
+                        color: $primary-color;
+                        line-height: 1.4;
+                        margin-bottom: 12px;
+                        padding: 8px;
+                        background: $low-white;
+                        border-radius: 4px;
+                      }
+
+                      .individual-step-flags {
+                        display: flex;
+                        gap: 6px;
+                        flex-wrap: wrap;
+
+                        .flag-chip {
+                          font-size: 10px;
+                          height: 20px;
+                          padding: 0 6px;
+
+                          mat-icon {
+                            font-size: 12px;
+                            width: 12px;
+                            height: 12px;
+                            margin-right: 3px;
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  pre {
+                    margin: 0;
+                    font-size: 12px;
+                    color: $primary-color;
+                    background: white;
+                    padding: 8px;
+                    border-radius: 4px;
+                    border: 1px solid $border-color;
+                    overflow-x: auto;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    max-height: 200px;
+                    overflow-y: auto;
+                  }
+                }
+              }
+            }
+          }
+
+          // Changes Section Styling
+          .changes-section {
+            margin-top: 16px;
+            border-top: 1px solid $border-color;
+            padding-top: 16px;
+
+            .changes-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+
+              h4 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: $primary-color;
+              }
+
+              .close-changes {
+                min-width: 32px;
+                padding: 0;
+                color: $grey;
+
+                &:hover {
+                  color: $primary-color;
+                }
+
+                mat-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                }
+              }
+            }
+
+            .changes-content {
+              .loading-changes {
+                text-align: center;
+                padding: 40px 20px;
+
+                .loading-icon {
+                  font-size: 32px;
+                  width: 32px;
+                  height: 32px;
+                  margin-bottom: 12px;
+                  color: $blue;
+                  animation: spin 2s linear infinite;
+                }
+
+                p {
+                  margin: 0;
+                  color: $grey;
+                  font-size: 14px;
+                }
+              }
+
+              .changes-comparison {
+                .comparison-error {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: rgba(198, 40, 40, 0.1);
+                  border-radius: 8px;
+                  border: 1px solid rgba(198, 40, 40, 0.3);
+
+                  mat-icon {
+                    font-size: 48px;
+                    width: 48px;
+                    height: 48px;
+                    margin-bottom: 16px;
+                    color: $remove;
+                  }
+
+                  p {
+                    margin: 0;
+                    color: $remove;
+                    font-size: 16px;
+                    font-weight: 500;
+                  }
+                }
+
+                .no-changes {
+                  text-align: center;
+                  padding: 40px 20px;
+                  background: $low-white;
+                  border-radius: 8px;
+                  border: 1px solid $border-color;
+
+                  mat-icon {
+                    font-size: 48px;
+                    width: 48px;
+                    height: 48px;
+                    margin-bottom: 16px;
+                    color: $success;
+                  }
+
+                  p {
+                    margin: 0;
+                    color: $primary-color;
+                    font-size: 16px;
+                    font-weight: 500;
+                  }
+                }
+
+                .changes-list {
+                  h5 {
+                    margin: 0 0 16px 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: $primary-color;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                  }
+
+                  .change-item {
+                    margin-bottom: 16px;
+
+                    &:last-child {
+                      margin-bottom: 0;
+                    }
+
+                    .change-field {
+                      background: $low-white;
+                      border-radius: 8px;
+                      padding: 16px;
+                      border-left: 4px solid $blue;
+
+                      .change-label {
+                        display: block;
+                        font-weight: 600;
+                        color: $primary-color;
+                        margin-bottom: 12px;
+                        font-size: 14px;
+                        text-transform: capitalize;
+                      }
+
+                      .change-values {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+
+                        .change-old, .change-new {
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          padding: 8px 12px;
+                          border-radius: 6px;
+                          font-size: 13px;
+
+                          strong {
+                            color: $primary-color;
+                            min-width: 60px;
+                          }
+                        }
+
+                        .change-old {
+                          background: rgba(255, 193, 7, 0.1);
+                          border: 1px solid rgba(255, 193, 7, 0.3);
+
+                          .old-value {
+                            color: $orange;
+                            font-weight: 500;
+                          }
+                        }
+
+                        .change-new {
+                          background: rgba(76, 175, 80, 0.1);
+                          border: 1px solid rgba(76, 175, 80, 0.3);
+
+                          .new-value {
+                            color: $success;
+                            font-weight: 500;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Responsive design
+@include for-tablet-portrait-up {
+  .feature-history-container {
+    padding: 32px;
+
+    .header h2 {
+      font-size: 32px;
+    }
+  }
+}
+
+@include for-phone-only {
+  .feature-history-container {
+    padding: 16px;
+
+    .history-timeline {
+      padding-left: 24px;
+
+      .history-entry {
+        .timeline-dot {
+          left: -16px;
+          width: 32px;
+          height: 32px;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        .entry-content {
+          padding: 16px;
+
+          .entry-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+
+            .entry-meta {
+              align-items: flex-start;
+            }
+          }
+
+          .changes-section {
+            .changes-content {
+              .changes-comparison {
+                .changes-list {
+                  .change-item {
+                    .change-field {
+                      .change-values {
+                        .change-old, .change-new {
+                          flex-direction: column;
+                          align-items: flex-start;
+                          gap: 4px;
+
+                          strong {
+                            min-width: auto;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
