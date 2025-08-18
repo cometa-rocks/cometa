@@ -427,18 +427,8 @@ export class FeaturesState {
     const isSameRoute = this.isSameRoute(currentState.currentRouteNew, folder);
     
     if (isSameRoute) {
-      // Don't clear data if we're already in the same folder
-      console.log('SetFolderRoute: Same route detected, preserving feature data', {
-        currentRoute: currentState.currentRouteNew,
-        newRoute: folder
-      });
       return;
     }
-    
-    console.log('SetFolderRoute: New route detected, clearing filters and updating route', {
-      currentRoute: currentState.currentRouteNew,
-      newRoute: folder
-    });
     
     setState(
       produce((ctx: IFeaturesState) => {
@@ -485,16 +475,11 @@ export class FeaturesState {
    */
   private isSameRoute(currentRoute: any[], newRoute: any[]): boolean {
     if (!currentRoute || !newRoute) {
-      console.log('isSameRoute: One of the routes is null/undefined', { currentRoute, newRoute });
       return false;
     }
     
     // Only consider routes the same if they have exactly the same structure
     if (currentRoute.length !== newRoute.length) {
-      console.log('isSameRoute: Routes have different lengths', { 
-        currentRouteLength: currentRoute.length, 
-        newRouteLength: newRoute.length 
-      });
       return false;
     }
     
@@ -506,25 +491,15 @@ export class FeaturesState {
       const newDepartment = newRoute[i]?.department;
       
       if (currentFolderId !== newFolderId) {
-        console.log(`isSameRoute: Folder ID mismatch at position ${i}`, { 
-          currentFolderId, 
-          newFolderId 
-        });
         return false;
       }
       
       // Also check department for department-level routes
       if (currentDepartment !== newDepartment) {
-        console.log(`isSameRoute: Department mismatch at position ${i}`, { 
-          currentDepartment, 
-          newDepartment 
-        });
         return false;
       }
     }
     
-    // Only return true if routes are exactly identical
-    console.log('isSameRoute: Routes are identical, preserving data', { currentRoute, newRoute });
     return true;
   }
 
@@ -540,8 +515,7 @@ export class FeaturesState {
       folders: state.folders,
       currentRouteNew: state.currentRouteNew
     };
-    
-    console.log('Preserving feature data:', preservedData);
+
     return preservedData;
   }
 
@@ -555,8 +529,6 @@ export class FeaturesState {
       ctx.details = preservedData.details || {};
       ctx.folders = preservedData.folders || {};
       ctx.currentRouteNew = preservedData.currentRouteNew || [];
-      
-      console.log('Restored preserved feature data:', preservedData);
     }
   }
 
@@ -575,7 +547,6 @@ export class FeaturesState {
       const newDepartment = newRoute[0]?.department || newRoute[0]?.folder_id;
       
       if (currentDepartment === newDepartment) {
-        console.log('Similar folder structure detected, preserving feature data');
         return true;
       }
     }

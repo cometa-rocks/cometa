@@ -715,6 +715,7 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
         this._sharedActions.goToFeature(row.id);
         break;
       case 'folder':
+        this.log.msg('1', 'opening folder with id...', 'feature-list', row.id);
         this.setFolder(row.route);
 
         // #3414 -------------------------------------------------start
@@ -1466,4 +1467,30 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
   trackBrowser(index: number, browser: any): any {
     return browser.browser + browser.browser_version + (browser.os || '') + (browser.os_version || '');
   }
+
+  /**
+   * Ensures the folder object has the correct structure for runAllFeatures
+   * This prevents the error 500 when running all features in a folder
+   */
+  private getFolderForRunAll(folderRef: any): any {
+    // Ensure the folder object has the required properties
+    if (!folderRef) {
+      return null;
+    }
+
+    // Check if the folder has the features property
+    if (!folderRef.features || !Array.isArray(folderRef.features)) {
+      return null;
+    }
+
+    // Return a properly structured folder object
+    return {
+      folder_id: folderRef.folder_id,
+      features: folderRef.features,
+      department_id: folderRef.department_id,
+      name: folderRef.name
+    };
+  }
+
+  // Mtx-grid column move and hide options
 }

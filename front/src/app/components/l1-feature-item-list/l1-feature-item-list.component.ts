@@ -242,6 +242,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private _localCanCreateFeature: boolean = false;
 
   ngOnInit() {
+    
+    // Validate that we received a valid feature_id
+    if (!this.feature_id || this.feature_id <= 0) {
+      return;
+    }
+    
     this.isComponentActive = true;
     
     // Initialize local permissions from store values
@@ -296,7 +302,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           
           // Validate that the store data belongs to the correct feature
           if (storeData.feature_id && storeData.feature_id !== this.feature_id) {
-            console.error('❌ Store data mismatch: Store has data for feature', storeData.feature_id, 'but we requested feature', this.feature_id);
             this.clearStaleData();
             this.fetchFeatureDataFromAPI();
             return;
@@ -506,8 +511,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         }
       },
       error: err => {
-        // Handle error by clearing stale data
-        console.error('❌ Error fetching feature data from API:', err);
         this.clearStaleData();
         this.cdr.detectChanges();
       }
@@ -1180,9 +1183,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           this._router.navigate([url]);
         }
       },
-      error => {
-        console.error("Error obtaining Departments:", error);
-       }
     );
   }
 
@@ -1245,9 +1245,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           this._router.navigate([url]);
         }
       },
-      error => {
-        console.error("Error obtaining Departments:", error);
-      }
     );
   }
 
@@ -2221,9 +2218,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         this.featureDataCache.delete(key);
       });
       
-      if (corruptedKeys.length > 0) {
-        console.warn(`Cleared ${corruptedKeys.length} corrupted cache entries`);
-      }
     } finally {
       this.setCacheCleanupInProgress(false);
     }
@@ -2543,7 +2537,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       }
       return '';
     } catch (error) {
-      console.error('❌ Error in getSimpleBrowserStatusInfo:', error);
       return `Browser ${browser.browser || 'Unknown'} ${browser.browser_version || 'latest'}`;
     }
   }
@@ -3974,4 +3967,32 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     }
     return text.trim();
   }
+
+  /**
+   * Ensures the folder object has the correct structure for runAllFeatures
+   * This prevents the error 500 when running all features in a folder
+   */
+  private getFolderForRunAll(folderRef: any): any {
+    // Ensure the folder object has the required properties
+    if (!folderRef) {
+      return null;
+    }
+
+    // Check if the folder has the features property
+    if (!folderRef.features || !Array.isArray(folderRef.features)) {
+      return null;
+    }
+
+    // Return a properly structured folder object
+    return {
+      folder_id: folderRef.folder_id,
+      features: folderRef.features,
+      department_id: folderRef.department_id,
+      name: folderRef.name
+    };
+  }
+
+  /**
+   * Setup observables specifically for folder items
+   */
 }

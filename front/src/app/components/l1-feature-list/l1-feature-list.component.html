@@ -182,7 +182,7 @@ Author: dph000
     </div>
     <ng-template #showRunAllButton>
       <button
-        (click)="_sharedActions.runAllFeatures(row.reference)"
+        (click)="_sharedActions.runAllFeatures(getFolderForRunAll(row.reference))"
         class="run-feature"
         [matTooltip]="'tooltips.run_all_features_with_warning' | translate"
         matTooltipPosition="after"

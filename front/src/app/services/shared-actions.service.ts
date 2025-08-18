@@ -551,57 +551,128 @@ export class SharedActionsService {
    * @param folder - Folder object with properties: features (array of feature IDs)
    */
   async runAllFeatures(folder: any){
-    // IMPROVED: Get detailed information about which features can and cannot run
-    const featureStatus = await this.getFolderFeatureStatus(folder);
-    
-    if (featureStatus.canRunFeatures === 0) {
-      this._snackBar.open(
-        `No features with valid browsers available in this folder. ${featureStatus.totalFeatures} feature(s) have outdated browsers.`, 
-        'OK', 
-        { duration: 5000 }
+    try {
+      // Validate folder object structure
+      if (!folder) {
+        this._snackBar.open('Error: Invalid folder object provided', 'OK', { duration: 5000 });
+        return;
+      }
+
+      if (!folder.features || !Array.isArray(folder.features)) {
+        this._snackBar.open('Error: Folder does not have valid features array', 'OK', { duration: 5000 });
+        return;
+      }
+
+      if (folder.features.length === 0) {
+        this._snackBar.open('This folder has no features to run', 'OK', { duration: 3000 });
+        return;
+      }
+
+      // IMPROVED: Get detailed information about which features can and cannot run
+      const featureStatus = await this.getFolderFeatureStatus(folder);
+      
+      if (featureStatus.canRunFeatures === 0) {
+        this._snackBar.open(
+          `No features with valid browsers available in this folder. ${featureStatus.totalFeatures} feature(s) have outdated browsers.`, 
+          'OK', 
+          { duration: 5000 }
+        );
+        return;
+      }
+
+      // Show detailed information about what will be run
+      if (featureStatus.invalidFeatures.length > 0) {
+        this._snackBar.open(
+          `Skipped ${featureStatus.invalidFeatures.length} feature(s) with outdated browsers. Running ${featureStatus.canRunFeatures} feature(s) with valid browsers.`, 
+          'OK', 
+          { duration: 5000 }
+        );
+      } else {
+        this._snackBar.open(
+          `Running all ${featureStatus.canRunFeatures} features in this folder.`, 
+          'OK', 
+          { duration: 3000 }
+        );
+      }
+
+      // IMPROVED: Validate that all features still exist before running
+      const validFeatures = await this.validateFeaturesExist(featureStatus.validFeatures);
+      
+      if (validFeatures.length === 0) {
+        this._snackBar.open(
+          'No valid features found to run. Some features may have been deleted.', 
+          'OK', 
+          { duration: 5000 }
+        );
+        return;
+      }
+
+      // Create an array of observables for the running status of each valid feature in the folder
+      const featureStatuses: Observable<boolean>[] = validFeatures.map(feature => 
+        this._store.select(CustomSelectors.GetFeatureRunningStatus(feature))
       );
-      return;
-    }
 
-    // Show detailed information about what will be run
-    if (featureStatus.invalidFeatures.length > 0) {
-      this._snackBar.open(
-        `Skipped ${featureStatus.invalidFeatures.length} feature(s) with outdated browsers. Running ${featureStatus.canRunFeatures} feature(s) with valid browsers.`, 
-        'OK', 
-        { duration: 5000 }
+      // Create an observable that emits the combined status of all valid features in the folder
+      const combinedStatus$ = combineLatest(featureStatuses).pipe(
+        map(statuses => statuses.some(status => status))
       );
-    } else {
-      this._snackBar.open(
-        `Running all ${featureStatus.canRunFeatures} features in this folder.`, 
-        'OK', 
-        { duration: 3000 }
-      );
-    }
 
-    // Create an array of observables for the running status of each valid feature in the folder
-    const featureStatuses: Observable<boolean>[] = featureStatus.validFeatures.map(feature => 
-      this._store.select(CustomSelectors.GetFeatureRunningStatus(feature))
-    );
+      // Update the running state for the folder
+      combinedStatus$.subscribe(isRunning => {
+        const currentStates = this.folderRunningStates.getValue();
+        currentStates.set(folder.folder_id, isRunning);
+        this.folderRunningStates.next(new Map(currentStates));
+      });
 
-    // Create an observable that emits the combined status of all valid features in the folder
-    const combinedStatus$ = combineLatest(featureStatuses).pipe(
-      map(statuses => statuses.some(status => status))
-    );
-
-    // Update the running state for the folder
-    combinedStatus$.subscribe(isRunning => {
+      // Run only the valid features
+      await Promise.all(validFeatures.map(feature => this.run(feature)));
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update the running state of the folder to false after all executions are finished
       const currentStates = this.folderRunningStates.getValue();
-      currentStates.set(folder.folder_id, isRunning);
+      currentStates.set(folder.folder_id, false);
       this.folderRunningStates.next(new Map(currentStates));
-    });
+      
+      // IMPROVED: Monitor folder state for potential issues
+      this.monitorFolderState(folder.folder_id);
+    } catch (error) {
+      this._snackBar.open(
+        'Error running features. Some features may have been deleted or are no longer accessible.', 
+        'OK', 
+        { duration: 5000 }
+      );
+      
+      // Clear folder running state on error
+      const currentStates = this.folderRunningStates.getValue();
+      currentStates.set(folder.folder_id, false);
+      this.folderRunningStates.next(new Map(currentStates));
+    }
+  }
 
-    // Run only the valid features
-    await Promise.all(featureStatus.validFeatures.map(feature => this.run(feature)));
+  /**
+   * IMPROVED: Validate that features still exist before running them
+   * This prevents errors when features are deleted while the operation is in progress
+   */
+  private async validateFeaturesExist(featureIds: number[]): Promise<number[]> {
+    const validFeatures: number[] = [];
     
-    // Update the running state of the folder to false after all executions are finished
-    const currentStates = this.folderRunningStates.getValue();
-    currentStates.set(folder.folder_id, false);
-    this.folderRunningStates.next(new Map(currentStates));
+    for (const featureId of featureIds) {
+      try {
+        const featureInfo = await firstValueFrom(
+          this._store.select(CustomSelectors.GetFeatureInfo(featureId))
+        );
+        
+        if (featureInfo) {
+          validFeatures.push(featureId);
+        } else {
+          console.warn(`⚠️ Feature ${featureId} no longer exists, skipping`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error validating feature ${featureId}:`, error);
+      }
+    }
+    
+    return validFeatures;
   }
 
   // Next update 2.8.77 config.json
@@ -1102,6 +1173,30 @@ export class SharedActionsService {
         { duration: 2000 }
       );
     });
+  }
+
+  /**
+   * IMPROVED: Monitor folder state after execution to detect potential issues
+   * This helps identify problems that occur after the main execution is complete
+   */
+  private monitorFolderState(folderId: number): void {
+    
+    // Monitor for 5 minutes to catch delayed errors
+    const monitorInterval = setInterval(() => {
+      const currentStates = this.folderRunningStates.getValue();
+      const folderState = currentStates.get(folderId);
+      
+      // If folder is still marked as running after 5 minutes, reset it
+      if (folderState === true) {
+        currentStates.set(folderId, false);
+        this.folderRunningStates.next(new Map(currentStates));
+      }
+    }, 60000); // Check every minute
+    
+    // Stop monitoring after 5 minutes
+    setTimeout(() => {
+      clearInterval(monitorInterval);
+    }, 300000); // 5 minutes
   }
   
 }

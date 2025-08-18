@@ -133,7 +133,7 @@ Author: dph000
                 <cometa-l1-feature-item-list
                   [item]="item"
                   class="feature-item"
-                  [feature_id]="item.id"
+                  [feature_id]="item.type === 'feature' ? item.id : null"
                   *ngFor="let item of table.rows; trackBy: L1FeatureItemListComponent.trackByFeatureId"></cometa-l1-feature-item-list>
               </ng-container>
               <!-- Feature list with list view -->
