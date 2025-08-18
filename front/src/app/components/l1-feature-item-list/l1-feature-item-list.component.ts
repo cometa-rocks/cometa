@@ -653,6 +653,12 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     // Subscribe to feature running status - minimal handling
     this.featureRunning$.subscribe(running => {
       this.running = running;
+      
+      // IMPROVED: Reset button state when feature stops running
+      if (!running && this.isButtonDisabled) {
+        this.isButtonDisabled = false;
+        this.cdr.detectChanges();
+      }
     });
 
     // Add reactive subscription to feature data updates
@@ -1337,13 +1343,17 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     try {
       await this._sharedActions.run(this.item.id);
       
-      // The button will be re-enabled by the featureRunning$ observable
+      // IMPROVED: The button will be re-enabled by the featureRunning$ observable
       // when the feature status changes to not running
+      // No need to manually reset here as the observable handles it
     } catch (error) {
-      // Re-enable button on error
+      // IMPROVED: Re-enable button on error and reset running state
       this.isButtonDisabled = false;
       this.running = false;
       this.cdr.detectChanges();
+      
+      // Show error message to user
+      this._snackBar.open('Failed to start feature. Please try again.', 'OK', { duration: 3000 });
     }
   }
 
@@ -3634,20 +3644,20 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   /**
    * Set up periodic data check to ensure feature data stays up to date
-   * OPTIMIZED: Reduced frequency to prevent conflicts with other intervals
+   * IMPROVED: Much less aggressive to prevent clearing valid data
    */
   private setupPeriodicDataCheck(): void {
-    // OPTIMIZED: Check for updates every 2 minutes instead of 30 seconds to prevent conflicts
+    // IMPROVED: Check for updates every 10 minutes instead of 2 minutes to prevent conflicts
     const checkInterval = setInterval(() => {
       if (!this.isComponentActive) {
         clearInterval(checkInterval);
         return;
       }
       
-      // Only check if we don't have recent data or if the feature is running
+      // IMPROVED: Only check if we don't have recent data or if the feature is running
       const now = Date.now();
       const lastUpdate = this.item._lastDataUpdate || 0;
-      const shouldCheck = (now - lastUpdate) > 120000 || this.running; // 2 minutes or if running
+      const shouldCheck = (now - lastUpdate) > 600000 || this.running; // 10 minutes or if running
       
       if (shouldCheck) {
         // Prevent multiple simultaneous checks
@@ -3658,14 +3668,18 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         this.item._isCheckingData = true;
         
         try {
-          // Always try to get fresh data from store first
+          // IMPROVED: Don't clear data immediately, just try to refresh from store
           this.loadLatestFeatureDataFromStore();
           
-          // If store doesn't have data or data is stale, clear stale data and try API
+          // IMPROVED: Only clear data if it's absolutely necessary and very old
           if (!this.item.total && !this.item.time && !this.item.date) {
-            this.clearStaleData();
-            this.fetchFeatureDataFromAPI();
+            // Only clear if we haven't had data for a very long time
+            if (!this.item._lastDataUpdate || (now - this.item._lastDataUpdate) > 3600000) { // 1 hour
+              this.clearStaleData();
+              this.fetchFeatureDataFromAPI();
+            }
           } else if (this.item.date && this.isItemDataStale()) {
+            // Only clear if data is very old (more than 24 hours)
             this.clearStaleData();
             this.fetchFeatureDataFromAPI();
           }
@@ -3676,7 +3690,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           this.item._isCheckingData = false;
         }
       }
-    }, 120000); // 2 minutes to prevent conflicts with other intervals
+    }, 600000); // 10 minutes to prevent conflicts with other intervals
     
     // Store the interval reference for cleanup
     this.item._dataCheckInterval = checkInterval;
@@ -3709,21 +3723,33 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   /**
    * ENHANCED: Automatic cleanup trigger that runs when stale data is detected
-   * This method ensures that old result data is automatically removed
+   * IMPROVED: Less frequent cleanup to prevent clearing valid data
    */
   private setupAutomaticCleanupTrigger(): void {
-    // Check for stale data every 30 seconds
+    // IMPROVED: Check for stale data every 5 minutes instead of 30 seconds
+    // This prevents aggressive cleaning of recently updated data
     const cleanupInterval = setInterval(() => {
       if (!this.isComponentActive) {
         clearInterval(cleanupInterval);
         return;
       }
       
-      // Check if we have stale data that needs cleaning
+      // IMPROVED: Only clean data if it's actually very old and stale
       if (this.hasStaleData()) {
-        this.comprehensiveDataCleanup();
+        // Additional safety check: don't clean data that was recently updated
+        if (this.item._lastDataUpdate) {
+          const now = Date.now();
+          const timeSinceLastUpdate = now - this.item._lastDataUpdate;
+          // Only clean if data is older than 2 hours
+          if (timeSinceLastUpdate > 7200000) { // 2 hours
+            this.comprehensiveDataCleanup();
+          }
+        } else {
+          // If no last update timestamp, be very conservative
+          this.comprehensiveDataCleanup();
+        }
       }
-    }, 30000); // Check every 30 seconds
+    }, 300000); // Check every 5 minutes instead of 30 seconds
     
     // Store the interval reference for cleanup
     this.item._cleanupInterval = cleanupInterval;
@@ -3807,21 +3833,47 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   /**
    * ENHANCED: Detects if the component has stale data that needs cleaning
+   * IMPROVED: Don't clean data that was recently updated or is still valid
    */
   private hasStaleData(): boolean {
-    // Check for obvious stale data indicators
+    // IMPROVED: If we have recent execution data, don't consider it stale
     if (this.item.total > 0 || this.item.time > 0 || this.item.date !== null) {
-      // We have execution data, but let's verify if it's actually valid
+      // Only consider data stale if it's very old (more than 1 hour)
+      if (this.item._lastDataUpdate) {
+        const now = Date.now();
+        const timeSinceLastUpdate = now - this.item._lastDataUpdate;
+        // Don't clean data that was updated in the last hour
+        if (timeSinceLastUpdate < 3600000) { // 1 hour
+          return false;
+        }
+      }
+      // For older data, only validate if absolutely necessary
       return this.needsDataValidation();
     }
     
-    // Check for stale status
+    // Check for stale status - but be more conservative
     if (this.item.status && this.item.status !== 'No result yet' && this.item.status !== 'unknown') {
+      // Only consider status stale if it's very old
+      if (this.item._lastDataUpdate) {
+        const now = Date.now();
+        const timeSinceLastUpdate = now - this.item._lastDataUpdate;
+        if (timeSinceLastUpdate < 1800000) { // 30 minutes
+          return false;
+        }
+      }
       return true;
     }
     
-    // Check for stale metadata
+    // Check for stale metadata - but be more conservative
     if (this.item.ok > 0 || this.item.fails > 0 || this.item.skipped > 0) {
+      // Only consider metadata stale if it's very old
+      if (this.item._lastDataUpdate) {
+        const now = Date.now();
+        const timeSinceLastUpdate = now - this.item._lastDataUpdate;
+        if (timeSinceLastUpdate < 1800000) { // 30 minutes
+          return false;
+        }
+      }
       return true;
     }
     
@@ -3853,6 +3905,7 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
 
   /**
    * ENHANCED: Determines if data needs validation against API
+   * IMPROVED: Less aggressive validation to prevent unnecessary data clearing
    */
   private needsDataValidation(): boolean {
     // If we haven't checked recently, we need validation
@@ -3863,8 +3916,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     const now = Date.now();
     const timeSinceLastCheck = now - this.item._lastDataCheck;
     
-    // If it's been more than 5 minutes since last check, validate again
-    return timeSinceLastCheck > 300000; // 5 minutes
+    // IMPROVED: Increase validation interval to 15 minutes instead of 5 minutes
+    // This prevents aggressive cleaning of recently updated data
+    return timeSinceLastCheck > 900000; // 15 minutes instead of 5 minutes
   }
 
   /**
