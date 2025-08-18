@@ -428,6 +428,7 @@ export class L1FeatureListComponent implements OnInit, OnChanges {
     }
   }
 
+  
   /**
    * Public method to refresh all feature execution data
    * Can be called from parent components when needed

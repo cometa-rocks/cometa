@@ -343,10 +343,9 @@ Author: dph000
       </div>
     </ng-container>
     <ng-template #emptyField>
-      <div [matTooltip]="'No execution data available. Click to refresh.' | translate" matTooltipPosition="above">
-        <span class="no-runs-text" (click)="refreshFeatureData()">
-          <mat-icon class="refresh-icon">refresh</mat-icon>
-          No runs
+      <div>
+        <span class="no-runs-text">
+          -
         </span>
       </div>
     </ng-template>

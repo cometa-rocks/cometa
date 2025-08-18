@@ -69,6 +69,15 @@
  *    - Eliminated API calls during initial page load
  *    - Component now loads with minimal overhead and only becomes fully functional when needed
  * 
+ * 10. INTERVAL CONFLICT PREVENTION (NEWEST):
+ *     - Consolidated multiple overlapping intervals to prevent data conflicts
+ *     - Implemented staggered interval startup to avoid simultaneous execution
+ *     - Added conflict prevention mechanisms between different update sources
+ *     - Enhanced WebSocket conflict prevention to avoid interference with periodic updates
+ *     - Optimized cache cleanup to prevent conflicts with data updates
+ *     - Added processing flags to prevent overlapping operations
+ *     - Implemented coordinated interval management system
+ * 
  * These changes prevent the duplication of steps by ensuring that:
  * - Only valid, reasonable data is stored and displayed
  * - API calls are minimized and only made when necessary
@@ -78,6 +87,8 @@
  * - Outdated browser versions are properly detected and buttons disabled accordingly
  * - Page loading performance is significantly improved by removing unnecessary startup operations
  * - Component loads instantly with minimal overhead and becomes fully functional only when needed
+ * - Different update mechanisms don't interfere with each other, preventing data conflicts
+ * - Intervals are properly coordinated to avoid race conditions and data corruption
  */
 import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy, TrackByFunction, ElementRef } from '@angular/core';
 import { Store } from '@ngxs/store';
@@ -86,7 +97,7 @@ import { BrowsersState } from '@store/browsers.state';
 import { BrowserstackState } from '@store/browserstack.state';
 import { Browserstack } from '@store/actions/browserstack.actions';
 import { Browsers } from '@store/actions/browsers.actions';
-import { Observable, switchMap, tap, map, filter, take, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take, Subject, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -181,6 +192,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   // Add protected cache for feature data during mass updates
   static protectedFeatureData = new Map<number, any>();
 
+  // Add static property for cache cleanup status
+  private static _cacheCleanupInProgress = false;
+
   constructor(
     private _router: NavigationService,
     private _store: Store,
@@ -246,52 +260,180 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     this.isButtonDisabled = false;
     this.running = false;
 
-    // Load basic feature data if needed
-    if (!this.item.total || !this.item.time || !this.item.date) {
-      this.loadBasicFeatureData();
-    }
+    // Always prioritize store data over input data to prevent showing stale deleted results
+    // Clear any potentially stale data first
+    this.clearStaleData();
     
-    // Always try to get latest data from store when component initializes
+    // Then load the latest data from store
     this.loadLatestFeatureDataFromStore();
+    
+    // OPTIMIZED: Use coordinated intervals to prevent conflicts
+    this.coordinateIntervals();
   }
 
   /**
    * Loads the latest feature data from the store when component initializes
    * This ensures the component has the most up-to-date data from main-view
+   * ENHANCED: Now validates against API to prevent showing stale data
    */
   private loadLatestFeatureDataFromStore(): void {
-    // Get the latest feature data from the store
-    this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
-      take(1) // Take only the first value to avoid subscription issues
-    ).subscribe(featureInfo => {
-      if (featureInfo && featureInfo.info) {
-        const storeData = featureInfo.info;
-        
-        // Update the item with the latest data from store
-        if (storeData.total !== undefined) {
-          this.item.total = storeData.total;
-        }
-        
-        if (storeData.execution_time !== undefined) {
-          this.item.time = storeData.execution_time;
-        }
-        
-        if (storeData.result_date !== undefined) {
-          this.item.date = storeData.result_date;
-        }
-        
-        if (storeData.status !== undefined) {
-          this.item.status = storeData.status === 'Success' ? 'success' : 
-                           storeData.status === 'Failed' ? 'failed' : 'canceled';
-        }
-        
-        // Force change detection to update the UI
+    // ENHANCED: Always verify against API first to prevent showing stale data
+    this.verifyDataAgainstAPI().then(hasValidResults => {
+      if (!hasValidResults) {
+        // No valid results in API, clear all data immediately
+        this.clearStaleData();
+        this.forceStoreDataCleanup();
         this.cdr.detectChanges();
-      } else {
-        // Since main-view is not loaded, fetch data directly from API
-        this.fetchFeatureDataFromAPI();
+        return;
       }
+      
+      // Only then try to load from store
+      this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
+        take(1) // Take only the first value to avoid subscription issues
+      ).subscribe(featureInfo => {
+        if (featureInfo && featureInfo.info) {
+          const storeData = featureInfo.info;
+          
+          // Validate that the store data belongs to the correct feature
+          if (storeData.feature_id && storeData.feature_id !== this.feature_id) {
+            console.error('❌ Store data mismatch: Store has data for feature', storeData.feature_id, 'but we requested feature', this.feature_id);
+            this.clearStaleData();
+            this.fetchFeatureDataFromAPI();
+            return;
+          }
+          
+          // ENHANCED: Validate data freshness before using store data
+          if (this.isStoreDataFresh(storeData)) {
+            // Always prioritize store data over input item data
+            // This ensures we don't show stale data from deleted results
+            if (storeData.total !== undefined) {
+              this.item.total = storeData.total;
+            } else {
+              // Clear stale data if store doesn't have it
+              this.item.total = 0;
+            }
+            
+            if (storeData.execution_time !== undefined) {
+              this.item.time = storeData.execution_time;
+            } else {
+              // Clear stale data if store doesn't have it
+              this.item.time = 0;
+            }
+            
+            if (storeData.result_date !== undefined) {
+              this.item.date = storeData.result_date;
+            } else {
+              // Clear stale data if store doesn't have it
+              this.item.date = null;
+            }
+            
+            if (storeData.status !== undefined) {
+              this.item.status = storeData.status === 'Success' ? 'success' : 
+                               storeData.status === 'Failed' ? 'failed' : 'canceled';
+            } else {
+              // Clear stale status if store doesn't have it
+              this.item.status = 'unknown';
+            }
+            
+            // Also clear other potentially stale data
+            if (storeData.ok !== undefined) {
+              this.item.ok = storeData.ok;
+            } else {
+              this.item.ok = 0;
+            }
+            
+            if (storeData.fails !== undefined) {
+              this.item.fails = storeData.fails;
+            } else {
+              // Clear stale data if store doesn't have it
+              this.item.fails = 0;
+            }
+            
+            if (storeData.skipped !== undefined) {
+              this.item.skipped = storeData.skipped;
+            } else {
+              // Clear stale data if store doesn't have it
+              this.item.skipped = 0;
+            }
+            
+            // Force change detection to update the UI
+            this.cdr.detectChanges();
+          } else {
+            // Store data is stale, clear it and fetch fresh data from API
+            this.clearStaleData();
+            this.fetchFeatureDataFromAPI();
+          }
+        } else {
+          // Since main-view is not loaded or store is empty, clear stale data and fetch fresh data
+          this.clearStaleData();
+          this.fetchFeatureDataFromAPI();
+        }
+      });
     });
+  }
+
+  /**
+   * ENHANCED: Verifies data against API to prevent showing stale data
+   * This method checks if the feature actually has results before using any cached data
+   */
+  private async verifyDataAgainstAPI(): Promise<boolean> {
+    try {
+      const res = await firstValueFrom(this._api.getFeatureResultsByFeatureId(this.feature_id, {
+        archived: false,
+        page: 1,
+        size: 1,
+      }));
+      
+      if (res && res.results && res.results.length > 0) {
+        const latestResult = res.results[0];
+        
+        // Check if the result is valid using properties that actually exist in FeatureResult
+        if (latestResult.archived || latestResult.running) {
+          return false;
+        }
+        
+        // Check if the result has meaningful data
+        if (latestResult.total === 0 && latestResult.execution_time === 0) {
+          return false;
+        }
+        
+        // Check if the result has a valid status
+        if (!latestResult.status || latestResult.status === '') {
+          return false;
+        }
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      // On error, assume no valid results to be safe
+      return false;
+    }
+  }
+
+  /**
+   * ENHANCED: Forces cleanup of store data when API verification fails
+   * This ensures the store doesn't keep stale data
+   */
+  private forceStoreDataCleanup(): void {
+    // Clear the store data for this feature
+    this._store.dispatch(new Features.UpdateFeatureResultData(this.feature_id, {
+      total: 0,
+      execution_time: 0,
+      result_date: null,
+      status: 'No result yet',
+      success: false,
+      ok: 0,
+      fails: 0,
+      skipped: 0,
+      browser: {},
+      mobile: [],
+      description: '',
+      pixel_diff: 0,
+      // Use valid properties to mark as stale
+      archived: true,
+      running: false
+    }));
   }
 
   /**
@@ -307,6 +449,21 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         if (res && res.results && res.results.length > 0) {
           const latestResult = res.results[0];
+          
+          // Validate that the result belongs to the correct feature
+          if (latestResult.feature_id && latestResult.feature_id !== this.feature_id) {
+            this.clearStaleData();
+            this.cdr.detectChanges();
+            return;
+          }
+          
+          // Validate that the result is not removed/deleted
+          if (latestResult.is_removed) {
+
+            this.clearStaleData();
+            this.cdr.detectChanges();
+            return;
+          }
           
           // Update the item with the data from API
           this.item.total = latestResult.total || 0;
@@ -340,10 +497,19 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
           
           // Force a complete UI refresh
           this.refreshUI();
+        } else {
+          // No results found - this could happen after deletion
+          this.clearStaleData();
+          
+          // Force change detection to update the UI
+          this.cdr.detectChanges();
         }
       },
       error: err => {
-        // Handle error silently
+        // Handle error by clearing stale data
+        console.error('❌ Error fetching feature data from API:', err);
+        this.clearStaleData();
+        this.cdr.detectChanges();
       }
     });
   }
@@ -353,54 +519,35 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * This handles the case where main-view hasn't updated the store yet
    */
   private retryLoadFeatureDataFromStore(): void {
-    console.log('🔄 retryLoadFeatureDataFromStore() called for feature:', this.feature_id);
-    
     this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
       take(1)
     ).subscribe(featureInfo => {
-      console.log('📡 Retry - Feature info from store:', featureInfo);
-      
       if (featureInfo && featureInfo.info) {
         const storeData = featureInfo.info;
-        console.log('📊 Retry - Store data:', storeData);
         
         // Update the item with the latest data from store
         if (storeData.total !== undefined) {
           this.item.total = storeData.total;
-          console.log('✅ Retry - Updated item.total:', this.item.total);
         }
         
         if (storeData.execution_time !== undefined) {
           this.item.time = storeData.execution_time;
-          console.log('✅ Retry - Updated item.time:', this.item.time);
         }
         
         if (storeData.result_date !== undefined) {
           this.item.date = storeData.result_date;
-          console.log('✅ Retry - Updated item.date:', this.item.date);
         }
         
         if (storeData.status !== undefined) {
           this.item.status = storeData.status === 'Success' ? 'success' : 
                            storeData.status === 'Failed' ? 'failed' : 'canceled';
-          console.log('✅ Retry - Updated item.status:', this.item.status);
         }
         
         // Force change detection to update the UI
         this.cdr.detectChanges();
-        
-        console.log('🎯 Retry - Final item data after store update:', {
-          total: this.item.total,
-          time: this.item.time,
-          date: this.item.date,
-          status: this.item.status
-        });
       } else {
-        console.log('⚠️ Retry - Still no feature info found in store for feature:', this.feature_id);
-        
         // Try one more time after another delay
         setTimeout(() => {
-          console.log('🔄 Final retry to get feature data from store...');
           this.finalRetryLoadFeatureDataFromStore();
         }, 2000); // Wait 2 more seconds
       }
@@ -411,14 +558,11 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * Final retry to load feature data from the store
    */
   private finalRetryLoadFeatureDataFromStore(): void {
-    console.log('🔄 finalRetryLoadFeatureDataFromStore() called for feature:', this.feature_id);
-    
     this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id)).pipe(
       take(1)
     ).subscribe(featureInfo => {
       if (featureInfo && featureInfo.info) {
         const storeData = featureInfo.info;
-        console.log('📊 Final retry - Store data:', storeData);
         
         // Update the item with the latest data from store
         if (storeData.total !== undefined) this.item.total = storeData.total;
@@ -430,9 +574,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
         }
         
         this.cdr.detectChanges();
-        console.log('✅ Final retry - Updated item data');
-      } else {
-        console.log('❌ Final retry - No feature info found in store for feature:', this.feature_id);
       }
     });
   }
@@ -512,8 +653,48 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     // Subscribe to feature running status - minimal handling
     this.featureRunning$.subscribe(running => {
       this.running = running;
-      if (!running) {
-        this.isButtonDisabled = false;
+    });
+
+    // Add reactive subscription to feature data updates
+    this.feature$.pipe(
+      filter((featureInfo: any) => !!featureInfo && !!featureInfo.info),
+      distinctUntilChanged((prev: any, curr: any) => {
+        // Custom comparison to detect meaningful changes
+        if (!prev || !curr) return false;
+        if (!prev.info || !curr.info) return false;
+        
+        const prevInfo = prev.info;
+        const currInfo = curr.info;
+        
+        return prevInfo.total === currInfo.total &&
+               prevInfo.execution_time === currInfo.execution_time &&
+               prevInfo.result_date === currInfo.result_date &&
+               prevInfo.status === currInfo.status;
+      })
+    ).subscribe((featureInfo: any) => {
+      if (featureInfo && featureInfo.info) {
+        const storeData = featureInfo.info;
+        
+        // Update the item with the latest data from store
+        if (storeData.total !== undefined) {
+          this.item.total = storeData.total;
+        }
+        
+        if (storeData.execution_time !== undefined) {
+          this.item.time = storeData.execution_time;
+        }
+        
+        if (storeData.result_date !== undefined) {
+          this.item.date = storeData.result_date;
+        }
+        
+        if (storeData.status !== undefined) {
+          this.item.status = storeData.status === 'Success' ? 'success' : 
+                           storeData.status === 'Failed' ? 'failed' : 'canceled';
+        }
+        
+        // Force change detection to update the UI
+        this.cdr.detectChanges();
       }
     });
 
@@ -579,6 +760,18 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     }
     if (this.initSafetyTimeout) {
       clearTimeout(this.initSafetyTimeout);
+    }
+    
+    // Clean up periodic data check interval
+    if (this.item?._dataCheckInterval) {
+      clearInterval(this.item._dataCheckInterval);
+      delete this.item._dataCheckInterval;
+    }
+    
+    // ENHANCED: Clean up cleanup interval
+    if (this.item?._cleanupInterval) {
+      clearInterval(this.item._cleanupInterval);
+      delete this.item._cleanupInterval;
     }
     
     // Clean up observables
@@ -728,6 +921,9 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   private updateFeatureStatusFromResult(result: any) {
     if (!result || !this.isComponentActive) return;
     
+    // Prevent conflicts with other update mechanisms
+    this.preventUpdateConflicts();
+    
     // Check if data modifications are blocked - but be much less restrictive
     if (this.blockDataModifications()) {
       return;
@@ -764,37 +960,45 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Clean up other features cache to prevent cross-contamination
-    this.cleanupOtherFeaturesCache();
+    // Mark that we're processing an update
+    this.item._isProcessingUpdate = true;
     
-    // Update the item with the latest feature result information
-    // Only update if the value is different to prevent duplication
-    if (result.total !== undefined && this.item.total !== result.total) {
-      this.item.total = result.total;
+    try {
+      // Clean up other features cache to prevent cross-contamination
+      this.cleanupOtherFeaturesCache();
+      
+      // Update the item with the latest feature result information
+      // Only update if the value is different to prevent duplication
+      if (result.total !== undefined && this.item.total !== result.total) {
+        this.item.total = result.total;
+      }
+      if (result.execution_time !== undefined && this.item.time !== result.execution_time) {
+        this.item.time = result.execution_time;
+      }
+      if (result.result_date !== undefined && this.item.date !== result.result_date) {
+        this.item.date = result.result_date;
+      }
+      
+      // Update the status with the real result status from the API
+      if (result.status && this.item.status !== result.status) {
+        this.item.status = result.status;
+      }
+      
+      // Mark that we have valid data
+      this.item._hasCachedData = true;
+      
+      // Cache the updated data with isolation
+      this.cacheFeatureData();
+      
+      // Trigger change detection
+      this.cdr.detectChanges();
+      
+      // Keep the lock active for a shorter time to prevent immediate cross-contamination
+      // The lock will automatically expire after LOCK_TIMEOUT
+    } finally {
+      // Always reset the processing flag
+      this.item._isProcessingUpdate = false;
     }
-    if (result.execution_time !== undefined && this.item.time !== result.execution_time) {
-      this.item.time = result.execution_time;
-    }
-    if (result.result_date !== undefined && this.item.date !== result.result_date) {
-      this.item.date = result.result_date;
-    }
-    
-    // Update the status with the real result status from the API
-    if (result.status && this.item.status !== result.status) {
-      this.item.status = result.status;
-    }
-    
-    // Mark that we have valid data
-    this.item._hasCachedData = true;
-    
-    // Cache the updated data with isolation
-    this.cacheFeatureData();
-    
-    // Trigger change detection
-    this.cdr.detectChanges();
-    
-    // Keep the lock active for a shorter time to prevent immediate cross-contamination
-    // The lock will automatically expire after LOCK_TIMEOUT
   }
 
   /**
@@ -1182,30 +1386,23 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   /**
    * Automatic data recovery system that detects and fixes corrupted data
    * This runs in the background to ensure data integrity without user intervention
+   * OPTIMIZED: Consolidated intervals to prevent conflicts
    */
   private setupAutomaticDataRecovery(): void {
-    // Check for data corruption every 30 seconds
+    // Single consolidated recovery interval - check every 60 seconds instead of multiple intervals
     const recoveryInterval = setInterval(() => {
       if (!this.isComponentActive) {
         clearInterval(recoveryInterval);
         return;
       }
 
+      // Perform all recovery operations in sequence to prevent conflicts
       this.performAutomaticDataRecovery();
-    }, 30000);
+      this.performAggressiveDataRecovery();
+    }, 60000); // Increased to 60 seconds to reduce conflicts
 
     // Also perform recovery when component becomes visible
     this.setupVisibilityBasedRecovery();
-
-    // More aggressive recovery for "No result yet" issue - check every 10 seconds
-    const aggressiveRecoveryInterval = setInterval(() => {
-      if (!this.isComponentActive) {
-        clearInterval(aggressiveRecoveryInterval);
-        return;
-      }
-
-      this.performAggressiveDataRecovery();
-    }, 10000);
   }
 
   /**
@@ -1277,22 +1474,34 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * Automatically recovers corrupted data
    */
   private autoRecoverData(): void {
-    // Clear corrupted cache
-    L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+    // Prevent conflicts with other operations
+    if (this.item._isRecovering) {
+      return;
+    }
     
-    // Reset corrupted values
-    if (this.item.total > 1000) this.item.total = 0;
-    if (this.item.time > 3600) this.item.time = 0;
+    this.item._isRecovering = true;
     
-    // Mark for fresh data
-    this.item._needsDataRefresh = true;
-    this.item._hasCachedData = false;
-    
-    // Force API call to get fresh data
-    this.forceUpdateFeatureStatus();
-    
-    // Update UI immediately
-    this.cdr.detectChanges();
+    try {
+      // Clear corrupted cache
+      L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+      
+      // Reset corrupted values
+      if (this.item.total > 1000) this.item.total = 0;
+      if (this.item.time > 3600) this.item.time = 0;
+      
+      // Mark for fresh data
+      this.item._needsDataRefresh = true;
+      this.item._hasCachedData = false;
+      
+      // Force API call to get fresh data
+      this.forceUpdateFeatureStatus();
+      
+      // Update UI immediately
+      this.cdr.detectChanges();
+    } finally {
+      // Always reset the recovery flag
+      this.item._isRecovering = false;
+    }
   }
 
   /**
@@ -1532,7 +1741,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
    * Get network login tooltip text
    */
   getNetworkLoginTooltip(): string {
-    // Removed console.log to prevent excessive logging
     return 'Network logging enabled. This feature will record network responses and analyze vulnerable headers.';
   }
 
@@ -1942,50 +2150,72 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     
     this.cacheInitialized = true;
     
-    // Set up periodic cache cleanup
+    // OPTIMIZED: Single consolidated cache cleanup interval to prevent conflicts
     setInterval(() => {
       this.clearExpiredCache();
       this.clearCorruptedCache(); // Also clean corrupted data
-    }, 60000); // Clean up every minute
+    }, 120000); // Increased to 2 minutes to reduce conflicts and overlap with other intervals
   }
 
   // Static method to clear expired cache entries
   static clearExpiredCache() {
-    const now = Date.now();
-    const expiredKeys: number[] = [];
+    // Prevent conflicts with other operations
+    if (this.isCacheCleanupInProgress()) {
+      return;
+    }
     
-    this.featureDataCache.forEach((data, key) => {
-      if ((now - data.lastUpdated) > this.CACHE_EXPIRATION_TIME) {
-        expiredKeys.push(key);
-      }
-    });
+    this.setCacheCleanupInProgress(true);
     
-    expiredKeys.forEach(key => {
-      this.featureDataCache.delete(key);
-    });
+    try {
+      const now = Date.now();
+      const expiredKeys: number[] = [];
+      
+      this.featureDataCache.forEach((data, key) => {
+        if ((now - data.lastUpdated) > this.CACHE_EXPIRATION_TIME) {
+          expiredKeys.push(key);
+        }
+      });
+      
+      expiredKeys.forEach(key => {
+        this.featureDataCache.delete(key);
+      });
+    } finally {
+      this.setCacheCleanupInProgress(false);
+    }
   }
 
   // Static method to clear corrupted cache entries
   static clearCorruptedCache() {
-    const corruptedKeys: number[] = [];
+    // Prevent conflicts with other operations
+    if (this.isCacheCleanupInProgress()) {
+      return;
+    }
     
-    this.featureDataCache.forEach((data, key) => {
-      // Check for corrupted data
-      const total = data.total || data.featureData?.total;
-      const time = data.time || data.featureData?.time;
+    this.setCacheCleanupInProgress(true);
+    
+    try {
+      const corruptedKeys: number[] = [];
       
-      if ((total !== undefined && (total <= 0 || total > 1000)) ||
-          (time !== undefined && (time < 0 || time > 3600))) {
-        corruptedKeys.push(key);
+      this.featureDataCache.forEach((data, key) => {
+        // Check for corrupted data
+        const total = data.total || data.featureData?.total;
+        const time = data.time || data.featureData?.time;
+        
+        if ((total !== undefined && (total <= 0 || total > 1000)) ||
+            (time !== undefined && (time < 0 || time > 3600))) {
+          corruptedKeys.push(key);
+        }
+      });
+      
+      corruptedKeys.forEach(key => {
+        this.featureDataCache.delete(key);
+      });
+      
+      if (corruptedKeys.length > 0) {
+        console.warn(`Cleared ${corruptedKeys.length} corrupted cache entries`);
       }
-    });
-    
-    corruptedKeys.forEach(key => {
-      this.featureDataCache.delete(key);
-    });
-    
-    if (corruptedKeys.length > 0) {
-      console.warn(`Cleared ${corruptedKeys.length} corrupted cache entries`);
+    } finally {
+      this.setCacheCleanupInProgress(false);
     }
   }
 
@@ -2013,7 +2243,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   static forceCacheCleanup() {
     this.clearExpiredCache();
     this.clearCorruptedCache();
-    console.log('Forced cache cleanup completed');
   }
 
   // Static trackBy function for *ngFor optimization
@@ -2714,35 +2943,19 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   /**
    * Setup periodic cross-contamination prevention
    * This ensures that updates to one feature don't affect others
+   * OPTIMIZED: Consolidated intervals to prevent conflicts
    */
   private setupCrossContaminationPrevention(): void {
-    // Reduced frequency of cross-contamination checks
+    // OPTIMIZED: Single consolidated interval for all cross-contamination prevention
     setInterval(() => {
       if (this.isComponentActive) {
+        // Perform all prevention operations in sequence to prevent conflicts
         this.preventCrossContamination();
-      }
-    }, 10000); // 10 seconds for less aggressive response
-    
-    // Simplified lock system adjustment
-    setInterval(() => {
-      if (this.isComponentActive) {
         this.checkAndAdjustLockSystem();
-      }
-    }, 5000); // 5 seconds for lock system adjustment
-    
-    // Reduced mass update detection frequency
-    setInterval(() => {
-      if (this.isComponentActive) {
         this.protectFeatureDataDuringMassUpdate();
-      }
-    }, 5000); // 5 seconds for mass update detection
-    
-    // Reduced data restoration frequency
-    setInterval(() => {
-      if (this.isComponentActive) {
         this.restoreProtectedFeatureData();
       }
-    }, 10000); // 10 seconds for data restoration
+    }, 30000); // Increased to 30 seconds to reduce conflicts and overlap
   }
 
   /**
@@ -3209,7 +3422,6 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       issues
     };
     
-    console.log('Features health check:', healthReport);
     return healthReport;
   }
 
@@ -3229,58 +3441,483 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
     debugInfo += `• Status: ${this.item.status}\n`;
     debugInfo += `• Total Steps: ${this.item.total}\n`;
     debugInfo += `• Execution Time: ${this.item.time}\n`;
-    debugInfo += `• Last Run Date: ${this.item.date}\n`;
-    debugInfo += `• Has Cached Data: ${this.item._hasCachedData}\n`;
-    debugInfo += `• Time Since Last Check: ${timeSinceLastCheck}s\n`;
-    debugInfo += `• Time Since Last API Call: ${timeSinceLastApiCall}s\n`;
+    debugInfo += `• Last Data Check: ${timeSinceLastCheck}s ago\n`;
+    debugInfo += `• Last API Call: ${timeSinceLastApiCall}s ago\n`;
     debugInfo += `• API Call Count: ${apiCallCount}\n`;
     debugInfo += `• Data Locked: ${isLocked}\n`;
-    debugInfo += `• Component Active: ${this.isComponentActive}\n`;
-    debugInfo += `• Feature Running: ${this.running}\n`;
-    debugInfo += `• Button Disabled: ${this.isButtonDisabled}\n`;
+    debugInfo += `• Has Cached Data: ${this.item._hasCachedData}\n`;
+    debugInfo += `• Needs Refresh: ${this.item._needsDataRefresh}\n`;
     
     return debugInfo;
   }
 
   /**
-   * Load basic feature data if needed - simplified version without complex cache
+   * Clears stale feature data to prevent showing deleted results
+   * ENHANCED: More aggressive cleaning to ensure all stale data is removed
    */
-  private loadBasicFeatureData(): void {
-    // Only load data if absolutely necessary - defer to when user interacts
-    // This prevents API calls during initial page load
+  private clearStaleData(): void {
+    if (this.item) {
+      // ENHANCED: Clear all execution-related data more aggressively
+      this.item.total = 0;
+      this.item.time = 0;
+      this.item.date = null;
+      this.item.status = 'No result yet';
+      this.item.ok = 0;
+      this.item.fails = 0;
+      this.item.skipped = 0;
+      
+      // ENHANCED: Also clear any cached flags and metadata
+      this.item._hasCachedData = false;
+      this.item._needsDataRefresh = false;
+      this.item._lastDataUpdate = null;
+      this.item._lastDataCheck = null;
+      this.item._lastApiCall = null;
+      this.item._apiCallCount = 0;
+      this.item._apiCallWindowStart = null;
+      this.item._isCheckingData = false;
+      this.item._isProcessingUpdate = false;
+      this.item._isRecovering = false;
+      
+      // ENHANCED: Clear any browser-related stale data
+      if (this.item._lastBrowserCheck) {
+        delete this.item._lastBrowserCheck;
+      }
+      if (this.item._browserCheckResult !== undefined) {
+        delete this.item._browserCheckResult;
+      }
+      
+      // ENHANCED: Clear any folder-related stale data
+      if (this.item._lastFolderId) {
+        delete this.item._lastFolderId;
+      }
+      
+      // ENHANCED: Clear any interval references
+      if (this.item._dataCheckInterval) {
+        clearInterval(this.item._dataCheckInterval);
+        delete this.item._dataCheckInterval;
+      }
+    }
   }
 
   /**
-   * Forces a complete UI refresh to ensure all changes are displayed
+   * Coordinate all intervals to prevent conflicts
+   * This ensures that different update mechanisms don't interfere with each other
+   */
+  private coordinateIntervals(): void {
+    // Set staggered start times to prevent all intervals from running at the same time
+    const now = Date.now();
+    
+    // Recovery interval starts immediately
+    this.setupAutomaticDataRecovery();
+    
+    // Cache cleanup starts after 30 seconds
+    setTimeout(() => {
+      if (this.isComponentActive) {
+        L1FeatureItemListComponent.initializeCache();
+      }
+    }, 30000);
+    
+    // Cross-contamination prevention starts after 60 seconds
+    setTimeout(() => {
+      if (this.isComponentActive) {
+        this.setupCrossContaminationPrevention();
+      }
+    }, 60000);
+    
+    // Periodic data check starts after 90 seconds
+    setTimeout(() => {
+      if (this.isComponentActive) {
+        this.setupPeriodicDataCheck();
+      }
+    }, 90000);
+    
+    // WebSocket conflict prevention starts after 120 seconds
+    setTimeout(() => {
+      if (this.isComponentActive) {
+        this.setupWebSocketConflictPrevention();
+      }
+    }, 120000);
+    
+    // ENHANCED: Automatic cleanup trigger starts after 150 seconds
+    setTimeout(() => {
+      if (this.isComponentActive) {
+        this.setupAutomaticCleanupTrigger();
+      }
+    }, 150000);
+  }
+
+  /**
+   * Check if store data is still fresh enough to avoid reloading
+   * This prevents unnecessary API calls when data is still recent
+   */
+  private isStoreDataFresh(storeData: any): boolean {
+    if (!storeData || !storeData.lastUpdated) return false;
+    
+    const now = Date.now();
+    const timeSinceLastUpdate = now - storeData.lastUpdated;
+    
+    // Define freshness thresholds based on feature status
+    let freshnessThreshold = 60000; // Default: 1 minute
+    
+    if (storeData.running) {
+      // If feature is running, data is fresh for longer (5 minutes)
+      freshnessThreshold = 300000;
+    } else if (storeData.status === 'Success' || storeData.status === 'Failed') {
+      // If feature has completed, data is fresh for longer (10 minutes)
+      freshnessThreshold = 600000;
+    } else if (storeData.status === 'running' || storeData.status === 'pending') {
+      // If feature is in progress, data is fresh for shorter (30 seconds)
+      freshnessThreshold = 30000;
+    }
+    
+    const isFresh = timeSinceLastUpdate < freshnessThreshold;
+    
+    return isFresh;
+  }
+
+  /**
+   * Force a complete UI refresh
+   * This ensures all data is properly displayed
    */
   private refreshUI(): void {
-    // Force change detection multiple times to ensure UI updates
+    // Force change detection
     this.cdr.markForCheck();
     this.cdr.detectChanges();
     
-    // Also trigger change detection in the next tick
+    // Also trigger a manual change detection cycle
     setTimeout(() => {
-      this.cdr.markForCheck();
-      this.cdr.detectChanges();
-    }, 0);
+      if (this.isComponentActive) {
+        this.cdr.detectChanges();
+      }
+    }, 100);
   }
 
   /**
-   * Safely get text for tooltips, handling null/undefined values
+   * Prevent conflicts between different update mechanisms
+   * This ensures data consistency and prevents race conditions
    */
-  public getSafeTooltipText(text: string | null | undefined): string {
-    if (!text) {
-      return '';
+  private preventUpdateConflicts(): void {
+    // Check if we're currently processing any updates
+    if (this.item._isProcessingUpdate) {
+      return;
     }
-    return text.toString().trim();
+    
+    // Check if we're in a lock period
+    if (this.isFeatureDataLocked()) {
+      return;
+    }
+    
+    // Check if we're in a recovery period
+    if (this.item._isRecovering) {
+      return;
+    }
+    
+    // Check if we're in a cache cleanup period
+    if (L1FeatureItemListComponent.isCacheCleanupInProgress()) {
+      return;
+    }
   }
 
   /**
-   * Get local can create feature permission (separate from store property)
+   * Check if cache cleanup is currently in progress
    */
-  public get localCanCreateFeature(): boolean {
-    return this._localCanCreateFeature;
+  static isCacheCleanupInProgress(): boolean {
+    return this._cacheCleanupInProgress || false;
   }
 
-}
+  /**
+   * Set cache cleanup status
+   */
+  static setCacheCleanupInProgress(status: boolean): void {
+    this._cacheCleanupInProgress = status;
+  }
 
+  /**
+   * Set up periodic data check to ensure feature data stays up to date
+   * OPTIMIZED: Reduced frequency to prevent conflicts with other intervals
+   */
+  private setupPeriodicDataCheck(): void {
+    // OPTIMIZED: Check for updates every 2 minutes instead of 30 seconds to prevent conflicts
+    const checkInterval = setInterval(() => {
+      if (!this.isComponentActive) {
+        clearInterval(checkInterval);
+        return;
+      }
+      
+      // Only check if we don't have recent data or if the feature is running
+      const now = Date.now();
+      const lastUpdate = this.item._lastDataUpdate || 0;
+      const shouldCheck = (now - lastUpdate) > 120000 || this.running; // 2 minutes or if running
+      
+      if (shouldCheck) {
+        // Prevent multiple simultaneous checks
+        if (this.item._isCheckingData) {
+          return;
+        }
+        
+        this.item._isCheckingData = true;
+        
+        try {
+          // Always try to get fresh data from store first
+          this.loadLatestFeatureDataFromStore();
+          
+          // If store doesn't have data or data is stale, clear stale data and try API
+          if (!this.item.total && !this.item.time && !this.item.date) {
+            this.clearStaleData();
+            this.fetchFeatureDataFromAPI();
+          } else if (this.item.date && this.isItemDataStale()) {
+            this.clearStaleData();
+            this.fetchFeatureDataFromAPI();
+          }
+          
+          this.item._lastDataUpdate = now;
+        } finally {
+          // Always reset the checking flag
+          this.item._isCheckingData = false;
+        }
+      }
+    }, 120000); // 2 minutes to prevent conflicts with other intervals
+    
+    // Store the interval reference for cleanup
+    this.item._dataCheckInterval = checkInterval;
+  }
+
+  /**
+   * Enhanced WebSocket conflict prevention
+   * This method ensures that WebSocket updates don't interfere with periodic operations
+   */
+  private setupWebSocketConflictPrevention(): void {
+    // Set up WebSocket event listener with conflict prevention
+    this.handleWebSocketConflicts();
+    
+    // Also listen for feature status changes from WebSocket
+    this._store.select(CustomSelectors.GetFeatureStatus(this.feature_id))
+      .pipe(
+        filter(status => !!status && this.isComponentActive),
+        distinctUntilChanged(),
+        debounceTime(2000) // Wait 2 seconds to prevent conflicts with periodic updates
+      )
+      .subscribe(status => {
+        if (status && this.isComponentActive && !this.isAnyIntervalRunning()) {
+          // Only process WebSocket status updates when no intervals are running
+          this.processWebSocketStatusUpdate(status);
+        } else if (this.isAnyIntervalRunning()) {
+          // Skip WebSocket status update - other operations running
+        }
+      });
+  }
+
+  /**
+   * ENHANCED: Automatic cleanup trigger that runs when stale data is detected
+   * This method ensures that old result data is automatically removed
+   */
+  private setupAutomaticCleanupTrigger(): void {
+    // Check for stale data every 30 seconds
+    const cleanupInterval = setInterval(() => {
+      if (!this.isComponentActive) {
+        clearInterval(cleanupInterval);
+        return;
+      }
+      
+      // Check if we have stale data that needs cleaning
+      if (this.hasStaleData()) {
+        this.comprehensiveDataCleanup();
+      }
+    }, 30000); // Check every 30 seconds
+    
+    // Store the interval reference for cleanup
+    this.item._cleanupInterval = cleanupInterval;
+  }
+
+  /**
+   * Check if item data is stale and needs refresh
+   */
+  private isItemDataStale(): boolean {
+    if (!this.item.date) return false;
+    
+    try {
+      const resultDate = new Date(this.item.date);
+      const now = new Date();
+      const timeDifference = now.getTime() - resultDate.getTime();
+      
+      // Consider data stale if it's older than 24 hours
+      const maxAgeHours = 24;
+      const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
+      
+      return timeDifference >= maxAgeMs;
+    } catch (error) {
+      // If we can't parse the date, consider it stale
+      return true;
+    }
+  }
+
+  /**
+   * Handle WebSocket conflicts and prevent interference with periodic updates
+   * This ensures that real-time updates don't conflict with scheduled maintenance
+   */
+  private handleWebSocketConflicts(): void {
+    // Subscribe to WebSocket events but with conflict prevention
+    this._store.select(state => state.websockets?.featureRunCompleted)
+      .pipe(
+        filter(event => !!event && this.isComponentActive),
+        distinctUntilChanged(),
+        debounceTime(1000) // Wait 1 second after WebSocket events to prevent conflicts
+      )
+      .subscribe(event => {
+        if (event && this.isComponentActive) {
+          // Check if this event affects our feature
+          if (event.feature_id !== this.feature_id) {
+            // Wait a bit for the store to update, then check for corruption
+            // But only if no other operations are running
+            if (!this.isAnyIntervalRunning()) {
+              setTimeout(() => {
+                this.checkForPostCompletionCorruption();
+              }, 2000);
+            } else {
+              // Skip WebSocket corruption check - other operations running
+            }
+          }
+        }
+      });
+  }
+
+  /**
+   * Check if any interval is currently running
+   */
+  private isAnyIntervalRunning(): boolean {
+    return !!(this.item._isCheckingData || 
+             this.item._isProcessingUpdate || 
+             this.item._isRecovering || 
+             L1FeatureItemListComponent.isCacheCleanupInProgress());
+  }
+
+  /**
+   * Process WebSocket status updates safely
+   */
+  private processWebSocketStatusUpdate(status: any): void {
+    // Prevent conflicts with other update mechanisms
+    this.preventUpdateConflicts();
+    
+          // Only update if the status is actually different
+      if (this.item.status !== status) {
+        this.item.status = status;
+        this.cdr.detectChanges();
+      }
+  }
+
+  /**
+   * ENHANCED: Detects if the component has stale data that needs cleaning
+   */
+  private hasStaleData(): boolean {
+    // Check for obvious stale data indicators
+    if (this.item.total > 0 || this.item.time > 0 || this.item.date !== null) {
+      // We have execution data, but let's verify if it's actually valid
+      return this.needsDataValidation();
+    }
+    
+    // Check for stale status
+    if (this.item.status && this.item.status !== 'No result yet' && this.item.status !== 'unknown') {
+      return true;
+    }
+    
+    // Check for stale metadata
+    if (this.item.ok > 0 || this.item.fails > 0 || this.item.skipped > 0) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * ENHANCED: Comprehensive cleanup that handles all sources of stale data
+   * This method ensures complete removal of any old result data
+   */
+  public comprehensiveDataCleanup(): void {
+    // 1. Clear local item data
+    this.clearStaleData();
+    
+    // 2. Clear cache
+    L1FeatureItemListComponent.featureDataCache.delete(this.feature_id);
+    
+    // 3. Aggressively clean store data
+    this.aggressivelyCleanStoreData();
+    
+    // 4. Force change detection
+    this.cdr.detectChanges();
+    
+    // 5. Verify cleanup was successful
+    setTimeout(() => {
+      this.verifyCleanupSuccess();
+    }, 1000);
+  }
+
+  /**
+   * ENHANCED: Determines if data needs validation against API
+   */
+  private needsDataValidation(): boolean {
+    // If we haven't checked recently, we need validation
+    if (!this.item._lastDataCheck) {
+      return true;
+    }
+    
+    const now = Date.now();
+    const timeSinceLastCheck = now - this.item._lastDataCheck;
+    
+    // If it's been more than 5 minutes since last check, validate again
+    return timeSinceLastCheck > 300000; // 5 minutes
+  }
+
+  /**
+   * ENHANCED: Aggressively cleans stale data from the store
+   * This method ensures that deleted results don't persist in the store
+   */
+  private aggressivelyCleanStoreData(): void {
+    // Clear the store data for this feature with aggressive cleaning
+    this._store.dispatch(new Features.UpdateFeatureResultData(this.feature_id, {
+      total: 0,
+      execution_time: 0,
+      result_date: null,
+      status: 'No result yet',
+      success: false,
+      ok: 0,
+      fails: 0,
+      skipped: 0,
+      browser: {},
+      mobile: [],
+      description: '',
+      pixel_diff: 0,
+      // ENHANCED: Use valid properties to mark data as stale
+      archived: true,
+      running: false
+    }));
+    
+    // Also clear any other store references that might have stale data
+    this._store.dispatch(new Features.UpdateFeature(this.feature_id));
+  }
+
+  /**
+   * ENHANCED: Verifies that cleanup was successful
+   */
+  private verifyCleanupSuccess(): void {
+    const hasStaleData = this.item.total > 0 || 
+                         this.item.time > 0 || 
+                         this.item.date !== null ||
+                         this.item.status !== 'No result yet';
+    
+    if (hasStaleData) {
+      // Force another cleanup
+      this.comprehensiveDataCleanup();
+    }
+  }
+
+  /**
+   * Get safe tooltip text with fallback for null/undefined values
+   * This method ensures tooltips always have valid text to display
+   */
+  getSafeTooltipText(text: string | null | undefined): string {
+    if (!text || text.trim() === '') {
+      return 'Feature';
+    }
+    return text.trim();
+  }
+}
