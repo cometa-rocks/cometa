@@ -608,6 +608,33 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Calculate status based on available data
+   */
+  getCalculatedStatus(result: any): string {
+    if (!result) return;
+    
+    // If status is already set, use it
+    if (result.status && result.status.trim() !== '') {
+      return result.status;
+    }
+    
+    // Calculate status based on results
+    const { total, ok, fails, skipped } = result;
+    
+    if (total === 0) return 'No steps';
+    
+    // Check if feature was canceled FIRST (when execution was interrupted)
+    if (result.execution_time === 0 && total > 0) return 'Canceled';
+    
+    if (fails > 0) return 'Failed';
+    if (skipped > 0 && ok === 0) return 'Skipped';
+    if (ok === total) return 'Success';
+    if (ok > 0 && ok < total) return 'Partial';
+    
+    return 'Unknown';
+  }
+
+  /**
    * Get total number of feature results
    */
   getTotalFeatureResults(): number {

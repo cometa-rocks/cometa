@@ -46,19 +46,18 @@ Author: dph000
       <!-- Run feature button -->
       <div class="top-buttons-container" *ngIf="!item.depends_on_others">
         <div
-          *ngIf="item.date"
           class="state"
           [class.state-disabled]="isButtonDisabled && !running"
           stopPropagation
           [class.running]="running"
-          [ngClass]="!running && (item.status | lowercase)">
+          [ngClass]="!running && (getCalculatedStatus(getLatestFeatureResult()) | lowercase)">
           <div class="triangle"></div>
           <mat-spinner
             class="item-loader"
             diameter="18"
             *ngIf="running; else showState"></mat-spinner>
           <ng-template #showState>
-            <ng-container [ngSwitch]="item.status | lowercase">
+            <ng-container [ngSwitch]="getCalculatedStatus(getLatestFeatureResult()) | lowercase">
               <mat-icon class="state-icon" *ngSwitchCase="'success'"
                 >done</mat-icon
               >
@@ -68,8 +67,14 @@ Author: dph000
               <mat-icon class="state-icon" *ngSwitchCase="'failed'"
                 >error</mat-icon
               >
+              <mat-icon class="state-icon" *ngSwitchCase="'partial'"
+                >warning</mat-icon
+              >
+              <mat-icon class="state-icon" *ngSwitchCase="'skipped'"
+                >skip_next</mat-icon
+              >
             </ng-container>
-            <span style="vertical-align: middle">{{ item.status }}</span>
+            <span style="vertical-align: middle">{{ getCalculatedStatus(getLatestFeatureResult()) }}</span>
           </ng-template>
         </div>
         <div 
