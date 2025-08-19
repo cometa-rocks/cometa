@@ -60,7 +60,7 @@ export class FeatureHistoryComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.featureId) {
-      this.log.info('Loading feature history for feature ID: ' + this.featureId);
+      this.log.msg('Loading feature history for feature ID: ' + this.featureId);
       this.loadFeatureHistory();
     } else {
     }
