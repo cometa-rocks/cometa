@@ -146,11 +146,20 @@ Author: dph000
         <!-- Feature total amount of steps, execution time and date of execution -->
         <i class="my-icons clipboard"></i>
         <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
-          <ng-container *ngIf="item.date as date">{{
-            item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
-          }}</ng-container></span
-        >
+          >{{ getTotalFeatureResults() }} results | 
+          <ng-container *ngIf="getLatestFeatureResult() as latestResult">
+            {{ latestResult.execution_time || 0 | secondsToHumanReadable }} |
+            <ng-container *ngIf="latestResult.date_time">
+              {{ latestResult.date_time | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a' }}
+            </ng-container>
+            <ng-container *ngIf="!latestResult.date_time">
+              No date available
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="!getLatestFeatureResult()">
+            No results available
+          </ng-container>
+        </span>
       </div>
       <!-- Feature ID -->
 

@@ -5,10 +5,10 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take, interval, Subscription } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -80,7 +80,7 @@ import { StarredService } from '@services/starred.service';
     LowerCasePipe,
   ],
 })
-export class L1FeatureItemListComponent implements OnInit {
+export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   constructor(
     private _router: NavigationService,
     private _store: Store,
@@ -107,6 +107,12 @@ export class L1FeatureItemListComponent implements OnInit {
   running$: Observable<boolean>;
   private lastClickTime: number = 0;
   private readonly CLICK_DEBOUNCE_TIME: number = 1000; // 1 second debounce time
+
+  // Local storage for feature results
+  private featureResults: any[] = [];
+  private resultsSubscription: Subscription | null = null;
+  private refreshInterval: Subscription | null = null;
+  private readonly REFRESH_INTERVAL = 30000; // 30 seconds
 
   /**
    * Global variables
@@ -179,6 +185,12 @@ export class L1FeatureItemListComponent implements OnInit {
     });
 
     this.isStarred$ = this.starredService.isStarred(this.feature_id);
+
+    // Load feature results initially
+    this.loadFeatureResults();
+
+    // Set up periodic refresh
+    this.setupRefreshInterval();
   }
 
   async goLastRun() {
@@ -554,6 +566,95 @@ export class L1FeatureItemListComponent implements OnInit {
         { duration: 2000 }
       );
     });
+  }
+
+  /**
+   * Load feature results from API and store them locally
+   */
+  private loadFeatureResults(): void {
+    this.resultsSubscription = this._api.getFeatureRuns(this.feature_id).subscribe({
+      next: (results) => {
+        // Store the results directly
+        this.featureResults = results;
+        
+        this.cdr.detectChanges();
+        this.log.msg('1', `Loaded ${results.length} feature results`, 'feature-item-list');
+        
+        // Log the first result for debugging
+        if (results.length > 0) {
+          this.log.msg('1', `First result: ${JSON.stringify(results[0])}`, 'feature-item-list');
+        }
+      },
+      error: (error) => {
+        this.log.msg('3', `Error loading feature results: ${error}`, 'feature-item-list');
+      }
+    });
+  }
+
+  /**
+   * Set up periodic refresh of feature results
+   */
+  private setupRefreshInterval(): void {
+    this.refreshInterval = interval(this.REFRESH_INTERVAL).subscribe(() => {
+      this.loadFeatureResults();
+    });
+  }
+
+  /**
+   * Get the latest feature result for display
+   */
+  getLatestFeatureResult(): any {
+    return this.featureResults.length > 0 ? this.featureResults[0] : null;
+  }
+
+  /**
+   * Get total number of feature results
+   */
+  getTotalFeatureResults(): number {
+    return this.featureResults.length;
+  }
+
+  /**
+   * Check if a date string is valid
+   */
+  isValidDate(dateString: any): boolean {
+    if (!dateString) return false;
+    
+    try {
+      const date = new Date(dateString);
+      return !isNaN(date.getTime()) && date.getTime() > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Validate and format date string
+   */
+  private validateAndFormatDate(dateString: any): string | null {
+    if (!dateString) return null;
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime()) || date.getTime() <= 0) {
+        return null;
+      }
+      return dateString; // Return original string if valid
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Cleanup subscriptions
+   */
+  ngOnDestroy(): void {
+    if (this.resultsSubscription) {
+      this.resultsSubscription.unsubscribe();
+    }
+    if (this.refreshInterval) {
+      this.refreshInterval.unsubscribe();
+    }
   }
 
   /**
