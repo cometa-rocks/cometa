@@ -245,8 +245,8 @@ services:
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_redis
-    volumes:
-      - ./data/redis/data:/data
+    # volumes:
+    #   - ./data/redis/data:/data
     networks:
       - testing
     healthcheck:
