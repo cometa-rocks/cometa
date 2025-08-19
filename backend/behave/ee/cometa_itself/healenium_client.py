@@ -1,5 +1,5 @@
 """
-Healenium Client for COMETA
+Healenium Client for Co.Meta
 
 This module handles Healenium integration with per-test proxy creation.
 Due to architectural constraints, each test needs its own proxy pointing to its specific browser container.
@@ -149,30 +149,6 @@ class HealeniumClient:
             time.sleep(0.5)
         
         return False
-    
-    def start_monitoring(self, step_name: str = None):
-        """Start monitoring for healing events"""
-        if hasattr(self.context, 'last_healed_element'):
-            self.context.last_healed_element = None
-        
-        if step_name:
-            logger.debug(f"Monitoring healing for step: {step_name}")
-        
-        # Store current step info for healing detection
-        self.current_step_name = step_name
-        self.monitoring_start_time = time.time()
-        
-        # Start monitoring proxy logs in a separate thread if not already started
-        if self.proxy_container and not hasattr(self, '_log_monitor_thread'):
-            self._start_log_monitoring()
-    
-    def stop_monitoring(self):
-        """Stop monitoring for healing events"""
-        pass
-    
-    def get_last_healing_data(self) -> Optional[Dict[str, Any]]:
-        """Get the last healing data if available"""
-        return getattr(self.context, 'last_healed_element', None)
     
     def get_healing_data_from_db(self, selector_type: str, selector_value: str, since_time: float) -> Optional[Dict[str, Any]]:
         """

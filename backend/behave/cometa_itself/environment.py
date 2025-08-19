@@ -480,7 +480,7 @@ def before_all(context):
             logger.info("Healenium enabled - creating proxy synchronously")
             try:
                 # Initialize Healenium client
-                from cometa_itself.healenium_client import healenium_context
+                from ee.cometa_itself.healenium_client import healenium_context
                 context.healenium_context_manager = healenium_context(context)
                 context.healenium_client = context.healenium_context_manager.__enter__()
                 

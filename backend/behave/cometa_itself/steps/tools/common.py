@@ -51,7 +51,7 @@ def _lazy_import_healenium():
             if parent_dir not in sys.path:
                 sys.path.insert(0, parent_dir)
             
-            from cometa_itself.healenium_client import (
+            from ee.cometa_itself.healenium_client import (
                 HealeniumClient, 
                 healenium_context
             )
