@@ -96,6 +96,7 @@ urlpatterns = [
     url(r'^steps/(?P<feature_result_id>[0-9]+)/(?P<step_execution_sequence>[0-9]+)/update/', views.updateStepScreenShotDetails),
     # url(r'^setScreenshots/(?P<step_result_id>[0-9]+)/', views.UpdateScreenshots),
     url(r'^steps/(?P<feature_id>[0-9]+)/', views.GetSteps),
+    url(r'^execution_steps/(?P<feature_id>[0-9]+)/', views.GetExecutionSteps),
     url(r'^updateTask/', views.UpdateTask),
     url(r'^getJson/(?P<feature_id>[0-9]+)/', views.GetJsonFile),
     url(r'^killTask/(?P<feature_id>[0-9]+)/', views.KillTask),

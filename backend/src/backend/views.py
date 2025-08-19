@@ -1563,6 +1563,28 @@ def GetSteps(request, feature_id):
     return JsonResponse({'results': data})
 
 
+# This method added to fetch the steps for live execution screen
+# It will fetch the steps from the feature_json_steps field of the feature_result, 
+# unlike old method which fetches from the Step table
+@csrf_exempt
+def GetExecutionSteps(request, feature_id):
+
+    if not feature_id:
+        return JsonResponse({'success': False, 'error': 'Feature ID is required.'})
+
+    feature_run = Feature_Runs.objects.filter(feature_id=feature_id).order_by('-run_id').first()
+    if not feature_run:
+        return JsonResponse({'success': False, 'error': 'Execution not found.'})
+
+    logger.info(f"Getting steps for feature {feature_id} from feature run {feature_run.run_id}")
+    # Get the last feature result to fetch the step details, because for one feature run, 
+    # there can be multiple feature results but they will have the same steps, so pick step from any of them
+    feature_result = feature_run.feature_results.order_by('-feature_result_id').first()
+    json_steps = feature_result.feature_json_steps
+    return JsonResponse({'results': json_steps})
+
+
+
 @csrf_exempt
 def GetInfo(request):
     return JsonResponse({'version': version})

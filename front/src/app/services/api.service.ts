@@ -173,6 +173,15 @@ export class ApiService {
       .pipe(map(res => res.results));
   }
 
+  // Get all step specifying a ID or Name
+  getFeatureExecutionSteps(feature_id: number, params?) {
+    return this._http
+      .get<
+        PaginatedResponse<FeatureStep>
+      >(`${this.base}execution_steps/${feature_id}/`, { params: params })
+      .pipe(map(res => res.results));
+  }
+
   // Get REST API call
   getRestAPI(id: number) {
     return this._http
