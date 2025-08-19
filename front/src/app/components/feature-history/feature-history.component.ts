@@ -19,6 +19,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-feature-history',
@@ -52,12 +53,14 @@ export class FeatureHistoryComponent implements OnInit {
     private _api: ApiService,
     @Inject(MAT_DIALOG_DATA) public data: number,
     private dialogRef: MatDialogRef<FeatureHistoryComponent>,
+    private log: LogService
   ) {
     this.featureId = data;
   }
 
   ngOnInit(): void {
     if (this.featureId) {
+      this.log.info('Loading feature history for feature ID: ' + this.featureId);
       this.loadFeatureHistory();
     } else {
     }
