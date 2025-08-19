@@ -70,6 +70,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { Select } from '@ngxs/store';
 import { ChangeDetectorRef} from '@angular/core';
+import { LogService } from '@services/log.service';
 @Component({
   selector: 'step-view',
   templateUrl: './step-view.component.html',
@@ -213,7 +214,8 @@ export class StepViewComponent implements OnInit {
   canChangeResultStatus$: Observable<boolean>;
  
   stepResultsUrl$: Observable<string>;
-
+  counter: number = 0; // Counts how many times the function is called
+  
   constructor(
     private _router: Router,
     private _acRouted: ActivatedRoute,
@@ -222,14 +224,15 @@ export class StepViewComponent implements OnInit {
     public _sharedActions: SharedActionsService,
     private _dialog: MatDialog,
     private _cdr: ChangeDetectorRef,
+    private logger: LogService,
   ) {}
 
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
   @ViewChildren('div.status-bar') statusBars!: QueryList<ElementRef>;
+  errorCount: number = 0;
 
   ngOnInit() {
-
     this.featureId$ = this._acRouted.paramMap.pipe(
       map(params => +params.get('feature')),
       distinctUntilChanged(),
@@ -432,5 +435,54 @@ export class StepViewComponent implements OnInit {
       return;
     }
     this.goToDetail(stepId);
+  }
+
+  /**
+   * Determines if a feature name should be shown for the current step
+   * @param currentItem The current step item
+   * @param currentIndex The current index in the list
+   * @returns true if the feature name should be displayed
+   * 
+   * FIX ME:
+   * 1. This function is called too many times.
+   * 2. It is called hovering the edit icon for all items in the list
+   * 3. It is called when hovering the pagination icons
+   *  
+   */
+  shouldShowFeatureName(currentItem: any, currentIndex: number): boolean {
+    this.logger.msg('4', `------------------------------`, 'Step View shouldShowFeatureName');
+    this.logger.msg('4', `FeatureID: ${currentItem.belongs_to.feature_id} ${currentItem.belongs_to.feature_name}`, 'Step View shouldShowFeatureName');
+    this.logger.msg('4', `currentIndex ${currentIndex}`, 'Step View shouldShowFeatureName');
+
+    this.counter = this.counter + 1;
+
+    this.logger.msg('4', `counter ${this.counter} - ${currentItem.step_name}`, 'Step View shouldShowFeatureName');
+
+    if (!currentItem?.belongs_to?.feature_id) {
+      this.logger.msg('4', `FeatureID is not set`, 'Step View shouldShowFeatureName');
+      return false;
+    }
+    
+    // Always show for the first item
+    if (currentIndex === 0) {
+      this.logger.msg('4', `currentIndex is 0`, 'Step View shouldShowFeatureName');
+      return true;
+    }
+    
+    // Get the current list of items
+    const currentSteps = this.paginatedList?.pagination$?.getValue();
+    if (!currentSteps?.results || currentIndex >= currentSteps.results.length) {
+      this.logger.msg('4', `currentSteps is not set`, 'Step View shouldShowFeatureName');
+      return true;
+    }
+    
+    // Check if the previous item has a different feature ID
+    const previousItem = currentSteps.results[currentIndex - 1];
+    if (!previousItem?.belongs_to?.feature_id) {
+      this.logger.msg('4', `previousItem is not set`, 'Step View shouldShowFeatureName');
+      return true;
+    }
+    
+    return previousItem.belongs_to.feature_id !== currentItem.belongs_to.feature_id;
   }
 }

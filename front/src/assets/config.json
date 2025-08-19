@@ -1,6 +1,6 @@
 {
-  "version": "3.0.90",
-  "stable_version": "3.0.90",
+  "version": "3.0.91",
+  "stable_version": "3.0.91",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.91",
+      "date": "2025-08-14",
+      "features": [
+        {
+          "title": "Feature History - #6674",
+          "description": "Implemented a feature history view to track changes made to features. New window that displays a timeline, in chronological order, of all changes made to the feature. Mentioning user, date and a list of changes in comparison to the current version."
+        }
+      ]
+    },
     {
       "version": "3.0.90",
       "date": "2025-08-07",

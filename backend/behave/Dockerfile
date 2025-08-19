@@ -1,4 +1,4 @@
-# Use Python 3.9 base image from the Docker Hub
+# Use Python 3.11 base image from the Docker Hub
 FROM python:3.11
 
 LABEL AUTHOR="COMETA ROCKS S.L."
@@ -7,7 +7,8 @@ LABEL AUTHOR="COMETA ROCKS S.L."
 USER root
 
 # Install necessary packages
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update && apt-get install --no-install-recommends -y \
     rsyslog \
     vim \
     jq \
@@ -23,23 +24,24 @@ RUN apt-get purge -y exim*
 # Update pip
 RUN python -m pip install --upgrade pip
 
+# Try to install Microsoft SQL Server packages, but continue if they fail
 RUN export DEBIAN_FRONTEND=noninteractive \
-    && curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /usr/share/keyrings/microsoft.gpg > /dev/null \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" | tee /etc/apt/sources.list.d/mssql-release.list \
+    && (curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /usr/share/keyrings/microsoft.gpg > /dev/null || echo "Failed to download Microsoft GPG key") \
+    && (echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" | tee /etc/apt/sources.list.d/mssql-release.list || echo "Failed to add Microsoft repository") \
     && apt-get update -y \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev \
+    && (ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 || echo "Microsoft SQL Server packages not available, continuing without them") \
     && rm -rf /var/lib/apt/lists/*
 
 
 
-RUN apt-get update && apt-get install -y \
-unixodbc \
-unixodbc-dev \
-odbcinst \
-libodbc1 \
-curl \
-gnupg2 \
-&& rm -rf /var/lib/apt/lists/*
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update && apt-get install -y \
+    unixodbc \
+    unixodbc-dev \
+    odbcinst \
+    curl \
+    gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
 # Create a non-root user 'cometa' with UID 472 and GID 472
 RUN groupadd -g 1472 cometa \
 && useradd -u 1472 -g cometa -d /home/cometa -s /bin/bash cometa
@@ -83,7 +85,7 @@ RUN chmod -R 755 /opt/code
 # RUN chmod -R 755 /proc/kmsg 
 RUN chmod -R 755 /var/run 
 RUN chmod -R 755 /var/log/supervisor/ 
-RUN chmod -R 755 /usr/local/lib/python3.11/
+RUN chmod -R 755 /usr/local/lib/python3.11/ || true
 # RUN chmod -R 755 /usr/local/bin/chardetect/
 
 # RUN rsyslogd -n
@@ -113,19 +115,16 @@ RUN poetry --version
 # # Configure Poetry to avoid creating virtual environments
 RUN poetry config virtualenvs.create false --local
 USER root
-# RUN apt-get install --reinstall python3.11 python3.11-venv python3.11-dev \
-#     && python3 -m ensurepip \
-#     && python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"
-    
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update -y \
-    && apt-get install -y gcc g++ make unixodbc-dev python3-dev libssl-dev openssl \
-    && apt-get install -y --reinstall python3.11 python3.11-venv python3.11-dev \
-    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
+    && apt-get install -y gcc g++ make python3-dev libssl-dev openssl \
     && python3 -m ensurepip \
-    && python3 -m pip install --upgrade pip setuptools wheel \
-    && poetry config virtualenvs.create false \
+    && python3 -m pip install --upgrade pip setuptools wheel
+
+# Configure Poetry for root user and install Python dependencies
+RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
+
 
 
 USER cometa

@@ -1563,6 +1563,28 @@ def GetSteps(request, feature_id):
     return JsonResponse({'results': data})
 
 
+# This method added to fetch the steps for live execution screen
+# It will fetch the steps from the feature_json_steps field of the feature_result, 
+# unlike old method which fetches from the Step table
+@csrf_exempt
+def GetExecutionSteps(request, feature_id):
+
+    if not feature_id:
+        return JsonResponse({'success': False, 'error': 'Feature ID is required.'})
+
+    feature_run = Feature_Runs.objects.filter(feature_id=feature_id).order_by('-run_id').first()
+    if not feature_run:
+        return JsonResponse({'success': False, 'error': 'Execution not found.'})
+
+    logger.info(f"Getting steps for feature {feature_id} from feature run {feature_run.run_id}")
+    # Get the last feature result to fetch the step details, because for one feature run, 
+    # there can be multiple feature results but they will have the same steps, so pick step from any of them
+    feature_result = feature_run.feature_results.order_by('-feature_result_id').first()
+    json_steps = feature_result.feature_json_steps
+    return JsonResponse({'results': json_steps})
+
+
+
 @csrf_exempt
 def GetInfo(request):
     return JsonResponse({'version': version})
@@ -2593,15 +2615,15 @@ class StepResultViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         # get data from request
-        logger.debug(f"Create method started")
+        # logger.debug(f"Create method started")
         data = json.loads(request.body)
         if not isinstance(data['files'], list):
             data['files'] = json.loads(data['files'])
         
-        logger.debug(f"Saving Step {data['step_name']}")
-        logger.debug("Checking for last step")
+        # logger.debug(f"Saving Step {data['step_name']}")
+        # logger.debug("Checking for last step")
         last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id')
-        logger.debug("Last step result checked")
+        # logger.debug("Last step result checked")
         if last_step:
             # This will execute if it is not the report of the execution
             logger.debug("Found last step relative calculating time")
@@ -2610,9 +2632,9 @@ class StepResultViewSet(viewsets.ModelViewSet):
             # This will execute if it is a first step report of the execution
             logger.debug("Relative time Initated")
             data['relative_execution_time'] = data['execution_time']
-        logger.debug("Starting to save data to Step_result")
+        # logger.debug("Starting to save data to Step_result")
         step_result = Step_result.objects.create(**data)
-        logger.debug("Data saved to Step_result")
+        # logger.debug("Data saved to Step_result")
         response = StepResultSerializer(step_result, many=False).data
         return JsonResponse(response)
     
@@ -4897,3 +4919,125 @@ def GetBulkFileSchedules(request):
     except Exception as err:
         logger.exception(err)
         return JsonResponse({'success': False, 'error': 'Error retrieving schedule data.'})
+
+@csrf_exempt
+def getFeatureHistory(request, feature_id):
+    try:
+        backup_dir = os.path.join(settings.BASE_DIR, '../../code/backups/features')
+        
+        if not os.path.exists(backup_dir):
+            logger.error(f"Backup directory {backup_dir} not found")
+            return JsonResponse({
+                'success': False,
+                'error': 'Backup directory not found'
+            })
+        
+        logger.debug(f"Getting feature history for feature {feature_id}")
+
+        history_entries = []
+        
+        # Get all files in the backup directory
+        backup_files = os.listdir(backup_dir)
+        
+        # Filter files that belong to this feature_id
+        logger.debug(f"Filtering files for feature {feature_id}")
+        feature_backup_files = [
+            file for file in backup_files 
+            if file.startswith(f"{feature_id}_") and file.endswith("_meta.json")
+        ]
+        # Filter files that belong to this feature_id and are not meta files (steps)
+        feature_backup_files_steps = [
+            file for file in backup_files 
+            if file.startswith(f"{feature_id}_") and not file.endswith("_meta.json")
+        ]
+        logger.debug(f"Found {len(feature_backup_files)} feature backup files")
+        
+        for backup_file in feature_backup_files:
+            try:
+                meta_file_path = os.path.join(backup_dir, backup_file)
+                
+                with open(meta_file_path, 'r') as f:
+                    meta_data = json.load(f)
+                    
+                # Extract user info
+                user_id = meta_data.get('last_edited')
+                user_name = "Unknown User"
+                
+                if user_id:
+                    try:
+                        user = OIDCAccount.objects.get(user_id=user_id)
+                        user_name = user.name
+                    except OIDCAccount.DoesNotExist:
+                        pass
+                
+                # Extract date from filename for better sorting
+                # Format: <feature_id>_<feature_name>_<date>_<time>_meta.json
+                filename_parts = backup_file.split('_')
+                if len(filename_parts) >= 4:
+                    date_part = filename_parts[-3]  # 2025-07-28
+                    time_part = filename_parts[-2]  # 12-22-28
+                    backup_timestamp = f"{date_part} {time_part.replace('-', ':')}"
+                else:
+                    backup_timestamp = meta_data.get('last_edited_date', '')
+                
+                # Get backup_id to match with step files
+                backup_id = backup_file.replace('_meta.json', '')
+                
+                # Find corresponding step files for this backup
+                steps_data = []
+                total_steps_count = 0
+                for step_file in feature_backup_files_steps:
+                    if step_file.startswith(backup_id) and not step_file.endswith('_meta.json'):
+                        try:
+                            step_file_path = os.path.join(backup_dir, step_file)
+                            with open(step_file_path, 'r') as f:
+                                step_content = json.load(f)
+                                steps_data.append({
+                                    'step_file': step_file,
+                                    'step_content': step_content
+                                })
+                                # Count individual steps within this step file
+                                if isinstance(step_content, list):
+                                    total_steps_count += len(step_content)
+                                elif isinstance(step_content, dict) and 'step_content' in step_content:
+                                    # Handle case where step_content is nested
+                                    if isinstance(step_content['step_content'], list):
+                                        total_steps_count += len(step_content['step_content'])
+                        except Exception as e:
+                            logger.warning(f"Failed to read step file {step_file}: {e}")
+                            continue
+                
+                history_entries.append({
+                    'backup_id': backup_id,
+                    'timestamp': backup_timestamp,
+                    'user_name': user_name,
+                    'user_id': user_id,
+                    'feature_name': meta_data.get('feature_name', ''),
+                    'description': meta_data.get('description', ''),
+                    'steps_count': total_steps_count,  # Use actual count of individual steps
+                    'steps': steps_data,
+                    'browsers': meta_data.get('browsers', []),
+                    'schedule': meta_data.get('schedule', ''),
+                    'send_mail': meta_data.get('send_mail', False),
+                    'send_mail_on_error': meta_data.get('send_mail_on_error', False),
+                    'network_logging': meta_data.get('network_logging', False),
+                    'generate_dataset': meta_data.get('generate_dataset', False),
+                    'continue_on_failure': meta_data.get('continue_on_failure', False),
+                    'send_telegram_notification': meta_data.get('send_telegram_notification', False)
+                })
+            except Exception as e:
+                continue
+        
+        # Sort by timestamp (newest first)
+        history_entries.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        return JsonResponse({
+            'success': True,
+            'history': history_entries
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
