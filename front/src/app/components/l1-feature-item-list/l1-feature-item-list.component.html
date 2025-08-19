@@ -213,6 +213,26 @@ Author: dph000
         </ng-container>
       </div>
 
+      <!-- Feature browsers -->
+      <div class="browsers-container" *ngIf="item.browsers && item.browsers.length > 0">
+        <div class="browsers-data">
+          <div class="browsers">
+            <i
+              class="my-icons"
+              [matTooltip]="getBrowserTooltip(browserType)"
+              matTooltipPosition="above"
+              *ngFor="let browserType of getUniqueBrowsers(); trackBy: trackBrowserType"
+              [style.backgroundImage]="browserType | browserIcon"
+              [attr.data-browser]="browserType"
+              [attr.title]="browserType"></i>
+            <span 
+              class="browser-total" 
+              [matTooltip]="getBrowsersTooltip()"
+              matTooltipPosition="above">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Feature browser -->
       <div class="schedule-container">
         <div class="schedule-data">
@@ -237,6 +257,7 @@ Author: dph000
           </p>
         </div>
       </div>
+      
       <!-- Feature options button -->
       <button
         type="button"

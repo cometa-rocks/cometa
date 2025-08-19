@@ -62,6 +62,7 @@
         "skipped": "# Skipped",
         "time": "Execution time",
         "browser": "Browser",
+        "browsers": "Browsers",
         "pixel": "Pixel difference"
     },
     "need_help": {

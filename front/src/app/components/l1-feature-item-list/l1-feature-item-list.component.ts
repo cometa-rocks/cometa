@@ -23,6 +23,7 @@ import { LogService } from '@services/log.service';
 import { FeatureRunningPipe } from '../../pipes/feature-running.pipe';
 import { DepartmentNamePipe } from '@pipes/department-name.pipe';
 import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
@@ -41,6 +42,7 @@ import {
   NgClass,
   NgSwitch,
   NgSwitchCase,
+  NgFor,
   AsyncPipe,
   LowerCasePipe,
 } from '@angular/common';
@@ -53,6 +55,7 @@ import { StarredService } from '@services/starred.service';
   standalone: true,
   imports: [
     NgIf,
+    NgFor,
     LetDirective,
     MatLegacyTooltipModule,
     NgClass,
@@ -70,6 +73,7 @@ import { StarredService } from '@services/starred.service';
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     BrowserComboTextPipe,
+    BrowserIconPipe,
     DepartmentNamePipe,
     FeatureRunningPipe,
     AsyncPipe,
@@ -120,8 +124,6 @@ export class L1FeatureItemListComponent implements OnInit {
   // NgOnInit
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
-
-
 
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
@@ -431,6 +433,109 @@ export class L1FeatureItemListComponent implements OnInit {
     } catch (error) {
       this.isButtonDisabled = false;
       this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Track browser type changes for ngFor optimization
+   */
+  trackBrowserType(index: number, browserType: string): string {
+    return browserType;
+  }
+
+  /**
+   * Get unique browsers (remove duplicates by browser type)
+   */
+  getUniqueBrowsers(): string[] {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return [];
+    }
+    
+    const uniqueBrowsers = new Set<string>();
+    this.item.browsers.forEach(browser => {
+      if (browser && browser.browser) {
+        uniqueBrowsers.add(browser.browser);
+      }
+    });
+    
+    return Array.from(uniqueBrowsers).sort();
+  }
+
+  /**
+   * Get the first browser for icon display
+   */
+  getFirstBrowser(): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return '';
+    }
+    
+    const firstBrowser = this.item.browsers[0];
+    return firstBrowser && firstBrowser.browser ? firstBrowser.browser : '';
+  }
+
+  /**
+   * Get tooltip text showing all browsers with versions
+   */
+  getBrowsersTooltip(): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return '';
+    }
+
+    // Group browsers by type and get version details
+    const browserGroups = new Map<string, any[]>();
+    this.item.browsers.forEach(browser => {
+      if (browser && browser.browser) {
+        if (!browserGroups.has(browser.browser)) {
+          browserGroups.set(browser.browser, []);
+        }
+        browserGroups.get(browser.browser)!.push(browser);
+      }
+    });
+
+    // Create sorted summary with specific versions
+    const sortedBrowsers = Array.from(browserGroups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([browserType, browsers]) => {
+        if (browsers.length === 1) {
+          // Single version - show browser name and specific version
+          const version = browsers[0].version || 'latest';
+          return `${browserType} (version ${version})`;
+        } else {
+          // Multiple versions - show browser name and all versions
+          const versions = browsers.map(b => b.version || 'latest').join(', ');
+          return `${browserType} (${versions})`;
+        }
+      });
+
+    const totalCount = this.item.browsers.length;
+    const summary = sortedBrowsers.join('\n');
+    
+    return `${summary}\n\nTotal: ${totalCount} browsers`;
+  }
+
+  /**
+   * Get tooltip text for a specific browser type
+   */
+  getBrowserTooltip(browserType: string): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return '';
+    }
+
+    // Get all browsers of this type
+    const browsersOfType = this.item.browsers.filter(browser => 
+      browser && browser.browser === browserType
+    );
+
+    if (browsersOfType.length === 1) {
+      // Single version - show browser name and version
+      const browser = browsersOfType[0];
+      const version = browser.version || 'latest';
+      return `${browserType} (version ${version})`;
+    } else {
+      // Multiple versions - show browser name, "latest" and specific version
+      const browser = browsersOfType[0];
+      const version = browser.version || 'latest';
+      return `${browserType} (latest, version ${version})`;
     }
   }
 
