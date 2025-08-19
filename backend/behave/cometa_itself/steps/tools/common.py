@@ -108,16 +108,27 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
                 step_index = context.counters.get('index', 0) if hasattr(context, 'counters') else 0
                 
                 # Parse selector types from healing info
-                original_selector = healing_info.get('original_selector', '')
-                healed_selector = healing_info.get('healed_selector', '')
+                original_selector_dict = healing_info.get('original_selector', {})
+                healed_selector_dict = healing_info.get('healed_selector', {})
                 
-                # Extract selector types
-                selector_type_from = 'unknown'
-                selector_type_to = 'unknown'
-                if 'By.' in original_selector:
-                    selector_type_from = original_selector.split('By.')[1].split('(')[0]
-                if 'By.' in healed_selector:
-                    selector_type_to = healed_selector.split('By.')[1].split('(')[0]
+                # Extract selector values and types
+                if isinstance(original_selector_dict, dict):
+                    original_selector = f"By.{original_selector_dict.get('type', 'unknown')}({original_selector_dict.get('value', '')})"
+                    selector_type_from = original_selector_dict.get('type', 'unknown')
+                else:
+                    original_selector = str(original_selector_dict)
+                    selector_type_from = 'unknown'
+                    if 'By.' in original_selector:
+                        selector_type_from = original_selector.split('By.')[1].split('(')[0]
+                
+                if isinstance(healed_selector_dict, dict):
+                    healed_selector = f"By.{healed_selector_dict.get('type', 'unknown')}({healed_selector_dict.get('value', '')})"
+                    selector_type_to = healed_selector_dict.get('type', 'unknown')
+                else:
+                    healed_selector = str(healed_selector_dict)
+                    selector_type_to = 'unknown'
+                    if 'By.' in healed_selector:
+                        selector_type_to = healed_selector.split('By.')[1].split('(')[0]
                 
                 # Prepare data for API call
                 healing_save_data = {
@@ -129,17 +140,20 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
                     'healed_selector': healed_selector,
                     'selector_type_from': selector_type_from,
                     'selector_type_to': selector_type_to,
-                    'confidence_score': healing_info.get('confidence_score', 0) / 100.0,  # Convert to 0-1 range
+                    'confidence_score': healing_info.get('score', 0),  # Already in 0-1 range from healenium_client
                     'healing_duration_ms': healing_info.get('healing_duration_ms', 0),
                     'healing_session_id': context.browser.session_id
                 }
                 
                 # Import get_cometa_backend_url from common utilities
-                from utility.common import get_cometa_backend_url
+                from utility.config_handler import get_cometa_backend_url
                 
-                # Make API call to save healing result
+                # Debug: Log what we're sending
+                logger.debug(f"Healenium: Sending healing data to API: {healing_save_data}")
+                
+                # Make API call to save healing result  
                 response = requests.post(
-                    f'{get_cometa_backend_url()}/api/healenium/results/',
+                    f'{get_cometa_backend_url()}/api/healenium/results/save/',
                     json=healing_save_data,
                     headers={'Host': 'cometa.local'}
                 )
@@ -147,7 +161,7 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
                 if response.status_code == 201:
                     logger.debug("Successfully saved Healenium result from DB check")
                 else:
-                    logger.debug(f"Failed to save Healenium result: {response.status_code}")
+                    logger.debug(f"Failed to save Healenium result: {response.status_code} - {response.text}")
                     
             except Exception as e:
                 logger.debug(f"Failed to save Healenium result from DB check: {str(e)}")

@@ -71,6 +71,15 @@ import { UserState } from '@store/user.state';
 import { Select } from '@ngxs/store';
 import { ChangeDetectorRef} from '@angular/core';
 import { LogService } from '@services/log.service';
+// HealeniumData interface (defined globally in interfaces.d.ts)
+interface HealeniumData {
+  was_healed: boolean;
+  original_selector: string;
+  healed_selector: string;
+  confidence_score: number;
+  healing_duration_ms: number;
+  healing_method: string;
+}
 @Component({
   selector: 'step-view',
   templateUrl: './step-view.component.html',
@@ -484,5 +493,31 @@ export class StepViewComponent implements OnInit {
     }
     
     return previousItem.belongs_to.feature_id !== currentItem.belongs_to.feature_id;
+  }
+
+  /**
+   * Get healing data for a specific step item
+   */
+  getHealingDataForStep(item: any): HealeniumData | undefined {
+    // Check if the item itself has healing_data
+    if (item?.healing_data) {
+      return item.healing_data;
+    }
+    // Check if the item has info.healing_data
+    if (item?.info?.healing_data) {
+      return item.info.healing_data;
+    }
+    return undefined;
+  }
+
+  /**
+   * Generate healing tooltip text
+   */
+  getHealingTooltip(healingData: HealeniumData): string {
+    return `Self-healed element (${healingData.confidence_score}%)
+Original: ${healingData.original_selector}
+Healed: ${healingData.healed_selector}
+Method: ${healingData.healing_method}
+Time: +${healingData.healing_duration_ms}ms`;
   }
 }
