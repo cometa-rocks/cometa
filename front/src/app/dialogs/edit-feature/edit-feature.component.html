@@ -932,7 +932,7 @@
       [matTooltip]="edition.email"
       matTooltipPosition="after"
       *ngIf="(feature | async)?.last_edited as edition">
-      <b>Last edit by:</b> {{ edition.name }}
+      <b>Last edit by:</b> {{ edition.name }} <b> on:</b> {{ (feature | async)?.last_edited_date | date:'medium' }}
     </div>
   </mat-dialog-content>
   <mat-dialog-actions>

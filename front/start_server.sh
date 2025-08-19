@@ -58,6 +58,8 @@ METADATA_DIR="/usr/local/apache2/conf/metadata"
 for file in "$METADATA_DIR"/*.client; do
   if grep -q "CLIENTID@@" "$file"; then
     echo -e "\e[1;33mWARNING: Client secrets are not updated in $(basename "$file"), you might not be able to login\e[0m"
+  else
+    echo "Client secrets are updated in $(basename "$file") [OK]"
   fi
 done
 

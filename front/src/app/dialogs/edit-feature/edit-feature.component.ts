@@ -98,6 +98,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatIconModule } from '@angular/material/icon';
+import { DatePipe } from '@angular/common';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
@@ -152,6 +153,7 @@ import { User } from '@store/actions/user.actions';
     StepEditorComponent_1,
     DisableAutocompleteDirective,
     AsyncPipe,
+    DatePipe,
     AmParsePipe,
     AmDateFormatPipe,
     SortByPipe,
