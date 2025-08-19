@@ -29,6 +29,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/backups:/data/backups:rw
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/downloads:/data/downloads:rw
       - ./data/cometa/uploads:/data/uploads:rw
@@ -184,7 +185,7 @@ services:
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     healthcheck:
-      test: ["CMD", "curl", "-s", "-k", "https://localhost/welcome.html"]
+      test: ["CMD", "curl", "-s", "-k", "http://localhost/welcome.html"]
       interval: 10s
       timeout: 5s
       retries: 3
