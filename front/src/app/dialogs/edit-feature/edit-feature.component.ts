@@ -657,7 +657,7 @@ export class EditFeature implements OnInit, OnDestroy {
       // Save back to localStorage
       localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
     } catch (error) {
-      console.error('Error saving panel state:', error);
+      this.logger.msg('2', 'Error saving panel state', 'edit-feature', error);
     }
   }
 
@@ -764,7 +764,7 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
     } catch (error) {
-      console.error('Error loading panel states:', error);
+      this.logger.msg('2', 'Error loading panel states', 'edit-feature', error);
     }
   }
 
@@ -817,7 +817,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error handling expansion change:', error);
+      this.logger.msg('2', 'Error handling expansion change', 'edit-feature', error);
     }
   }
 
@@ -1519,32 +1519,31 @@ export class EditFeature implements OnInit, OnDestroy {
      * This replaces the complex manual comparison logic with a reliable deep comparison
      */
     if (this.stepEditor) {
-      // Use synchronous deep comparison for steps
       const currentSteps = this.stepEditor.getSteps();
-
-      if (this.stepsOriginal.length === currentSteps.length) {
-        // Deep compare then
-        // Compare step fields
-        const fieldsToCompare = [
-          'step_content',
-          'enabled',
-          'screenshot',
-          'compare',
-        ];
-        for (let i = 0; i < currentSteps.length; i++) {
-          for (const field of fieldsToCompare) {
-            if (currentSteps[i][field] !== this.stepsOriginal[i][field]) {
-              return true;
-            }
-          }
-        }
-      } else {
+      
+      // Get original steps directly from store instead of this.stepsOriginal
+      const originalSteps = this._store.selectSnapshot(
+        CustomSelectors.GetFeatureSteps(this.data.feature?.feature_id || 0)
+      );
+      
+      if (originalSteps.length !== currentSteps.length) {
         this.logger.msg('4', 'Steps length changed - returning true', 'edit-feature');
         return true;
+      }
+      
+      // Deep compare step fields
+      const fieldsToCompare = ['step_content', 'enabled', 'screenshot', 'compare'];
+      for (let i = 0; i < currentSteps.length; i++) {
+        for (const field of fieldsToCompare) {
+          if (currentSteps[i][field] !== originalSteps[i][field]) {
+            return true;
+          }
+        }
       }
     }
     return false;
   }
+
 
   @ViewChild(BrowserSelectionComponent, { static: false })
   _browserSelection: BrowserSelectionComponent;
@@ -2761,7 +2760,7 @@ export class EditFeature implements OnInit, OnDestroy {
       this.departments$ = this._store.selectSnapshot(DepartmentsState);
       
     } catch (error) {
-      console.error('Error refreshing departments:', error);
+      this.logger.msg('2', 'Error refreshing departments', 'edit-feature', error);
     }
   }
 
@@ -2814,7 +2813,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error initializing localStorage:', error);
+      this.logger.msg('2', 'Error initializing localStorage', 'edit-feature', error);
     }
   }
 
@@ -2879,7 +2878,7 @@ export class EditFeature implements OnInit, OnDestroy {
         this.logger.msg('4', 'Synchronized user settings with localStorage panel states', 'Panel States');
       }
     } catch (error) {
-      console.error('Error synchronizing user settings with localStorage:', error);
+      this.logger.msg('2', 'Error synchronizing user settings with localStorage', 'edit-feature', error);
     }
   }
 
