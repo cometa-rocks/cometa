@@ -719,7 +719,7 @@
             [name]="featureForm.get('feature_name').value">
           </cometa-step-editor> -->
           <cometa-step-editor
-            (textareaFocusToParent)="receiveDataFromChild($event)"
+            (textareaFocusToParent)="receiveDataFromChild($event, $event.event)"
             (hasChanged)="hasChanged()"
             *ngIf="feature | async as feat"
             [mode]="data.mode"
