@@ -532,9 +532,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // When steps$ is changed do the rollup of duplicated steps
     this.subs.sink = this.stepsForm.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged())
-      .subscribe(stepsArray => {
-        this.rollupDuplicateSteps(stepsArray);
-      });
+      .subscribe(stepsArray => this.rollupDuplicateSteps(stepsArray));
 
     // insert default step if currently viewed feature, is new and still not created
     if (this.feature.feature_id === 0) {
@@ -1201,7 +1199,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
               userDepartments.includes(f.department_id)
             );
             
-            if (matchingFeature) {      
+            if (matchingFeature) {
               featureId = matchingFeature.feature_id;
               this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
             } else {
@@ -1686,9 +1684,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // First get all import IDs
     const importIds: number[] = stepsArray.reduce((r, step) => {
       const matches = step.step_content.match(/Run feature with id "(\d+)"/);
-      if (!!matches) {
-        r.push(+matches[1]);
-      }
+      if (!!matches) r.push(+matches[1]);
       return r;
     }, []);
     if (importIds.length > 0) {
@@ -1712,9 +1708,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         featureSteps.forEach(steps => {
           if (steps.length > 0) {
             steps.forEach(step => {
-              if (!importsSteps.includes(step.step_content)) {
+              if (!importsSteps.includes(step.step_content))
                 importsSteps.push(step.step_content);
-              }
             });
           }
         });
@@ -1860,7 +1855,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       screenshot: [false],
       step_keyword: ['Given'],
       compare: [false],
-      step_content: ['', [Validators.required, CustomValidators.StepAction.bind(this)]],
+      step_content: ['', [Validators.required]],
       step_action: [''],
       step_type: [''],
       continue_on_failure: [false],

@@ -49,16 +49,8 @@ export class SuccessHandlerInterceptor implements HttpInterceptor {
       tap((res: HttpResponse<any>) => {
         if (this.isErrorResponse(res)) {
           const errorDialogExists = this._dialog.getDialogById('error');
-          const body = JSON.parse(res.body);
-          
-          // Don't open ErrorDialog if error is already handled by another component
-          // or if it's a feature validation error that should be handled by SimpleAlertDialog
-          const shouldSkipErrorDialog = body.handled || 
-                                      body.skipErrorDialog || 
-                                      (body.error && body.error.includes('Run feature with id'));
-          
-          // Open dialog for errors only if not already handled
-          if (this.hasKeys(res.body, 'handled') && !errorDialogExists && !shouldSkipErrorDialog) {
+          // Open dialog for errors
+          if (this.hasKeys(res.body, 'handled') && !errorDialogExists) {
             this._dialog.open(ErrorDialog, {
               id: 'error',
               data: res.body,

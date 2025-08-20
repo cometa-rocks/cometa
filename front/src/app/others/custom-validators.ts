@@ -20,35 +20,20 @@ export class CustomValidators {
       let valid = true;
       // Check if isn't a comment
       if (!control.value.startsWith('#')) {
-        // Special handling for "Run feature with" steps
-        if (control.value.startsWith('Run feature with id')) {
-          valid = true;
-        } else if (control.value.startsWith('Run feature with name')) {
-          // For "Run feature with name", we validate the format but not the existence
-          // The existence validation happens in the UI layer
-          const match = control.value.match(/"([^"]*)"/);
-          if (match && match[1].trim()) {
-            valid = true;
-          } else {
-            valid = false;
-          }
-        } else {
-          // Check coincidences
-          valid = actions
-            .map(action => action.action_name)
-            .some(action => {
-              // Remove any possible left or right spaces
-              let name = action.trim();
-              // Remove prefixes only at the beginning of the string
-              name = action.replace(/^(then|when|given|and)\s+/i, '');
-              // Transform action values to regex
-              name = name.replace(/".*?"/gi, '"(.+)"');
-              // Transform action name to regex
-              const regex = new RegExp(`^${name}$`, 'gis');
-              const matches = regex.test(control.value);
-              return matches;
-            });
-        }
+        // Check coincidences
+        valid = actions
+        .map(action => action.action_name)
+        .some(action => {
+          // Remove any possible left or right spaces
+          let name = action.trim();
+          // Remove prefixes only at the beginning of the string
+          name = action.replace(/^(then|when|given|and)\s+/i, '');
+          // Transform action values to regex
+          name = name.replace(/".*?"/gi, '"(.+)"');
+          // Transform action name to regex
+          const regex = new RegExp(`^${name}$`, 'gis');
+          return regex.test(control.value);
+        });
       }
       // Return error with name invalidStep
       if (!valid) {
