@@ -95,10 +95,8 @@ class HealeniumClient:
                     "HEAL_ENABLED": "true",
                     "SELENIUM_SERVER_URL": selenium_url,  # Point to specific browser
                     "HEALENIUM_SERVICE": config["backend_url"],
-                    "IMITATE_SERVICE": config["selector_imitator_url"],
-                    "FIND_ELEMENTS_AUTO_HEALING": str(config.get("find_elements_auto_healing", "true")),
-                    "HLM_LOG_LEVEL": config.get("log_level", "info"),
-                    "HEALING_TIMEOUT": str(config.get("healing_timeout", "3"))
+                    "IMITATE_SERVICE": config.get("selector_imitator_url", "http://selector-imitator:8000"),
+                    "HLM_LOG_LEVEL": config.get("log_level", "info")
                 },
                 network=config["network"],
                 detach=True,
@@ -158,18 +156,13 @@ class HealeniumClient:
         3. For known test cases, simulate healing detection
         """
         # First check if we already detected healing via log monitoring
-        if hasattr(self.context, 'last_healed_element') and self.context.last_healed_element:
-            healing_data = self.context.last_healed_element
+        if hasattr(self.context, 'healing_data') and self.context.healing_data:
+            healing_data = self.context.healing_data
             # Check if this healing is recent and matches our selector
             if (time.time() - healing_data['timestamp'] < 5.0 and 
                 selector_value in str(healing_data.get('original_selector', {}).get('value', ''))):
                 logger.info(f"Using healing data from log monitoring: {healing_data}")
                 return healing_data
-        
-        # Query Healenium database directly
-        healing_data = self._query_healenium_database(selector_type, selector_value, since_time)
-        if healing_data:
-            return healing_data
         
         # Always log what we're checking for
         logger.info(f"Checking for healing: selector_type={selector_type}, selector_value={selector_value}")
@@ -220,7 +213,7 @@ class HealeniumClient:
                             }
                             
                             # Store in context for later use
-                            self.context.last_healed_element = healing_data
+                            self.context.healing_data = healing_data
                             logger.info(f"Detected healing from logs for step {current_step_index}: {original} -> {healed}")
                             
                             return healing_data
@@ -344,7 +337,6 @@ class HealeniumClient:
     
     def _store_and_notify(self, healing_data: dict):
         """Save healing data and send notifications"""
-        self.context.last_healed_element = healing_data
         self.context.healing_data = healing_data
         
         step_index = healing_data['step_index']
@@ -406,11 +398,6 @@ class HealeniumClient:
         self._log_monitor_thread.start()
         logger.info(f"Healenium: Monitoring started for {self.proxy_container.name}")
     
-    def _query_healenium_database(self, selector_type: str, selector_value: str, since_time: float) -> Optional[Dict[str, Any]]:
-        """Query Healenium database for healing information"""
-        # For now, return None as we rely on log monitoring
-        # This could be enhanced to query the Healenium backend API directly
-        return None
     
     def _detect_selector_type(self, selector_value: str) -> str:
         """Detect selector type from value"""

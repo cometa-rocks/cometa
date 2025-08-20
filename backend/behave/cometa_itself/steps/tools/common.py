@@ -4,11 +4,8 @@ import logging
 import requests
 import json
 import os
-import datetime
 import sys
-import subprocess
 import re
-import shutil
 
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement

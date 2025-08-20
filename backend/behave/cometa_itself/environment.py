@@ -41,9 +41,6 @@ HEALENIUM_CONFIG = {
     "recovery_tries": "3",
     "score_cap": "0.3",
     "heal_enabled": "true",
-    "find_elements_auto_healing": "true",
-    "log_level": "debug",
-    "healing_timeout": "3",
     "network": "cometa_testing"
 }
 
@@ -1013,14 +1010,6 @@ def after_all(context):
     
     def clean_up_and_notification():
         
-        # Clean up dedicated Healenium proxy if created
-        if hasattr(context, 'healenium_proxy') and context.healenium_proxy:
-            try:
-                proxy_info = context.healenium_proxy
-                proxy_info["container"].stop()
-                logger.debug(f"Stopped Healenium proxy: {proxy_info['name']}")
-            except Exception as e:
-                logger.warning(f"Failed to stop Healenium proxy: {e}")
         
         notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
         headers = {'Host': 'cometa.local'}
@@ -1095,8 +1084,6 @@ def before_step(context, step):
     context.step_exception = None
     
     # Clear any healing data from previous steps to prevent cross-contamination
-    if hasattr(context, 'last_healed_element'):
-        context.last_healed_element = None
     if hasattr(context, 'healing_data'):
         context.healing_data = None
     
@@ -1278,7 +1265,7 @@ def after_step(context, step):
         # Check multiple sources for healing data
         healing_event = None
         
-        # Priority 1: Check healing_data directly
+        # Check healing_data directly
         if hasattr(context, 'healing_data') and context.healing_data:
             # Validate step index if present
             if 'step_index' in context.healing_data:
@@ -1292,20 +1279,6 @@ def after_step(context, step):
                 # No step index validation available (old format)
                 healing_event = context.healing_data
                 logger.info(f"Found healing data in context.healing_data (no step validation)")
-        # Priority 2: Check last_healed_element
-        elif hasattr(context, 'last_healed_element') and context.last_healed_element:
-            # Validate step index if present
-            if 'step_index' in context.last_healed_element:
-                if context.last_healed_element['step_index'] == index:
-                    healing_event = context.last_healed_element
-                    logger.info(f"Found healing data in context.last_healed_element for correct step {index}")
-                else:
-                    logger.warning(f"Ignoring healing data from step {context.last_healed_element['step_index']} (current step is {index})")
-                    context.last_healed_element = None  # Clear stale data
-            else:
-                # No step index validation available (old format)
-                healing_event = context.last_healed_element
-                logger.info(f"Found healing data in context.last_healed_element (no step validation)")
             
         # Try immediate healing data from event captured by log monitor
         if healing_event and time.time() - healing_event['timestamp'] < 10.0:
@@ -1337,53 +1310,8 @@ def after_step(context, step):
                 healing_data = json.dumps(healing_info)
                 logger.info(f"Using detected healing for step {index}: {healing_info['healed_selector']} (score: {healing_event['score']})")
                 
-                # Save healing data to database via async API call
-                try:
-                    # Extract selector types
-                    selector_type_from = 'unknown'
-                    selector_type_to = 'unknown'
-                    original_selector_str = healing_info['original_selector']
-                    healed_selector_str = healing_info['healed_selector']
-                    
-                    if 'By.' in original_selector_str:
-                        selector_type_from = original_selector_str.split('By.')[1].split('(')[0]
-                    if 'By.' in healed_selector_str:
-                        selector_type_to = healed_selector_str.split('By.')[1].split('(')[0]
-                    
-                    # Prepare data for async API call (without step_result_id for now)
-                    healing_save_data = {
-                        'feature_result_id': int(os.environ['feature_result_id']),
-                        'step_result_id': None,  # Will be updated later
-                        'step_name': step_name,
-                        'step_index': index,
-                        'original_selector': original_selector_str,
-                        'healed_selector': healed_selector_str,
-                        'selector_type_from': selector_type_from,
-                        'selector_type_to': selector_type_to,
-                        'confidence_score': healing_info['confidence_score'] / 100.0,  # Convert back to 0-1 range
-                        'healing_duration_ms': healing_info['healing_duration_ms'],
-                        'healing_session_id': context.browser.session_id
-                    }
-                    
-                    # Save healing data asynchronously
-                    if hasattr(context, 'healenium_client') and context.healenium_client:
-                        healing_id = context.healenium_client.save_healing_async(healing_save_data)
-                        # Store healing_id in context for later update
-                        if not hasattr(context, 'pending_healing_updates'):
-                            context.pending_healing_updates = []
-                        context.pending_healing_updates.append({
-                            'healing_id': healing_id,
-                            'step_index': index
-                        })
-                        logger.debug(f"Queued Healenium result for async save (healing_id: {healing_id})")
-                    else:
-                        logger.warning("Healenium client not available for async saving")
-                        
-                except Exception as e:
-                    logger.error(f"Failed to queue Healenium result: {e}")
                 
                 # Clear it after use
-                context.last_healed_element = None
                 context.healing_data = None
         else:
             # No healing data found for this step
@@ -1417,36 +1345,11 @@ def after_step(context, step):
     
     
     # Send step finished notification
-    step_result_response = None
     try:
-        step_result_response = requests.post(
+        requests.post(
             f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id,
             json=payload
         )
-        
-        # Check if we have pending healing updates for this step
-        if hasattr(context, 'pending_healing_updates') and context.pending_healing_updates:
-            # The WebSocket server should return the step_result_id in the response
-            if step_result_response and step_result_response.status_code == 200:
-                try:
-                    response_data = step_result_response.json()
-                    step_result_id = response_data.get('step_result_id')
-                    
-                    if step_result_id:
-                        # Find healing updates for this step index
-                        for healing_update in context.pending_healing_updates[:]:
-                            if healing_update['step_index'] == index:
-                                # Update the healing record with step_result_id
-                                if hasattr(context, 'healenium_client') and context.healenium_client:
-                                    context.healenium_client.update_step_result_async(
-                                        healing_update['healing_id'],
-                                        step_result_id
-                                    )
-                                    logger.debug(f"Queued step_result_id update for healing {healing_update['healing_id']}")
-                                # Remove from pending list
-                                context.pending_healing_updates.remove(healing_update)
-                except Exception as e:
-                    logger.debug(f"Could not parse step result response: {e}")
     except Exception as e:
         logger.error(f"Error sending step finished notification: {e}")
     
