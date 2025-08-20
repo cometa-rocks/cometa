@@ -655,7 +655,7 @@ export class EditFeature implements OnInit, OnDestroy {
       // Save back to localStorage
       localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
     } catch (error) {
-      console.error('Error saving panel state:', error);
+      this.logger.msg('2', 'Error saving panel state', 'edit-feature', error);
     }
   }
 
@@ -762,7 +762,7 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
     } catch (error) {
-      console.error('Error loading panel states:', error);
+      this.logger.msg('2', 'Error loading panel states', 'edit-feature', error);
     }
   }
 
@@ -815,7 +815,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error handling expansion change:', error);
+      this.logger.msg('2', 'Error handling expansion change', 'edit-feature', error);
     }
   }
 
@@ -1529,28 +1529,27 @@ export class EditFeature implements OnInit, OnDestroy {
      * Detect changes in Step Editor using reactive approach
      * This replaces the complex manual comparison logic with a reliable deep comparison
     */
-   if (this.stepEditor) {
-     // Use synchronous deep comparison for steps
-     const currentSteps = this.stepEditor.getSteps();
-      if (this.stepsOriginal.length === currentSteps.length) {
-        // Deep compare then
-        // Compare step fields
-        const fieldsToCompare = [
-          'step_content',
-          'enabled',
-          'screenshot',
-          'compare'
-        ];
-        for (let i = 0; i < currentSteps.length; i++) {
-          for (const field of fieldsToCompare) {
-            if (currentSteps[i][field] !== this.stepsOriginal[i][field]) {
-              return true;
-            }
-          }
-        }
-      } else {
+    if (this.stepEditor) {
+      const currentSteps = this.stepEditor.getSteps();
+      
+      // Get original steps directly from store instead of this.stepsOriginal
+      const originalSteps = this._store.selectSnapshot(
+        CustomSelectors.GetFeatureSteps(this.data.feature?.feature_id || 0)
+      );
+      
+      if (originalSteps.length !== currentSteps.length) {
         this.logger.msg('4', 'Steps length changed - returning true', 'edit-feature');
         return true;
+      }
+      
+      // Deep compare step fields
+      const fieldsToCompare = ['step_content', 'enabled', 'screenshot', 'compare'];
+      for (let i = 0; i < currentSteps.length; i++) {
+        for (const field of fieldsToCompare) {
+          if (currentSteps[i][field] !== originalSteps[i][field]) {
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -1797,22 +1796,7 @@ export class EditFeature implements OnInit, OnDestroy {
     this.steps$ = this._store.select(
       CustomSelectors.GetFeatureSteps(featureId)
     );
-
-    // Subscribe to steps changes to update stepsOriginal with the normalized steps
-    this.stepsSubscription = this.steps$.subscribe(steps => {
-      if (steps && steps.length > 0) {
-        // Apply the same normalization logic as the step editor
-        const normalizedSteps = steps.map(step => ({
-          ...step,
-          compare: step.screenshot ? step.compare : false,
-          step_action: step.step_action || '',
-          timeout: step.timeout || this.department?.settings?.step_timeout || 60,
-          selected: false
-        }));
-        this.stepsOriginal = normalizedSteps;
-      }
-    });
-
+    
     this.featureForm
       .get('department_name')
       .valueChanges.subscribe(department_name => {
@@ -2166,16 +2150,6 @@ export class EditFeature implements OnInit, OnDestroy {
         break;
       } else if (action === 'correct') {
         // User chose to correct, cancel the save process completely
-        return;
-      }
-    }
-
-    // Validate feature references in steps before saving
-    const featureValidationResult = await this.validateFeatureReferences();
-    if (!featureValidationResult.isValid) {
-      const shouldContinue = await this.showFeatureValidationError(featureValidationResult.errors);
-      if (!shouldContinue) {
-        // User pressed Escape, cancel the save process
         return;
       }
     }
@@ -2797,7 +2771,7 @@ export class EditFeature implements OnInit, OnDestroy {
       this.departments$ = this._store.selectSnapshot(DepartmentsState);
       
     } catch (error) {
-      console.error('Error refreshing departments:', error);
+      this.logger.msg('2', 'Error refreshing departments', 'edit-feature', error);
     }
   }
 
@@ -2850,7 +2824,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error initializing localStorage:', error);
+      this.logger.msg('2', 'Error initializing localStorage', 'edit-feature', error);
     }
   }
 
@@ -2915,7 +2889,7 @@ export class EditFeature implements OnInit, OnDestroy {
         this.logger.msg('4', 'Synchronized user settings with localStorage panel states', 'Panel States');
       }
     } catch (error) {
-      console.error('Error synchronizing user settings with localStorage:', error);
+      this.logger.msg('2', 'Error synchronizing user settings with localStorage', 'edit-feature', error);
     }
   }
 
@@ -3170,170 +3144,5 @@ export class EditFeature implements OnInit, OnDestroy {
     
     return result || 'ignore';
   }
-
-  /**
-   * Validates that all "Run feature with name" and "Run feature with id" references point to existing features
-   * @returns Validation result with errors if any
-   */
-  private async validateFeatureReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}>}> {
-    const errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}> = [];
-    
-    // Get current steps
-    let currentSteps = [];
-    if (this.stepEditor) {
-      currentSteps = this.stepEditor.getSteps();
-    } else {
-      const featureId = this.data.mode === 'clone' ? 0 : this.data.feature.feature_id;
-      currentSteps = this._store.selectSnapshot(CustomSelectors.GetFeatureSteps(featureId));
-    }
-
-    // Get all features from store
-    const allFeatures = this._store.selectSnapshot(FeaturesState.GetFeaturesAsArray);
-    const userDepartments = this.user.departments.map(dept => dept.department_id);
-
-    // Check each step for "Run feature with name" and "Run feature with id" references
-    currentSteps.forEach((step, index) => {
-      // Only validate enabled steps
-      if (!step.enabled) {
-        return; // Skip disabled steps
-      }
-      
-      if (step.step_content && step.step_content.startsWith('Run feature with name')) {
-        const match = step.step_content.match(/"([^"]*)"/);
-        if (match) {
-          const featureName = match[1];
-          
-          // Check if feature exists
-          const matchingFeature = allFeatures.find(f => 
-            f.feature_name === featureName && 
-            userDepartments.includes(f.department_id)
-          );
-          
-          if (!matchingFeature) {
-            errors.push({
-              stepIndex: index + 1,
-              stepContent: step.step_content,
-              error: `Feature "${featureName}" not found`,
-              featureName: featureName
-            });
-          }
-        }
-      } else if (step.step_content && step.step_content.startsWith('Run feature with id')) {
-
-        const match = step.step_content.match(/"([^"]*)"/);
-        if (match) {
-          const featureIdStr = match[1];
-          
-          // Check if it's a valid number
-          const featureId = parseInt(featureIdStr, 10);
-          if (isNaN(featureId)) {
-            errors.push({
-              stepIndex: index + 1,
-              stepContent: step.step_content,
-              error: `Invalid feature ID format: "${featureIdStr}"`,
-              featureName: featureIdStr
-            });
-          } else {
-            // Check if feature exists
-            const matchingFeature = allFeatures.find(f => 
-              f.feature_id === featureId && 
-              userDepartments.includes(f.department_id)
-            );
-            
-            if (!matchingFeature) {
-              errors.push({
-                stepIndex: index + 1,
-                stepContent: step.step_content,
-                error: `Feature with ID "${featureId}" not found`,
-                featureName: featureId.toString()
-              });
-            }
-          }
-        }
-      }
-    });
-    return {
-      isValid: errors.length === 0,
-      errors: errors
-    };
-  }
-
-  /**
-   * Shows a dialog with feature validation errors (name or ID) and allows user to navigate to problematic steps
-   * @param errors Array of validation errors
-   * @returns true if user clicked "Correct", false if user pressed Escape
-   */
-  private async showFeatureValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, featureName: string}>): Promise<boolean> {
-    const errorMessages = errors.map(err => 
-      `Step ${err.stepIndex}: ${err.error}`
-    ).join('\n\n');
-
-    // Create a simple dialog with just OK button
-    const errorCount = errors.length;
-    const dialogTitle = errorCount === 1 ? 'Feature Reference Validation Error' : `Feature Reference Validation Errors (${errorCount} found)`;
-    
-    const dialogRef = this._dialog.open(SimpleAlertDialog, {
-      width: '600px',
-      data: {
-        title: dialogTitle,
-        message: `The following steps reference features that do not exist:\n\n${errorMessages}\n\nPlease correct these references before saving.`
-      } as SimpleAlertData
-    });
-
-    const result = await dialogRef.afterClosed().toPromise();
-    
-    // If user pressed Escape (false), cancel the save process completely
-    if (result === false) {
-      return false; // Return false to cancel the save process
-    }
-    
-    // If user clicked "Correct" (true), proceed with navigation
-    if (result === true) {
-      // Navigate to the first error after dialog is closed
-      const firstError = errors[0];
-      if (firstError && this.stepEditor) {
-        // Open the Steps panel if it's not already open
-        const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
-        if (stepsPanel && !stepsPanel.expanded) {
-          stepsPanel.open();
-        }
-        
-        // Focus on the step with error
-        this.stepEditor.focusStep(firstError.stepIndex - 1);
-        
-        // Select the problematic text inside quotes
-        setTimeout(() => {
-          const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
-          if (textarea) {
-            const content = textarea.value;
-            const match = content.match(/"([^"]*)"/);
-            if (match) {
-              const quoteStart = match.index + 1; // Position after opening quote
-              const quoteEnd = match.index + 1 + match[1].length; // Position at closing quote
-              
-              textarea.setSelectionRange(quoteStart, quoteEnd);
-              textarea.focus();
-            }
-          }
-        }, 100);
-        
-        // Show a snackbar to indicate the errors
-        const errorCount = errors.length;
-        const snackbarMessage = errorCount === 1 
-          ? `Step ${firstError.stepIndex} references a non-existent feature. Please correct it.`
-          : `${errorCount} steps reference non-existent features. Please correct them.`;
-        
-        this._snackBar.open(
-          snackbarMessage, 
-          'OK', 
-          { duration: 8000 }
-        );
-      }
-    }
-    
-    // Return true to continue with save process (user clicked "Correct")
-    return true;
-  }
-
 
 }
