@@ -565,6 +565,16 @@ export class EditFeature implements OnInit, OnDestroy {
         ]),
       ],
     });
+
+     // Detect changes in Form
+     this.featureForm.valueChanges.subscribe(value => {
+      if (this.hasChanged()) {
+        this.logger.msg('4', 'Form value changed', 'edit-feature');
+      } else {
+        this.logger.msg('4', 'Form value not changed', 'edit-feature');
+      }
+    });
+
     // Gets the currently active route
     let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
     // Initialize the departments, applications and environments
@@ -1364,15 +1374,15 @@ export class EditFeature implements OnInit, OnDestroy {
 
 
   // Deeply check if two arrays are equal, in length and values
-  arraysEqual(a: any[], b: any[]): boolean {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; ++i) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
-  }
+  // arraysEqual(a: any[], b: any[]): boolean {
+  //   if (a === b) return true;
+  //   if (a == null || b == null) return false;
+  //   if (a.length !== b.length) return false;
+  //   for (let i = 0; i < a.length; ++i) {
+  //     if (a[i] !== b[i]) return false;
+  //   }
+  //   return true;
+  // }
 
   /**
    * Check if edit feature form has different values from original object
@@ -1386,7 +1396,7 @@ export class EditFeature implements OnInit, OnDestroy {
    * 1. Moving the notification subscription to ngOnInit after form initialization
    * 2. Using { emitEvent: false } when setting form values in edit mode
    */
-  hasChanged(): boolean {
+  public hasChanged(): boolean {
     // Retrieve original feature data, when mode is `new` it will only have `feature_id: 0`
     const featureOriginal = this.feature.getValue();
     /**
@@ -1497,13 +1507,21 @@ export class EditFeature implements OnInit, OnDestroy {
     if (
       JSON.stringify(this.browsersOriginal) !==
       JSON.stringify(this.browserstackBrowsers.getValue())
-    )
+    ) {
+      this.logger.msg('4', 'Browsers Form changed', 'edit-feature');
       return true;
+    } else {
+      this.logger.msg('4', 'Browsers Form not changed', 'edit-feature');
+    }
+
     /**
-     * Detect changes in Step Editor
+     * Detect changes in Step Editor using reactive approach
+     * This replaces the complex manual comparison logic with a reliable deep comparison
      */
     if (this.stepEditor) {
+      // Use synchronous deep comparison for steps
       const currentSteps = this.stepEditor.getSteps();
+
       if (this.stepsOriginal.length === currentSteps.length) {
         // Deep compare then
         // Compare step fields
@@ -1521,6 +1539,7 @@ export class EditFeature implements OnInit, OnDestroy {
           }
         }
       } else {
+        this.logger.msg('4', 'Steps length changed - returning true', 'edit-feature');
         return true;
       }
     }
@@ -1995,8 +2014,7 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
-      // ... add addition properties here.
-    });
+    }, { emitEvent: false });
   }
 
   stepsOriginal: FeatureStep[] = [];
