@@ -26,10 +26,11 @@ h4 {
 .copyClipboardIcon {
   transform: scale(0.7);
   width: 15px;
+  margin-left: 72px;
   cursor: pointer;
+  align-items: right !important;
   margin-top: 6px;
   margin-right: 6px;
-  flex-shrink: 0;
 
   &.active {
     animation: changeColor 3s forwards;
@@ -265,21 +266,6 @@ h4 {
           &::ng-deep .mat-checkbox {
             flex: initial;
           }
-          
-          .version-content {
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            align-items: center;
-          }
-          
-          .version-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-          }
-          
           .favourite {
             flex: initial;
             height: 40px;
