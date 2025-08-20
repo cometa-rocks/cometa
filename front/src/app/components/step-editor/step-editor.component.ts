@@ -147,7 +147,7 @@ interface StepState {
     MatBadgeModule,
   ],
 })
-export class StepEditorComponentextends SubSinkAdapter implements OnInit, AfterViewChecked {
+export class StepEditorComponent extends SubSinkAdapter implements OnInit, AfterViewChecked {
   stepsForm: UntypedFormArray;
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
@@ -235,7 +235,7 @@ export class StepEditorComponentextends SubSinkAdapter implements OnInit, AfterV
     @Host() public readonly _editFeature: EditFeature,
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
-    private loggger: LogService,
+    private logger: LogService,
     private _sharedActions: SharedActionsService
   ) {
     super();
