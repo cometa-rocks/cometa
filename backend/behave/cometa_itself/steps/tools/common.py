@@ -7,6 +7,8 @@ import os
 import sys
 import re
 
+from .exceptions import *
+from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
