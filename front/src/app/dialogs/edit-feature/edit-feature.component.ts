@@ -563,6 +563,16 @@ export class EditFeature implements OnInit, OnDestroy {
         ]),
       ],
     });
+
+    // Detect changes in Form
+    this.featureForm.valueChanges.subscribe(value => {
+      if (this.hasChanged()) {
+        this.logger.msg('4', 'Form value changed', 'edit-feature');
+      } else {
+        this.logger.msg('4', 'Form value not changed', 'edit-feature');
+      }
+    });
+
     // Gets the currently active route
     let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
     // Initialize the departments, applications and environments
@@ -1157,6 +1167,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   handleBrowserChange(browsers) {
     this.browserstackBrowsers.next(browsers);
+    this.hasChanged();
   }
 
   // Handle keyboard keys
@@ -1372,16 +1383,16 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
 
-  // Deeply check if two arrays are equal, in length and values
-  arraysEqual(a: any[], b: any[]): boolean {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; ++i) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
-  }
+  // Deeply check if two arrays are equal, in length and values, compare arrays fast
+  // arraysEqual(a: any[], b: any[]): boolean {
+  //   if (a === b) return true;
+  //   if (a == null || b == null) return false;
+  //   if (a.length !== b.length) return false;
+  //   for (let i = 0; i < a.length; ++i) {
+  //     if (a[i] !== b[i]) return false;
+  //   }
+  //   return true;
+  // }
 
   /**
    * Check if edit feature form has different values from original object
@@ -1395,7 +1406,7 @@ export class EditFeature implements OnInit, OnDestroy {
    * 1. Moving the notification subscription to ngOnInit after form initialization
    * 2. Using { emitEvent: false } when setting form values in edit mode
    */
-  hasChanged(): boolean {
+  public hasChanged(): boolean {
     // Retrieve original feature data, when mode is `new` it will only have `feature_id: 0`
     const featureOriginal = this.feature.getValue();
     /**
@@ -1499,6 +1510,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     }
+
     /**
      * Detect changes made outside of formular code
      */
@@ -1506,13 +1518,20 @@ export class EditFeature implements OnInit, OnDestroy {
     if (
       JSON.stringify(this.browsersOriginal) !==
       JSON.stringify(this.browserstackBrowsers.getValue())
-    )
+    ) {
+      this.logger.msg('4', 'Browsers Form changed', 'edit-feature');
       return true;
+    } else {
+      this.logger.msg('4', 'Browsers Form not changed', 'edit-feature');
+    }
+    
     /**
-     * Detect changes in Step Editor
-     */
-    if (this.stepEditor) {
-      const currentSteps = this.stepEditor.getSteps();
+     * Detect changes in Step Editor using reactive approach
+     * This replaces the complex manual comparison logic with a reliable deep comparison
+    */
+   if (this.stepEditor) {
+     // Use synchronous deep comparison for steps
+     const currentSteps = this.stepEditor.getSteps();
       if (this.stepsOriginal.length === currentSteps.length) {
         // Deep compare then
         // Compare step fields
@@ -1520,6 +1539,7 @@ export class EditFeature implements OnInit, OnDestroy {
           'step_content',
           'enabled',
           'screenshot',
+          'compare'
         ];
         for (let i = 0; i < currentSteps.length; i++) {
           for (const field of fieldsToCompare) {
@@ -1527,48 +1547,9 @@ export class EditFeature implements OnInit, OnDestroy {
               return true;
             }
           }
-          
-          // Special handling for step_action - it's normalized to empty string if falsy
-          const originalStepAction = this.stepsOriginal[i].step_action;
-          const currentStepAction = currentSteps[i].step_action;
-          if (originalStepAction !== currentStepAction && 
-              !(originalStepAction === null && currentStepAction === '') &&
-              !(originalStepAction === undefined && currentStepAction === '')) {
-            return true;
-          }
-          
-          // Special handling for timeout - it's normalized to default value if not provided
-          const originalTimeout = this.stepsOriginal[i].timeout;
-          const currentTimeout = currentSteps[i].timeout;
-          const defaultTimeout = this.department?.settings?.step_timeout || 60;
-          if (originalTimeout !== currentTimeout && 
-              !(originalTimeout === null && currentTimeout === defaultTimeout) &&
-              !(originalTimeout === undefined && currentTimeout === defaultTimeout)) {
-            return true;
-          }
-          // Special handling for compare field - it's automatically normalized
-          // compare is only allowed when screenshot is true, so we need to check
-          // if there's an actual change beyond the automatic normalization
-          const originalCompare = this.stepsOriginal[i].compare;
-          const currentCompare = currentSteps[i].compare;
-          const originalScreenshot = this.stepsOriginal[i].screenshot;
-          const currentScreenshot = currentSteps[i].screenshot;
-          
-          // Only consider it a change if:
-          // 1. Original had screenshot=true and compare=true, but current has compare=false
-          // 2. Original had screenshot=false and compare=true, but current has screenshot=true and compare=false
-          // 3. User explicitly changed compare when screenshot is true
-          if (originalScreenshot && originalCompare && !currentCompare) {
-            return true;
-          }
-          if (!originalScreenshot && originalCompare && currentScreenshot && !currentCompare) {
-            return true;
-          }
-          if (currentScreenshot && originalCompare !== currentCompare) {
-            return true;
-          }
         }
       } else {
+        this.logger.msg('4', 'Steps length changed - returning true', 'edit-feature');
         return true;
       }
     }
@@ -2059,8 +2040,7 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
-      // ... add addition properties here.
-    });
+    }, { emitEvent: false });
   }
 
   stepsOriginal: FeatureStep[] = [];
@@ -3301,7 +3281,6 @@ export class EditFeature implements OnInit, OnDestroy {
     });
 
     const result = await dialogRef.afterClosed().toPromise();
-    console.log('SimpleAlertDialog result:', result);
     
     // If user pressed Escape (false), cancel the save process completely
     if (result === false) {
@@ -3355,4 +3334,6 @@ export class EditFeature implements OnInit, OnDestroy {
     // Return true to continue with save process (user clicked "Correct")
     return true;
   }
+
+
 }
