@@ -340,8 +340,9 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         shareReplay({ bufferSize: 1, refCount: true })
       );
     
+    // Get steps only for live execution screen
     this._store.dispatch(
-      new StepDefinitions.GetStepsForFeature(this.currentFeatureId)
+      new StepDefinitions.GetExecutionStepsForFeature(this.currentFeatureId)
     );
 
     // Setup status monitoring

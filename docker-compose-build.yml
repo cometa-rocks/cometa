@@ -32,6 +32,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa:/data:rw
+      - ./data/cometa/backups:/data/backups:rw
       - ./data/cometa/screenshots:/data/screenshots
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/pdf:/data/pdf
@@ -244,8 +245,8 @@ services:
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_redis
-    volumes:
-      - ./data/redis/data:/data
+    # volumes:
+    #   - ./data/redis/data:/data
     networks:
       - testing
     healthcheck:

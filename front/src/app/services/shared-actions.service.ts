@@ -47,6 +47,7 @@ import { Console } from 'console';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { StarredService } from '@services/starred.service';
 import { take } from 'rxjs/operators';
+import { FeatureHistoryComponent } from '@components/feature-history/feature-history.component';
 
 
 /**
@@ -636,6 +637,16 @@ export class SharedActionsService {
         'OK',
         { duration: 2000 }
       );
+    });
+  }
+
+  openFeatureHistory(featureId: number) {
+    //open dialog that occupies 90% of the screen
+    this._dialog.open(FeatureHistoryComponent, {
+      data: featureId,
+      width: '90%',
+      height: '90%',
+      panelClass: 'full-screen-dialog', 
     });
   }
   

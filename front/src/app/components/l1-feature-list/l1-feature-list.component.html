@@ -129,6 +129,15 @@ Author: dph000
       <span>Move</span>
     </button>
     <mat-divider></mat-divider>
+    <!-- Feature History -->
+    <button
+      mat-menu-item
+      (click)="_sharedActions.openFeatureHistory(row.id)"
+      class="modify-feature">
+      <mat-icon>history</mat-icon>
+      <span>History</span>
+    </button>
+    <mat-divider></mat-divider>
     <!-- Ask for help checkbox -->
     <button
       stopPropagation
