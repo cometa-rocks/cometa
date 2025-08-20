@@ -147,12 +147,12 @@ interface StepState {
     MatBadgeModule,
   ],
 })
-export class StepEditorComponent extends SubSinkAdapter implements OnInit, AfterViewChecked {
+export class StepEditorComponentextends SubSinkAdapter implements OnInit, AfterViewChecked {
   stepsForm: UntypedFormArray;
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
   @ViewSelectSnapshot(UserState) user!: UserInfo;
-  @Output() textareaFocusToParent = new EventEmitter<boolean>();
+  @Output() textareaFocusToParent = new EventEmitter<{isFocused: boolean, event: any}>();
 
   @Input() feature: Feature;
   @Input() name: string;
@@ -235,7 +235,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     @Host() public readonly _editFeature: EditFeature,
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
-    private log: LogService,
+    private loggger: LogService,
     private _sharedActions: SharedActionsService
   ) {
     super();
@@ -307,7 +307,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
-    this.textareaFocusToParent.emit(isFocused);
+    this.textareaFocusToParent.emit({isFocused, event});
+
+
 
     if (index === undefined) {
       return;
@@ -1001,6 +1003,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
 
     // Don't automatically show mobile dropdown on focus - only show when user clicks on placeholder text
+    this.logger.msg('4', 'Executing _cdr.detectChanges()', 'step-editor');
     this._cdr.detectChanges();
   }
 

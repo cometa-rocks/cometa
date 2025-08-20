@@ -1205,6 +1205,7 @@ export class EditFeature implements OnInit, OnDestroy {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
           if (this.hasChanged()) {
+            this.logger.msg('4', 'Form has changed, ESC key hit - will show Popup now', 'edit-feature');
             this._dialog
               .open(AreYouSureDialog, {
                 data: {
@@ -1219,6 +1220,7 @@ export class EditFeature implements OnInit, OnDestroy {
                 if (exit) this.dialogRef.close();
               });
           } else {
+            this.logger.msg('4', 'Form has not changed, ESC key hit - will not show popup', 'edit-feature');
             this.dialogRef.close();
           }
           break;
@@ -1298,7 +1300,8 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Shortcut emitter to parent component
-  receiveDataFromChild(isFocused: boolean) {
+  receiveDataFromChild(isFocused: boolean, eventType?: any) {
+    this.logger.msg('4', `step editor field was clicked and now has focus - eventType: ${eventType}`, 'edit-feature');
     this.inputFocus = isFocused;
   }
 
