@@ -21,8 +21,6 @@ from backend.utility.functions import getLogger
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from django.core.management import call_command
-
-import subprocess
 logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
