@@ -1,7 +1,13 @@
 # author : Anand Kushwaha
-# version : 10.0.0
+# version : 10.0.1
 # date : 2024-07-11
 
+#CHANGELOG:
+# 10.0.1:
+# - Added native Django API for clearing sessions (clear_django_sessions)
+# - Added native Django API for vacuuming PostgreSQL django_session table (vacuum_postgres_django_sessions)
+
+import sys
 from threading import Thread
 from django.http import JsonResponse
 from backend.models import Department, Feature_result, Step_result
@@ -14,6 +20,9 @@ import traceback
 from backend.utility.functions import getLogger
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
+from django.core.management import call_command
+
+import subprocess
 logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
@@ -27,6 +36,46 @@ class HouseKeepingThread(LogCommand, Thread):
         LogCommand.__init__(self)
         
         self.house_keeping_logs = house_keeping_logs
+        
+    def clear_django_sessions(self):
+        """
+        Clear Django sessions using native Django API (no subprocess)
+        """
+        
+        try:
+            self.log("============================================")
+            self.log("Starting Django sessions cleanup")
+            self.log("============================================")
+
+            call_command("clearsessions")
+
+            self.log("Django clearsessions completed successfully (native)")
+            return True
+        except Exception as e:
+            self.log(f"Exception while clearing Django sessions: {str(e)}", type="error", spacing=1)
+            self.log(f"Traceback: {traceback.format_exc()}", type="error", spacing=2)
+            return False
+
+    def vacuum_postgres_django_sessions(self):
+        """
+        Run VACUUM on django_session table in PostgreSQL database
+        """
+        try:
+            self.log("============================================")
+            self.log("Starting PostgreSQL VACUUM on django_session table")
+            self.log("============================================")
+            
+            from django.db import connection
+
+            with connection.cursor() as cursor:
+                cursor.execute("VACUUM django_session;")
+            
+            self.log("PostgreSQL VACUUM completed successfully")
+            return True
+        
+        except Exception as exception:
+            self.log(f"Exception occurred while vacuuming PostgreSQL django_session table: {str(exception)}")
+            return False
         
     # This method will check for video and delete the file if exists
     def __delete_video_file_if_exists(self, result: Feature_result):
@@ -242,6 +291,8 @@ class HouseKeepingThread(LogCommand, Thread):
         try:
             self.filter_and_delete_files()
             self.check_container_service_and_clean()
+            self.clear_django_sessions()
+            self.vacuum_postgres_django_sessions()
             self.house_keeping_logs.success = True
             
             # Delete the Housekeeping logs itself when its 6 month older
