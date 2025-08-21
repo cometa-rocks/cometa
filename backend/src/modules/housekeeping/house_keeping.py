@@ -1,7 +1,13 @@
 # author : Anand Kushwaha
-# version : 10.0.0
+# version : 10.0.11
 # date : 2024-07-11
 
+#CHANGELOG:
+# 10.0.11:
+# - Added native Django API for clearing sessions (clear_django_sessions)
+# - Added native Django API for vacuuming PostgreSQL django_session table (vacuum_postgres_django_sessions)
+# - Improved deletion logic for video, pdf, screenshot files - no longer looks for already deleted item 
+import sys
 from threading import Thread
 from django.http import JsonResponse
 from backend.models import Department, Feature_result, Step_result
@@ -14,6 +20,7 @@ import traceback
 from backend.utility.functions import getLogger
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
+from django.core.management import call_command
 logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
@@ -27,6 +34,46 @@ class HouseKeepingThread(LogCommand, Thread):
         LogCommand.__init__(self)
         
         self.house_keeping_logs = house_keeping_logs
+        
+    def clear_django_sessions(self):
+        """
+        Clear Django sessions using native Django API (no subprocess)
+        """
+        
+        try:
+            self.log("============================================")
+            self.log("Starting Django sessions cleanup")
+            self.log("============================================")
+
+            call_command("clearsessions")
+
+            self.log("Django clearsessions completed successfully")
+            return True
+        except Exception as e:
+            self.log(f"Exception while clearing Django sessions: {str(e)}", type="error", spacing=1)
+            self.log(f"Traceback: {traceback.format_exc()}", type="error", spacing=2)
+            return False
+
+    def vacuum_postgres_django_sessions(self):
+        """
+        Run VACUUM on django_session table in PostgreSQL database
+        """
+        try:
+            self.log("============================================")
+            self.log("Starting PostgreSQL VACUUM on django_session table")
+            self.log("============================================")
+            
+            from django.db import connection
+
+            with connection.cursor() as cursor:
+                cursor.execute("VACUUM django_session;")
+            
+            self.log("PostgreSQL VACUUM completed successfully")
+            return True
+        
+        except Exception as exception:
+            self.log(f"Exception occurred while vacuuming PostgreSQL django_session table: {str(exception)}")
+            return False
         
     # This method will check for video and delete the file if exists
     def __delete_video_file_if_exists(self, result: Feature_result):
@@ -43,6 +90,12 @@ class HouseKeepingThread(LogCommand, Thread):
             if video_url and video_url.strip()!="":
                 video_files.append(video_url.split("/")[-1])
         
+        # If no video files exist, return True (just means nothing to delete)
+        if not video_files:
+            return True
+        
+        # Track if any deletion operations fail
+        deletion_success = True
         
         for video in video_files:  
             videoPath = f"{self.video_directory_path}/{video}"
@@ -63,14 +116,16 @@ class HouseKeepingThread(LogCommand, Thread):
                         type="warning",
                         spacing=3,
                     )
-                return True
+                                        
             except Exception as exception:
                 self.log(
                     f'Exception occurred while deleting video file  "{videoPath}", Error Message: {traceback.format_exc()}',
                     type="error",
                     spacing=3,
                 )
-                return False
+                deletion_success = False
+        
+        return deletion_success
         
     # PDF file name is stored with Feature_results 
     # This change is introduced on 16-07-2024
@@ -88,18 +143,15 @@ class HouseKeepingThread(LogCommand, Thread):
                 self.log(f"{pdf_file_full_path} file exists", spacing=3)
                 os.remove(pdf_file_full_path)
                 self.log(f"{pdf_file_full_path} file deleted", spacing=3)
+                return True
             else:
+                # File doesn't exist
                 self.log(
-                        f"PDF report file doesn't exist",
-                        type="warning",
-                        spacing=3,
-                    )
-                self.log(
-                    f"Complete PDF report file path {pdf_file_full_path}",
-                    type="warning",
+                    f"PDF file already clean: {pdf_file_full_path}",
+                    type="info",
                     spacing=3,
                 )
-            return True
+                return True
             
         except Exception as exception:
             self.log(
@@ -111,25 +163,31 @@ class HouseKeepingThread(LogCommand, Thread):
         
     # This method will check for screenshots and delete the file they exists
     def __delete_screenshot_file_if_exists(self, step_result: Step_result):
+        # Skip if no screenshot path is defined
+        if not step_result.screenshot_current or step_result.screenshot_current.strip() == "":
+            return True
+            
         current_screenshot = os.path.join(
                 self.screenshot_file_path, step_result.screenshot_current
             )
         try:
 
-            if step_result.screenshot_current and os.path.isfile(current_screenshot):
+            if os.path.isfile(current_screenshot):
                 os.remove(current_screenshot)
                 self.log(f"{current_screenshot} file deleted", spacing=3)
+                return True
             else:
+                # File doesn't exist
                 self.log(
-                    f"Screenshot path {step_result.screenshot_current} is defined but file doesn't exist",
-                    type="warning",
+                    f"Screenshot already clean: {step_result.screenshot_current}",
+                    type="info",
                     spacing=3,
                 )
-            return True
+                return True
 
         except Exception as exception:
             self.log(
-                f'Exception occurred while deleting video file  "{current_screenshot}", Error Message: {traceback.format_exc()}',
+                f'Exception occurred while deleting screenshot file  "{current_screenshot}", Error Message: {traceback.format_exc()}',
                 type="error",
                 spacing=3,
             )
@@ -159,7 +217,7 @@ class HouseKeepingThread(LogCommand, Thread):
                 spacing=1,
             )
             # Calculate the date and time n days ago
-            date_time_department_days_ago = datetime.now() - timedelta(days=department.settings['result_expire_days'])
+            date_time_department_days_ago = timezone.now() - timedelta(days=department.settings['result_expire_days'])
 
             # Handle any error that comes while deleting files
             try:
@@ -173,17 +231,39 @@ class HouseKeepingThread(LogCommand, Thread):
                     f"Found {len(feature_results_with_in_department)} Feature_Result to clean",
                     spacing=1,
                 )
+                
+                # Track cleanup statistics
+                total_processed = 0
+                successfully_cleaned = 0
+                failed_cleanup = 0
+                max_retries_exceeded = 0
+                
                 for feature_result in feature_results_with_in_department:
-                    house_keeping_done = True
+                    total_processed += 1
+                    retry_count = getattr(feature_result, 'housekeeping_retry_count', 0)
+                    max_retries = 3  # Maximum number of retry attempts
+                    
                     self.log(
-                        f"Cleaning Feature_Result [ID: {feature_result.feature_result_id}] [FeatureID: {feature_result.feature_id}]",
+                        f"Cleaning Feature_Result [ID: {feature_result.feature_result_id}] [FeatureID: {feature_result.feature_id}] (Retry: {retry_count}/{max_retries})",
                         spacing=2,
                     )
-                    if not self.__delete_video_file_if_exists(feature_result):
-                        house_keeping_done = False
-                    if not self.__delete_pdf_file_if_exists(feature_result):
-                        house_keeping_done = False
-                        
+                    
+                    # Check if we've exceeded max retries
+                    if retry_count >= max_retries:
+                        self.log(
+                            f"Feature_Result [ID: {feature_result.feature_result_id}] exceeded max retries ({max_retries}), marking as cleaned",
+                            type="warning",
+                            spacing=2,
+                        )
+                        feature_result.house_keeping_done = True
+                        feature_result.save()
+                        max_retries_exceeded += 1
+                        continue
+                    
+                    # Track individual operation results
+                    video_clean = self.__delete_video_file_if_exists(feature_result)
+                    pdf_clean = self.__delete_pdf_file_if_exists(feature_result)
+                    
                     # Clean Step result screen shots
                     step_results = Step_result.objects.filter(
                         feature_result_id=feature_result.feature_result_id
@@ -194,22 +274,45 @@ class HouseKeepingThread(LogCommand, Thread):
                     )
 
                     self.log("Cleaning Step_results", spacing=3)
+                    screenshot_clean = True
                     for step_result in step_results:
                         if not self.__delete_screenshot_file_if_exists(step_result):
-                            house_keeping_done = False
+                            screenshot_clean = False
                     self.log(f"Cleaned {len(step_results)} screenshots", spacing=3)
 
-                    if house_keeping_done:
-                        feature_result.house_keeping_done = house_keeping_done
+                    # Determine if housekeeping was successful
+                    # Consider it successful if all operations completed (even if files didn't exist)
+                    if video_clean and pdf_clean and screenshot_clean:
+                        feature_result.house_keeping_done = True
+                        # Reset retry count on success
+                        if hasattr(feature_result, 'housekeeping_retry_count'):
+                            feature_result.housekeeping_retry_count = 0
                         feature_result.save()
-                    else:
+                        successfully_cleaned += 1
                         self.log(
-                            f"Feature_Result [ID: {feature_result.feature_result_id}] [FeatureID: {feature_result.feature_id}] not cleaned, will retry again",
+                            f"Feature_Result [ID: {feature_result.feature_result_id}] successfully cleaned",
                             spacing=2,
                         )
+                    else:
+                        # Increment retry count
+                        feature_result.housekeeping_retry_count = retry_count + 1
+                        feature_result.save()
+                        failed_cleanup += 1
+                        self.log(
+                            f"Feature_Result [ID: {feature_result.feature_result_id}] [FeatureID: {feature_result.feature_id}] not cleaned, will retry again (Retry: {feature_result.housekeeping_retry_count}/{max_retries})",
+                            spacing=2,
+                        )
+                
+                # Log cleanup summary for this department
+                self.log(
+                    f"Department {department.department_name} cleanup summary: {total_processed} processed, {successfully_cleaned} cleaned, {failed_cleanup} failed, {max_retries_exceeded} max retries exceeded",
+                    spacing=1,
+                )
 
             except Exception as exception:
-                self.log(exception)
+                self.log(f"Error processing department {department.department_name}: {str(exception)}", type="error", spacing=1)
+                self.log(f"Traceback: {traceback.format_exc()}", type="error", spacing=2)
+                continue  # Continue with next department instead of failing completely
 
     def check_container_service_and_clean(self):
         # Get containers that are in use and created 3 hours ago
@@ -242,10 +345,12 @@ class HouseKeepingThread(LogCommand, Thread):
         try:
             self.filter_and_delete_files()
             self.check_container_service_and_clean()
+            self.clear_django_sessions()
+            self.vacuum_postgres_django_sessions()
             self.house_keeping_logs.success = True
             
             # Delete the Housekeeping logs itself when its 6 month older
-            six_months_ago = datetime.now() - timedelta(days=30.5*6)
+            six_months_ago = timezone.now() - timedelta(days=30.5*6)
             six_month_old_records = HouseKeepingLogs.objects.filter(created_on__lt=six_months_ago)
             count_six_month_previous_logs  = len(six_month_old_records)
             six_month_old_records.delete()
@@ -261,5 +366,3 @@ class HouseKeepingThread(LogCommand, Thread):
         self.house_keeping_logs.save()
         
         logger.debug("housekeeping logs saved")
-    
-        
