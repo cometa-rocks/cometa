@@ -206,7 +206,7 @@ class HouseKeepingThread(LogCommand, Thread):
                 spacing=1,
             )
             # Calculate the date and time n days ago
-            date_time_department_days_ago = datetime.now() - timedelta(days=department.settings['result_expire_days'])
+            date_time_department_days_ago = timezone.now() - timedelta(days=department.settings['result_expire_days'])
 
             # Handle any error that comes while deleting files
             try:
@@ -294,7 +294,7 @@ class HouseKeepingThread(LogCommand, Thread):
             self.house_keeping_logs.success = True
             
             # Delete the Housekeeping logs itself when its 6 month older
-            six_months_ago = datetime.now() - timedelta(days=30.5*6)
+            six_months_ago = timezone.now() - timedelta(days=30.5*6)
             six_month_old_records = HouseKeepingLogs.objects.filter(created_on__lt=six_months_ago)
             count_six_month_previous_logs  = len(six_month_old_records)
             six_month_old_records.delete()
