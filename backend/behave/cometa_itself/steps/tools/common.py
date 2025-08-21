@@ -147,8 +147,7 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
                 # Import get_cometa_backend_url from common utilities
                 from utility.config_handler import get_cometa_backend_url
                 
-                # Debug: Log what we're sending
-                logger.debug(f"Healenium: Sending healing data to API: {healing_save_data}")
+                logger.info(f"Healenium: Saving healing data: {healing_save_data}")
                 
                 # Make API call to save healing result  
                 response = requests.post(

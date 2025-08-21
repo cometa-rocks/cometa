@@ -1,15 +1,13 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import HealeniumResultViewSet
-
-router = DefaultRouter()
-router.register(r'results', HealeniumResultViewSet, basename='healenium-result')
-
-urlpatterns = [
-    path('', include(router.urls)),
-]
+from django.conf.urls import url
+from .views import save_healing_result
 
 def register_healenium_routers(router):
-    """Register Healenium routers with main router"""
-    router.register(r'healenium/results', HealeniumResultViewSet, basename='healenium-result')
+    """Register Healenium routers """
     return router
+
+def register_healenium_urlpatterns(urlpatterns):
+    """Register Healenium URL patterns """
+    urlpatterns = urlpatterns + [
+        url(r'^api/healenium/results/save/$', save_healing_result),
+    ]
+    return urlpatterns
