@@ -720,7 +720,6 @@
           </cometa-step-editor> -->
           <cometa-step-editor
             (textareaFocusToParent)="receiveDataFromChild($event)"
-            (hasChanged)="hasChanged()"
             *ngIf="feature | async as feat"
             [mode]="data.mode"
             [department]="department"

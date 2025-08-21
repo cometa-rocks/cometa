@@ -566,14 +566,6 @@ export class EditFeature implements OnInit, OnDestroy {
       ],
     });
 
-     // Detect changes in Form
-     this.featureForm.valueChanges.subscribe(value => {
-      if (this.hasChanged()) {
-        this.logger.msg('4', 'Form value changed', 'edit-feature');
-      } else {
-        this.logger.msg('4', 'Form value not changed', 'edit-feature');
-      }
-    });
 
     // Gets the currently active route
     let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
@@ -1410,6 +1402,12 @@ export class EditFeature implements OnInit, OnDestroy {
         return false;
       }
 
+      // Exclude run_now from comparison, if previous was undefined and now is false
+      if (key === 'run_now' && originalValue[key] === undefined && formValue[key] === false) {
+        this.logger.msg('4', `hasFeatureFormChanged() - ${key} is not dirty`, 'edit-feature');
+        return false;
+      }
+
       const current = formValue[key];
       const original = originalValue[key];
 
@@ -1428,6 +1426,113 @@ export class EditFeature implements OnInit, OnDestroy {
       this.logger.msg('4', `hasFeatureFormChanged() - ${key}: original=${JSON.stringify(original)}, current=${JSON.stringify(current)}, changed=${returnValue}`, 'edit-feature');
       return returnValue;
     });
+  }
+
+  /**
+   * Generic method to check if steps have changed
+   * This method compares original steps with current steps and is designed to be future-proof
+   * for any new properties that might be added to the FeatureStep interface
+   * @param originalSteps - The original steps array
+   * @param currentSteps - The current steps array
+   * @returns true if steps have changed, false otherwise
+   */
+  private hasStepsChanged(originalSteps: FeatureStep[], currentSteps: FeatureStep[]): boolean {
+
+    // XXX - FIXMEQAD for not checking if either originalSteps or currentSteps is undefined, 
+    // because it is only used for documentation purposes and is not saved in the backend
+    if (originalSteps === undefined || currentSteps === undefined) {
+      this.logger.msg('4', `Skipping steps for being undefined`, 'edit-feature');
+      return false;
+    }
+
+    // XXX - FIXME QAD: original=0 current=1 ... means the current was just added
+    if (originalSteps.length === 0 && currentSteps.length == 1) {
+      this.logger.msg('4', `Steps length changed: original=${originalSteps.length}, current=${currentSteps.length}`, 'edit-feature');
+      this.logger.msg('4', `Ignoring steps length change for being just added.`, 'edit-feature');
+      return false;
+    }
+
+    // Check if arrays have different lengths
+    if (originalSteps.length !== currentSteps.length) {
+      this.logger.msg('4', `Steps length changed: original=${originalSteps.length}, current=${currentSteps.length}`, 'edit-feature');
+      return true;
+    }
+
+    // Compare each step using generic property comparison
+    for (let i = 0; i < currentSteps.length; i++) {
+      const originalStep = originalSteps[i];
+      const currentStep = currentSteps[i];
+
+      if (this.hasStepChanged(originalStep, currentStep)) {
+        this.logger.msg('4', `Step ${i} has changed`, 'edit-feature');
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Generic method to check if a single step has changed
+   * This method automatically handles any properties present in the FeatureStep interface
+   *
+   * There are two QAD XXX Fixme fixes for step_actions and selected. These
+   * variables are only needed temporarily and server for mass actions on steps and documentation.
+   * as these are not relevant to steps content save to the database, we can skip them.
+   *
+   * @param originalStep - The original step
+   * @param currentStep - The current step
+   * @returns true if the step has changed, false otherwise
+   */
+  private hasStepChanged(originalStep: FeatureStep, currentStep: FeatureStep): boolean {
+    // Get all properties from both objects (this handles future additions automatically)
+    const allProperties = new Set([
+      ...Object.keys(currentStep || {})
+    ]);
+
+    for (const property of allProperties) {
+      // XXX - FIXMEQAD for not checking step_action property, 
+      // because it is only used for documentation purposes and is not saved in the backend
+      if (property === 'step_action') {
+        this.logger.msg('4', `Skipping step_action property`, 'edit-feature');
+        continue;
+      }
+
+      // XXX - FIXMEQAD for not checking if either originalValue or currentValue is undefined, 
+      // because it is only used for documentation purposes and is not saved in the backend
+      if (originalStep?.[property] === undefined || currentStep?.[property] === undefined) {
+        this.logger.msg('4', `Skipping step_action property ${property} for being undefined`, 'edit-feature');
+        continue;
+      }
+
+      this.logger.msg('4', `Checking Step property ${property}`, 'edit-feature');
+      const originalValue = originalStep?.[property];
+      const currentValue = currentStep?.[property];
+
+      // Handle different data types appropriately
+      if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
+        if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
+          this.logger.msg('4', `Step property ${property} array changed: original=${JSON.stringify(originalValue)}, current=${JSON.stringify(currentValue)}`, 'edit-feature');
+          return true;
+        }
+      } else if (typeof originalValue === 'object' && typeof currentValue === 'object' && originalValue !== null && currentValue !== null) {
+        if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
+          this.logger.msg('4', `Step property ${property} object changed: original=${JSON.stringify(originalValue)}, current=${JSON.stringify(currentValue)}`, 'edit-feature');
+          return true;
+        }
+      } else {
+        // Normalize values for comparison: treat undefined, null, and empty string as equivalent
+        const normalizedOriginal = originalValue === '' ? undefined : originalValue;
+        const normalizedCurrent = currentValue === '' ? undefined : currentValue;
+
+        if (normalizedOriginal !== normalizedCurrent) {
+          this.logger.msg('4', `Step property ${property} changed: original=${JSON.stringify(originalValue)}, current=${JSON.stringify(currentValue)}`, 'edit-feature');
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -1595,25 +1700,15 @@ export class EditFeature implements OnInit, OnDestroy {
      */
     if (this.stepEditor) {
       const currentSteps = this.stepEditor.getSteps();
-      
-      // Get original steps directly from store instead of this.stepsOriginal
-      const originalSteps = this._store.selectSnapshot(
-        CustomSelectors.GetFeatureSteps(this.data.feature?.feature_id || 0)
-      );
-      
-      if (originalSteps.length !== currentSteps.length) {
-        this.logger.msg('4', 'Steps length changed - returning true', 'edit-feature');
+      this.logger.msg('4', '=== Steps Original ===', 'edit-feature');
+      this.logger.msg('4', this.stepsOriginal, 'edit-feature');
+      this.logger.msg('4', '=== Steps Current ===', 'edit-feature');
+      this.logger.msg('4', currentSteps, 'edit-feature');
+
+      // Check if steps have changed using generic comparison
+      if (this.hasStepsChanged(this.stepsOriginal, currentSteps)) {
+        this.logger.msg('4', 'Steps have changed', 'edit-feature');
         return true;
-      }
-      
-      // Deep compare step fields
-      const fieldsToCompare = ['step_content', 'enabled', 'screenshot', 'compare'];
-      for (let i = 0; i < currentSteps.length; i++) {
-        for (const field of fieldsToCompare) {
-          if (currentSteps[i][field] !== originalSteps[i][field]) {
-            return true;
-          }
-        }
       }
     }
     this.logger.msg('4', 'End of hasChanged() - No changes detected', 'edit-feature');
@@ -1626,6 +1721,8 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    this.logger.msg('4', '=== ngOnInit() ===', 'edit-feature');
 
     // Log all featureForm values for debugging
     this.logger.msg('4', '=== FeatureForm Values ===', 'edit-feature');
@@ -1881,10 +1978,25 @@ export class EditFeature implements OnInit, OnDestroy {
       
       this.stepsOriginal = this.data.steps;
     } else {
-      // Code for creating a feature
-      // set user preselect options
+      // Code for creating a new feature
+
+      // get the data from backend
       this.feature.next(this.data.feature);
+
+      // set run_now = false per default
+      this.featureForm.get('run_now').setValue(false, { emitEvent: false });
+
+      // set user preselect options
       this.preSelectedOptions();
+
+      // Initialize departmentSettings$ for new features
+      // Use a default observable that emits undefined since there's no department_id yet
+      // this.departmentSettings$ = of(undefined);
+
+      // Auto-focus the name input when creating a new feature
+      setTimeout(() => {
+        this.focusFormControl('feature_name');
+      }, 300); // Delay to ensure input is rendered
     }
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
@@ -1906,12 +2018,6 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
 
-    // Auto-focus the name input when creating a new feature
-    if (this.data.mode === 'new') {
-      setTimeout(() => {
-        this.focusFormControl('feature_name');
-      }, 300); // Delay to ensure input is rendered
-    }
 
     // Add reactive behavior for notification controls AFTER form values are initialized
     // This prevents the form from being marked as dirty when initializing values
@@ -1923,6 +2029,7 @@ export class EditFeature implements OnInit, OnDestroy {
       }
     });
 
+    this.logger.msg('4', '=== ngOnInit() - after notificationSubscription ===', 'edit-feature');
     // Subscribe to department settings changes to update continue_on_failure state
     this.departmentSettings$.subscribe(settings => {
       if (settings) {
@@ -1941,6 +2048,8 @@ export class EditFeature implements OnInit, OnDestroy {
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 0);
+
+    this.logger.msg('4', '=== End of ngOnInit() ===', 'edit-feature');
   }
 
   /**

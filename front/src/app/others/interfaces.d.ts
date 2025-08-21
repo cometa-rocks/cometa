@@ -399,7 +399,8 @@ interface FeatureStep {
   step_type?: StepType;
   continue_on_failure?: boolean;
   timeout?: number;
-  step_action: Action["action_name"]; // Value should be Action.action_name
+  step_action: Action["action_name"]; // Value should be Action.action_name .. is used for documentation
+  selected?: boolean; // Used for copying steps
 }
 
 declare type StepType = 'normal' | 'subfeature' | 'substep' | 'loop';
