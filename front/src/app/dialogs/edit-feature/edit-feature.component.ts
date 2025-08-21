@@ -657,7 +657,7 @@ export class EditFeature implements OnInit, OnDestroy {
       // Save back to localStorage
       localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
     } catch (error) {
-      this.logger.msg('2', 'Error saving panel state', 'edit-feature', error);
+      console.error('Error saving panel state:', error);
     }
   }
 
@@ -764,7 +764,7 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
     } catch (error) {
-      this.logger.msg('2', 'Error loading panel states', 'edit-feature', error);
+      console.error('Error saving panel state:', error);
     }
   }
 
@@ -817,7 +817,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      this.logger.msg('2', 'Error handling expansion change', 'edit-feature', error);
+      console.error('Error saving panel state:', error);
     }
   }
 
@@ -1164,6 +1164,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   handleBrowserChange(browsers) {
+    this.logger.msg('4', 'handleBrowserChange', 'edit-feature');
     this.browserstackBrowsers.next(browsers);
   }
 
@@ -1387,6 +1388,48 @@ export class EditFeature implements OnInit, OnDestroy {
   //   return true;
   // }
 
+
+  /**
+   * Check if the form has changed. This function is used in hasChanged()
+   * to check if the form has changed. This is needed because Angulars dirtyChecks
+   * marks a form as dirty, when the user clicks on a field, but the value is not changed.
+   * @returns true if the form has changed, false otherwise
+   */
+  private hasFeatureFormChanged(): boolean {
+    this.logger.msg('4', 'hasFeatureFormChanged() - checking formular', 'edit-feature');
+
+    const formValue = this.featureForm.value;
+    const originalValue = this.feature.getValue();
+
+    return Object.keys(formValue).some(key => {
+      const field = this.featureForm.get(key);
+
+      // Only check if field is dirty
+      if (!field.dirty) {
+        this.logger.msg('4', `hasFeatureFormChanged() - ${key} is not dirty`, 'edit-feature');
+        return false;
+      }
+
+      const current = formValue[key];
+      const original = originalValue[key];
+
+      let returnValue: boolean;
+
+      if (Array.isArray(current)) {
+        returnValue = JSON.stringify(current) !== JSON.stringify(original);
+      } else {
+        // Normalize values for comparison: treat undefined, null, and empty string as equivalent
+        // Also ensure boolean values are properly compared
+        const normalizedCurrent = current === '' ? undefined : current;
+        const normalizedOriginal = original === '' ? undefined : original;
+        returnValue = normalizedCurrent !== normalizedOriginal;
+      }
+
+      this.logger.msg('4', `hasFeatureFormChanged() - ${key}: original=${JSON.stringify(original)}, current=${JSON.stringify(current)}, changed=${returnValue}`, 'edit-feature');
+      return returnValue;
+    });
+  }
+
   /**
    * Check if edit feature form has different values from original object
    * 
@@ -1402,6 +1445,8 @@ export class EditFeature implements OnInit, OnDestroy {
   public hasChanged(): boolean {
     // Retrieve original feature data, when mode is `new` it will only have `feature_id: 0`
     const featureOriginal = this.feature.getValue();
+    this.logger.msg('4', 'hasChanged() - checking formular', 'edit-feature');
+
     /**
      * Detect changes in formular
      * Procedure:
@@ -1409,100 +1454,127 @@ export class EditFeature implements OnInit, OnDestroy {
      *  2. Check if the form field has been modified (dirty)
      *  3. Check if the original feature value is different from the new one
      */
+    if (this.data.mode === 'new') {
+      this.logger.msg('4', 'Feature Form is new', 'edit-feature');
+    }
+
     if (this.featureForm.dirty) {
       // The first selectors needs custom comparison logic
       // Check Department
-      const departmentField = this.featureForm.get('department_name');
-      if (departmentField.dirty && departmentField.value) {
-        const departmentId = this.departments$.find(
-          dep => dep.department_name === departmentField.value
-        ).department_id;
-        if (
-          this.data.mode === 'new' ||
-          featureOriginal.department_id !== departmentId
-        )
-          return true;
+      this.logger.msg('4', 'Feature Form is dirty - checking details', 'edit-feature');
+
+      // Check if the form has changed
+      if (this.hasFeatureFormChanged()) {
+        this.logger.msg('4', 'Feature Form has changed', 'edit-feature');
+        return true;
       }
-      // Check application
-      const applicationField = this.featureForm.get('app_name');
-      if (applicationField.dirty && applicationField.value) {
-        const appId = this.applications$.find(
-          app => app.app_name === applicationField.value
-        ).app_id;
-        if (this.data.mode === 'new' || featureOriginal.app_id !== appId)
-          return true;
-      }
-      // Check environment
-      const environmentField = this.featureForm.get('environment_name');
-      if (environmentField.dirty && environmentField.value) {
-        const environmentId = this.environments$.find(
-          env => env.environment_name === environmentField.value
-        ).environment_id;
-        if (
-          this.data.mode === 'new' ||
-          featureOriginal.environment_id !== environmentId
-        )
-          return true;
-      }
-      // Declare an array of fields with the same key name in original feature and modified
-      let fields = [
-        'description',
-        'depends_on_others',
-        'send_mail',
-        'need_help',
-        'feature_name',
-        'video',
-        'continue_on_failure',
-      ];
-      // Add fields mandatory for Send email
-      if (this.featureForm.get('send_mail').value) {
-        fields = [
-          ...fields,
-          'email_address',
-          'email_cc_address',
-          'email_bcc_address',
-          'email_subject',
-          'email_body',
-          'send_mail_on_error',
-          'maximum_notification_on_error',
-          'check_maximum_notification_on_error',
-          'attach_pdf_report_to_email',
-          'do_not_use_default_template',
-        ];
-      }
-      // Add fields mandatory for Schedule
-      if (this.featureForm.get('run_now').value) {
-        fields = [
-          ...fields,
-          'minute',
-          'hour',
-          'day_month',
-          'month',
-          'day_week',
-        ];
-      }
-      // Iterate each field
-      for (const key of fields) {
-        const field = this.featureForm.get(key);
-        // Check if field is changed and has value
-        if (field.dirty && field.value) {
-          // Custom logic for array values
-          if (Array.isArray(field.value)) {
-            if (
-              this.data.mode === 'new' ||
-              JSON.stringify(field.value) !==
-                JSON.stringify(featureOriginal[key])
-            ) {
-              return true;
-            }
-          } else {
-            if (featureOriginal[key] !== field.value) {
-              return true;
-            }
-          }
-        }
-      }
+      
+      // // Checking Department
+      // const departmentField = this.featureForm.get('department_name');
+      // if (departmentField.dirty && departmentField.value) {
+      //   const departmentId = this.departments$.find(
+      //     dep => dep.department_name === departmentField.value
+      //   ).department_id;
+      //   if (
+      //     this.data.mode === 'new' ||
+      //     featureOriginal.department_id !== departmentId
+      //   )
+      //   this.logger.msg('4', 'Department changed', 'edit-feature');
+      //     return true;
+      // }
+
+      // // Check application
+      // const applicationField = this.featureForm.get('app_name');
+      // if (applicationField.dirty && applicationField.value) {
+      //   const appId = this.applications$.find(
+      //     app => app.app_name === applicationField.value
+      //   ).app_id;
+      //   if (this.data.mode === 'new' || featureOriginal.app_id !== appId)
+      //     this.logger.msg('4', 'Application changed', 'edit-feature');
+      //     return true;
+      // }
+
+      // // Check environment
+      // const environmentField = this.featureForm.get('environment_name');
+      // if (environmentField.dirty && environmentField.value) {
+      //   const environmentId = this.environments$.find(
+      //     env => env.environment_name === environmentField.value
+      //   ).environment_id;
+      //   if (
+      //     this.data.mode === 'new' ||
+      //     featureOriginal.environment_id !== environmentId
+      //   )
+      //     this.logger.msg('4', 'Environment changed', 'edit-feature');
+      //     return true;
+      // }
+      // // Declare an array of fields with the same key name in original feature and modified
+      // let fields = [
+      //   'description',
+      //   'depends_on_others',
+      //   'send_mail',
+      //   'need_help',
+      //   'feature_name',
+      //   'video',
+      //   'continue_on_failure',
+      //   'send_notification',
+      //   'send_telegram_notification',
+      //   'network_logging',
+      //   'generate_dataset',
+      // ];
+      // // Add fields mandatory for Send email
+      // if (this.featureForm.get('send_mail').value) {
+      //   fields = [
+      //     ...fields,
+      //     'email_address',
+      //     'email_cc_address',
+      //     'email_bcc_address',
+      //     'email_subject',
+      //     'email_body',
+      //     'send_mail_on_error',
+      //     'maximum_notification_on_error',
+      //     'check_maximum_notification_on_error',
+      //     'attach_pdf_report_to_email',
+      //     'do_not_use_default_template',
+      //   ];
+      // }
+      // // Add fields mandatory for Schedule
+      // if (this.featureForm.get('run_now').value) {
+      //   fields = [
+      //     ...fields,
+      //     'minute',
+      //     'hour',
+      //     'day_month',
+      //     'month',
+      //     'day_week',
+      //   ];
+      // }
+      // // Iterate each field
+      // for (const key of fields) {
+      //   const field = this.featureForm.get(key);
+      //   // Check if field is changed and has value
+      //   if (field.dirty && field.value) {
+      //     // Custom logic for array values
+      //     if (Array.isArray(field.value)) {
+      //       if (
+      //         this.data.mode === 'new' ||
+      //         JSON.stringify(field.value) !==
+      //           JSON.stringify(featureOriginal[key])
+      //       ) {
+      //         this.logger.msg('4', 'Field changed: ' + key, 'edit-feature');
+      //         return true;
+      //       }
+      //     } else {
+      //       if (featureOriginal[key] !== field.value) {
+      //         this.logger.msg('4', 'Field changed: ' + key, 'edit-feature');
+      //         return true;
+      //       }
+      //     }
+      //   }
+      // }
+    } else {
+      this.logger.msg('4', 'Feature Form is not dirty - no changes detected', 'edit-feature');
     }
+    
     /**
      * Detect changes made outside of formular code
      */
@@ -1518,7 +1590,7 @@ export class EditFeature implements OnInit, OnDestroy {
     }
 
     /**
-     * Detect changes in Step Editor using reactive approach
+     * Detect changes in Step Editor
      * This replaces the complex manual comparison logic with a reliable deep comparison
      */
     if (this.stepEditor) {
@@ -1544,6 +1616,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     }
+    this.logger.msg('4', 'End of hasChanged() - No changes detected', 'edit-feature');
     return false;
   }
 
@@ -1553,6 +1626,16 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    // Log all featureForm values for debugging
+    this.logger.msg('4', '=== FeatureForm Values ===', 'edit-feature');
+    Object.keys(this.featureForm.controls).forEach(key => {
+      const control = this.featureForm.get(key);
+      this.logger.msg('4', `${key}:`, control?.value, 'edit-feature');
+    });
+    this.logger.msg('4', '===============FeatureForm Values===============', 'edit-feature');
+
+
     // Initialize department if there's already a value in the form
     if (this.featureForm.get('department_name').value) {
       this.allDepartments$.subscribe(data => {
@@ -1686,6 +1769,12 @@ export class EditFeature implements OnInit, OnDestroy {
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {
       // Code for editing feautre
       const featureInfo = this.data.info;
+
+      // Log the featureInfo data that will populate the form
+      this.logger.msg('4', '=== FeatureInfo Data (will populate form) ===', 'edit-feature');
+      this.logger.msg('4', 'featureInfo:', JSON.stringify(featureInfo, null, 2), 'edit-feature');
+      this.logger.msg('4', '=== End FeatureInfo Data ===', 'edit-feature');
+
       // Initialize the selected by default application, department and environment
       // Set form values directly instead of using selected_* variables
       this.featureForm.get('app_name').setValue(featureInfo.app_name, { emitEvent: false });
@@ -1704,7 +1793,7 @@ export class EditFeature implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       });
-      this.feature.next(featureInfo);
+      // this.feature.next(featureInfo);
       // Assign observable of department settings
       this.departmentSettings$ = this._store.select(
         CustomSelectors.GetDepartmentSettings(featureInfo.department_id)
@@ -1758,7 +1847,7 @@ export class EditFeature implements OnInit, OnDestroy {
           this.featureForm.get(key).setValue(featureInfo[key], { emitEvent: false });
         }
       }
-      
+
       // Special handling for nested telegram_options FormGroup
       if (featureInfo.telegram_options) {
         const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
@@ -1766,13 +1855,29 @@ export class EditFeature implements OnInit, OnDestroy {
           telegramOptionsGroup.patchValue(featureInfo.telegram_options, { emitEvent: false });
         }
       }
-      
+
       // Backward compatibility: Enable send_notification if send_mail or send_telegram_notification are enabled
       // but send_notification is not explicitly set
       if (featureInfo.send_notification === undefined || featureInfo.send_notification === null) {
         const shouldEnableNotifications = featureInfo.send_mail || featureInfo.send_telegram_notification;
         this.featureForm.get('send_notification').setValue(shouldEnableNotifications, { emitEvent: false });
+        // Ensure the original feature data also has a valid boolean value for send_notification
+        featureInfo.send_notification = shouldEnableNotifications;
       }
+      this.feature.next(featureInfo);
+
+      // Log the featureInfo data after send notification is set
+      this.logger.msg('4', '=== FeatureInfo Data (after send notification is set) ===', 'edit-feature');
+      this.logger.msg('4', 'featureInfo:', JSON.stringify(featureInfo, null, 2), 'edit-feature');
+      this.logger.msg('4', '=== End FeatureInfo Data ===', 'edit-feature');
+
+      // Log the form values after they have been populated with featureInfo data
+      this.logger.msg('4', '=== FeatureForm Values AFTER Population ===', 'edit-feature');
+      Object.keys(this.featureForm.controls).forEach(key => {
+        const control = this.featureForm.get(key);
+        this.logger.msg('4', `${key}:`, control?.value, 'edit-feature');
+      });
+      this.logger.msg('4', '=== End FeatureForm Values AFTER Population ===', 'edit-feature');
       
       this.stepsOriginal = this.data.steps;
     } else {
