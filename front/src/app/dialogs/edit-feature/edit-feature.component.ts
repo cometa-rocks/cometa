@@ -1193,7 +1193,8 @@ export class EditFeature implements OnInit, OnDestroy {
     const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
     const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && 
+      scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -2355,13 +2356,17 @@ export class EditFeature implements OnInit, OnDestroy {
     while (!validationResult.isValid) {
       const action = await this.showMobileValidationError(validationResult.errors);
       if (action === 'ignore') {
+        this.logger.msg('4', 'User chose to ignore the errors, continue with save', 'edit-feature');
         // User chose to ignore the errors, continue with save
         break;
       } else if (action === 'correct') {
+        this.logger.msg('4', 'User chose to correct the errors, cancel the save process completely', 'edit-feature');
         // User chose to correct, cancel the save process completely
         return;
       }
     }
+
+    
     
     // Get current steps from Store
     let currentSteps = [];
