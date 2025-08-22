@@ -2353,6 +2353,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Validate mobile references in steps before saving
     let validationResult = await this.validateMobileReferences();
+    // FIXME .... why are we using a while loop?
     while (!validationResult.isValid) {
       const action = await this.showMobileValidationError(validationResult.errors);
       if (action === 'ignore') {
@@ -3168,8 +3169,8 @@ export class EditFeature implements OnInit, OnDestroy {
       
       while ((match = quoteRegex.exec(content)) !== null) {
         const quotedText = match[1];
-        const quoteStart = match.index + 1; // Position after opening quote
-        const quoteEnd = match.index + 1 + quotedText.length; // Position at closing quote
+        const quoteStart = match.index + 8; // Position after opening quote
+        const quoteEnd = match.index + 8 + quotedText.length; // Position at closing quote
 
         this.logger.msg('4', `ValidateMobilereferences quotedText: ${quotedText}`, 'edit-feature');
         
@@ -3308,6 +3309,8 @@ export class EditFeature implements OnInit, OnDestroy {
    * @returns Promise<MobileValidationAction> The action chosen by the user
    */
   private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<MobileValidationAction> {
+    this.logger.msg('4', 'showMobileValidationError()', 'edit-feature');
+    
     const errorMessages = errors.map(err => 
       `Step ${err.stepIndex}: ${err.error}`
     ).join('\n\n');
@@ -3343,6 +3346,8 @@ export class EditFeature implements OnInit, OnDestroy {
         
         // Select the problematic text if we have position information
         if (firstError.quoteStart !== undefined && firstError.quoteEnd !== undefined) {
+          this.logger.msg('4', `showMobileValidationError - quoteStart ${firstError.quoteStart} and quoteEnd ${firstError.quoteEnd}  are defined`, 'edit-feature');
+          // FIXME .... why are we using setTimeout()?
           setTimeout(() => {
             const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
             if (textarea) {
