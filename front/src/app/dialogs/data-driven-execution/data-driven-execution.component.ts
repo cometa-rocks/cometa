@@ -338,7 +338,7 @@ export class DataDrivenExecution implements OnInit {
                 'OK',
                 { 
                   duration: 5000,
-                  panelClass: ['file-management-custom-snackbar']
+                  panelClass: ['cometa-snackbar']
                 }
               );
               parent.dialogRef.close(); // Close dialog for queued test

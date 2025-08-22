@@ -259,6 +259,11 @@ body::-webkit-scrollbar-corner {
   color: $secondary-color !important;
 }
 
+// snackbar with golden button styling
+.mat-mdc-snack-bar-container.cometa-snackbar .mdc-button {
+  color: $secondary-color !important;
+}
+
 .mat-menu-panel.feature-options {
   background: darken(white, 0.5) !important;
   .mat-icon {
