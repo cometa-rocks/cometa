@@ -393,8 +393,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   }
 
   noVNCMobile(selectedMobile: any) {
-    let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
-    window.open(complete_url, '_blank').focus();
+    if (Array.isArray(selectedMobile)) {
+      let mySelectedMobile = selectedMobile[0].hostname;
+      this.logger.msg('4', `noVNCMobile - selectedMobile object: hostname ${mySelectedMobile}`, 'live-steps');
+      let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${mySelectedMobile}`;
+      window.open(complete_url, 'cometa_preview_mobile').focus();
+    } else {
+      this.logger.msg('4', 'noVNCMobile - selectedMobile is null/undefined', 'live-steps');
+      this.snack.open('No mobile selected', 'Close', { duration: 3000 });
+    }
   }
 
 
@@ -415,6 +422,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   }
 
   updateMobile(data: any) {
+    this.logger.msg('4', `updateMobile - data ${data.mobiles_info}.`, 'live-steps');
     this.mobiles[data.feature_run_id] = data.mobiles_info;
   }
 
