@@ -285,6 +285,13 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     } else {
       this.setupSingleFeatureMode();
     }
+
+    // register Host Key "S" to stop the execution
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 's') {
+        this.stopTest();
+      }
+    });
   }
 
   private loadConfigurations() {
@@ -392,14 +399,20 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     window.open(url, window_name).focus();
   }
 
+  /**
+   * Opens a VNC session for mobile device in a new window
+   * @param selectedMobile - The mobile device identifier (hostname or device name)
+   * @description This function opens a VNC HTML page in a new window to establish a remote connection
+   * to the selected mobile device. It validates that the mobile parameter is provided and has sufficient length.
+   * If validation fails, it shows an error message to the user.
+   */
   noVNCMobile(selectedMobile: any) {
-    if (Array.isArray(selectedMobile)) {
-      let mySelectedMobile = selectedMobile[0].hostname;
-      this.logger.msg('4', `noVNCMobile - selectedMobile object: hostname ${mySelectedMobile}`, 'live-steps');
-      let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${mySelectedMobile}`;
-      window.open(complete_url, 'cometa_preview_mobile').focus();
+    if (selectedMobile && selectedMobile.length > 2) {
+      this.logger.msg('4', `noVNCMobile - selectedMobile object: hostname ${selectedMobile}`, 'live-steps');
+      let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
+      window.open(complete_url, selectedMobile).focus();
     } else {
-      this.logger.msg('4', 'noVNCMobile - selectedMobile is null/undefined', 'live-steps');
+      this.logger.msg('4', 'noVNCMobile - selectedMobile is null/undefined - variable value: ' + selectedMobile, 'live-steps');
       this.snack.open('No mobile selected', 'Close', { duration: 3000 });
     }
   }
@@ -723,6 +736,10 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         }
       }
     }
+  }
+
+  trackMobileFn(index: number, mobile: any): any {
+    return mobile.id || mobile.hostname || index;
   }
 
 }
