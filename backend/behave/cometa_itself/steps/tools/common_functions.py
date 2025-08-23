@@ -148,6 +148,9 @@ def getVariable(context, variable_name):
 
     return variable_value
 
+# use this method to add any information to step result, to help user understand what happened
+def add_step_execution_notes(context, message):
+    context.step_data["notes"] = message
 
 def is_valid_variable(value):
     """Check if value is a valid type (dict, list, number, string, bool, None)."""

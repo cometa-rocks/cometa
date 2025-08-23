@@ -175,9 +175,17 @@ def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department
                     if featureNameOrId.isnumeric():
                         subFeature = Feature.objects.get(feature_id=featureNameOrId, department_id=parent_department_id) 
                     else:
-                        subFeature = Feature.objects.get(feature_name=featureNameOrId, department_id=parent_department_id)
+                        subFeature = Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
+                        if len(subFeature) == 0:
+                            raise Exception('Unable to find feature with specified name "%s"' % str(featureNameOrId))
+                        elif len(subFeature) > 1:
+                            raise Exception(f'Multiple features found with specified name "{featureNameOrId}"')
+                        subFeature = subFeature[0]
+
                 except Feature.DoesNotExist as exception:
-                    raise Exception('Unable to find feature with specified name or id: %s' % str(featureNameOrId))
+                    raise Exception('Unable to find feature with specified id: "%s"' % str(featureNameOrId))
+             
+
 
             if is_feature_analyzed or subFeature:
                 # If feature not found in the "analyzed_features" and then take it from DB feature
@@ -292,11 +300,14 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
     feature_lock_file_path = featureFilePathWithName+'.feature.lock'
     # check if file 20 seconds old then delete it
     if os.path.exists(feature_lock_file_path):
-        if os.path.getmtime(feature_lock_file_path) < time.time() - 20:
+        # check if file is older than 2 seconds
+        if os.path.getmtime(feature_lock_file_path) < time.time() - 2:
+            # delete the file if lock file is older than 2 seconds
             os.remove(feature_lock_file_path)
+        
 
     if os.path.exists(feature_lock_file_path):
-        return {"success": True, "message": "Feature file is already being created. Please try again later."}
+        return {"success": False, "message": "Feature file is already being created. Please try again later."}
     
     feature_file_path = featureFilePathWithName+'.feature'
     feature_file_lock_path = featureFilePathWithName+'.feature.lock'
@@ -891,15 +902,21 @@ class Feature(models.Model):
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
-        new_feature = True
+        
+        
         self.slug = slugify(self.feature_name)
         # Make sure that emails should not contain the spaces, If feature_id is None, it means it is a new feature
         self.email_address = [email.strip() for email in self.email_address if email.strip()]
         self.email_cc_address = [email.strip() for email in self.email_cc_address if email.strip()]
         self.email_bcc_address = [email.strip() for email in self.email_bcc_address if email.strip()]
         # create backup only if feature is being modified
+        
         if self.feature_id is not None:
+            # DO NOT MESS with this variable it will cause the feature to be deleted
             new_feature = False
+        else:
+            # DO NOT MESS with this variable it will cause the 
+            new_feature = True
 
         # save to get the feature_id in case it is a new feature
         super(Feature, self).save(*args)
@@ -907,7 +924,7 @@ class Feature(models.Model):
         # Save feature except in FeatureResultSerializer
         if not kwargs.get('dontSaveSteps', False):
 
-            response = generate_feature_test_file_and_save_steps(self, kwargs, new_feature)
+            response = generate_feature_test_file_and_save_steps(self, kwargs, new_feature=new_feature)
             if not response['success']:
                 return response
             
@@ -920,6 +937,7 @@ class Feature(models.Model):
         return {"success": True}
     
     def delete(self, *args, **kwargs):
+        logger.debug(f"Deleting feature {self.feature_id}")
         # Remove runs and feature results
         Feature_Runs.available_objects.filter(feature__feature_id=self.feature_id).delete()
         Feature_result.available_objects.filter(feature_id=self.feature_id).delete()
@@ -951,7 +969,7 @@ class Feature(models.Model):
             models.Index(fields=['feature_name']),   
         ]
 
-def generate_feature_test_file_and_save_steps(feature, kwargs, new_feature, feature_result_id=""):
+def generate_feature_test_file_and_save_steps(feature, kwargs, new_feature=False, feature_result_id=""):
     # get featureFileName
     feature_dir_info = get_feature_path(feature, feature_result_id)
     featureFilePathWithName = feature_dir_info['fullPath']
@@ -972,11 +990,12 @@ def generate_feature_test_file_and_save_steps(feature, kwargs, new_feature, feat
     # the remaining dictionary will contain only the files_path and success=True
     files_path = step_data_and_files
 
-    # check if infinite loop was found
+    # If while creating new feature step validation error occurred then do not save the feature
     if not files_path['success']:
         if new_feature:
             logger.debug("Creation of feature was not success. Abort")
             feature.delete()
+        # return since success was false so not need to create json files
         return files_path 
     
     # Create .json
@@ -1049,6 +1068,10 @@ class Feature_result(SoftDeletableModel):
         # update department_id and department_name from the feature
         self.department_id = self.feature_id.department_id
         self.department_name = self.feature_id.department_name
+
+        if self.running == False:
+            from modules.container_service.service_manager import remove_running_containers
+            remove_running_containers(self)
 
         # save the feature_result
         super(Feature_result, self).save(*args)
