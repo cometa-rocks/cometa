@@ -125,7 +125,7 @@ def backup_feature_info(feature):
     path = feature_dir['path'] + 'features/'
     time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
-    backupsFolder = '/code/backups/features/'
+    backupsFolder = '/data/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
     orig_file = path + file + '_meta.json'
     dest_file = backupsFolder + file + '_' + time + '_meta.json'
