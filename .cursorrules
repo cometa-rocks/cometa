@@ -1,0 +1,81 @@
+# Cursor Rules for Cometa Project
+
+## Project Overview
+This is a full-stack application with Angular frontend and Python/Django backend for automated testing and monitoring.
+
+## General Coding Standards
+
+### Code Style
+- Use consistent indentation (2 spaces for frontend, 4 spaces for backend)
+- Follow the existing naming conventions in each module
+- Write self-documenting code with clear variable and function names
+- Add JSDoc comments for complex functions and classes
+
+### File Organization
+- Keep related files together in appropriate directories
+- Use descriptive file names that reflect their purpose
+- Group imports logically (Angular/core, third-party, local)
+
+### Error Handling
+- Always handle errors gracefully
+- Use try-catch blocks where appropriate
+- Log errors for debugging purposes
+- Provide user-friendly error messages
+
+## Frontend (Angular) Rules
+
+### Component Structure
+- Use OnPush change detection strategy when possible
+- Implement OnDestroy for components with subscriptions
+- Use async pipe for observables in templates
+- Keep components focused on single responsibility
+
+### Service Guidelines
+- Use dependency injection for services
+- Make services stateless when possible
+- Use BehaviorSubject for state management
+- Implement proper error handling in HTTP calls
+
+### Template Best Practices
+- Use trackBy functions for *ngFor loops
+- Avoid complex logic in templates
+- Use safe navigation operator (?.) for null checks
+- Keep templates readable and maintainable
+
+## Backend (Python/Django) Rules
+
+### Python Standards
+- Follow PEP 8 style guidelines
+- Use type hints where appropriate
+- Write docstrings for all public functions and classes
+- Use virtual environments for dependency management
+
+### Django Conventions
+- Use Django ORM for database operations
+- Implement proper model validation
+- Use Django forms for data input
+- Follow Django security best practices
+
+## Testing Guidelines
+- Write unit tests for all new functionality
+- Use meaningful test names that describe the scenario
+- Mock external dependencies
+- Maintain good test coverage
+
+## Security Considerations
+- Never commit sensitive information (API keys, passwords)
+- Use environment variables for configuration
+- Validate all user inputs
+- Implement proper authentication and authorization
+
+## Performance Guidelines
+- Optimize database queries
+- Use lazy loading for large datasets
+- Implement caching where appropriate
+- Monitor and optimize bundle sizes
+
+## Documentation
+- Update README files when adding new features
+- Document API endpoints
+- Include setup and deployment instructions
+- Maintain changelog for major changes

@@ -7,3 +7,4 @@ node_modules
 .env.development
 .env.test
 .env.production
+.cursorrules
