@@ -3,6 +3,8 @@
   <span>{{ data?.description }}</span>
 </mat-dialog-content>
 <mat-dialog-actions>
+  <!-- Yes button positioned on the left as it's the primary action and follows left-to-right reading patterns -->
+  <button mat-stroked-button color="warn" [mat-dialog-close]="true">Yes</button>
   <button 
     autofocus
     mat-stroked-button 
@@ -10,5 +12,4 @@
     [mat-dialog-close]="false">
     No
   </button>
-  <button mat-stroked-button color="warn" [mat-dialog-close]="true">Yes</button>
 </mat-dialog-actions>

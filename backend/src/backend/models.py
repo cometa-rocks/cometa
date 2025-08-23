@@ -103,7 +103,7 @@ def backup_feature_steps(feature):
     path = feature_dir['path'] + 'features/'
     time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
-    backupsFolder = '/code/backups/features/'
+    backupsFolder = '/data/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
     orig_file = path + file + '.json'
     dest_file = backupsFolder + file + '_' + time + '_steps.json'
@@ -125,7 +125,7 @@ def backup_feature_info(feature):
     path = feature_dir['path'] + 'features/'
     time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
-    backupsFolder = '/code/backups/features/'
+    backupsFolder = '/data/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
     orig_file = path + file + '_meta.json'
     dest_file = backupsFolder + file + '_' + time + '_meta.json'
@@ -914,10 +914,6 @@ class Feature(models.Model):
         if self.feature_id is not None:
             # DO NOT MESS with this variable it will cause the feature to be deleted
             new_feature = False
-            # We don't want to backup feature info if feature is being updated by backend api calls
-            # backup should only be created if feature is being created or modified by the user    
-            if kwargs.get('backup_feature_info', False)==True:
-                backup_feature_info(self)
         else:
             # DO NOT MESS with this variable it will cause the 
             new_feature = True
@@ -932,6 +928,12 @@ class Feature(models.Model):
             if not response['success']:
                 return response
             
+        if self.feature_id is not None:
+            # We don't want to backup feature info if feature is being updated by backend api calls
+            # backup should only be created if feature is being created or modified by the user    
+            if kwargs.get('backup_feature_info', False)==True:
+                backup_feature_info(self)
+
         return {"success": True}
     
     def delete(self, *args, **kwargs):

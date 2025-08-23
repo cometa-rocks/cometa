@@ -115,6 +115,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^parseBrowsers/', views.parseBrowsers),
+    url(r'^feature/(?P<feature_id>[0-9]+)/history/', views.getFeatureHistory),
     # url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
     url(r'browsers/lyrid', cache_page(browserstackCacheTime)(views.get_lyrid_browsers)),
