@@ -295,6 +295,9 @@ class AdminFile(admin.ModelAdmin):
     
     fileExistsOnFS.short_description = "Does file exist on FS?"
 
+class AdminFileData(admin.ModelAdmin):
+    model = FileData
+
 class AdminDepartment(admin.ModelAdmin):
     model = Department
     search_fields = ["department_id",'department_name']
@@ -337,6 +340,7 @@ admin.site.register(Environment)
 admin.site.register(Department, AdminDepartment)
 admin.site.register(Browser)
 admin.site.register(File, AdminFile)
+admin.site.register(FileData, AdminFileData)
 admin.site.register(Action, ActionAdmin)
 admin.site.register(Permissions, AdminPermissions)
 admin.site.register(Cloud, AdminCloud)

@@ -93,7 +93,7 @@ def assert_equal(context, value_one, value_two):
     
     if value_one != value_two:
         # Build detailed error message with Unicode information
-        error_msg = f"\"{value_one}\" does not match \"{value_two}\""
+        error_msg = f"\"{value_one}\": does not match \"{value_two}\""
         
         # Add Unicode information if present
         unicode_details = []
@@ -250,6 +250,7 @@ def step_impl(context, value, variable_name):
 def step_impl(context, value, variable_name):
     logger.debug("Saving value to runtime variable")
     send_step_details(context, 'Saving value to runtime variable')
+    logger.debug(f"Saving value to runtime variable: {variable_name} = {value}")
     # add variable
     addTestRuntimeVariable(context, variable_name, value, save_to_step_report=True)
 
@@ -362,8 +363,6 @@ def read_all_excel_rows_step(context, file_path, sheet_name, variable_name):
         raise CustomError(f"Error reading Excel file: {err}")
 
 
-
-
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
 def read_excel_row_to_environment(context, file_path, sheet_name, header_row_number=None, value_row_number=None):
@@ -380,8 +379,9 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
         logger.debug(f"Reading excel sheet {sheet_name}")
         # Read the specified sheet from the Excel file
         send_step_details(context, f"Reading row")    
-        df = pd.read_excel(excelFilePath, sheet_name=sheet_name)
+        df = pd.read_excel(excelFilePath, sheet_name=sheet_name, header=None)
         
+        logger.debug(f"table rows: {len(df)}")
         # If specific row indices are provided, set header and select data row
         if header_row_number is not None and value_row_number is not None:
             # Ensure the row indices are within the DataFrame's range
@@ -398,27 +398,30 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
             if header_row_number >= value_row_number:
                 raise CustomError(f"header_row_number should be less then the value_row_number")    
 
-        header_row_number = header_row_number - 2
-        value_row_number = value_row_number - 2
+        # header_row_number = header_row_number - 2
+        # value_row_number = value_row_number - 2
         if header_row_number >= 0:
             # Set the header using the specified header_row
             df.columns = df.iloc[header_row_number]
         # Select the specified value_row
         df = df.loc[:, ~df.columns.isnull() & (df.columns != '')]
-        df = df.iloc[[value_row_number]]
-        df = df.fillna('')
+        if len(df.axes[1]) > 0:
+            df = df.iloc[[value_row_number]]
+            df = df.fillna('')
             
-        row_data = df.to_dict(orient='records')
-        # Variables to exclude from overriding
-        excluded_variables = {"feature_id", "feature_name"}
-        
-        # Store each key-value pair in runtime variables except excluded ones
-        for key, value in row_data[0].items():
-            if key not in excluded_variables:  # Skip overriding feature_id and feature_name
-                addTestRuntimeVariable(context, key, str(value), save_to_step_report=True)  # Convert value to string
-            else:
-                logger.debug(f"Skipping variable: {key}, to prevent overriding.")
-                        
+            row_data = df.to_dict(orient='records')
+            # Variables to exclude from overriding
+            excluded_variables = {"feature_id", "feature_name"}
+            
+            # Store each key-value pair in runtime variables except excluded ones
+            for key, value in row_data[0].items():
+                if key not in excluded_variables:  # Skip overriding feature_id and feature_name
+                    addTestRuntimeVariable(context, key, str(value), save_to_step_report=True)  # Convert value to string
+                else:
+                    logger.debug(f"Skipping variable: {key}, to prevent overriding.")
+        else:
+            add_step_execution_notes(context, f"No variables found to import, May be header : {header_row_number} was empty")
+
     except Exception as e:
         logger.exception(e)
         raise CustomError(e)
