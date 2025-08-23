@@ -62,7 +62,7 @@ def run_browser(env, **kwargs):
             "feature_id": kwargs.get('feature_id'),
             "pid": str(os.getpid()),
         }
-        response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
+        requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
                                 data=json.dumps(task))
         raise Exception(response.json())
     response_json = response.json() 
