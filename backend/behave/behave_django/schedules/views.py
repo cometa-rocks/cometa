@@ -62,7 +62,7 @@ def run_test(request):
     logger.debug('Feature id: {}'.format(feature_id))
     department = request.POST['department'] # department where the feature belongs, set in request so we can get the department settings
     logger.debug('Department the feature belongs to: {}'.format(department))
-    PARAMETERS = request.POST['parameters'] # job parameters if the job was scheculed using schedule step
+    PARAMETERS = request.POST['parameters'] # job parameters if the job was scheduled using schedule step
     logger.debug('Job Parameters: {}'.format(PARAMETERS))
     
     # Get telegram notification data if present

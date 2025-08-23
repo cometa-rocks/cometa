@@ -86,13 +86,18 @@ if [ "$ENVIRONMENT" != "dev" ]; then
     echo "# to enable dev mode, use parameter '-dev' on start.sh #"
     echo "########################################################"
     gunicorn \
-        cometa_pj.wsgi:application \
-        --workers=${WORKERS:-$GUNI_WORKERS} \
-        --threads=${THREADS:-2} \
-        --worker-class=gthread \
-        --bind 0.0.0.0:8000 \
-        --access-logfile=- \
-        --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+    cometa_pj.wsgi:application \
+    --workers=${WORKERS:-$GUNI_WORKERS} \
+    --threads=${THREADS:-2} \
+    --worker-class=gthread \
+    --bind 0.0.0.0:8000 \
+    --timeout=60 \
+    --graceful-timeout=30 \
+    --max-requests=1000 \
+    --max-requests-jitter=200 \
+    --access-logfile=- \
+    --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+
 fi
 
 echo "###################################################"
