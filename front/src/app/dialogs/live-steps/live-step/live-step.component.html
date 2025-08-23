@@ -16,36 +16,6 @@
       <div class="icon-detail"></div>
       {{ detail }}
     </div>
-    <div
-      class="healing-details"
-      [@healingDetailsAnimation]
-      *ngIf="showHealingDetails && (healingData$ | async) as healingData">
-      <div class="healing-detail-row">
-        <mat-icon class="healing-icon">error_outline</mat-icon>
-        <span class="healing-label">Original selector failed:</span>
-        <code class="selector-code">{{ healingData.original_selector }}</code>
-      </div>
-      <div class="healing-detail-row">
-        <mat-icon class="healing-icon">check_circle</mat-icon>
-        <span class="healing-label">New selector used:</span>
-        <code class="selector-code">{{ healingData.healed_selector }}</code>
-      </div>
-      <div class="healing-detail-row">
-        <mat-icon class="healing-icon">speed</mat-icon>
-        <span class="healing-label">Confidence:</span>
-        <span>{{ healingData.confidence_score }}%</span>
-      </div>
-      <div class="healing-detail-row">
-        <mat-icon class="healing-icon">timer</mat-icon>
-        <span class="healing-label">Healing time:</span>
-        <span>+{{ healingData.healing_duration_ms }}ms</span>
-      </div>
-      <div class="healing-detail-row">
-        <mat-icon class="healing-icon">build</mat-icon>
-        <span class="healing-label">Method:</span>
-        <span>{{ healingData.healing_method }}</span>
-      </div>
-    </div>
   </div>
   <div
     class="screenshot"
@@ -94,42 +64,36 @@
         [style.backgroundImage]="getScreenshot('difference')"></i>
     </ng-template>
   </div>
-  <div class="screenshot others-column">
-    <ng-container *ngIf="rest_api || vulnerable_headers_count || (healingData$ | async); else othersHyphen">
-      <i
-        class="api_call"
-        *ngIf="rest_api"
-        matTooltip="View HTTP Request"
-        matTooltipPosition="above"
-        (click)="openRequest()">
-        <mat-icon>http</mat-icon>
-      </i>
-      <i
-        class="api_call"
-        *ngIf="vulnerable_headers_count"
-        matTooltip="Security Vulnerability | {{
-          vulnerable_headers_count
-        }} Requests response has vulnerable headers values, refer to execution reports for details"
-        matTooltipPosition="above">
-        <mat-icon [ngStyle]="{ color: 'red' }">report_problem</mat-icon>
-      </i>
-      <mat-icon 
-        *ngIf="healingData$ | async as healingData"
-        class="healing-icon"
-        [matTooltip]="getHealingTooltip(healingData)"
-        matTooltipPosition="above"
-        (click)="toggleHealingDetails(); $event.stopPropagation()">
-        healing
-      </mat-icon>
-    </ng-container>
-    <ng-template #othersHyphen>
-      <span class="hyphen-placeholder">-</span>
-    </ng-template>
+  <div
+    class="screenshot"
+    *ngIf="this.rest_api || this.vulnerable_headers_count || (healingData$ | async)?.was_healed; else hyphen">
+    <i
+      class="api_call"
+      *ngIf="this.rest_api"
+      matTooltip="View HTTP Request"
+      matTooltipPosition="above"
+      (click)="openRequest()">
+      <mat-icon>http</mat-icon>
+    </i>
+    <i
+      class="api_call"
+      *ngIf="this.vulnerable_headers_count"
+      matTooltip="Security Vulnerability | {{
+        this.vulnerable_headers_count
+      }} Requests response has vulnerable headers values, refer to execution reports for details"
+      matTooltipPosition="above">
+      <mat-icon [ngStyle]="{ color: 'red' }">report_problem</mat-icon>
+    </i>
+    <i
+      class="api_call healing-badge"
+      *ngIf="healingData$ | async as healingData"
+      [matTooltip]="getHealingTooltip(healingData)"
+      matTooltipPosition="above">
+      <mat-icon [ngStyle]="{ color: 'orange' }">healing</mat-icon>
+    </i>
   </div>
   <ng-template #hyphen>
-    <div class="screenshot">
-      <span class="hyphen-placeholder">-</span>
-    </div>
+    <div class="screenshot">-</div>
   </ng-template>
 </div>
 <div class="error-row" *ngIf="error$ | async as error">

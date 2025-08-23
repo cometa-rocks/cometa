@@ -71,15 +71,6 @@ import { UserState } from '@store/user.state';
 import { Select } from '@ngxs/store';
 import { ChangeDetectorRef} from '@angular/core';
 import { LogService } from '@services/log.service';
-// HealeniumData interface (defined globally in interfaces.d.ts)
-interface HealeniumData {
-  was_healed: boolean;
-  original_selector: string;
-  healed_selector: string;
-  confidence_score: number;
-  healing_duration_ms: number;
-  healing_method: string;
-}
 @Component({
   selector: 'step-view',
   templateUrl: './step-view.component.html',

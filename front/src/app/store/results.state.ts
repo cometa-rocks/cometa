@@ -546,9 +546,7 @@ export class ResultsState {
           datetime: datetime,
           error: error,
           step_time: step_time,
-          screenshots: (screenshots && Object.keys(screenshots).length > 0)
-            ? screenshots
-            : currentSteps[step_index].screenshots,
+          screenshots: screenshots,
           vulnerable_headers_count: vulnerable_headers_count,
           mobiles_info: mobiles_info,
           healing_data: healing_data,

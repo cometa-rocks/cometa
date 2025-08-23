@@ -52,44 +52,6 @@ import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
         ),
       ]),
     ]),
-    trigger('healingDetailsAnimation', [
-      transition(':enter', [
-        style({ 
-          opacity: 0, 
-          transform: 'translateY(-10px) scaleY(0.8)', 
-          transformOrigin: 'top',
-          maxHeight: 0,
-          paddingTop: 0,
-          paddingBottom: 0,
-          marginTop: 0
-        }),
-        animate(
-          '300ms cubic-bezier(0.4, 0, 0.2, 1)',
-          style({ 
-            opacity: 1, 
-            transform: 'translateY(0) scaleY(1)', 
-            maxHeight: '300px',
-            paddingTop: '12px',
-            paddingBottom: '12px',
-            marginTop: '4px'
-          })
-        ),
-      ]),
-      transition(':leave', [
-        animate(
-          '250ms cubic-bezier(0.4, 0, 0.2, 1)',
-          style({ 
-            opacity: 0, 
-            transform: 'translateY(-10px) scaleY(0.8)', 
-            transformOrigin: 'top',
-            maxHeight: 0,
-            paddingTop: 0,
-            paddingBottom: 0,
-            marginTop: 0
-          })
-        ),
-      ]),
-    ]),
   ],
   standalone: true,
   imports: [
@@ -110,8 +72,6 @@ export class LiveStepComponent implements OnInit {
   error$ = new BehaviorSubject<string>('');
   
   healingData$ = new BehaviorSubject<HealeniumData | undefined>(undefined);
-  
-  showHealingDetails = false;
 
   constructor(
     private _store: Store,
@@ -220,10 +180,6 @@ export class LiveStepComponent implements OnInit {
         });
       });
     }
-  }
-  
-  toggleHealingDetails() {
-    this.showHealingDetails = !this.showHealingDetails;
   }
   
   getHealingTooltip(healingData: HealeniumData): string {

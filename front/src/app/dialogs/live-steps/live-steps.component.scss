@@ -34,7 +34,6 @@ h2 {
 .mat-dialog-content {
   margin-bottom: 10px;
   max-height: initial !important;
-  overflow: hidden !important;
 }
 
 :host::ng-deep .mat-tab-label-content .browser-icon {
@@ -119,32 +118,21 @@ h2 {
   scrollbar-gutter: stable;
   & > div {
     flex: initial;
-    &.index {
-      margin-right: 5px;
-      flex: 0 25px;
-      text-align: center;
-    }
     &.text {
       flex: 1;
-      margin-left: 0;
+      margin-left: 34px !important;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     &.screenshot {
-      flex: 0 0 75px;
-      min-width: 75px;
-      max-width: 75px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 2px;
-      box-sizing: border-box;
-      height: 40px; /* Match the content row heights */
+      flex: 0 75px;
+      text-align: center;
     }
-    &.status {
-      flex: 0 20px;
+    &.index {
+      margin-right: 5px;
+      flex: 0 25px;
       text-align: center;
     }
     &:not(.index):not(.text):not(:last-child) {
@@ -637,7 +625,8 @@ mat-label {
     }
   }
 }
-  .healing-summary-list {
+
+.healing-summary-list {
     max-height: 400px;
     overflow-y: auto;
     overflow-x: hidden;
