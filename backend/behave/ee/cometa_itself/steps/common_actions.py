@@ -93,7 +93,7 @@ def assert_equal(context, value_one, value_two):
     
     if value_one != value_two:
         # Build detailed error message with Unicode information
-        error_msg = f"\"{value_one}\" does not match \"{value_two}\""
+        error_msg = f"\"{value_one}\": does not match \"{value_two}\""
         
         # Add Unicode information if present
         unicode_details = []
@@ -250,6 +250,7 @@ def step_impl(context, value, variable_name):
 def step_impl(context, value, variable_name):
     logger.debug("Saving value to runtime variable")
     send_step_details(context, 'Saving value to runtime variable')
+    logger.debug(f"Saving value to runtime variable: {variable_name} = {value}")
     # add variable
     addTestRuntimeVariable(context, variable_name, value, save_to_step_report=True)
 

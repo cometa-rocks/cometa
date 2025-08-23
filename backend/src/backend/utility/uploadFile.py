@@ -167,16 +167,23 @@ class UploadFile():
 
         # check if file already exists
         if os.path.exists(self.finalPath):
-            logger.error("File already exists ... will not save.")
             self.deleteFile(self.tempFile.temporary_file_path())
+            file = File.objects.filter(name=self.tempFile.name)
+            if len(file) == 0:
+                logger.debug(f"File does not exist in the database, removing the file from the filesystem.")
+                os.remove(self.finalPath)
+                message = f"File does not exist in the database, but it exists in the filesystem. Removed the file from the filesystem. Please reupload the file."
+            else:
+                message = f"File already exists with the same name, please try removing old file or rename the file."
+            logger.error(message)
             # send a websocket about the processing being done.
             self.file.status = "Error"
             self.sendWebsocket({
                 "type": "[Files] Error",
                 "file": FileSerializer(self.file, many=False).data,
                 "error": {
-                    "status": f"FILE_ALREADY_EXIST",
-                    "description": f"File already exists with the same name, please try removing old file or rename the file."
+                    "status": "FILE_ALREADY_EXIST",
+                    "description": message
                 }
             })
             return None
@@ -358,7 +365,7 @@ class UploadFile():
                 file_type = self.file_type
             )
         except Exception as err:
-            logger.error("Exception occured while trying to create an object...", err)
+            logger.error("Exception occurred while trying to create an object...", err)
             file = None
         return file
 
