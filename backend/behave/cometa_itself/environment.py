@@ -16,6 +16,7 @@ import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 import copy
 from concurrent.futures import ThreadPoolExecutor
+from behave.model_core import Status
 
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/opt/code/cometa_itself/steps")
@@ -390,6 +391,27 @@ def before_all(context):
         "cloud", "browserstack"
     )  # default it back to browserstack incase it is not set.
     
+    logger.debug(f"data: {data}")
+    context.record_video = data["video"] if "video" in data else False
+    logger.debug(f"context.record_video {context.record_video }")
+    
+    # read the steps from the step json file which is created by django container in the file system
+    logger.debug(f"FEATURE_JSON_FILE: {os.environ['FEATURE_JSON_FILE']}")
+    with open(os.environ['FEATURE_JSON_FILE'], 'r') as f:
+        context.steps = json.load(f)
+    logger.debug(f"context.steps: {context.steps}")
+        
+    logger.debug(f"Total steps found: {len(context.steps)}")
+
+    if len(context.steps) == 0:
+        logger.error(f"No steps found in the feature json file: {os.environ['FEATURE_JSON_FILE']}")
+        context.config.stop = True  # Tells Behave to stop execution
+        return
+    
+    # update counters total
+    context.counters["total"] = len(context.steps)
+    os.environ["total_steps"] = str(context.counters["total"])
+
     # FIXME move this logic to browser creation file and window
     context.service_manager = ServiceManager()
     context.browser_hub_url = "cometa_selenoid"   
@@ -456,8 +478,6 @@ def before_all(context):
         if not is_running:
             return
     # video recording on or off
-    context.record_video = data["video"] if "video" in data else True
-    logger.debug(f"context.record_video {context.record_video }")
     # create the options based on the browser name
     if context.browser_info["browser"] == "firefox":
         options = FirefoxOptions()
@@ -541,6 +561,7 @@ def before_all(context):
     options.set_capability(
         "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
     )
+    logger.debug(f"options: {options.to_capabilities()}")
         
     if context.browser_info["browser"] == "chrome" and context.network_logging_enabled:
         # If network logging enabled then fetch vulnerability headers info from server
@@ -648,18 +669,6 @@ def before_all(context):
     requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
 
-    # read the steps from the step json file which is created by django container in the file system
-    logger.debug(f"FEATURE_JSON_FILE: {os.environ['FEATURE_JSON_FILE']}")
-    with open(os.environ['FEATURE_JSON_FILE'], 'r') as f:
-        context.steps = json.load(f)
-    logger.debug(f"context.steps: {context.steps}")
-        
-    logger.debug(f"Total steps found: {len(context.steps)}")
-
-    # update counters total
-    context.counters["total"] = len(context.steps)
-
-    os.environ["total_steps"] = str(context.counters["total"])
 
     # FIXME Need to understand how Live screen will behave when the browser information is not send to socket
     # send a websocket request about that feature has been started
@@ -688,8 +697,10 @@ def get_video_url(context):
 
 @error_handling()
 def after_all(context):
-    del os.environ["current_step"]
-    del os.environ["total_steps"]
+    if os.environ.get("current_step", None) is not None:
+        del os.environ["current_step"] 
+    if os.environ.get("total_steps", None) is not None:
+        del os.environ["total_steps"]
     # check if any alertboxes are open before quiting the browser
 
     if hasattr(context,"pw"):
@@ -729,14 +740,15 @@ def after_all(context):
         
     
     # Close all Mobile sessions
-    for key, mobile in context.mobiles.items():
-        logger.debug(mobile['driver'])
-        try:
-            mobile['driver'].quit()
-            
-        except Exception as err:
-            logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
-            logger.error(str(err))
+    if hasattr(context, "mobiles"):
+        for key, mobile in context.mobiles.items():
+            logger.debug(mobile['driver'])
+            try:
+                mobile['driver'].quit()
+                
+            except Exception as err:
+                logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
+                logger.error(str(err))
     # testcase has finished, send websocket about processing data
     request = requests.get(f'{get_cometa_socket_url()}/feature/%s/processing' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
@@ -751,6 +763,9 @@ def after_all(context):
     logger.debug("Removed all services started by test")
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
+    if len(context.steps) == 0:
+        raise Exception(f"No steps found in the feature \"{context.feature_info['feature_name']}\"")
+    
     if context.record_video:
         if context.cloud == "browserstack":
             # Observed browserstack delay when creating video files

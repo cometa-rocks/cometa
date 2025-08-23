@@ -552,8 +552,10 @@ def click_element(context, element):
 
 def tempFile(source):
     # file ext
+    # generate a random string of 10 characters and add it to the filename to avoid parallel execution file name conflict
+    random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
     filename = os.path.basename(source).split("/")[-1]
-    target = "/tmp/%s" % filename
+    target = f"/tmp/{random_string}_{filename}"
 
     # check if file exists
     if os.path.exists(target):
@@ -567,9 +569,8 @@ def tempFile(source):
 
             # get the timestamp and add more random text
             ts = time.time()
-            additional_random = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
-            logger.debug(f"Setting a different filename: /tmp/{ts}_{additional_random}_{filename}")
-            target = f"/tmp/{ts}_{additional_random}_{filename}"
+            logger.debug(f"Setting a different filename: /tmp/{ts}_{filename}")
+            target = f"/tmp/{ts}_{filename}"
 
     logger.info(f"TMP file will be created at {target} for {source}.")
 

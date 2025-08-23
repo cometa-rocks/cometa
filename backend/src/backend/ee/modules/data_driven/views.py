@@ -329,7 +329,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         is_excel = DataFrameUtils.is_excel_file(file.name)
         
         # file.all() comes from the reverse relation between FileData and File model.
-        file_data = file.file.all()
+        file_data = file.file.all().order_by('id')
 
         if reparse or not file_data:
             # delete any old data only works incase of reparse
