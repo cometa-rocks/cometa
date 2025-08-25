@@ -115,7 +115,7 @@ default_cometa_configurations = {
     "OLLAMA_AI_HOST":"ollama.ai",
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
-    "OLLAMA_AI_SECRET_KEY":"",
+    "OLLAMA_AI_SECRET_KEY":""
 }
 
 public_configuraion_values = [

@@ -17,6 +17,17 @@ from contextlib import contextmanager
 # Get logger
 logger = logging.getLogger('FeatureExecution')
 
+# Healenium Configuration
+HEALENIUM_CONFIG = {
+    "proxy_image": "healenium/hlm-proxy:2.1.8",
+    "backend_url": "http://hlm-backend:7878",
+    "selector_imitator_url": "http://selector-imitator:8000",
+    "recovery_tries": "3",
+    "score_cap": "0.3",
+    "heal_enabled": "true",
+    "network": "cometa_testing"
+}
+
 
 class HealeniumClient:
     """Healenium client for per-test proxy management"""
@@ -442,6 +453,31 @@ class HealeniumClient:
             logger.info(f"Healenium: Notification sent for step {step_index}")
         except Exception as e:
             logger.debug(f"Failed to send healing notification: {e}")
+    
+    def save_healing_to_database(self, healing_data_json, feature_result_id, step_index, step_name, session_id):
+        """Save healing data to Cometa database via API call"""
+        try:
+            import json
+            from utility.config_handler import get_cometa_backend_url
+            
+            healing_info = json.loads(healing_data_json)
+            payload = {
+                'feature_result_id': int(feature_result_id),
+                'step_name': step_name,
+                'step_index': step_index,
+                'original_selector': healing_info['original_selector'],
+                'healed_selector': healing_info['healed_selector'],
+                'confidence_score': healing_info['confidence_score'] / 100.0,  # Convert percentage to 0-1 range
+                'healing_duration_ms': healing_info.get('healing_duration_ms', 0),
+                'healing_session_id': session_id
+            }
+            response = requests.post(f'{get_cometa_backend_url()}/api/healenium/results/save/', json=payload, headers={'Host': 'cometa.local'})
+            if response.status_code == 201:
+                logger.debug(f"Successfully saved healing data for step {step_index}")
+            else:
+                logger.debug(f"Failed to save healing data: {response.status_code} - {response.text}")
+        except Exception as e:
+            logger.debug(f"Error saving healing data: {e}")
     
     def cleanup(self):
         """Cleanup proxy container"""

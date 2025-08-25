@@ -34,16 +34,6 @@ from tools.models import Condition
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s.%(msecs)03d][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
-# Healenium Configuration
-HEALENIUM_CONFIG = {
-    "proxy_image": "healenium/hlm-proxy:2.1.7",
-    "backend_url": "http://hlm-backend:7878",
-    "selector_imitator_url": "http://selector-imitator:8000",
-    "recovery_tries": "3",
-    "score_cap": "0.3",
-    "heal_enabled": "true",
-    "network": "cometa_testing"
-}
 
 load_configurations()
 
@@ -499,7 +489,7 @@ def before_all(context):
             logger.info("Healenium enabled - creating proxy synchronously")
             try:
                 # Initialize Healenium client
-                from ee.cometa_itself.healenium_client import healenium_context
+                from ee.cometa_itself.healenium_client import healenium_context, HEALENIUM_CONFIG
                 context.healenium_context_manager = healenium_context(context)
                 context.healenium_client = context.healenium_context_manager.__enter__()
                 
@@ -1348,6 +1338,9 @@ def after_step(context, step):
     # Log healing data if present
     if healing_data:
         logger.info(f"WebSocket payload includes healing data for step {index}: {healing_data}")
+        # Save healing data to database via Healenium client
+        if hasattr(context, 'healenium_client') and context.healenium_client:
+            context.healenium_client.save_healing_to_database(healing_data, os.environ["feature_result_id"], index, step_name, context.browser.session_id)
     else:
         logger.debug(f"No healing data for step {index}")
     

@@ -28,7 +28,7 @@ services:
 
   # Healenium Backend Service (Spring Boot)
   hlm-backend:
-    image: healenium/hlm-backend:3.4.8
+    image: healenium/hlm-backend:3.4.9
     platform: linux/amd64
     container_name: cometa_hlm_backend
     environment:

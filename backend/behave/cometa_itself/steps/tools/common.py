@@ -64,14 +64,8 @@ def _lazy_import_healenium():
 
 
 def _handle_healing_check(context, selector_type, selector, find_start_time):
-    """Handle healing check after successful element find"""
-    # Check if Healenium is enabled
-    # This ensures healing data is captured regardless of proxy strategy
-    if not getattr(context, 'healenium_enabled', False):
-        return
-    
-    # Also check if we have a healenium_client available
-    if not hasattr(context, 'healenium_client') or not context.healenium_client:
+    """Store healing data in context for later saving after step_result creation"""
+    if not getattr(context, 'healenium_enabled', False) or not hasattr(context, 'healenium_client'):
         return
     
     healenium = _lazy_import_healenium()
@@ -79,90 +73,14 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
         return
         
     try:
-        # Use the existing healenium_client from context
-        client = context.healenium_client
+        # Get healing data from Healenium
+        selector_type_str = selector_type.name.lower() if hasattr(selector_type, 'name') else str(selector_type).lower()
+        healing_info = context.healenium_client.get_healing_data_from_db(selector_type_str, selector, find_start_time - 5)
         
-        # Handle both By enum and string selector types
-        if hasattr(selector_type, 'name'):
-            # It's a By enum
-            selector_type_str = selector_type.name.lower()
-        else:
-            # It's already a string
-            selector_type_str = str(selector_type).lower()
-            
-        healing_info = client.get_healing_data_from_db(
-            selector_type_str, 
-            selector, 
-            find_start_time - 5
-        )
         if healing_info:
+            # Just store in context for later saving
             context.healing_data = healing_info
-            context.last_healed_element = healing_info  # Ensure it's available in after_step
-            logger.info(f"Captured healing data: {selector} -> {healing_info['healed_selector']['value']} (score: {healing_info['score']})")
-            
-            # Save healing data to database via API call
-            try:
-                # Get current step info from context
-                step_name = f"{context.CURRENT_STEP.keyword} {context.CURRENT_STEP.name}" if hasattr(context, 'CURRENT_STEP') else "Unknown step"
-                step_index = context.counters.get('index', 0) if hasattr(context, 'counters') else 0
-                
-                # Parse selector types from healing info
-                original_selector_dict = healing_info.get('original_selector', {})
-                healed_selector_dict = healing_info.get('healed_selector', {})
-                
-                # Extract selector values and types
-                if isinstance(original_selector_dict, dict):
-                    original_selector = f"By.{original_selector_dict.get('type', 'unknown')}({original_selector_dict.get('value', '')})"
-                    selector_type_from = original_selector_dict.get('type', 'unknown')
-                else:
-                    original_selector = str(original_selector_dict)
-                    selector_type_from = 'unknown'
-                    if 'By.' in original_selector:
-                        selector_type_from = original_selector.split('By.')[1].split('(')[0]
-                
-                if isinstance(healed_selector_dict, dict):
-                    healed_selector = f"By.{healed_selector_dict.get('type', 'unknown')}({healed_selector_dict.get('value', '')})"
-                    selector_type_to = healed_selector_dict.get('type', 'unknown')
-                else:
-                    healed_selector = str(healed_selector_dict)
-                    selector_type_to = 'unknown'
-                    if 'By.' in healed_selector:
-                        selector_type_to = healed_selector.split('By.')[1].split('(')[0]
-                
-                # Prepare data for API call
-                healing_save_data = {
-                    'feature_result_id': int(os.environ.get('feature_result_id', 0)),
-                    'step_result_id': None,  # Will be set later in after_step
-                    'step_name': step_name,
-                    'step_index': step_index,
-                    'original_selector': original_selector,
-                    'healed_selector': healed_selector,
-                    'selector_type_from': selector_type_from,
-                    'selector_type_to': selector_type_to,
-                    'confidence_score': healing_info.get('score', 0),  # Already in 0-1 range from healenium_client
-                    'healing_duration_ms': healing_info.get('healing_duration_ms', 0),
-                    'healing_session_id': context.browser.session_id
-                }
-                
-                # Import get_cometa_backend_url from common utilities
-                from utility.config_handler import get_cometa_backend_url
-                
-                logger.info(f"Healenium: Saving healing data: {healing_save_data}")
-                
-                # Make API call to save healing result  
-                response = requests.post(
-                    f'{get_cometa_backend_url()}/api/healenium/results/save/',
-                    json=healing_save_data,
-                    headers={'Host': 'cometa.local'}
-                )
-                
-                if response.status_code == 201:
-                    logger.debug("Successfully saved Healenium result from DB check")
-                else:
-                    logger.debug(f"Failed to save Healenium result: {response.status_code} - {response.text}")
-                    
-            except Exception as e:
-                logger.debug(f"Failed to save Healenium result from DB check: {str(e)}")
+            logger.info(f"Healing detected: {selector} -> {healing_info['healed_selector']['value']} (score: {healing_info['score']})")
     except Exception as e:
         logger.debug(f"Failed to check for healing: {str(e)}")
 
@@ -516,6 +434,8 @@ def waitSelectorOld(context, selector_type, selector, max_timeout=None):
                 elements = eval(types_new.get(selec_type, "css"))
                 # Check if it returned at least 1 element
                 if isinstance(elements, WebElement) or len(elements) > 0:
+                    # Check for healing after successful element find
+                    _handle_healing_check(context, selec_type, selector, start_time)
                     return elements
             except CustomError as err:
                 logger.error(
