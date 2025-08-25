@@ -426,6 +426,7 @@ def before_all(context):
         ENABLE_HEALENIUM = ENABLE_HEALENIUM.strip().lower() == "true"
     
     context.healenium_enabled = ENABLE_HEALENIUM
+    context.all_healing_events = {}  # Initialize healing events collection
     logger.info(f"Healenium {'enabled' if ENABLE_HEALENIUM else 'disabled'} (config: COMETA_FEATURE_HEALENIUM={ENABLE_HEALENIUM})")
     
     if USE_COMETA_BROWSER_IMAGES:
@@ -946,6 +947,13 @@ def after_all(context):
 """ % stdout.replace(
         "\n\n", "\n"
     )
+    
+    # Add healing summary if healing occurred
+    if hasattr(context, 'all_healing_events') and context.all_healing_events:
+        log_content += "\nHealenium Summary: %d elements healed\n" % len(context.all_healing_events)
+        for step_index, healing_data in context.all_healing_events.items():
+            healing_json = json.loads(healing_data)
+            log_content += "  • Step %d: %s → %s (%d%% confidence)\n" % (step_index, healing_json['original_selector'], healing_json['healed_selector'], healing_json['confidence_score'])
 
     # save xml file as log for the user
     data["log"] = log_content
@@ -1338,6 +1346,10 @@ def after_step(context, step):
     # Log healing data if present
     if healing_data:
         logger.info(f"WebSocket payload includes healing data for step {index}: {healing_data}")
+        
+        # Store healing event for log processing
+        context.all_healing_events[index] = healing_data
+        
         # Save healing data to database via Healenium client
         if hasattr(context, 'healenium_client') and context.healenium_client:
             context.healenium_client.save_healing_to_database(healing_data, os.environ["feature_result_id"], index, step_name, context.browser.session_id)
