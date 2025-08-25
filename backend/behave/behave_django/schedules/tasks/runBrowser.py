@@ -33,6 +33,7 @@ def run_browser(env, **kwargs):
     variables = env.pop('VARIABLES')
     env['execution_data'] = tempfile.name
 
+
     with open(tempfile.name, 'wb') as file:
         pickle.dump({ 
             'VARIABLES': variables
@@ -45,6 +46,24 @@ def run_browser(env, **kwargs):
         'feature_result_id': env.get('feature_result_id')
     })
     if not response.json().get('success'):
+        requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % int(kwargs.get('feature_id')), data={
+            "user_id": kwargs.get('user_data', {}).get('user_id', None),
+            "browser_info": json.dumps(kwargs.get('BROWSER_INFO', None)),
+            "feature_result_id": env.get('feature_result_id'),
+            "run_id": int(kwargs.get('feature_run')),
+            "feature_result_info": json.dumps(response.json()),
+            "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        })
+                # call update task to delete a task with pid.
+        task = {
+            "action": "delete",
+            "browser": json.dumps(kwargs.get('BROWSER_INFO', None)),
+            "feature_result_id": env.get('feature_result_id'),
+            "feature_id": kwargs.get('feature_id'),
+            "pid": str(os.getpid()),
+        }
+        requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
+                                data=json.dumps(task))
         raise Exception(response.json())
     response_json = response.json() 
     logger.debug(f"Feature file generated successfully")
