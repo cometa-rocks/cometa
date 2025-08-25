@@ -1362,7 +1362,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     # update feature info
     feature.info = fRun
-
+    feature.save(dontSaveSteps=True, backup_feature_info=False)
     # # Make sure feature files exist - only create if missing to prevent step duplication
     # feature_path = get_feature_path(feature)['fullPath']
     # if not os.path.exists(feature_path + '.feature'):
