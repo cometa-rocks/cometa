@@ -1,11 +1,8 @@
 import time
 import signal
 import logging
-import requests
-import json
 import os
 import sys
-import re
 
 from .exceptions import *
 from .variables import *
@@ -64,7 +61,7 @@ def _lazy_import_healenium():
 
 
 def _handle_healing_check(context, selector_type, selector, find_start_time):
-    """Store healing data in context for later saving after step_result creation"""
+    """Check if Healenium healed this element and store in context"""
     if not getattr(context, 'healenium_enabled', False) or not hasattr(context, 'healenium_client'):
         return
     
@@ -74,11 +71,11 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
         
     try:
         # Get healing data from Healenium
-        selector_type_str = selector_type.name.lower() if hasattr(selector_type, 'name') else str(selector_type).lower()
+        selector_type_str = selector_type if isinstance(selector_type, str) else str(selector_type).lower()
         healing_info = context.healenium_client.get_healing_data_from_db(selector_type_str, selector, find_start_time - 5)
         
         if healing_info:
-            # Just store in context for later saving
+            # Store in context for later saving
             context.healing_data = healing_info
             logger.info(f"Healing detected: {selector} -> {healing_info['healed_selector']['value']} (score: {healing_info['score']})")
     except Exception as e:
@@ -218,26 +215,10 @@ def detect_selector_type(selector):
     
     # if the value is greater than 1, process the selector type
     if len(selector_type_and_selector) > 1:
-        selector_type_str = selector_type_and_selector[0].lower()
+        selector_type = selector_type_and_selector[0]
         selector = selector_type_and_selector[1]
-        
-        # Map string selector types to By enums
-        type_mapping = {
-            'id': By.ID,
-            'css': By.CSS_SELECTOR,
-            'xpath': By.XPATH,
-            'name': By.NAME,
-            'class': By.CLASS_NAME,
-            'tag_name': By.TAG_NAME,
-            'link_text': By.LINK_TEXT,
-            'partial_link_text': By.PARTIAL_LINK_TEXT
-        }
-        
-        selector_type = type_mapping.get(selector_type_str)
-        if selector_type:
-            return selector_type, selector
-    
-    return None, None
+    else:
+        return None, None
     
     if selector_type == "name":
         selector_type = By.NAME
@@ -295,72 +276,56 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
 """
 def waitSelectorNew(context, selector, max_timeout=None):
     logger.debug("Checking with new selector strategy")
+    # max_timeout = max_timeout if max_timeout is not None else 7200
+  
     start_time = time.time()
-
-    if not selector.strip():
+    # max_timeout = start_time+max_timeout
+    if len(selector.strip())==0:
         raise CustomError("Please provide valid selector")
     
     selector_type, selector = detect_selector_type(selector=selector)
+        
     if selector_type is None:
-        logger.debug("Could not determine selector type with new method, will try with old")
+        logger.debug(f"Could not determine selector type with new method, will try with old")
         return False
     
     device_driver = context.mobile["driver"] if context.STEP_TYPE == 'MOBILE' else context.browser
-    max_timeout = max_timeout or context.step_data["timeout"]
     
-    # Determine find method based on selector type
-    use_find_element = selector_type in [By.ID, By.NAME]
+    if max_timeout == None:
+        max_timeout = context.step_data["timeout"]
     
+    if selector_type in [By.ID, By.NAME]:
+        method = device_driver.find_element
+    else:
+        method = device_driver.find_elements
     retry_count = 0
-    healing_attempted = False
-    healed_selector = None
-    healed_selector_type = None
-    
-    while time.time() - start_time < max_timeout:
-        if retry_count % 10 == 0:
+    while time.time() - start_time < max_timeout :
+        # Reduce logging, above condition will print every 1 seconds
+        if retry_count%10 == 0:
             logger.debug(f"Trying to find element with selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
-        
         try:
-            # Use healed selector if available
-            current_selector = healed_selector or selector
-            current_selector_type = healed_selector_type or selector_type
-            
-            # Update method if using healed selector
-            if healed_selector and healed_selector_type:
-                use_find_element = healed_selector_type in [By.ID, By.NAME]
-            
-            # Find element(s)
-            find_start_time = time.time()
-            method = device_driver.find_element if use_find_element else device_driver.find_elements
-            elements = method(current_selector_type, current_selector)
-            
-            # Check if element(s) found
-            if isinstance(elements, WebElement) or (isinstance(elements, list) and elements):
-                # Check for healing
-                _handle_healing_check(context, selector_type, selector, find_start_time)
-                
-                # Return elements in consistent format
-                return [elements] if isinstance(elements, WebElement) else elements
+            elements = method(selector_type, selector)
+            # Check if it returned at least 1 element
+            # This if used when find_element is used
+            if isinstance(elements, WebElement):
+                # Check for healing after successful element find
+                _handle_healing_check(context, selector_type, selector, start_time)
+                return [elements]
+            # This if used when find_elements is used
+            if len(elements) > 0:
+                # Check for healing after successful element find
+                _handle_healing_check(context, selector_type, selector, start_time)
+                return elements
             else:
-                raise CometaElementNotFoundError(f"Element not found for selector: {current_selector}")
+                raise CometaElementNotFoundError(f"Element not found for selector: {selector}")
             
         except Exception as err:
+            # Store exception in context so that it can be used with raising exception when step timeout happens
             context.step_exception = err
-            
-            # Log healing status on repeated failures
-            if (not healing_attempted and 
-                getattr(context, 'healenium_enabled', False) and 
-                hasattr(context, 'healenium_client') and
-                context.healenium_client.is_proxy_ready() and
-                retry_count > 10):  # After 10 failed attempts (1 second)
-                
-                logger.info(f"Element '{selector}' not found after {retry_count} attempts - Healenium proxy is active and should heal if possible")
-                healing_attempted = True
-        
-        retry_count += 1
+        retry_count+=1
         time.sleep(0.1)
     
-    # Raise the exception
+    # raise actual exception after the timeout 
     raise context.step_exception
 
 
