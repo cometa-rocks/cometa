@@ -739,13 +739,12 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     }
   }
 
-/*
-* trackMobileFn
-* it is used to track the mobile device in the mobile list of hte HTML file
-* @returns the index of the mobile device or the hostname of the mobile device or the index
-*/
+  /*
+    * trackMobileFn
+    * it is used to track the mobile device in the mobile list of hte HTML file
+    * @returns the index of the mobile device or the hostname of the mobile device or the index
+    */
   trackMobileFn(index: number, mobile: any): any {
-    this.logger.msg('4', `trackMobileFn: + ${mobile} + ${index}`, 'live-steps');
     return mobile.id || mobile.hostname || index;
   }
 
