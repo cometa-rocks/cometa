@@ -573,7 +573,7 @@ mat-label {
   }
 }
 
-.multiple-mobiles-container {
+.multiple-mobiles-container, .single-mobile-container {
   display: flex;
   flex-direction: row;
   gap: 8px;
@@ -623,4 +623,9 @@ mat-label {
   align-items: center;
   gap: 4px;
   font-size: 12px;
+}
+
+.browser-tab {
+  display: flex;
+  align-items: center;
 }
