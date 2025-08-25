@@ -40,35 +40,14 @@
                 <div class="father-mobile-container">
                   <ng-container>
                     <span class="separator-text"></span>
-                    <!-- single mobile -->
+                    <!-- single and multiple mobiles -->
                     <div class="mobile-selection-container">
                       <div 
-                        *ngIf="mobiles[feature_result_id]?.length === 1"
-                        class="single-mobile-container">
-                        <div 
-                          class="mobile-row"
-                          [class.selected]="selectedMobile?.id === mobiles[feature_result_id][0]?.id"
-                          [matTooltip]="'Click to connect to this mobile device'">
-                          <div (click)="noVNCMobile(mobiles[feature_result_id][0]?.hostname)" class="mobile-option">
-                            <mat-icon class="mobile-icon">smartphone</mat-icon>
-                            <span class="mobile-name">{{ mobiles[feature_result_id][0]?.name || mobiles[feature_result_id][0]?.hostname }}</span>
-                            <span class="mobile-status" *ngIf="mobiles[feature_result_id][0]?.status">
-                              <mat-icon [class]="mobiles[feature_result_id][0]?.status.toLowerCase()">fiber_manual_record</mat-icon>
-                              {{ mobiles[feature_result_id][0]?.status }}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- multiple mobiles -->
-                    <div class="mobile-selection-container">
-                      <div 
-                        *ngIf="mobiles[feature_result_id]?.length > 1"
+                        *ngIf="mobiles[feature_result_id]?.length >= 1"
                         class="multiple-mobiles-container">
                         <div 
                           *ngFor="let mobile of mobiles[feature_result_id]; trackBy: trackMobileFn"
                           class="mobile-row"
-                          
                           [class.selected]="selectedMobile?.id === mobile.id"
                           [matTooltip]="'Click to connect to this mobile device'">
                           <div (click)="noVNCMobile(mobile.hostname)" class="mobile-option">
@@ -212,19 +191,6 @@
                   </ng-container>
                 </ng-container>
               </ng-template>
-              <!-- show mobiles -->
-              <!-- <ng-template class="mobile-tabs">
-                <mat-tab *ngFor="let mobile of mobiles[feature_result_id]" [value]="mobile">
-                  <div class="mobile-option">
-                    <mat-icon class="mobile-icon">smartphone</mat-icon>
-                    <span class="mobile-name">{{ mobile.name || mobile.hostname }}</span>
-                    <span class="mobile-status" *ngIf="mobile.status">
-                      <mat-icon [class]="mobile.status.toLowerCase()">fiber_manual_record</mat-icon>
-                      {{ mobile.status }}
-                    </span>
-                  </div>
-                </mat-tab>
-              </ng-template> -->
             </mat-tab>
           </ng-template>
 

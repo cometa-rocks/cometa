@@ -407,13 +407,14 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
    * If validation fails, it shows an error message to the user.
    */
   noVNCMobile(selectedMobile: any) {
+    // check if selectedMobile exists and has at least 2 keys
     if (selectedMobile && selectedMobile.length > 2) {
       this.logger.msg('4', `noVNCMobile - selectedMobile object: hostname ${selectedMobile}`, 'live-steps');
       let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
       window.open(complete_url, selectedMobile).focus();
     } else {
       this.logger.msg('4', 'noVNCMobile - selectedMobile is null/undefined - variable value: ' + selectedMobile, 'live-steps');
-      this.snack.open('No mobile selected', 'Close', { duration: 3000 });
+      this.snack.open('No valid mobile selected', 'Close', { duration: 3000 });
     }
   }
 
@@ -738,7 +739,13 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     }
   }
 
+/*
+* trackMobileFn
+* it is used to track the mobile device in the mobile list of hte HTML file
+* @returns the index of the mobile device or the hostname of the mobile device or the index
+*/
   trackMobileFn(index: number, mobile: any): any {
+    this.logger.msg('4', `trackMobileFn: + ${mobile} + ${index}`, 'live-steps');
     return mobile.id || mobile.hostname || index;
   }
 
