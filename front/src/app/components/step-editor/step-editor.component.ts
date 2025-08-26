@@ -1371,6 +1371,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
+
+    // department files
+    this.logger.msg('4', '=== onStepChange() === Department Files', 'step-editor', this.department.files);
+
+    // event
+    this.logger.msg('4', '=== onStepChange() === Event', 'step-editor', event);
+
+    // index
+    this.logger.msg('4', '=== onStepChange() === Index', 'step-editor', index);
+
+    // call to funtcion and check if step have '{file_path}'
+    this.checkIfStepHaveFilePath(index);
+
+
     // Use the most reliable index - prioritize currentFocusedStepIndex but validate it
     let targetIndex = this.currentFocusedStepIndex ?? index;
     
@@ -3158,4 +3172,28 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     this._cdr.detectChanges();
   }
+
+  // Check if the step have '{file_path}' and create a mat autocomplete with the files name 
+  checkIfStepHaveFilePath(index: number) {
+    // Doing like that its more safer than put any in the event parameter
+    const step = this.stepsForm.at(index).get('step_content')?.value;
+    if (step.includes('{file_path}')) {
+      this.logger.msg('4', '=== checkIfStepHaveFilePath() ===', 'step-editor', step);
+      // call function to create a mat autocomplete with the files name 
+      this.createFilePathAutocomplete(index);
+    }
+    else {
+      // Return before still reading code
+      return;
+    }
+  }
+
+  // Create a mat autocomplete with the files name 
+  createFilePathAutocomplete(index: number) {
+    // Create a matautocomplete with the files name 
+    const files = this.department.files.map(file => file.name);
+    this.logger.msg('4', '=== checkIfStepHaveFilePath() === Files', 'step-editor', files);
+
+  }
+
 }
