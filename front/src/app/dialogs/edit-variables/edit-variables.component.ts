@@ -315,7 +315,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   }
 
   onEncryptCheckboxChange(event: MatCheckboxChange, variable: VariablePair) {
-    // lo quiero seprarar evento, de variable con salto de linea
+    // Check if the checkbox is checked and the variable is encrypted
     this.logger.msg('1', `onEncryptCheckboxChange() - event.checked: ${event.checked}\nvariable value: ${variable.variable_value}`, 'edit-variables');    
     if (!event.checked && variable.variable_value.startsWith('U2FsdGVkX1')) {
 
@@ -351,6 +351,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     }
     // if the checkbox is checked and the variable is encrypted, do nothing
     else if (event.checked && !variable.variable_value.startsWith('U2FsdGVkX1')) {
+      // If the checkbox is checked and the variable is not encrypted, encrypt the variable
       variable.encrypted = true;
       this.logger.msg('1', `Variable encrypted if no: ${variable.encrypted}`, 'edit-variables');
       this.logger.msg('1', `Variable value: ${variable.variable_value}`, 'edit-variables');
