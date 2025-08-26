@@ -213,8 +213,8 @@ Author: dph000
         </ng-container>
       </div>
 
-      <!-- Feature browser -->
-      <div class="schedule-container">
+      <!-- Feature Schedule -->
+      <div *ngIf="item.date" class="schedule-container">
         <div class="schedule-data">
           <p *ngIf="item.schedule" class="schedule-active">
             <ng-container *ngIf="item.date; else noRuns">
@@ -237,6 +237,15 @@ Author: dph000
           </p>
         </div>
       </div>
+
+      <!-- Feature department -->
+      <div *ngIf="finder" class="department-container">
+        <div class="department-data">
+          <mat-icon class="department-icon">domain</mat-icon>
+          <span class="department-name-text">{{ item.department }}</span>
+        </div>
+      </div>
+
       <!-- Feature options button -->
       <button
         type="button"
