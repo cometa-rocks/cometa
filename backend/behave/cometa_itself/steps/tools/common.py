@@ -62,7 +62,7 @@ def _lazy_import_healenium():
 
 def _handle_healing_check(context, selector_type, selector, find_start_time):
     """Check if Healenium healed this element and store in context"""
-    if not getattr(context, 'healenium_enabled', False) or not hasattr(context, 'healenium_client'):
+    if not getattr(context, 'healenium_enabled', False) or not hasattr(context, 'healenium_manager'):
         return
     
     healenium = _lazy_import_healenium()
@@ -72,7 +72,7 @@ def _handle_healing_check(context, selector_type, selector, find_start_time):
     try:
         # Get healing data from Healenium
         selector_type_str = selector_type if isinstance(selector_type, str) else str(selector_type).lower()
-        healing_info = context.healenium_client.get_healing_data_from_db(selector_type_str, selector, find_start_time - 5)
+        healing_info = context.healenium_manager.get_healing_data_from_db(selector_type_str, selector, find_start_time - 5)
         
         if healing_info:
             # Store in context for later saving

@@ -6,6 +6,7 @@ Due to architectural constraints, each test needs its own proxy pointing to its 
 """
 
 import logging
+import os
 import requests
 import time
 import docker
@@ -478,7 +479,210 @@ class HealeniumClient:
                 logger.debug(f"Failed to save healing data: {response.status_code} - {response.text}")
         except Exception as e:
             logger.debug(f"Error saving healing data: {e}")
-    
+
+
+    def initialize_healenium_config(self, context):
+        """Initialize Healenium configuration from environment variables"""
+        from utility.configurations import ConfigurationManager
+        
+        # Get configuration
+        enable_healenium = ConfigurationManager.get_configuration("COMETA_FEATURE_HEALENIUM", False)
+        
+        # Normalize to boolean (handle str/None)
+        if isinstance(enable_healenium, str):
+            enable_healenium = enable_healenium.strip().lower() == "true"
+        
+        # Set context properties
+        context.healenium_enabled = enable_healenium
+        context.all_healing_events = {}  # Initialize healing events collection
+        
+        logger.info(f"Healenium {'enabled' if enable_healenium else 'disabled'} (config: COMETA_FEATURE_HEALENIUM={enable_healenium})")
+        
+        return enable_healenium
+
+
+    def setup_healenium_proxy(self, context, container_info, use_cometa_browser_images=True):
+        """
+        Setup Healenium proxy if enabled and return appropriate connection URL.
+        
+        Args:
+            context: Test context object
+            container_info: Dict with browser container information
+            use_cometa_browser_images: Whether using Cometa browser images
+            
+        Returns:
+            str: Connection URL to use (proxy URL or direct browser URL)
+        """
+        if not getattr(context, 'healenium_enabled', False):
+            if use_cometa_browser_images:
+                return f"http://{context.browser_hub_url}:4444/wd/hub"
+            else:
+                logger.info(f"Healenium {'enabled' if context.healenium_enabled else 'disabled'} - using lazy activation for zero startup impact")
+                return f"http://{context.browser_hub_url}:4444/wd/hub"
+        
+        if use_cometa_browser_images:
+            logger.info("Healenium enabled - creating proxy synchronously")
+            try:
+                # Initialize Healenium client
+                context.healenium_context_manager = healenium_context(context)
+                context.healenium_client = context.healenium_context_manager.__enter__()
+                
+                # Create proxy synchronously and wait for it
+                logger.info("Creating Healenium proxy and waiting for it to be ready...")
+                proxy_url = context.healenium_client.create_proxy_sync_wait(
+                    browser_url=context.browser_hub_url,
+                    container_id=container_info['id'],
+                    config=HEALENIUM_CONFIG,
+                    timeout=15.0  # Wait up to 15 seconds for proxy
+                )
+                
+                if proxy_url:
+                    # Use proxy URL for browser creation
+                    logger.info(f"Using Healenium proxy for browser creation: {proxy_url}")
+                    context.healenium_proxy_used = True
+                    return proxy_url
+                else:
+                    # Fallback to direct connection if proxy creation failed
+                    logger.warning("Failed to create Healenium proxy, falling back to direct connection")
+                    context.healenium_enabled = False  # Disable healing for this session
+                    return f"http://{context.browser_hub_url}:4444/wd/hub"
+                    
+            except Exception as e:
+                logger.error(f"Failed to initialize Healenium proxy: {e}")
+                context.healenium_enabled = False  # Disable healing for this session
+                return f"http://{context.browser_hub_url}:4444/wd/hub"
+        else:
+            # Selenoid path - lazy activation
+            logger.info(f"Healenium {'enabled' if context.healenium_enabled else 'disabled'} - using lazy activation for zero startup impact")
+            return f"http://{context.browser_hub_url}:4444/wd/hub"
+
+
+    def cleanup_healenium(self, context):
+        """Clean up Healenium resources"""
+        try:
+            if hasattr(context, 'healenium_context_manager') and context.healenium_context_manager:
+                context.healenium_context_manager.__exit__(None, None, None)
+                logger.debug("Cleaned up Healenium client and proxy")
+        except Exception as e:
+            logger.debug(f"Error cleaning up Healenium: {e}")
+
+
+    def prepare_step_for_healing(self, context):
+        """Prepare step context for healing detection"""
+        # Clear any healing data from previous steps to prevent cross-contamination
+        if hasattr(context, 'healing_data'):
+            context.healing_data = None
+        
+        # Store step info for healing collector
+        if hasattr(context, 'counters'):
+            context.step_index = context.counters["index"]
+            context.step_name = getattr(context, 'step_name', 'Unknown step')
+        
+        # Log Healenium status on first step if enabled
+        if (getattr(context, 'healenium_enabled', False) and 
+            hasattr(context, 'healenium_client') and 
+            context.healenium_client and
+            getattr(context, 'healenium_proxy_used', False) and
+            hasattr(context, 'counters') and
+            context.counters['index'] == 0):
+            
+            logger.info("Healenium self-healing is active via shared proxy pool - broken selectors will be automatically healed")
+
+
+    def process_healing_after_step(self, context, step_index, step_name, session_id):
+        """
+        Process healing data after step completion.
+        
+        Returns:
+            str or None: JSON string of healing data if healing occurred, None otherwise
+        """
+        if not getattr(context, 'healenium_enabled', False):
+            return None
+        
+        # Check multiple sources for healing data
+        healing_event = None
+        
+        # Check healing_data directly
+        if hasattr(context, 'healing_data') and context.healing_data:
+            # Validate step index if present
+            if 'step_index' in context.healing_data:
+                if context.healing_data['step_index'] == step_index:
+                    healing_event = context.healing_data
+                    logger.info(f"Found healing data in context.healing_data for correct step {step_index}")
+                else:
+                    logger.warning(f"Ignoring healing data from step {context.healing_data['step_index']} (current step is {step_index})")
+                    context.healing_data = None  # Clear stale data
+            else:
+                # No step index validation available (old format)
+                healing_event = context.healing_data
+                logger.info(f"Found healing data in context.healing_data (no step validation)")
+        
+        # Process healing event if found and recent
+        if healing_event and time.time() - healing_event['timestamp'] < 10.0:
+            # This healing is likely for the current step
+            original_selector = healing_event.get('original_selector', {'type': 'unknown', 'value': 'unknown'})
+            healed_selector = healing_event.get('healed_selector', {'type': 'unknown', 'value': 'unknown'})
+            
+            # Format selectors as By.type(value) for frontend
+            if isinstance(original_selector, dict):
+                original_formatted = f"By.{original_selector['type']}({original_selector['value']})"
+            else:
+                # Fallback for old format
+                original_formatted = original_selector
+            
+            if isinstance(healed_selector, dict):
+                healed_formatted = f"By.{healed_selector['type']}({healed_selector['value']})"
+            else:
+                # Fallback for old format
+                healed_formatted = healed_selector
+            
+            healing_info = {
+                'was_healed': True,
+                'original_selector': original_formatted,
+                'healed_selector': healed_formatted,
+                'confidence_score': int(healing_event['score'] * 100),
+                'healing_duration_ms': healing_event.get('healing_duration_ms', 0),
+                'healing_method': 'Score'  # Healenium's default tree-based scoring algorithm
+            }
+            
+            import json
+            healing_data_json = json.dumps(healing_info)
+            logger.info(f"Using detected healing for step {step_index}: {healing_info['healed_selector']} (score: {healing_event['score']})")
+            
+            # Store healing event for log processing
+            if hasattr(context, 'all_healing_events'):
+                context.all_healing_events[step_index] = healing_data_json
+            
+            # Save healing data to database
+            self.save_healing_to_database(healing_data_json, 
+                                        os.environ.get("feature_result_id"), 
+                                        step_index, step_name, session_id)
+            
+            # Clear it after use
+            context.healing_data = None
+            
+            return healing_data_json
+        else:
+            # No healing data found for this step
+            logger.debug(f"No healing data available for step {step_index}")
+            return None
+
+
+    def generate_healing_summary(self, context):
+        """Generate healing summary for logs"""
+        if not hasattr(context, 'all_healing_events') or not context.all_healing_events:
+            return ""
+        
+        import json
+        summary = f"\nHealenium Summary: {len(context.all_healing_events)} elements healed\n"
+        
+        for step_index, healing_data in context.all_healing_events.items():
+            healing_json = json.loads(healing_data)
+            summary += f"  • Step {step_index}: {healing_json['original_selector']} → {healing_json['healed_selector']} ({healing_json['confidence_score']}% confidence)\n"
+        
+        return summary
+
+
     def cleanup(self):
         """Cleanup proxy container"""
         # Stop log monitoring if active
