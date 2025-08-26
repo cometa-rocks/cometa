@@ -3177,23 +3177,82 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   checkIfStepHaveFilePath(index: number) {
     // Doing like that its more safer than put any in the event parameter
     const step = this.stepsForm.at(index).get('step_content')?.value;
+
+    // Verify if the step have '{file_path}'
     if (step.includes('{file_path}')) {
-      this.logger.msg('4', '=== checkIfStepHaveFilePath() ===', 'step-editor', step);
-      // call function to create a mat autocomplete with the files name 
-      this.createFilePathAutocomplete(index);
+      // Verify if the cursor is between quotes (to show the autocomplete)
+      if (this.isCursorBetweenQuotes(index)) {
+        this.logger.msg('4', '=== checkIfStepHaveFilePath() === Cursor between quotes', 'step-editor', step);
+        this.createFilePathAutocomplete(index);
+      }
     }
     else {
+      this.logger.msg('4', '=== checkIfStepHaveFilePath() === Cursor not between quotes', 'step-editor', step);
       // Return before still reading code
       return;
     }
   }
 
+  // Check if the cursor is between quotes (return true/false if is between quotes)
+  isCursorBetweenQuotes(index: number): boolean {
+    const inputElement = this.getInputElement(index);
+    this.logger.msg('4', '=== isCursorBetweenQuotes() === Input Element', 'step-editor', inputElement);
+    // Verify, if it's not (null, undefined) stop reading code
+    if (!inputElement) return false;
+    
+    // The position of the cursor mouse
+    const cursorPosition = inputElement.selectionStart;
+    this.logger.msg('4', '=== isCursorBetweenQuotes() === Cursor Position', 'step-editor', cursorPosition);
+    const text = inputElement.value;
+    
+    // Using match to find the matches in the text
+    const matches = text.match(/"([^"]*\{file_path\}[^"]*)"/g);
+    if (!matches) return false;
+    
+    // Search manually the positions
+    let searchIndex = 0;
+    for (const match of matches) {
+      const matchIndex = text.indexOf(match, searchIndex);
+      const quoteStart = matchIndex;
+      const quoteEnd = matchIndex + match.length;
+      
+      // Verify if the cursor is between the quotes
+      if (cursorPosition > quoteStart && cursorPosition < quoteEnd) {
+        this.logger.msg('4', '=== isCursorBetweenQuotes() === Cursor between quotes', 'step-editor', cursorPosition);
+        
+        // Call the function to create the autocomplete
+        this.createFilePathAutocomplete(index);
+        // return true;
+      }
+      searchIndex = matchIndex + 1;
+    }
+    
+    return false;
+  }
+
+  // Return the textarea element 
+  getInputElement(index: number): HTMLTextAreaElement | null {
+    // search by the attribute formcontrolname and the index
+    const textareas = document.querySelectorAll('textarea[formcontrolname="step_content"]');
+    return textareas[index] as HTMLTextAreaElement || null;
+  }
+
+
   // Create a mat autocomplete with the files name 
   createFilePathAutocomplete(index: number) {
-    // Create a matautocomplete with the files name 
+    // Uploading the files to 'files' variable
     const files = this.department.files.map(file => file.name);
     this.logger.msg('4', '=== checkIfStepHaveFilePath() === Files', 'step-editor', files);
 
+    // Create a mat autocomplete with the files name 
+    // First know how its works
+    // const autocomplete = new MatAutocomplete(this.stepHelp);
+    // autocomplete.options = files.map(file => ({
+    //   value: file,
+    //   label: file
+    // }));
+
+    // this.stepHelp.next(autocomplete);
   }
 
 }
