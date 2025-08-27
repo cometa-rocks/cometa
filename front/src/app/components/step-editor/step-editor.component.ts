@@ -3244,14 +3244,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
   
 
-    // Posicionar el panel cerca del textarea
+    // Position the panel near the textarea
     const textarea = $event.target as HTMLTextAreaElement;
     const rect = textarea.getBoundingClientRect();
     const panel = this.filePathAutocompletePanel?.nativeElement;
     
     if (panel) {
-      panel.style.left = rect.left + 'px';
-      panel.style.top = (rect.bottom + 15) + 'px';
+      // Set CSS custom properties for positioning
+      panel.style.setProperty('--textarea-left', rect.left + 'px');
+      panel.style.setProperty('--textarea-top', rect.top + 'px');
+      panel.style.setProperty('--textarea-height', rect.height + 'px');
     }
   }
 

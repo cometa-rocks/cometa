@@ -1029,3 +1029,24 @@ textarea {
     }
   }
 }
+
+.custom-file-autocomplete-panel {
+  position: fixed; // Use fixed instead of absolute for better positioning
+  left: calc(var(--textarea-left) + 170px);
+  top: calc(var(--textarea-top) - 150px); // 200px panel height + 20px gap
+  z-index: 1000;
+  width: 300px;
+  max-height: 200px;
+  
+  // Ensure panel doesn't go off-screen
+  @media (max-width: 768px) {
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+  
+  // If panel would go above viewport, position below
+  &.below {
+    top: calc(var(--textarea-top) + var(--textarea-height) + 20px);
+  }
+}
