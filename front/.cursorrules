@@ -1,0 +1,57 @@
+# Frontend Cursor Rules - Angular Application
+
+## Angular Specific Standards
+
+### Component Architecture
+- Use smart/dumb component pattern
+- Keep components small and focused
+- Implement OnPush change detection for performance
+- Use ViewChild/ViewChildren sparingly
+
+### State Management
+- Use services for shared state
+- Implement proper unsubscribe patterns
+- Use BehaviorSubject for reactive state
+- Avoid storing state in components
+
+### Template Guidelines
+- Use structural directives (*ngIf, *ngFor, *ngSwitch)
+- Implement trackBy for performance
+- Use safe navigation operators
+- Keep templates under 50 lines
+
+### Service Patterns
+- Make services injectable and singleton
+- Use HTTP interceptors for common operations
+- Implement proper error handling
+- Use environment configuration
+
+### Styling Standards
+- Use SCSS for styling
+- Follow BEM methodology
+- Use CSS custom properties for theming
+- Implement responsive design patterns
+
+### Testing Requirements
+- Write unit tests for all components
+- Test service methods thoroughly
+- Use TestBed for component testing
+- Mock external dependencies
+
+### Performance Guidelines
+- Use OnPush change detection
+- Implement lazy loading for modules
+- Optimize bundle size
+- Use trackBy for lists
+
+### Accessibility
+- Include ARIA labels
+- Ensure keyboard navigation
+- Use semantic HTML
+- Test with screen readers
+
+### Code Quality
+- Use TypeScript strict mode
+- Implement proper interfaces
+- Use enums for constants
+- Follow Angular style guide

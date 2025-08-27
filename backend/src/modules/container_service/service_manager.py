@@ -289,6 +289,9 @@ class DockerServiceManager:
                 logger.info(f"Container not found during deletion: {service_name_or_id}. Error: {str(not_found)}")
                 return True, f"Container not found: {service_name_or_id}"
             except Exception as e:
+                if "is already in progress" in str(e):
+                    logger.info(f"Container {service_name_or_id} is already in progress. Skipping deletion.")
+                    return True, f"Container {service_name_or_id} is already in progress. Skipping deletion."
                 logger.error(f"Error deleting container {service_name_or_id} on attempt {attempt}: {str(e)}")
                 traceback.print_exc()
                 if attempt < max_delete_attempts:
@@ -1002,3 +1005,29 @@ class ServiceManager(service_manager):
             )
 
     
+import threading
+
+def remove_running_containers(feature_result):
+    def _remove_containers():
+        logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+        for mobile in feature_result.mobile:
+            # While running mobile tests User have options to connect to already running mobile or start mobile during test
+            # If Mobile was started by the test then remove it after execution 
+            # If Mobile was started by the user and test only connected to it do not stop it
+            if mobile['is_started_by_test']:
+                logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+                ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+        browser_container_info = feature_result.browser.get("container_service",False)
+        if browser_container_info:
+            ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"])
+
+    try:
+        logger.debug(f"Starting a thread clean up the containers")
+        # Create and start thread to handle container removal
+        cleanup_thread = threading.Thread(target=_remove_containers)
+        cleanup_thread.start()
+        logger.debug(f"Container cleanup thread {cleanup_thread.getName()} started")
+    except Exception:
+        logger.debug("Exception while cleaning up the containers")
+        traceback.print_exc()

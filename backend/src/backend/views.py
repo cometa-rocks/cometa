@@ -66,7 +66,7 @@ from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
-from modules.container_service.service_manager import DockerServiceManager, ServiceManager
+from modules.container_service.service_manager import DockerServiceManager, ServiceManager, remove_running_containers
 from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
 import logging
 
@@ -1271,6 +1271,8 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     if feature.department_id not in userDepartments:
         return {'success': False, 'error': 'Provided Feature ID does not exist..'}
 
+    # This code section handles the browsers provided by datadriven settings using variable co_browser
+    #####################################
     browsers_provided_by_datadriven = [v for v in additional_variables if v['variable_name'] == 'co_browser']
 
     if len(browsers_provided_by_datadriven) > 0:
@@ -1295,7 +1297,8 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                 "selectedTimeZone": "Etc/UTC"
             }
         ] 
-        logger.info(f"Feature {feature.feature_id} will be run with browsers provided by datadriven settings \n {json.dumps(feature.browsers, indent=4)} ")
+        logger.info(f"Feature {feature.feature_id} will be run with browsers provided by datadriven settings \n {json.dumps(feature.browsers, indent=4)} ")    
+    #####################################
 
     # check if feature has any browsers
     if len(feature.browsers) == 0:
@@ -1359,7 +1362,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     # update feature info
     feature.info = fRun
-
+    feature.save(dontSaveSteps=True, backup_feature_info=False)
     # # Make sure feature files exist - only create if missing to prevent step duplication
     # feature_path = get_feature_path(feature)['fullPath']
     # if not os.path.exists(feature_path + '.feature'):
@@ -1507,7 +1510,7 @@ def generateFeatureFile(request, *args, **kwargs):
         feature_result_id = data.get('feature_result_id', None)
         feature = Feature.objects.get(pk=feature_id)
         # generate feature file, kwargs is empty as we are not passing any steps
-        response = generate_feature_test_file_and_save_steps(feature=feature, kwargs={'save_steps': False}, new_feature=True, feature_result_id=feature_result_id)
+        response = generate_feature_test_file_and_save_steps(feature=feature, kwargs={'save_steps': False}, feature_result_id=feature_result_id)
         return JsonResponse(response, status=200 if response.get("success") else 400)
     except Feature.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Feature not found.'}, status=400)
@@ -3967,31 +3970,6 @@ def UpdateTask(request):
     
 #     if browser_container_info:
 #         ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
-
-def remove_running_containers(feature_result:Feature_result):
-    def _remove_containers():
-        logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
-        for mobile in feature_result.mobile:
-            # While running mobile tests User have options to connect to already running mobile or start mobile during test
-            # If Mobile was started by the test then remove it after execution 
-            # If Mobile was started by the user and test only connected to it do not stop it
-            if mobile['is_started_by_test']:
-                logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
-                ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
-
-        browser_container_info = feature_result.browser.get("container_service",False)
-        if browser_container_info:
-            ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"])
-
-    try:
-        logger.debug(f"Starting a thread clean up the containers")
-        # Create and start thread to handle container removal
-        cleanup_thread = Thread(target=_remove_containers)
-        cleanup_thread.start()
-        logger.debug(f"Container cleanup thread {cleanup_thread.getName()} started")
-    except Exception:
-        logger.debug("Exception while cleaning up the containers")
-        traceback.print_exc()
 
 
 @csrf_exempt
