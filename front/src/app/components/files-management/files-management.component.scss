@@ -525,12 +525,6 @@
   }
 }
 
-// Custom styling for snackbars
-::ng-deep .file-management-custom-snackbar {
-  .mat-mdc-snack-bar-actions .mdc-button {
-    color: $secondary-color !important; 
-  }
-}
 
 /* Style for the cell containing deleted status */
 .status-deleted-cell {
