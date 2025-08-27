@@ -1177,14 +1177,10 @@ export class EditFeature implements OnInit, OnDestroy {
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
       
-      if (this.inputFocusSubscription)
-      
       if (contextMenuEl && contextMenuEl.style.display !== 'none') {
         // A context menu is open – don't process ESC in EditFeature
         return;
       }
-      
-
       
     }
     // If true... return | only execute switch case if input focus is false
