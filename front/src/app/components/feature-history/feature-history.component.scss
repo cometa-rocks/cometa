@@ -429,6 +429,16 @@
                         //border-left: 3px solid $border-color;
                         flex-wrap: wrap;
 
+                        // Special styling for subfeature steps
+                        &.subfeature-step {
+                          
+                          .step-keyword {
+                            background: $low-white;
+                            color: $grey;
+                            font-weight: 600;
+                          }
+                        }
+
                         .step-number-badge {
                           background: $grey;
                           color: white;

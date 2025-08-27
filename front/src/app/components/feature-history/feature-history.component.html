@@ -67,7 +67,7 @@ Author: Nico
             <div class="entry-stats">
               <button class="stat-chip" (click)="showSteps(entry.backup_id)" [class.selected]="isStepsExpanded(entry.backup_id)">
                 <mat-icon>list</mat-icon>
-                {{ entry.steps_count }} steps
+                {{ getConsolidatedStepCount(entry.backup_id) }} steps
               </button>
               
               <!-- Show changes button only for non-current versions -->
@@ -96,7 +96,7 @@ Author: Nico
                 </button>
               </div>
               <div class="steps-list">
-                <div *ngFor="let step of entry.steps; let stepIndex = index" class="step-item">
+                <div *ngFor="let step of getConsolidatedStepsForBackup(entry.backup_id); let stepIndex = index" class="step-item">
 
                   <div class="step-content">
                     <div class="step-text">{{ formatStep(step) }}</div>
@@ -104,10 +104,11 @@ Author: Nico
                     <!-- Individual Steps Display -->
                     <div *ngIf="step.step_content && isArray(step.step_content)" class="individual-steps">
                       <div *ngFor="let individualStep of step.step_content; let individualStepIndex = index" class="individual-step-compact">
-                        <div class="step-line">
+                        <div class="step-line" [ngClass]="{'subfeature-step': individualStep.is_consolidated}">
                           <span class="step-number-badge">{{ individualStepIndex + 1 }}</span>
                           <span class="step-keyword">{{ individualStep.step_keyword }}</span>
-                          <span class="step-content-text">{{ individualStep.step_content }}</span>
+                          <span class="step-content-text">{{ formatIndividualStep(individualStep) }}</span>
+                          
                           <div class="step-flags-inline" *ngIf="getIndividualStepFlags(individualStep).length > 0">
                             <div 
                               *ngFor="let flag of getIndividualStepFlags(individualStep)" 
