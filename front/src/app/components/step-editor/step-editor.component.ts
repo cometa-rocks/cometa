@@ -3271,8 +3271,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (currentValue.includes('{file_path}')) {
       newValue = currentValue.replace('{file_path}', selectedFilePath);
     } else {
-      // Check if there's a previously selected file path to replace
+      // Check if there's a previously selected file path to replace (last path saved)
       const previousFilePath = this.lastSelectedFilePaths.get(index);
+
+      // if the previous file path is in the current value, replace it with the new file path
       if (previousFilePath && currentValue.includes(previousFilePath)) {
         newValue = currentValue.replace(previousFilePath, selectedFilePath);
       } else {
@@ -3290,6 +3292,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
     }
 
+    // Set the new value to the textarea (newValue)
     contentControl?.setValue(newValue);
 
     // Store the selected file path for this step
