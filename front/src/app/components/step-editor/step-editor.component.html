@@ -263,6 +263,7 @@
               (keydown.control.arrowdown)="insertStep($event, i)"
               (keydown.alt.control.arrowup)="copyStep($event, i)"
               (keydown.alt.control.arrowdown)="copyStep($event, i)"
+              (keydown.control.shift.f)="createFilePathAutocomplete($event, i)"
               class="code"
               spellcheck="false"
               autocomplete="off"
@@ -581,3 +582,26 @@
   </ng-container>
 
 </mat-autocomplete>
+
+<!-- div for file paths {file_path} -->
+<div 
+  #filePathAutocompletePanel
+  class="custom-file-autocomplete-panel"
+  [class.visible]="showFilePathAutocomplete"
+  [class.hidden]="!showFilePathAutocomplete">
+  
+  <div class="custom-autocomplete-header">
+    <span class="custom-autocomplete-title">Select File</span>
+  </div>
+  
+  <div class="custom-autocomplete-options">
+    <div 
+      *ngFor="let option of filePathAutocompleteOptions; let i = index" 
+      class="custom-autocomplete-option"
+      [class.active]="i === activeOptionIndex"
+      (click)="onFilePathSelect({option: {value: option.path}}, currentFilePathAutocompleteIndex)"
+      (mouseenter)="setActiveOption(i)">
+      {{ option.label }}
+    </div>
+  </div>
+</div>

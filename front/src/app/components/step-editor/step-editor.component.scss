@@ -973,3 +973,59 @@ textarea {
     color: white;
   }
 }
+
+.custom-file-autocomplete-panel {
+  position: absolute;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
+              0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
+              0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 9999;
+  min-width: 200px;
+  
+  &.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  
+  &.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.custom-autocomplete-header {
+  padding: 8px 16px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  
+  .custom-autocomplete-title {
+    color: $blue;
+    font-weight: 500;
+    font-size: 14px;
+  }
+}
+
+.custom-autocomplete-options {
+  .custom-autocomplete-option {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover,
+    &.active {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+  }
+}

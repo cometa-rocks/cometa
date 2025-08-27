@@ -159,6 +159,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @Input() mode: 'new' | 'edit' | 'clone';
   @Input() variables: VariablePair[];
   @Input() department: Department;
+
+  // Add property for file path autocomplete
+  filePathAutocompleteOptions: { value: string; label: string; path: string }[] = [];
+  showFilePathAutocomplete: boolean = false;
+  currentFilePathAutocompleteIndex: number | null = null;
+
+  // Add this line - reference to the filePathAutocompletePanel template
+  @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
   
   // Track which step is currently focused for the shared autocomplete
   currentFocusedStepIndex: number | null = null;
@@ -1381,10 +1389,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // index
     this.logger.msg('4', '=== onStepChange() === Index', 'step-editor', index);
 
-    // call to funtcion and check if step have '{file_path}'
-    this.checkIfStepHaveFilePath(index);
-
-
     // Use the most reliable index - prioritize currentFocusedStepIndex but validate it
     let targetIndex = this.currentFocusedStepIndex ?? index;
     
@@ -1570,6 +1574,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     let panelClosed = false;
     this.autocompleteTriggers?.forEach(trigger => {
       if (trigger.panelOpen) {
+        this.logger.msg('4', '=== handleGlobalKeyDown() === Close Panel', 'step-editor', trigger);
         trigger.closePanel();
         panelClosed = true;
       }
@@ -1577,6 +1582,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // Close variable fly-out (step list) if it is open
     if (this.displayedVariables.length > 0) {
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Variable Fly-out', 'step-editor');
       this.displayedVariables = [];
       this.stepVariableData.currentStepIndex = null;
       panelClosed = true;
@@ -1585,6 +1591,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (panelClosed) {
       event.stopImmediatePropagation();
       event.preventDefault();
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Autocomplete', 'step-editor');
       this.isAutocompleteOpened = false;
       this.displayedVariables = [];
       this.stepVariableData.currentStepIndex = null;
@@ -3173,86 +3180,89 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._cdr.detectChanges();
   }
 
-  // Check if the step have '{file_path}' and create a mat autocomplete with the files name 
-  checkIfStepHaveFilePath(index: number) {
-    // Doing like that its more safer than put any in the event parameter
-    const step = this.stepsForm.at(index).get('step_content')?.value;
+  activeOptionIndex: number = 0
 
-    // Verify if the step have '{file_path}'
-    if (step.includes('{file_path}')) {
-      // Verify if the cursor is between quotes (to show the autocomplete)
-      if (this.isCursorBetweenQuotes(index)) {
-        this.logger.msg('4', '=== checkIfStepHaveFilePath() === Cursor between quotes', 'step-editor', step);
-        this.createFilePathAutocomplete(index);
-      }
-    }
-    else {
-      this.logger.msg('4', '=== checkIfStepHaveFilePath() === Cursor not between quotes', 'step-editor', step);
-      // Return before still reading code
-      return;
-    }
+  // Highlight the active option in the autocomplete panel
+  setActiveOption(index: number) {
+    this.activeOptionIndex = index;
   }
 
-  // Check if the cursor is between quotes (return true/false if is between quotes)
-  isCursorBetweenQuotes(index: number): boolean {
-    const inputElement = this.getInputElement(index);
-    this.logger.msg('4', '=== isCursorBetweenQuotes() === Input Element', 'step-editor', inputElement);
-    // Verify, if it's not (null, undefined) stop reading code
-    if (!inputElement) return false;
-    
-    // The position of the cursor mouse
-    const cursorPosition = inputElement.selectionStart;
-    this.logger.msg('4', '=== isCursorBetweenQuotes() === Cursor Position', 'step-editor', cursorPosition);
-    const text = inputElement.value;
-    
-    // Using match to find the matches in the text
-    const matches = text.match(/"([^"]*\{file_path\}[^"]*)"/g);
-    if (!matches) return false;
-    
-    // Search manually the positions
-    let searchIndex = 0;
-    for (const match of matches) {
-      const matchIndex = text.indexOf(match, searchIndex);
-      const quoteStart = matchIndex;
-      const quoteEnd = matchIndex + match.length;
-      
-      // Verify if the cursor is between the quotes
-      if (cursorPosition > quoteStart && cursorPosition < quoteEnd) {
-        this.logger.msg('4', '=== isCursorBetweenQuotes() === Cursor between quotes', 'step-editor', cursorPosition);
-        
-        // Call the function to create the autocomplete
-        this.createFilePathAutocomplete(index);
-        // return true;
-      }
-      searchIndex = matchIndex + 1;
+  /*
+  * Create a mat autocomplete with the files name
+  * Used for the file path autocomplete - trigger by <textarea (keydown.control.shift.f)="createFilePathAutocomplete($event, i)">
+  * @param $event KeyboardEvent
+  * @param index number
+  */
+  createFilePathAutocomplete($event: KeyboardEvent, index: number) {
+
+    // logger this.showFilePathAutocomplete
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
+
+    // logger this.filePathAutocompleteOptions
+    this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
+
+    if (this.isAutocompleteOpened) {
+      this.isAutocompleteOpened = false;
+    } else {
+      this.isAutocompleteOpened = true;
     }
-    
-    return false;
-  }
 
-  // Return the textarea element 
-  getInputElement(index: number): HTMLTextAreaElement | null {
-    // search by the attribute formcontrolname and the index
-    const textareas = document.querySelectorAll('textarea[formcontrolname="step_content"]');
-    return textareas[index] as HTMLTextAreaElement || null;
-  }
-
-
-  // Create a mat autocomplete with the files name 
-  createFilePathAutocomplete(index: number) {
     // Uploading the files to 'files' variable
-    const files = this.department.files.map(file => file.name);
-    this.logger.msg('4', '=== checkIfStepHaveFilePath() === Files', 'step-editor', files);
+    const files = this.department.files;
+    // this.logger.msg('4', '=== checkIfStepHaveFilePath() === Files', 'step-editor', files);
 
-    // Create a mat autocomplete with the files name 
-    // First know how its works
-    // const autocomplete = new MatAutocomplete(this.stepHelp);
-    // autocomplete.options = files.map(file => ({
-    //   value: file,
-    //   label: file
-    // }));
+    // Create the options for the file Path Autocomplete
+    const fileOptions = files.map(file => ({
+      value: file.uploadPath, //complete path to be used in the step
+      label: file.name, //friendly name to show to the user
+      path: file.uploadPath //already have the full path
+    }));
 
-    // this.stepHelp.next(autocomplete);
+    //  // Show the file path autocomplete
+    this.showFilePathAutocomplete = true;
+    // //  Created this variable to store the index of the step that have the {file_path}
+    this.currentFilePathAutocompleteIndex = index;
+    // // this.logger.msg('4', '=== checkIfStepHaveFilePath() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
+    // // this.logger.msg('4', '=== createFilePathAutocomplete() === Current File Path Autocomplete Index', 'step-editor', this.currentFilePathAutocompleteIndex);
+     
+    // Update the autocomplete options (files)
+    this.filePathAutocompleteOptions = fileOptions;
+
+    // logger this.showFilePathAutocomplete
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
+
+    // logger this.filePathAutocompleteOptions
+    this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
+  
+
+    // Posicionar el panel cerca del textarea
+    const textarea = $event.target as HTMLTextAreaElement;
+    const rect = textarea.getBoundingClientRect();
+    const panel = this.filePathAutocompletePanel?.nativeElement;
+    
+    if (panel) {
+      panel.style.left = rect.left + 'px';
+      panel.style.top = (rect.bottom + 15) + 'px';
+    }
+  }
+
+  // Handle file selection from autocomplete
+  // Replaces the apk file to apk path
+  onFilePathSelect(event: any, index: number) {
+    const selectedFilePath = event.option.value; // Esto será el path completo
+    
+    // Replace {file_path} with the selected file path
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const contentControl = stepFormGroup.get('step_content');
+    const value = contentControl?.value || '';
+  
+    const newValue = value.replace('{file_path}', selectedFilePath);
+    contentControl?.setValue(newValue);
+  
+    // Clear the autocomplete options and hide it
+    this.filePathAutocompleteOptions = [];
+    this.showFilePathAutocomplete = false;
+    this.currentFilePathAutocompleteIndex = null;
   }
 
 }
