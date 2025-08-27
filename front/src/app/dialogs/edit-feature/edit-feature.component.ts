@@ -464,6 +464,7 @@ export class EditFeature implements OnInit, OnDestroy {
     ];
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.logger.msg('4', 'inputFocus | Boolean Received in Parent', 'edit-feature', isFocused, );
       this.inputFocus = isFocused;
     });
 
@@ -1175,6 +1176,9 @@ export class EditFeature implements OnInit, OnDestroy {
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      
+      if (this.inputFocusSubscription)
+      
       if (contextMenuEl && contextMenuEl.style.display !== 'none') {
         // A context menu is open – don't process ESC in EditFeature
         return;

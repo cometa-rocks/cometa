@@ -307,7 +307,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
-    this.textareaFocusToParent.emit({isFocused, event});
+    this.logger.msg("4","sendTextareaFocusToParent","step-editor", isFocused)
+    this.inputFocusService.setInputFocus(isFocused)
 
 
 
@@ -961,7 +962,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     
     // Inform parent of focus (without showing documentation)
-    this.sendTextareaFocusToParent(true, index, false);
+    // Commented function to prevent the focus from being sent twice to the parent since it already called in the html)
+    // this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
