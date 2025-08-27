@@ -202,7 +202,7 @@ deploy:kubernetes.client1.prod:
 #  extends: .client04.prod
 
 # Deploy to amvara8
-deploy:amvara8.pre-build:
+deploy:amvara8.pre-stage:
   extends: .amvara8.build
 
 
