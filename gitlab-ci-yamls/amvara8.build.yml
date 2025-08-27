@@ -14,8 +14,6 @@
     - set -euo pipefail
     - echo "Preparing deploy for $CI_PROJECT_PATH@$CI_COMMIT_SHA"
     - mkdir -p "$DEPLOY_TARGET_FOLDER"
-    - sudo chown -R gitlab-runner:gitlab-runner "$DEPLOY_TARGET_FOLDER"
-    - sudo chmod -R u+rwX,g+rwX,o+rX "$DEPLOY_TARGET_FOLDER"
 
   #########################################################
   # Syncing code from gitlab-runner to deploy folder
