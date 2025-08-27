@@ -1,5 +1,5 @@
 {
-  "version": "3.0.93",
+  "version": "3.0.94",
   "stable_version": "3.0.92",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.94",
+      "date": "2025-08-25",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6717",
+          "description": "Mobile list improvements, css enhancements, solved issue undefined hostnames."
+        }
+      ]
+    },
     {
       "version": "3.0.93",
       "date": "2025-08-22",
