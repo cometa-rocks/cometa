@@ -588,9 +588,7 @@
   #filePathAutocompletePanel
   class="custom-file-autocomplete-panel"
   [class.visible]="showFilePathAutocomplete"
-  [class.hidden]="!showFilePathAutocomplete"
-  (focus)="onFilePathFocusBlur(true)"
-  (blur)="onFilePathFocusBlur(false)">
+  [class.hidden]="!showFilePathAutocomplete">
   
   <div class="custom-autocomplete-header">
     <span class="custom-autocomplete-title">Select File</span>
