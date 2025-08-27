@@ -1836,6 +1836,9 @@ def __parseCometaBrowsers(request):
     # starts a thread to call the pull images script
     # when thread finishes, this method returns success.
 
+    browser_max_versions = max(1, int(ConfigurationManager.get_configuration('COMETA_BROWSER_MAX_VERSIONS', 3) or 3))
+    logger.info(f"---------- COMETA_BROWSER_MAX_VERSIONS: {browser_max_versions} ----------")
+
     # call the apis
     chrome_data = requests.get('https://hub.docker.com/v2/repositories/cometa/chrome/tags')
     firefox_data = requests.get('https://hub.docker.com/v2/repositories/cometa/firefox/tags')
@@ -1857,7 +1860,7 @@ def __parseCometaBrowsers(request):
     }
 
     # iterate over the browser data and format to match cometa_browsers structure -- only the 3 latest versions
-    for chrome_version in chrome_data['results'][:3]:   
+    for chrome_version in chrome_data['results'][:browser_max_versions]:   
         cometa_browsers['chrome'].append({
             "os": "Generic",    
             "device": None,
@@ -1868,7 +1871,7 @@ def __parseCometaBrowsers(request):
             "cloud": "local"
         })
 
-    for firefox_version in firefox_data['results'][:3]:
+    for firefox_version in firefox_data['results'][:browser_max_versions]:
         cometa_browsers['firefox'].append({
             "os": "Generic",
             "device": None,
@@ -1879,7 +1882,7 @@ def __parseCometaBrowsers(request):
             "cloud": "local"
         })
     
-    for edge_version in edge_data['results'][:3]:
+    for edge_version in edge_data['results'][:browser_max_versions]:
         cometa_browsers['edge'].append({
             "os": "Generic",    
             "device": None,
