@@ -17,7 +17,7 @@ from .serializers import ContainerServiceSerializer
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
-from backend.utility.config_handler import get_cometa_socket_url, get_all_cometa_environments
+from backend.utility.config_handler import get_cometa_socket_url, get_cometa_backend_url
 import os, requests, traceback
 import time
 from datetime import datetime, timedelta
@@ -247,7 +247,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                     container.service_status = "Deleting"
                     container.save()
                     container.delete()
-                    logger.debug("Container Deleted by thread")
+                    logger.debug("Container Deleting by thread")
 
                 except Exception as e:
                     traceback.print_exc()
@@ -402,7 +402,7 @@ def get_running_browser(request):
             
             # This function is used to centralize the validation create the container service
             def call_create_container_service(data):
-                return requests.post(f'http://localhost:{get_all_cometa_environments().get("DJANGO_SERVER_PORT")}/api/container_service/', json=data)
+                return requests.post(f'{get_cometa_backend_url()}/api/container_service/', json=data)
             
             new_data = data.copy()
             new_data['shared'] = False
