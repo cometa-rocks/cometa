@@ -98,7 +98,7 @@ spec:
           subPath: ./data/cometa/screenshots
         - name: cometa-volume
           mountPath: /data/backups
-          subPath: ./data/cometa/backups
+          subPath: ./data/backups
         - name: cometa-volume
           mountPath: /data/videos
           subPath: ./data/cometa/videos
