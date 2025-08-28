@@ -70,6 +70,11 @@
 
 .edit-feature-info {
   display: flex;
+
+  @include for-tablet-portrait-up {
+    gap: 10px;
+  }
+
   .edit-description {
     flex: 1 60%;
   }
@@ -80,9 +85,8 @@
     flex: 1 20%;
   }
   flex-wrap: wrap;
-  @include for-tablet-portrait-up {
+  @include for-tablet-landscape-up {
     flex-wrap: nowrap;
-
   }
   .mat-form-field {
     @-moz-document url-prefix() {
@@ -91,8 +95,15 @@
       }
     }
 
-    @media (max-width: 600px) {
-      flex: 1 100% !important;
+    flex: 1 100% !important;
+    @include for-tablet-portrait-up {
+      &:nth-child(-n+4) {
+        flex: 1 5% !important;
+      }
+      &:nth-child(n+5) {
+        flex: 1 40% !important;
+      }
+      // flex: 1 !important;
     }
   }
 }
