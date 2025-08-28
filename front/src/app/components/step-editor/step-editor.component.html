@@ -599,7 +599,7 @@
       *ngFor="let option of filePathAutocompleteOptions; let i = index" 
       class="custom-autocomplete-option"
       [class.active]="i === activeOptionIndex"
-      (click)="onFilePathSelect({option: {value: option.path}}, currentFilePathAutocompleteIndex)"
+      (click)="onFilePathSelect({option: {value: option.path}}, currentFilePathStepIndex)"
       (mouseenter)="setActiveOption(i)">
       {{ option.label }}
     </div>

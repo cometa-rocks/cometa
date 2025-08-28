@@ -163,8 +163,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   //  {file_path} area variables. Add property for file path autocomplete
   filePathAutocompleteOptions: { value: string; label: string; path: string }[] = [];
   showFilePathAutocomplete: boolean = false;
-  currentFilePathAutocompleteIndex: number | null = null;
   lastSelectedFilePaths: Map<number, string> = new Map();
+  currentFilePathStepIndex: number | null = null;
 
   // Add this line - reference to the filePathAutocompletePanel template
   @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
@@ -576,10 +576,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const textarea = event.target as HTMLTextAreaElement;
     const value = textarea.value;
 
+    this.logger.msg('4', '=== onStepTextareaClick() ===  this.lastSelectedFilePaths', 'step-editor', this.lastSelectedFilePaths);
     // Check if this step contains {file_path} OR has a previously selected file path
-    if (value.includes('{file_path}') || this.lastSelectedFilePaths.has(index)) {
+    if (this.lastSelectedFilePaths.has(index)) {
       // Call the existing function that handles file path autocomplete
-      this.onTextareaFocusFilePath(event as any, index, textarea, value);
+      this.onTextareaFocusFilePath(event as any, index);
     }
 
     // Auto-detect action based on content before the first quote (case-insensitive)
@@ -3199,25 +3200,36 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.activeOptionIndex = index;
   }
 
+
   /*
-  * Create a mat autocomplete with the files name
+  * getStepContentAtIndex() - Get the step content at a specific index 
+  * (generic function used by Shift+Alt+F and onFilePathSelect())
+  *
+  * @param index number
+  * @returns string
+  */
+  getStepContentAtIndex(index: number) {
+    this.logger.msg('4', '=== getStepContentAtIndex() === Get Step Content At Index: ', 'step-editor', index);
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const returnValue =  stepFormGroup.get('step_content')?.value;
+    this.logger.msg('4', '=== getStepContentAtIndex() === Return Value: ', 'step-editor', returnValue);
+    return returnValue;
+  }
+
+  /*
+  * Creates a DIV like a mat autocomplete for the files name to be selected
   * Used for the file path autocomplete - trigger by <textarea (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)">
-  * Alt+Shift+F
+  * Shift+Alt+F
+  * 
   * @param $event KeyboardEvent
   * @param index number
   */
   createFilePathAutocomplete($event: KeyboardEvent, index: number) {
 
-    // logger this.showFilePathAutocomplete
-    this.logger.msg('4', '=== createFilePathAutocomplete() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
+    // Store the index of the step that have the {file_path} - save because if (function onFilePathSelect) its called will be have any index
+    this.currentFilePathStepIndex = index;
 
-    // logger this.filePathAutocompleteOptions
-    this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
-
-    // Close Browse Steps MatAutocomplete
-    // this.closeAutocomplete(index); // this does not work
-    // this.autocompleteTrigger.closePanel(); // breaks all subsequent steps
-    // this.closeAutocomplete(index);
+    this.logger.msg('4', '=== createFilePathAutocomplete() currentFilePathStepIndex ===', 'step-editor', this.currentFilePathStepIndex);
 
     // Hide the autocomplete panel
     const autocompletePanel = document.querySelector('.mat-optgroup');
@@ -3225,9 +3237,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       (autocompletePanel as HTMLElement).style.display = 'none';
     }
 
-    // Uploading the files to 'files' variable
-    const files = this.department.files;
-    // this.logger.msg('4', '=== checkIfStepHaveFilePath() === Files', 'step-editor', files);
+
+    // Get the step content
+    const stepContent = this.getStepContentAtIndex(index);
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Current Value: ', 'step-editor', stepContent);
+
+
+    // get the Files for the Pop to be shown
+    let files = [];
+    if (stepContent.includes('on mobile')) { 
+      // If step contains "on mobile", filter for APK files only
+      files = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
+    } else {
+      // Otherwise, filter for non-APK files
+      files = this.department.files.filter(file => !file.name.endsWith('.apk') && !file.is_removed);
+    }
 
     // Create the options for the file Path Autocomplete
     const fileOptions = files.map(file => ({
@@ -3238,21 +3262,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // Show the file path autocomplete
     this.showFilePathAutocomplete = true;
-    // Created this variable to store the index of the step that have the {file_path}
-    this.currentFilePathAutocompleteIndex = index;
-
-    this.logger.msg('4', '=== checkIfStepHaveFilePath() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
-    this.logger.msg('4', '=== createFilePathAutocomplete() === Current File Path Autocomplete Index', 'step-editor', this.currentFilePathAutocompleteIndex);
-     
-    // Update the autocomplete options (files)
-    this.filePathAutocompleteOptions = fileOptions;
-
-    // logger this.showFilePathAutocomplete
     this.logger.msg('4', '=== createFilePathAutocomplete() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
 
-    // logger this.filePathAutocompleteOptions
+    // Update the autocomplete options (files)
+    this.filePathAutocompleteOptions = fileOptions;
     this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
-  
 
     // Position the panel near the textarea
     const textarea = $event.target as HTMLTextAreaElement;
@@ -3270,80 +3284,51 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Handle file selection from autocomplete
   // Replaces the apk file to apk path
   onFilePathSelect(event: any, index: number) {
+    this.logger.msg('4', '=== onFilePathSelect() === Selected File Path: ', 'step-editor', event.option.value);
+
+    // Get the selected file path
     const selectedFilePath = event.option.value; 
+
+    this.logger.msg('4', '=== onFilePathSelect() === Index from onFilePathSelect: ', 'step-editor', index);
     
     // Replace {file_path} with the selected file path
-    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-    const contentControl = stepFormGroup.get('step_content');
-    const currentValue = contentControl?.value || '';
-
+    const currentValue = this.getStepContentAtIndex(index);
+    this.logger.msg('4', '=== onFilePathSelect() === Current Value: ', 'step-editor', currentValue);
+    
     let newValue: string;
-    this.logger.msg('4', '=== onFilePathSelect() === Before if file path', 'step-editor');
 
+    // Replace the path in steps with the word "file" 
+    // ... if nothing is found, anyhow the newvalue will contain the current value of the steps for further processing
+    const filePathRegex = /file\s*("[^"]*") sheet/g;
+    newValue = currentValue.replace(filePathRegex, `file "${selectedFilePath}" sheet`);
 
-    // Check if {file_path} exists (first time selection)
-    if (currentValue.includes('{file_path}')) {
-      this.logger.msg('4', '=== onFilePathSelect() === {file_path} exists', 'step-editor', currentValue);
-      newValue = currentValue.replace('{file_path}', selectedFilePath);
-      this.logger.msg('4', '=== onFilePathSelect() === New Value', 'step-editor', newValue);
-    } else {
-      // Check if there's a previously selected file path to replace (last path saved)
-      const previousFilePath = this.lastSelectedFilePaths.get(index);
+    // Replace the path in steps with the word "app"
+    const appRegex = /app\s*("[^"]*") on mobile/g;
+    newValue = newValue.replace(appRegex, `app "${selectedFilePath}" on mobile`);
 
-      // if the previous file path is in the current value, replace it with the new file path
-      if (previousFilePath && currentValue.includes(previousFilePath)) {
-        newValue = currentValue.replace(previousFilePath, selectedFilePath);
-      } else {  
-        // Look for any existing file path in the current text
-        // This regex finds file paths that look like uploads/...apk
-        const filePathRegex = /uploads\/[^"\s]+\.apk/g;
-        const matches = currentValue.match(filePathRegex);
-        
-        if (matches && matches.length > 0) {
-          // Replace the first occurrence of a file path
-          newValue = currentValue.replace(matches[0], selectedFilePath);
-        } else {
-          this.logger.msg('4', '=== onFilePathSelect() === No existing file path found', 'step-editor', currentValue);
-        }
-      }
-    }
+    this.logger.msg('4', '=== onFilePathSelect() === New Value after regex replacements: ', 'step-editor', newValue);
 
     // Set the new value to the textarea (newValue)
-    contentControl?.setValue(newValue);
-
-    // Store the selected file path for this step
-    this.lastSelectedFilePaths.set(index, selectedFilePath);
+    if (newValue !== undefined) {
+      this.stepsForm.at(index).get('step_content')?.setValue(newValue);
+    }
   
-    // Clear the autocomplete options and hide it
-    this.filePathAutocompleteOptions = [];
+    // Close the autocomplete panel
     this.showFilePathAutocomplete = false;
-    this.currentFilePathAutocompleteIndex = null;
+    // Clear the stored index
+    this.currentFilePathStepIndex = null;
+
+    // Store the selected file path for this step to enable future div (autocomplte) triggers
+    // This allows users to modify previously selected files in the same step
+    // See in th elogs who is working put this in the filter 'onStepTextareaClick()'
+    this.lastSelectedFilePaths.set(index, selectedFilePath);
   }
 
   // Only shows the autocomplete if cursor focus in the {file_path} area
-  onTextareaFocusFilePath(event: FocusEvent, index: number, textarea: HTMLTextAreaElement, value: string) {
-    if (this.lastSelectedFilePaths.has(index)) {
-      // Get the file path from the last selected file paths
-      const filePath = this.lastSelectedFilePaths.get(index);
-      // Get the index of the file path in the textarea
-      const filePathIndex = value.indexOf(filePath);
-      
-      if (filePathIndex !== -1) {
-        // Get cursor position from textarea
-        const cursorPos = textarea.selectionStart;
-        this.logger.msg('4', '=== onTextareaFocusFilePath() === Cursor Position', 'step-editor', cursorPos);
-        
-        // Check if cursor is within the file path
-        if (cursorPos >= filePathIndex && cursorPos <= filePathIndex + filePath.length) {
-          // Cursor is on the file path - show autocomplete
-          this.logger.msg('4', '=== onTextareaFocusFilePath() === Cursor is on the file path', 'step-editor');
-          this.createFilePathAutocomplete(event as any, index);
-        }
-        else {
-          this.logger.msg('4', '=== onTextareaFocusFilePath() === Cursor is not on the file path', 'step-editor');
-          this.showFilePathAutocomplete = false;
-        }
-      }
+  onTextareaFocusFilePath(event: FocusEvent, index: number) {
+    const stepContent = this.getStepContentAtIndex(index);
+    if (/(file\s*"[^"]*" sheet|app\s*"[^"]*" on mobile)/.test(stepContent)) {
+      this.createFilePathAutocomplete(event as any, index);
     }
   }
 }
