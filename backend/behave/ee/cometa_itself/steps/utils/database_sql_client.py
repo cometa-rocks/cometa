@@ -28,8 +28,8 @@ class SQLDatabaseClient(DatabaseClient):
             self.connection = engine.connect() 
 
         except Exception as e:
-            logger.error(f"Error while connecting to database connection error:",e)
-            raise CustomError(e)
+            logger.error(f"Error while connecting to database: {e}")
+            raise CustomError(str(e))
 
     def __json_safe_converter(self, value):
         # logger.debug(f"Converting value {value}")
@@ -73,7 +73,7 @@ class SQLDatabaseClient(DatabaseClient):
             
             
         except Exception as e:
-            logger.error("Error while executing the query", e)
+            logger.error(f"Error while executing the query: {e}")
             raise CustomError(e)
         
         try:
@@ -81,7 +81,7 @@ class SQLDatabaseClient(DatabaseClient):
             send_step_details(context, "Converting query result to the JSON")
             return self.__convert_result_to_json(result)
         except Exception as e:
-            logger.error("Error while converting query result to the JSON", e)
+            logger.error(f"Error while converting query result to the JSON: {e}")
             raise CustomError(e)
         
     
@@ -94,5 +94,5 @@ class SQLDatabaseClient(DatabaseClient):
             logger.info(f"\"{self.connection_name}\" database connection closed")
             return True
         except Exception as e:
-            logger.error(f"Error while closing connection to database \"{self.connection_name}\"",e)
+            logger.error(f"Error while closing connection to database \"{self.connection_name}\": {e}") 
             return False

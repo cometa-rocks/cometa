@@ -1193,7 +1193,8 @@ export class EditFeature implements OnInit, OnDestroy {
     const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
     const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && 
+      scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -2316,7 +2317,10 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   /**
-   * Creates a new feature or edits an existing one. It executes whenever the user clicks on the create / save button in the feature dialog
+   * Click on SAVE BUTTON - Creates a new feature or edits an existing one. 
+   * It executes whenever the user clicks on the create / save button in the feature dialog
+   * 
+   * 
    * @returns
    */
   async editOrCreate() {
@@ -2349,16 +2353,21 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Validate mobile references in steps before saving
     let validationResult = await this.validateMobileReferences();
+    // FIXME .... why are we using a while loop?
     while (!validationResult.isValid) {
       const action = await this.showMobileValidationError(validationResult.errors);
       if (action === 'ignore') {
+        this.logger.msg('4', 'User chose to ignore the errors, continue with save', 'edit-feature');
         // User chose to ignore the errors, continue with save
         break;
       } else if (action === 'correct') {
+        this.logger.msg('4', 'User chose to correct the errors, cancel the save process completely', 'edit-feature');
         // User chose to correct, cancel the save process completely
         return;
       }
     }
+
+    
     
     // Get current steps from Store
     let currentSteps = [];
@@ -2380,15 +2389,6 @@ export class EditFeature implements OnInit, OnDestroy {
             }
             return;
           }
-          /**
-           OLD LOGIC - Before 2021-12-30
-          this._snackBar.open('One or more steps are invalid, fix them before saving.', 'OK', { duration: 5000 });
-          // Focus on on first invalid step
-          try {
-            document.querySelector<HTMLTextAreaElement>('.invalid-step textarea').focus();
-          } catch (err) { console.log('Failed to focus on step input') }
-          return;
-          */
         }
       }
     } else {
@@ -3100,12 +3100,40 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   /**
+   * Checks if a quoted text should be skipped during mobile reference validation
+   * @param quotedText The text inside quotes to validate
+   * @returns boolean indicating if the quoted text should be skipped
+   */
+  private shouldSkipQuotedTextValidation(quotedText: string): boolean {
+    // Skip empty quotes
+    if (!quotedText || quotedText.trim() === '') {
+      return true;
+    }
+    
+    // Check if this is a system variable (starts with { and ends with })
+    if (quotedText.startsWith('{') && quotedText.endsWith('}')) {
+      // These are system variables, so they're always valid
+      return true;
+    }
+    
+    // Check if this is a mobile placeholder
+    if (quotedText === '{mobile_code}' || quotedText === '{mobile_name}') {
+      // These are placeholders, so they're always valid
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
    * Validates that all mobile references in steps are still valid
    * @returns Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>}>
    */
   private async validateMobileReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>}> {
     const errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}> = [];
     
+    this.logger.msg('4', 'validateMobileReferences()', 'edit-feature');
+
     // Get current steps
     let currentSteps = [];
     if (this.stepEditor) {
@@ -3116,44 +3144,38 @@ export class EditFeature implements OnInit, OnDestroy {
     }
 
     // Get current mobile containers and app packages
+    this.logger.msg('4', 'ValidateMobilereferences - Getting Container List', 'edit-feature');
     const containers = await this._api.getContainersList().toPromise();
     const runningMobiles = containers.filter(c => c.service_status === 'Running');
     const allMobiles = containers; // Include all mobiles for reference
+    this.logger.msg('4', `ValidateMobilereferences - Container List with Running mobiles: ${runningMobiles.length}`, 'edit-feature');
     
-    // Get app packages from department files
-    const appPackages = (this.department?.files as any[])
-      ?.filter(file => file.name.toLowerCase().endsWith('.apk') && !file.is_removed)
-      ?.map(file => file.name.replace(/\.apk$/i, '')) || [];
+    // // Get app packages from department files
+    // const appPackages = (this.department?.files as any[])
+    //   ?.filter(file => file.name.toLowerCase().endsWith('.apk') && !file.is_removed)
+    //   ?.map(file => file.name.replace(/\.apk$/i, '')) || [];
 
     // Check each step for mobile references
     currentSteps.forEach((step, index) => {
       if (!step.step_content || !step.enabled) return;
 
+      this.logger.msg('4', `ValidateMobilereferences step: ${step.step_content}`, 'edit-feature');
+
       const content = step.step_content;
       
-      // Find all quoted strings in the step
-      const quoteRegex = /"([^"]*)"/g;
+      // Find steps that contain mobile references and get the text inside the quotes
+      const quoteRegex = /mobile "([^"]*)"/g;
       let match;
       
       while ((match = quoteRegex.exec(content)) !== null) {
         const quotedText = match[1];
-        const quoteStart = match.index + 1; // Position after opening quote
-        const quoteEnd = match.index + 1 + quotedText.length; // Position at closing quote
+        const quoteStart = match.index + 8; // Position after opening quote
+        const quoteEnd = match.index + 8 + quotedText.length; // Position at closing quote
+
+        this.logger.msg('4', `ValidateMobilereferences quotedText: ${quotedText}`, 'edit-feature');
         
-        // Skip empty quotes
-        if (!quotedText || quotedText.trim() === '') {
-          continue;
-        }
-        
-        // Check if this is a system variable (starts with { and ends with })
-        if (quotedText.startsWith('{') && quotedText.endsWith('}')) {
-          // These are system variables, so they're always valid
-          continue;
-        }
-        
-        // Check if this is a mobile placeholder
-        if (quotedText === '{mobile_code}' || quotedText === '{mobile_name}' || quotedText === '{app_package}') {
-          // These are placeholders, so they're always valid
+        // Skip validation for certain types of quoted text
+        if (this.shouldSkipQuotedTextValidation(quotedText)) {
           continue;
         }
         
@@ -3193,15 +3215,15 @@ export class EditFeature implements OnInit, OnDestroy {
           }
         }
         
-        // Check if it's an actual app package
-        if (appPackages.includes(quotedText)) {
-          continue; // Valid app package
-        }
+        // // Check if it's an actual app package
+        // if (appPackages.includes(quotedText)) {
+        //   continue; // Valid app package
+        // }
         
         // Only check for mobile-like references if the step contains mobile-related actions
         const stepAction = step.step_action || '';
-        const isMobileStep = /mobile|app|package|activity/i.test(stepAction) || 
-                           /mobile|app|package|activity/i.test(content);
+        const isMobileStep = /mobile|activity/i.test(stepAction) || 
+                           /mobile|activity/i.test(content);
         
         if (!isMobileStep) {
           // This step doesn't seem to be related to mobile actions, skip validation
@@ -3215,14 +3237,14 @@ export class EditFeature implements OnInit, OnDestroy {
         // Check if this is after "mobile" (for mobile_code or mobile_name)
         const isAfterMobile = /mobile\s*"[^"]*"\s*$/i.test(beforeQuote) || /mobile\s*$/i.test(beforeQuote);
         
-        // Check if this is after "package" or "app" (for app_package)
-        const isAfterPackage = /package\s*"[^"]*"\s*$/i.test(beforeQuote) || /app\s*"[^"]*"\s*$/i.test(beforeQuote) || /package\s*$/i.test(beforeQuote) || /app\s*$/i.test(beforeQuote);
+        // // Check if this is after "package" or "app" (for app_package)
+        // const isAfterPackage = /package\s*"[^"]*"\s*$/i.test(beforeQuote) || /app\s*"[^"]*"\s*$/i.test(beforeQuote) || /package\s*$/i.test(beforeQuote) || /app\s*$/i.test(beforeQuote);
         
         
-        // Only validate if it's after mobile, package, or app keywords
-        if (!isAfterMobile && !isAfterPackage) {
-          continue;
-        }
+        // // Only validate if it's after mobile, package, or app keywords
+        // if (!isAfterMobile && !isAfterPackage) {
+        //   continue;
+        // }
         
         // If we get here, it's potentially an invalid mobile reference
         // Determine the type of mobile reference based on context and content
@@ -3238,9 +3260,10 @@ export class EditFeature implements OnInit, OnDestroy {
             } else {
               errorType = 'mobile code';
             }
-          } else if (isAfterPackage) {
-            errorType = 'app package';
-          }
+          } 
+          // else if (isAfterPackage) {
+          //   errorType = 'app package';
+          // }
           shouldFlag = true;
         }
         // Check if it looks like a mobile name (usually contains spaces or special characters)
@@ -3251,16 +3274,16 @@ export class EditFeature implements OnInit, OnDestroy {
           shouldFlag = true;
         }
         // Check if it looks like an app package (usually contains dots)
-        else if (quotedText.includes('.') && quotedText.length > 1) {
-          errorType = 'app package';
-          shouldFlag = true;
-        }
+        // else if (quotedText.includes('.') && quotedText.length > 1) {
+        //   errorType = 'app package';
+        //   shouldFlag = true;
+        // }
         
         if (shouldFlag) {
           errors.push({
             stepIndex: index + 1,
             stepContent: step.step_content,
-            error: `Invalid ${errorType}: "${quotedText}" - This mobile/package is no longer available.`,
+            error: `Invalid ${errorType}: "${quotedText}" - This mobile is not available.`,
             quoteStart: quoteStart,
             quoteEnd: quoteEnd
           });
@@ -3275,11 +3298,19 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   /**
-   * Shows a dialog with mobile validation errors and allows user to navigate to problematic steps
+   * Shows a dialog with mobile validation errors and allows 
+   * user to navigate to problematic steps.
+   * 
+   * Validates:
+   * 1: Mobile code is ok
+   * 2: Mobile name is ok
+   * 
    * @param errors Array of validation errors
    * @returns Promise<MobileValidationAction> The action chosen by the user
    */
   private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<MobileValidationAction> {
+    this.logger.msg('4', 'showMobileValidationError()', 'edit-feature');
+    
     const errorMessages = errors.map(err => 
       `Step ${err.stepIndex}: ${err.error}`
     ).join('\n\n');
@@ -3293,7 +3324,7 @@ export class EditFeature implements OnInit, OnDestroy {
       autoFocus: true,
       data: {
         title: dialogTitle,
-        message: `The following mobile references are no longer valid:\n\n${errorMessages}\n\nPlease update these references before saving.`,
+        message: `The following mobile references are invalid:\n\n${errorMessages}\n\nPlease update these references before saving.`,
         errors: errors
       } as MobileValidationErrorData
     });
@@ -3315,6 +3346,8 @@ export class EditFeature implements OnInit, OnDestroy {
         
         // Select the problematic text if we have position information
         if (firstError.quoteStart !== undefined && firstError.quoteEnd !== undefined) {
+          this.logger.msg('4', `showMobileValidationError - quoteStart ${firstError.quoteStart} and quoteEnd ${firstError.quoteEnd}  are defined`, 'edit-feature');
+          // FIXME .... why are we using setTimeout()?
           setTimeout(() => {
             const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
             if (textarea) {

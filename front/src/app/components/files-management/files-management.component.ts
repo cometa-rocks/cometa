@@ -476,7 +476,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         'OK',
         {
           duration: 5000,
-          panelClass: ['file-management-custom-snackbar']
+          panelClass: ['cometa-snackbar']
         }
       );
 
@@ -498,7 +498,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           'OK',
           {
             duration: 10000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           }
         );
         
@@ -524,7 +524,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           
         this._snackBar.open(message, 'OK', {
           duration: 5000,
-          panelClass: ['file-management-custom-snackbar']
+          panelClass: ['cometa-snackbar']
         });
         
         // If all files are duplicates, clear the input and return
@@ -1146,7 +1146,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       if (!file) {
         this._snackBar.open('Error: Could not find file information', 'Close', {
           duration: 5000,
-          panelClass: ['file-management-custom-snackbar']
+          panelClass: ['cometa-snackbar']
         });
         this.file_data[fileId].isLoading = false;
         this.cdRef.markForCheck();
@@ -1329,7 +1329,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           next: (response) => {
             this._snackBar.open('File data updated successfully', 'Close', {
               duration: 3000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
             
             // Clear dirty state and full dataset since we're refreshing from server
@@ -1358,7 +1358,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             
             this._snackBar.open('Error updating file data. Changes have been reverted.', 'Close', {
               duration: 5000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
             
             reject(error);
@@ -1841,7 +1841,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (totalRows <= 1) {
       this._snackBar.open('Cannot delete the last row', 'Close', {
         duration: 3000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       });
       return;
     }
@@ -2211,7 +2211,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           'Save Changes', 
           {
             duration: 8000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           }
         );
         
@@ -2405,7 +2405,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (!sanitizedName) {
       this._snackBar.open('Invalid column name. Use only letters, numbers, spaces, and basic punctuation.', 'Close', {
         duration: 5000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       });
       return;
     }
@@ -2700,7 +2700,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (field === 'rowNumber') {
       this._snackBar.open('Cannot delete row number column', 'Close', {
         duration: 3000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       });
       return;
     }
@@ -2710,7 +2710,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (dataColumns.length <= 1) {
       this._snackBar.open('Cannot delete the last column', 'Close', {
         duration: 3000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       });
       return;
     }
@@ -2890,7 +2890,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (field === 'rowNumber') {
       this._snackBar.open('Cannot rename row number column', 'Close', {
         duration: 3000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       });
       return;
     }
@@ -2932,7 +2932,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         if (!sanitizedName) {
           this._snackBar.open('Invalid column name. Use only letters, numbers, spaces, and basic punctuation.', 'Close', {
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           });
           return;
         }
@@ -2945,7 +2945,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         if (existingFields.includes(newFieldName) && newFieldName !== field) {
           this._snackBar.open(`Column name conflicts with existing field: ${newFieldName}`, 'Close', {
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           });
           return;
         }
@@ -2987,7 +2987,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           this.log.msg('2', `Failed to rename column ${field}: ${error}`, 'RenameColumn');
           this._snackBar.open('Failed to rename column. Please try again.', 'Close', {
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           });
           return;
         }

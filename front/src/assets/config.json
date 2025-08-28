@@ -1,5 +1,5 @@
 {
-  "version": "3.0.92",
+  "version": "3.0.94",
   "stable_version": "3.0.92",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.94",
+      "date": "2025-08-25",
+      "features": [
+        {
+          "title": "Mobile list improvements - #6717",
+          "description": "Mobile list improvements, css enhancements, solved issue undefined hostnames."
+        }
+      ]
+    },
+    {
+      "version": "3.0.93",
+      "date": "2025-08-22",
+      "features": [
+        {
+          "title": "Changed color of confirmation button text in snackbar - #6727",
+          "description": "Updated the color of the confirmation button text for snackbar from the feature view in the step definition section buttons."
+        }
+      ]
+    },
     {
       "version": "3.0.92",
       "date": "2025-08-20",

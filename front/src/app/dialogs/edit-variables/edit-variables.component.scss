@@ -46,7 +46,10 @@
 }
 
 .table-wrapper {
-  height: 40vh;
+  // Height of the table wrapper, put 35px to not interact with the buttons add variables when resize th window dialog
+  height: 35vh;
+  // Separation with column show button 
+  margin-top: 15px;
   overflow-y: auto;
   scroll-behavior: smooth;
 

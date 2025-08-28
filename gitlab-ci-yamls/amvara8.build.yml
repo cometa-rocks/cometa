@@ -1,0 +1,47 @@
+.amvara8.build:
+  stage: deploy
+  variables:
+    DEPLOY_TARGET_FOLDER: "/development/cometa"
+    RSYNC_EXCLUDES: | 
+      --exclude '*.so'
+
+  #########################################################
+  # Prepare deploy
+  # Setting error handling
+  # Creating deploy folder (if not exists)
+  #########################################################
+  before_script:
+    - set -euo pipefail
+    - echo "Preparing deploy for $CI_PROJECT_PATH@$CI_COMMIT_SHA"
+    - mkdir -p "$DEPLOY_TARGET_FOLDER"
+
+  #########################################################
+  # Syncing code from gitlab-runner to deploy folder
+  # Switch to deploy folder
+  # Check if docker compose is available
+  # Recreate services with compose build file
+  #########################################################
+  script:
+    - echo "whoami=$(whoami) uid=$(id -u) gid=$(id -g)"
+    - id
+    - echo "Syncing code -> $DEPLOY_TARGET_FOLDER"
+    - rsync -av $RSYNC_EXCLUDES ./ "$DEPLOY_TARGET_FOLDER"/
+    - cd "$DEPLOY_TARGET_FOLDER"
+    - |
+      if docker compose version >/dev/null 2>&1; then
+        COMPOSE="docker compose"
+      else
+        COMPOSE="docker-compose"
+      fi
+    - echo "Recreating services with compose build file"
+    - $COMPOSE -f docker-compose-build.yml up -d --build --force-recreate --remove-orphans
+
+  after_script:
+    - echo "Post deployment docker cleanuo"
+    - docker system prune -a -f
+  tags:
+    - build
+  only:
+    refs:
+      - development
+
