@@ -9,8 +9,8 @@ from backend.ee.modules.mobile.models import Mobile
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
 from threading import Thread
-from datetime import datetime
 from backend.utility.functions import getLogger
+from django.utils import timezone
 
 logger = getLogger()
 
@@ -98,7 +98,7 @@ class ContainerService(models.Model):
         service_manager = ServiceManager()
 
         if self.in_use:
-            self.since_in_use = datetime.now()
+            self.since_in_use = timezone.now()
         
         if not self.id:
             if self.service_type == "Emulator":

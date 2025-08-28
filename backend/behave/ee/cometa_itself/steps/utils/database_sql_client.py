@@ -28,8 +28,8 @@ class SQLDatabaseClient(DatabaseClient):
             self.connection = engine.connect() 
 
         except Exception as e:
-            logger.error(f"Error while connecting to database connection error:",e)
-            raise CustomError(e)
+            logger.error(f"Error while connecting to database: {e}")
+            raise CustomError(str(e))
 
     def __json_safe_converter(self, value):
         # logger.debug(f"Converting value {value}")

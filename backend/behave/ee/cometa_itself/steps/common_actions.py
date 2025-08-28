@@ -389,7 +389,10 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
             header_row_number = int(header_row_number)
             value_row_number = int(value_row_number)
             
-            if not 0 < header_row_number <= table_rows:
+            header_row_number = header_row_number - 1
+            value_row_number = value_row_number - 1
+            
+            if not 0 <= header_row_number <= table_rows:
                 raise CustomError(f"Invalid header row index {header_row_number}, available rows are between 1 to {table_rows}")
             
             if not 0 < value_row_number <= table_rows:
@@ -398,8 +401,6 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
             if header_row_number >= value_row_number:
                 raise CustomError(f"header_row_number should be less then the value_row_number")    
 
-        # header_row_number = header_row_number - 2
-        # value_row_number = value_row_number - 2
         if header_row_number >= 0:
             # Set the header using the specified header_row
             df.columns = df.iloc[header_row_number]

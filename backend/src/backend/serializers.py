@@ -389,7 +389,7 @@ class StepResultSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_belongs_to(self, instance):
-        logger.debug(f"StepResultSerializer: Getting belongs to for step result {instance.step_result_id}")
+        # logger.debug(f"StepResultSerializer: Getting belongs to for step result {instance.step_result_id}")
         feature = None
         try:
             feature = BasicFeatureInfoSerializer(Feature.objects.get(feature_id=instance.belongs_to), many=False).data
