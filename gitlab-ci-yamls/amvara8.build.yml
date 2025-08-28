@@ -22,6 +22,8 @@
   # Recreate services with compose build file
   #########################################################
   script:
+    - echo "whoami=$(whoami) uid=$(id -u) gid=$(id -g)"
+    - id
     - echo "Syncing code -> $DEPLOY_TARGET_FOLDER"
     - rsync -av $RSYNC_EXCLUDES ./ "$DEPLOY_TARGET_FOLDER"/
     - cd "$DEPLOY_TARGET_FOLDER"
@@ -33,6 +35,10 @@
       fi
     - echo "Recreating services with compose build file"
     - $COMPOSE -f docker-compose-build.yml up -d --build --force-recreate --remove-orphans
+
+  after_script:
+    - echo "Post deployment docker cleanuo"
+    - docker system prune -a -f
   tags:
     - build
   only:
