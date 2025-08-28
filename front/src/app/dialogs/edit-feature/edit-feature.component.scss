@@ -512,7 +512,7 @@ a {
     .buttons-section {
       min-width: auto;
       width: 100%;
-      max-width: 300px; // Limit the maximum width when collapsed
+      max-width: 287px; // Limit the maximum width when collapsed
       align-self: flex-start; // Align to the left when collapsed
       
       .button-container {
@@ -525,29 +525,29 @@ a {
     }
   }
   
-  // Additional breakpoint for very small screens to ensure proper spacing
-  @media (max-width: 480px) {
-    padding: 15px;
-    gap: 12px;
+  // // Additional breakpoint for very small screens to ensure proper spacing
+  // @media (max-width: 480px) {
+  //   padding: 15px;
+  //   gap: 12px;
     
-    .checkboxes-section {
-      gap: 12px;
+  //   .checkboxes-section {
+  //     gap: 12px;
       
-      .checkbox-column {
-        gap: 6px;
-      }
-    }
+  //     .checkbox-column {
+  //       gap: 6px;
+  //     }
+  //   }
     
-    .buttons-section {
-      max-width: 250px; // Even smaller max-width for very small screens
+  //   .buttons-section {
+  //     max-width: 250px; // Even smaller max-width for very small screens
       
-      .button-container {
-        button {
-          min-width: 120px;
-        }
-      }
-    }
-  }
+  //     .button-container {
+  //       button {
+  //         min-width: 120px;
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 ::ng-deep .options .mat-ripple-element {
