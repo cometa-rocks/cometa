@@ -24,13 +24,22 @@ RUN apt-get purge -y exim*
 # Update pip
 RUN python -m pip install --upgrade pip
 
-# Try to install Microsoft SQL Server packages, but continue if they fail
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && (curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /usr/share/keyrings/microsoft.gpg > /dev/null || echo "Failed to download Microsoft GPG key") \
-    && (echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" | tee /etc/apt/sources.list.d/mssql-release.list || echo "Failed to add Microsoft repository") \
-    && apt-get update -y \
-    && (ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 || echo "Microsoft SQL Server packages not available, continuing without them") \
-    && rm -rf /var/lib/apt/lists/*
+# Install MSSQL related library
+# 1. Clean up any broken repo files
+RUN rm -f /etc/apt/sources.list.d/mssql-release.list
+
+# 2. Import Microsoft’s GPG key (new method, no apt-key warnings)
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
+  | gpg --dearmor \
+  | tee /usr/share/keyrings/microsoft-prod.gpg > /dev/null
+
+# 3. Add Microsoft SQL Server ODBC repo (use Debian 11, works on Debian 12 too)
+# TODO: Check if this is the correct version of Debian
+RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" \
+  > /etc/apt/sources.list.d/mssql-release.list
+# 4. Update apt and install ODBC driver
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+
 
 
 
