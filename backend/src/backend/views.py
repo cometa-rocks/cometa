@@ -1575,15 +1575,25 @@ def GetExecutionSteps(request, feature_id):
     if not feature_id:
         return JsonResponse({'success': False, 'error': 'Feature ID is required.'})
 
-    feature_run = Feature_Runs.objects.filter(feature_id=feature_id).order_by('-run_id').first()
-    if not feature_run:
-        return JsonResponse({'success': False, 'error': 'Execution not found.'})
+    def get_steps_from_feature_result():
 
-    logger.info(f"Getting steps for feature {feature_id} from feature run {feature_run.run_id}")
-    # Get the last feature result to fetch the step details, because for one feature run, 
-    # there can be multiple feature results but they will have the same steps, so pick step from any of them
-    feature_result = feature_run.feature_results.order_by('-feature_result_id').first()
-    json_steps = feature_result.feature_json_steps
+        feature_run = Feature_Runs.objects.filter(feature_id=feature_id).order_by('-run_id').first()
+        if not feature_run:
+            return JsonResponse({'success': False, 'error': 'Execution not found.'})
+
+        logger.info(f"Getting steps for feature {feature_id} from feature run {feature_run.run_id}")
+        # Get the last feature result to fetch the step details, because for one feature run, 
+        # there can be multiple feature results but they will have the same steps, so pick step from any of them
+        feature_result = feature_run.feature_results.order_by('-feature_result_id').first()
+        return feature_result.feature_json_steps
+    
+    # Checking if the steps are generated, if not, waiting for 0.1 seconds and checking again
+    for i in range(5):
+        json_steps = get_steps_from_feature_result()
+        if len(json_steps) > 0:
+            break
+        time.sleep(0.1)
+
     return JsonResponse({'results': json_steps})
 
 
@@ -2629,7 +2639,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # logger.debug("Last step result checked")
         if last_step:
             # This will execute if it is not the report of the execution
-            logger.debug("Found last step relative calculating time")
+            # logger.debug("Found last step relative calculating time")
             data['relative_execution_time'] = last_step[0].relative_execution_time + data['execution_time']
         else:
             # This will execute if it is a first step report of the execution
