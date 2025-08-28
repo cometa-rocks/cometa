@@ -3324,11 +3324,43 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.lastSelectedFilePaths.set(index, selectedFilePath);
   }
 
-  // Only shows the autocomplete if cursor focus in the {file_path} area
+  // Show the autocomplete if cursor focus in the {file_path} area
   onTextareaFocusFilePath(event: FocusEvent, index: number) {
-    const stepContent = this.getStepContentAtIndex(index);
-    if (/(file\s*"[^"]*" sheet|app\s*"[^"]*" on mobile)/.test(stepContent)) {
-      this.createFilePathAutocomplete(event as any, index);
+    const textarea = event.target as HTMLTextAreaElement;
+    const cursorPos = textarea.selectionStart;
+    const content = textarea.value;
+
+    const beforeCursor = content.substring(0, cursorPos);
+    const afterCursor = content.substring(cursorPos);
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === Before Cursor: ', 'step-editor', beforeCursor);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === After Cursor: ', 'step-editor', afterCursor);
+    
+    // file match (browser)
+    const filePattern = /file\s*"([^"]*)$/;
+
+    // app match (mobile)
+    const appPattern = /app\s*"([^"]*)$/;
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === File Pattern: ', 'step-editor', filePattern);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === App Pattern: ', 'step-editor', appPattern);     
+    
+    // file match (browser)
+    const fileMatch = beforeCursor.match(filePattern);
+
+    // app match (mobile)
+    const appMatch = beforeCursor.match(appPattern);
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === File Match: ', 'step-editor', fileMatch);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === App Match: ', 'step-editor', appMatch);
+    
+    if (fileMatch || appMatch) {
+      // Check if there's a closing quote after cursor
+      const hasClosingQuote = afterCursor.includes('"'); //Example:  Read text excelfile "text... -->(")
+      this.logger.msg('4', '=== onTextareaFocusFilePath() === Has Closing Quote: ', 'step-editor', hasClosingQuote);
+      if (hasClosingQuote) { //if closed, show the autocomplete
+        this.createFilePathAutocomplete(event as any, index);
+      }
     }
   }
 }
