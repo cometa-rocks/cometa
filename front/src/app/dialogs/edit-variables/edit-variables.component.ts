@@ -53,6 +53,7 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { KEY_CODES } from '@others/enums';
+import { LogService } from '@services/log.service';
 
 interface PassedData {
   environment_id: number;
@@ -158,7 +159,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
     private _dialog: MatDialog,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
+    private logger: LogService
   ) {}
 
   sendInputFocusToParent(inputFocus: boolean): void {
@@ -313,7 +315,12 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   }
 
   onEncryptCheckboxChange(event: MatCheckboxChange, variable: VariablePair) {
+    // Check if the checkbox is checked and the variable is encrypted
+    this.logger.msg('1', `onEncryptCheckboxChange() - event.checked: ${event.checked}\nvariable value: ${variable.variable_value}`, 'edit-variables');    
     if (!event.checked && variable.variable_value.startsWith('U2FsdGVkX1')) {
+
+      // Prevent the checkbox from being changed
+      event.source.checked = true;
       // opens confirmation dialog, to prevent accidental elimination of encrypted variable value
       const confirmDialog = this._dialog.open(AreYouSureDialog, {
         data: {
@@ -326,20 +333,28 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
       // if dialogs result is 'yes/true', resets the value of variable. But it is still not saved, user can revert it by hitting ESC key or Cancel button
       confirmDialog.afterClosed().subscribe(res => {
         if (res) {
+          // if dialog result is no/false. go back to previous state of value encryption and focus variable-name input
+          variable.encrypted = false;
+          this.logger.msg('1', `Variable encrypted if yes: ${variable.encrypted}`, 'edit-variables');
           variable.variable_value = '';
           this.setInputStatus({ required: true }, 'value');
           this._cdr.markForCheck();
-
+          
           // focus enabled row's variable-value input
           this.focusElement(`value-${variable.id}`);
           return;
         }
-
-        // if dialog result is no/false. go back to previous state of value encryption and focus variable-name input
-        variable.encrypted = true;
+        
         this.focusElement(`name-${variable.id}`);
         this._cdr.markForCheck();
       });
+    }
+    // if the checkbox is checked and the variable is encrypted, do nothing
+    else if (event.checked && !variable.variable_value.startsWith('U2FsdGVkX1')) {
+      // If the checkbox is checked and the variable is not encrypted, encrypt the variable
+      variable.encrypted = true;
+      this.logger.msg('1', `Variable encrypted if no: ${variable.encrypted}`, 'edit-variables');
+      this.logger.msg('1', `Variable value: ${variable.variable_value}`, 'edit-variables');
     }
   }
 
