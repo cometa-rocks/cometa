@@ -1728,7 +1728,7 @@ export class EditFeature implements OnInit, OnDestroy {
     this.logger.msg('4', '=== FeatureForm Values ===', 'edit-feature');
     Object.keys(this.featureForm.controls).forEach(key => {
       const control = this.featureForm.get(key);
-      this.logger.msg('4', `${key}:`, control?.value, 'edit-feature');
+      this.logger.msg('4', `${key}:`, 'edit-feature', control?.value);
     });
     this.logger.msg('4', '===============FeatureForm Values===============', 'edit-feature');
 
@@ -1972,7 +1972,7 @@ export class EditFeature implements OnInit, OnDestroy {
       this.logger.msg('4', '=== FeatureForm Values AFTER Population ===', 'edit-feature');
       Object.keys(this.featureForm.controls).forEach(key => {
         const control = this.featureForm.get(key);
-        this.logger.msg('4', `${key}:`, control?.value, 'edit-feature');
+        this.logger.msg('4', `${key}:`, 'edit-feature', control?.value);
       });
       this.logger.msg('4', '=== End FeatureForm Values AFTER Population ===', 'edit-feature');
       
