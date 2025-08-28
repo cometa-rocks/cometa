@@ -3209,11 +3209,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // logger this.filePathAutocompleteOptions
     this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
 
-    if (this.isAutocompleteOpened) {
-      this.isAutocompleteOpened = false;
-    } else {
-      this.isAutocompleteOpened = true;
-    }
 
     // Uploading the files to 'files' variable
     const files = this.department.files;
@@ -3279,7 +3274,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       // if the previous file path is in the current value, replace it with the new file path
       if (previousFilePath && currentValue.includes(previousFilePath)) {
         newValue = currentValue.replace(previousFilePath, selectedFilePath);
-      } else {
+      } else {  
         // Look for any existing file path in the current text
         // This regex finds file paths that look like uploads/...apk
         const filePathRegex = /uploads\/[^"\s]+\.apk/g;
@@ -3321,8 +3316,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           // Cursor is on the file path - show autocomplete
           this.createFilePathAutocomplete(event as any, index);
         }
+        else {
+          this.showFilePathAutocomplete = false;
+        }
       }
     }
   }
+
+
 
 }
