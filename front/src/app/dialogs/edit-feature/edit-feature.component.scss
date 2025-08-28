@@ -491,8 +491,8 @@ a {
     }
   }
   
-  // Responsive design
-  @media (max-width: 768px) {
+  // Responsive design - Changed breakpoint to ensure Action column is visible
+  @media (max-width: 1200px) {
     flex-direction: column;
     gap: 15px;
     
@@ -512,12 +512,38 @@ a {
     .buttons-section {
       min-width: auto;
       width: 100%;
+      max-width: 300px; // Limit the maximum width when collapsed
+      align-self: flex-start; // Align to the left when collapsed
       
       .button-container {
         align-items: stretch;
         
         button {
           width: 100%;
+        }
+      }
+    }
+  }
+  
+  // Additional breakpoint for very small screens to ensure proper spacing
+  @media (max-width: 480px) {
+    padding: 15px;
+    gap: 12px;
+    
+    .checkboxes-section {
+      gap: 12px;
+      
+      .checkbox-column {
+        gap: 6px;
+      }
+    }
+    
+    .buttons-section {
+      max-width: 250px; // Even smaller max-width for very small screens
+      
+      .button-container {
+        button {
+          min-width: 120px;
         }
       }
     }
