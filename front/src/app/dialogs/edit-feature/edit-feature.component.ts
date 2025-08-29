@@ -1231,6 +1231,10 @@ export class EditFeature implements OnInit, OnDestroy {
           if(!event.ctrlKey && !this.inputFocus){
             // Edit variables
             this.editVariables();
+          }else if(event.altKey){
+            //Added Alt+V to edit variables always, even if the focus is on an input or textarea
+            this.logger.msg('4', 'Alt+V key pressed', 'edit-feature');
+            this.editVariables();
           }
           break;
         case KEY_CODES.D:

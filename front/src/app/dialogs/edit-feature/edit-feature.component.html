@@ -774,12 +774,14 @@
           </cometa-step-editor> -->
           <cometa-step-editor
             (textareaFocusToParent)="receiveDataFromChild($event)"
+            (editVariablesRequested)="editVariables()" 
             *ngIf="feature | async as feat"
             [mode]="data.mode"
             [department]="department"
             [feature]="feat"
             [variables]="variables"
             [name]="featureForm.get('feature_name').value">
+            <!--Added (editVariablesRequested) to listen to editVariables button in step-editor component-->
           </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
