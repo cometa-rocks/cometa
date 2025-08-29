@@ -128,9 +128,9 @@
   }
 }
 
-.columns-button-wrapper {
-  display: flex;
-  gap: 16px;
+.amv_add_variable {
+  margin-left: 15px;
+  font-weight: bold;
 }
 
 .add-variable {
@@ -163,12 +163,6 @@ p.inuse {
 //   margin-bottom: 10px;
 // }
 
-.amv_add_variable{
-  font-weight: bold;
-  // @include for-up-to-tablet {
-  //   margin-left: 10px;
-  // }
-}
 
 @include for-phone-only {
   .container-father {
@@ -197,7 +191,7 @@ p.inuse {
   }
 
   .add, .button-column{
-    margin-bottom: 10px;
+    // margin-bottom: 10px;//Conflicts with pagination-mobile for the Close button
     width: auto;
   }
 }
