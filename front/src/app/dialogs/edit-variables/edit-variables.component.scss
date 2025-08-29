@@ -128,6 +128,11 @@
   }
 }
 
+.columns-button-wrapper {
+  display: flex;
+  gap: 16px;
+}
+
 .add-variable {
   display: inline-block;
 }
@@ -158,6 +163,12 @@ p.inuse {
 //   margin-bottom: 10px;
 // }
 
+.amv_add_variable{
+  font-weight: bold;
+  // @include for-up-to-tablet {
+  //   margin-left: 10px;
+  // }
+}
 
 @include for-phone-only {
   .container-father {
