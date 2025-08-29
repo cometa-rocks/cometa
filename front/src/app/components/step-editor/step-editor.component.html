@@ -250,6 +250,11 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
             <!-- Textarea with autocomplete enabled -->
+             <!-- MAC ShortCuts
+              (keydown.alt.arrowup)="insertStep($event, i)"
+              (keydown.alt.arrowdown)="insertStep($event, i)"
+              (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
+             -->
             <textarea
               #stepTextarea
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
@@ -260,10 +265,13 @@
               (keydown.enter)="onTextareaEnter($event, i)"
               (keydown.Tab)="onTextareaTab($event, i)"
               (keydown.control.arrowup)="insertStep($event, i)"
+              (keydown.alt.arrowup)="insertStep($event, i)"
               (keydown.control.arrowdown)="insertStep($event, i)"
+              (keydown.alt.arrowdown)="insertStep($event, i)"
               (keydown.alt.control.arrowup)="copyStep($event, i)"
               (keydown.alt.control.arrowdown)="copyStep($event, i)"
               (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)"
+              (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
               class="code"
               spellcheck="false"
               autocomplete="off"
