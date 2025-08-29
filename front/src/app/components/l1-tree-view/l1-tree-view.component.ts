@@ -4,8 +4,9 @@ import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
 import { FeaturesState } from '@store/features.state';
+import { LogService } from '@services/log.service';
 import * as d3 from 'd3';
-import { debounceTime, Observable } from 'rxjs';
+import { debounceTime, Observable, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'cometa-l1-tree-view',
@@ -36,7 +37,8 @@ export class L1TreeViewComponent implements OnInit {
   constructor(
     private _store: Store,
     private _api: ApiService,
-    private _router: Router
+    private _router: Router,
+    private log: LogService
   ) {}
 
   findEmbededObject(data: any, obj: any) {
@@ -371,10 +373,13 @@ export class L1TreeViewComponent implements OnInit {
   async ngOnInit() {
     this.data = await this._api.getTreeView().toPromise();
 
-    this.currentRoute$.pipe(debounceTime(100)).subscribe(d => {
+    this.currentRoute$.pipe(debounceTime(100), distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))).subscribe(d => {
+      this.log.msg('4', 'Tree View subscription fired with route', 'tree-view', d);
       const data = this.dataFromCurrentRoute(d);
+      this.log.msg('4', `Data from route: ${data === this.viewingData ? 'SAME' : 'DIFFERENT'}`, 'tree-view', data);
       if (data) {
         this.viewingData = data;
+        this.log.msg('4', 'Tree View: Removing SVG and redrawing', 'tree-view');
         d3.select('svg').remove();
         
         // Ensure the tree-view element exists before drawing
