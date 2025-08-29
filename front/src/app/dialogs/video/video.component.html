@@ -23,12 +23,14 @@
         {{ result.browser | browserComboText }}
       </ng-container>
       <ng-template #mobile>
-        <ng-template #mobile>
-          <div class="mobile-info">
-            <i class="android-icon"></i>
-            <span>Mobile</span>
-          </div>
-        </ng-template>
+        <div class="mobile-info">
+          <i class="android-icon"></i>
+          <ng-container *ngFor="let mobile of result.mobile">
+            <ng-container *ngIf="mobile.video_recording === this.data.video_url">
+              {{ mobile.mobile_configuration.capabilities.platformName + ' ' + mobile.mobile_configuration.capabilities['appium:platformVersion'] }}
+            </ng-container>
+          </ng-container>
+        </div>
       </ng-template>
     </div>
   </div>

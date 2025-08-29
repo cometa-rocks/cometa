@@ -14,6 +14,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { LogService } from '@services/log.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'video-player',
@@ -32,6 +33,7 @@ import { LogService } from '@services/log.service';
     BrowserComboTextPipe,
     AsyncPipe,
     TitleCasePipe,
+    CommonModule,
   ],
 })
 export class VideoComponent implements OnInit {
