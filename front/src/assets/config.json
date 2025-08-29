@@ -18,6 +18,7 @@
   "sorting": "execution",
   "reverse": false,
   "useNewDashboard": true,
+  "payment_enabled": false,
   "co_active_list": "recent",
   "co_features_pagination": 10,
   "co_first_time_cometa": true,
