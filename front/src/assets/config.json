@@ -1,5 +1,5 @@
 {
-  "version": "3.0.94",
+  "version": "3.0.95",
   "stable_version": "3.0.94",
   "language": "en",
   "appTitle": "co.meta",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+        {
+      "version": "3.0.95",
+      "date": "2025-08-28",
+      "features": [
+        {
+          "title": "Conditionally load stripe library - #6754",
+          "description": "Stripe library now will only be loaded if payments are enabled in Co.Meta."
+        }
+      ]
+    },
     {
       "version": "3.0.94",
       "date": "2025-08-25",
