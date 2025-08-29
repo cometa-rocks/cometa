@@ -1004,12 +1004,14 @@ textarea {
 .custom-autocomplete-header {
   padding: 8px 16px;
   background-color: rgba(0, 0, 0, 0.04);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  height: 40px;
   
   .custom-autocomplete-title {
     color: $blue;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 18px;
+    line-height: 40px;
+    letter-spacing: 0.03125em;
   }
 }
 
@@ -1019,8 +1021,7 @@ textarea {
     cursor: pointer;
     transition: background-color 0.2s ease;
     
-    &:hover,
-    &.active {
+    &:hover {
       background-color: rgba(0, 0, 0, 0.04);
     }
     
@@ -1035,7 +1036,7 @@ textarea {
   left: calc(var(--textarea-left) + 170px);
   top: calc(var(--textarea-top) - 150px); // 200px panel height + 20px gap
   z-index: 1000;
-  width: 300px;
+  width: 600px;
   max-height: 200px;
   
   // Ensure panel doesn't go off-screen
