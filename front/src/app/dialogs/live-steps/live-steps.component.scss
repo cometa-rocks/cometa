@@ -432,53 +432,6 @@ mat-label {
   }
 }
 
-// Healing Summary Styles
-.healing-tab-icon {
-  margin-right: 8px;
-  color: #ffa726;
-}
-
-.healing-summary-container {
-  padding: 20px;
-  
-  .healing-summary-header {
-    margin-bottom: 24px;
-    
-    h3 {
-      margin: 0 0 16px 0;
-      color: #424242;
-    }
-    
-    .healing-stats {
-      display: flex;
-      gap: 24px;
-      
-      .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
-        background-color: #f5f5f5;
-        border-radius: 8px;
-        
-        mat-icon {
-          color: #ffa726;
-        }
-        
-        .stat-label {
-          color: #616161;
-          font-size: 14px;
-        }
-        
-        .stat-value {
-          font-weight: bold;
-          color: #424242;
-          font-size: 16px;
-        }
-      }
-    }
-  }
-
 // DDT-specific styles
 .ddt-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
@@ -626,7 +579,54 @@ mat-label {
   }
 }
 
-.healing-summary-list {
+// Healing Summary Styles
+.healing-tab-icon {
+  margin-right: 8px;
+  color: #ffa726;
+}
+
+.healing-summary-container {
+  padding: 20px;
+  
+  .healing-summary-header {
+    margin-bottom: 24px;
+    
+    h3 {
+      margin: 0 0 16px 0;
+      color: #424242;
+    }
+    
+    .healing-stats {
+      display: flex;
+      gap: 24px;
+      
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        
+        mat-icon {
+          color: #ffa726;
+        }
+        
+        .stat-label {
+          color: #616161;
+          font-size: 14px;
+        }
+        
+        .stat-value {
+          font-weight: bold;
+          color: #424242;
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  .healing-summary-list {
     max-height: 400px;
     overflow-y: auto;
     overflow-x: hidden;
