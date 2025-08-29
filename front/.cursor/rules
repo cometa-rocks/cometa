@@ -1,0 +1,218 @@
+---
+description: Comprehensive Cursor Rules for Cometa Angular Frontend
+globs: ["**/*.ts", "**/*.html", "**/*.scss", "**/*.json"]
+alwaysApply: true
+---
+
+# Cometa Angular Frontend - Cursor Rules
+
+## Project Overview
+This is the Angular 15 frontend for the Cometa automated testing and monitoring platform. The application uses modern Angular patterns, NgRx for state management, and Material Design components.
+
+## Angular 15 Standards
+
+### Component Architecture
+- Use OnPush change detection strategy for performance optimization
+- Implement OnDestroy interface for components with subscriptions
+- Keep components focused on single responsibility principle
+- Use smart/dumb component pattern when appropriate
+- Implement proper lifecycle hooks (ngOnInit, ngOnDestroy, etc.)
+
+### Service Layer Guidelines
+- Use dependency injection for all services
+- Make services stateless when possible
+- Use BehaviorSubject for reactive state management
+- Implement proper error handling in HTTP calls
+- Use providedIn: 'root' for singleton services
+- Follow the existing RPC pattern for service communication
+
+### State Management (NgRx)
+- Use NgRx store for global state management
+- Implement proper actions, reducers, and selectors
+- Use NgRx effects for side effects
+- Keep state normalized and flat
+- Use immer for immutable state updates
+- Implement proper loading states
+
+### Template Best Practices
+- Use trackBy functions for *ngFor loops to optimize performance
+- Avoid complex logic in templates - move to component methods
+- Use safe navigation operator (?.) for null checks
+- Keep templates readable and maintainable
+- Use Angular Material components consistently
+- Implement proper accessibility attributes
+
+### TypeScript Standards
+- Use strict TypeScript configuration
+- Define proper interfaces for all data models
+- Use type guards for runtime type checking
+- Implement proper error types and handling
+- Use enums for constants and status values
+- Leverage union types and discriminated unions
+
+## Code Style & Organization
+
+### File Naming Conventions
+- Use kebab-case for file names
+- Use PascalCase for component class names
+- Use camelCase for variables and methods
+- Use UPPER_SNAKE_CASE for constants
+
+### Import Organization
+- Group imports logically: Angular core, third-party, local
+- Use absolute paths for local imports when possible
+- Sort imports alphabetically within groups
+- Remove unused imports
+
+### Component Structure
+```typescript
+@Component({
+  selector: 'app-example',
+  templateUrl: './example.component.html',
+  styleUrls: ['./example.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ExampleComponent implements OnInit, OnDestroy {
+  // Properties
+  // Constructor with dependency injection
+  // Lifecycle hooks
+  // Public methods
+  // Private methods
+}
+```
+
+## Performance Guidelines
+
+### Change Detection
+- Use OnPush strategy when possible
+- Avoid calling methods in templates
+- Use pure pipes for data transformation
+- Implement proper trackBy functions
+- Use async pipe for observables
+
+### Bundle Optimization
+- Implement lazy loading for feature modules
+- Use tree-shakable imports
+- Optimize images and assets
+- Implement proper code splitting
+
+### Memory Management
+- Unsubscribe from observables in ngOnDestroy
+- Use takeUntil pattern for subscription management
+- Avoid memory leaks in event listeners
+- Implement proper cleanup in services
+
+## Testing Requirements
+
+### Unit Testing
+- Write tests for all components, services, and pipes
+- Use Angular testing utilities
+- Mock external dependencies
+- Test both success and error scenarios
+- Maintain good test coverage
+
+### Component Testing
+- Test component initialization
+- Test user interactions
+- Test component outputs
+- Test error handling
+- Test accessibility features
+
+## Security & Best Practices
+
+### Input Validation
+- Validate all user inputs
+- Sanitize HTML content
+- Use Angular built-in security features
+- Implement proper CSRF protection
+
+### Authentication & Authorization
+- Use proper guards for route protection
+- Implement role-based access control
+- Secure API communication
+- Handle authentication errors gracefully
+
+## Accessibility (a11y)
+
+### Standards Compliance
+- Follow WCAG 2.1 guidelines
+- Use semantic HTML elements
+- Implement proper ARIA attributes
+- Ensure keyboard navigation support
+- Provide alternative text for images
+
+### Screen Reader Support
+- Use proper heading hierarchy
+- Implement skip navigation links
+- Provide descriptive labels
+- Test with screen readers
+
+## Material Design Integration
+
+### Component Usage
+- Use Angular Material components consistently
+- Follow Material Design principles
+- Implement proper theming
+- Use Material icons appropriately
+- Ensure responsive design
+
+### Customization
+- Extend Material components when needed
+- Use CSS custom properties for theming
+- Implement dark/light mode support
+- Maintain consistent spacing and typography
+
+## Error Handling
+
+### User Experience
+- Provide clear error messages
+- Implement proper loading states
+- Handle network errors gracefully
+- Provide retry mechanisms
+- Log errors for debugging
+
+### Error Boundaries
+- Implement error boundaries for components
+- Catch and handle runtime errors
+- Provide fallback UI
+- Report errors to monitoring services
+
+## Internationalization (i18n)
+
+### Translation Support
+- Use ngx-translate for internationalization
+- Implement proper language switching
+- Support RTL languages when needed
+- Use translation keys consistently
+- Provide fallback translations
+
+## Development Workflow
+
+### Code Quality
+- Use Prettier for code formatting
+- Follow TSLint rules
+- Implement proper error handling
+- Write self-documenting code
+- Add JSDoc comments for complex functions
+
+### Git Practices
+- Write meaningful commit messages
+- Use feature branches for development
+- Implement proper code review process
+- Keep commits atomic and focused
+
+## Performance Monitoring
+
+### Metrics to Track
+- Bundle size and loading times
+- Component render performance
+- Memory usage patterns
+- Network request optimization
+- User interaction responsiveness
+
+### Optimization Strategies
+- Implement lazy loading
+- Use virtual scrolling for large lists
+- Optimize images and assets
+- Implement proper caching strategies
+- Monitor and optimize bundle sizes

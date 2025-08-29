@@ -4,15 +4,16 @@
     <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: 0;">{{ data?.message }}</pre>
   </mat-dialog-content>
   <mat-dialog-actions align="end">
-    <button mat-stroked-button color="warn" [mat-dialog-close]="'ignore'" 
+    <button mat-stroked-button color="warn" [mat-dialog-close]="'correct'"
+            matTooltip="{{ 'mobile_validation.correct_tooltip' | translate }}"
+            matTooltipPosition="above"
+            class="correct-button">
+      Correct
+    </button>
+    <button mat-stroked-button color="primary" [mat-dialog-close]="'ignore'" 
             matTooltip="{{ 'mobile_validation.ignore_tooltip' | translate }}"
             matTooltipPosition="above">
-      Ignore
-    </button>
-    <button mat-stroked-button color="primary" [mat-dialog-close]="'correct'"
-            matTooltip="{{ 'mobile_validation.correct_tooltip' | translate }}"
-            matTooltipPosition="above">
-      Correct
+      Ignore & Save
     </button>
   </mat-dialog-actions>
 </div>

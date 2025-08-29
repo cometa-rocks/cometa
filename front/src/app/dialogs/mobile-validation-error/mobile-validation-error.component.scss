@@ -19,3 +19,8 @@
 .cdk-overlay-pane.mobile-validation-dialog {
   z-index: 1001 !important;
 }
+
+// hacer espaciaod entre letras
+.correct-button {
+  letter-spacing: 0.05em;
+}
