@@ -321,7 +321,7 @@ class HouseKeepingThread(LogCommand, Thread):
         # Filter for the containers which are use
         container_services_to_clean = ContainerService.objects.filter(
             in_use=True,
-            created_on__lte=three_hours_ago,
+            since_in_use__lte=three_hours_ago,
             service_type="Browser"
         )
         

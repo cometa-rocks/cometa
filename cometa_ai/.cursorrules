@@ -1,0 +1,257 @@
+# Cometa AI Components - Cursor Rules
+
+## Project Overview
+This directory contains AI and machine learning components for the Cometa automated testing and monitoring platform. These components provide intelligent automation, predictive analytics, and AI-powered testing capabilities.
+
+## AI/ML Development Standards
+
+### Python Standards
+- Follow PEP 8 style guidelines strictly
+- Use type hints for all functions and classes
+- Implement proper error handling and logging
+- Use virtual environments for dependency management
+- Follow ML/AI best practices
+
+### Code Organization
+- Organize code by AI functionality (models, training, inference)
+- Use clear and descriptive file names
+- Implement proper separation of concerns
+- Use consistent naming conventions
+- Group related AI components together
+
+## Machine Learning Guidelines
+
+### Model Development
+- Use proper ML frameworks (TensorFlow, PyTorch, scikit-learn)
+- Implement proper model versioning
+- Use configuration files for model parameters
+- Implement model validation and testing
+- Handle model loading and caching properly
+
+### Data Processing
+- Implement proper data validation and cleaning
+- Use efficient data structures for large datasets
+- Implement data transformation pipelines
+- Handle missing data appropriately
+- Implement proper data versioning
+
+### Model Training
+- Use proper training/validation splits
+- Implement early stopping and model checkpointing
+- Monitor training metrics and performance
+- Use appropriate loss functions and optimizers
+- Implement proper hyperparameter tuning
+
+### Model Deployment
+- Implement model serving APIs
+- Handle model versioning and updates
+- Implement proper error handling
+- Monitor model performance in production
+- Implement fallback mechanisms
+
+## AI Service Integration
+
+### API Design
+- Design RESTful APIs for AI services
+- Implement proper authentication and authorization
+- Use appropriate HTTP status codes
+- Implement rate limiting and request validation
+- Provide comprehensive API documentation
+
+### Service Communication
+- Implement proper service discovery
+- Handle service failures gracefully
+- Implement retry mechanisms
+- Monitor service health and performance
+- Use proper error handling and logging
+
+### Data Flow
+- Implement proper data validation
+- Handle data transformation efficiently
+- Implement proper error handling
+- Monitor data processing performance
+- Implement data quality checks
+
+## Testing & Validation
+
+### Model Testing
+- Test model accuracy and performance
+- Implement proper test datasets
+- Test edge cases and error conditions
+- Validate model outputs
+- Implement automated testing pipelines
+
+### Integration Testing
+- Test AI service integration
+- Test data flow and processing
+- Test error handling and recovery
+- Test performance under load
+- Test security and access controls
+
+### Quality Assurance
+- Implement proper model validation
+- Monitor model drift and performance
+- Implement A/B testing when appropriate
+- Validate model outputs
+- Implement proper logging and monitoring
+
+## Performance & Scalability
+
+### Model Optimization
+- Optimize model inference performance
+- Implement proper caching strategies
+- Use model quantization when appropriate
+- Implement batch processing for efficiency
+- Monitor and optimize resource usage
+
+### Resource Management
+- Implement proper memory management
+- Use GPU acceleration when appropriate
+- Implement proper load balancing
+- Monitor resource usage and scaling
+- Implement proper cleanup and garbage collection
+
+### Caching Strategy
+- Implement model result caching
+- Use appropriate cache backends
+- Implement proper cache invalidation
+- Monitor cache performance
+- Implement cache warming strategies
+
+## Security & Privacy
+
+### Data Security
+- Implement proper data encryption
+- Handle sensitive data appropriately
+- Implement proper access controls
+- Use secure communication protocols
+- Implement audit logging
+
+### Model Security
+- Validate model inputs thoroughly
+- Implement proper model access controls
+- Monitor for adversarial attacks
+- Implement model output validation
+- Use secure model serving
+
+### Privacy Protection
+- Implement data anonymization when needed
+- Handle personal data appropriately
+- Implement proper data retention policies
+- Follow privacy regulations
+- Implement data access controls
+
+## Monitoring & Observability
+
+### Model Monitoring
+- Monitor model performance metrics
+- Track model accuracy and drift
+- Monitor inference latency
+- Track resource usage
+- Implement proper alerting
+
+### Service Monitoring
+- Monitor service health and availability
+- Track API response times
+- Monitor error rates and types
+- Track service dependencies
+- Implement proper logging
+
+### Data Monitoring
+- Monitor data quality and consistency
+- Track data processing performance
+- Monitor data flow and transformations
+- Track data access patterns
+- Implement proper data lineage
+
+## Error Handling & Recovery
+
+### Model Errors
+- Handle model loading failures
+- Implement proper fallback mechanisms
+- Handle inference errors gracefully
+- Implement retry mechanisms
+- Provide meaningful error messages
+
+### Service Errors
+- Handle service failures gracefully
+- Implement proper error responses
+- Use appropriate HTTP status codes
+- Implement proper error logging
+- Provide user-friendly error messages
+
+### Data Errors
+- Handle data validation errors
+- Implement proper error reporting
+- Handle data processing failures
+- Implement data quality checks
+- Provide data error notifications
+
+## Documentation & Knowledge Management
+
+### Code Documentation
+- Document all AI models and algorithms
+- Provide usage examples and tutorials
+- Document API endpoints thoroughly
+- Maintain up-to-date documentation
+- Include performance benchmarks
+
+### Model Documentation
+- Document model architecture and parameters
+- Provide training and evaluation results
+- Document model limitations and assumptions
+- Include performance metrics and benchmarks
+- Document model versioning and updates
+
+### API Documentation
+- Document all API endpoints
+- Provide request/response examples
+- Document error codes and messages
+- Include authentication and authorization details
+- Provide integration examples
+
+## Development Workflow
+
+### Version Control
+- Use proper model versioning
+- Implement model registry
+- Track model changes and updates
+- Use proper commit messages
+- Implement code review process
+
+### Testing Strategy
+- Implement unit tests for all functions
+- Test model training and inference
+- Test API endpoints thoroughly
+- Implement integration tests
+- Maintain good test coverage
+
+### Deployment Process
+- Use proper environment separation
+- Implement model deployment pipelines
+- Test deployments thoroughly
+- Monitor deployment success
+- Implement rollback procedures
+
+## Best Practices
+
+### Model Management
+- Use proper model versioning
+- Implement model lifecycle management
+- Monitor model performance over time
+- Implement model retraining pipelines
+- Use proper model evaluation metrics
+
+### Data Management
+- Implement proper data versioning
+- Use efficient data storage formats
+- Implement data quality monitoring
+- Handle data lineage properly
+- Implement proper data backup
+
+### Performance Optimization
+- Profile and optimize critical paths
+- Use appropriate data structures
+- Implement proper caching
+- Monitor and optimize resource usage
+- Use parallel processing when appropriate

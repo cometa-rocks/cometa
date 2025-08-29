@@ -27,7 +27,7 @@ class MongoDBClient(DatabaseClient):
             self.connected_database = self.connection.get_database()  # No need to specify database_name
             self.connection.admin.command("ping")
         except Exception as e:
-            logger.error(f"Error while connecting to MongoDB: ",e)
+            logger.error(f"Error while connecting to MongoDB: {e}")
             raise CustomError(e)
 
     def __convert_mongodb_result_to_json(self, cursor):
@@ -48,7 +48,7 @@ class MongoDBClient(DatabaseClient):
                 query = json.loads(query)
         
         except Exception as e:
-            logger.error(f"Exception while loading query in JSON format",e)
+            logger.error(f"Exception while loading query in JSON format: {e}")
             raise CustomError(e)
         
         try:
@@ -63,14 +63,14 @@ class MongoDBClient(DatabaseClient):
                 cursor = collection.find(query)  # Normal query
             
         except Exception as e:
-            logger.error(f"Error executing MongoDB query", e)
+            logger.error(f"Error executing MongoDB query: {e}")
             raise CustomError(e)
 
         try:
             send_step_details(context, "Converting query result to the JSON")
             return self.__convert_mongodb_result_to_json(cursor)
         except Exception as e:
-            logger.error("Error while converting query result to the JSON", e)
+            logger.error(f"Error while converting query result to the JSON: {e}")
             raise CustomError(e)
         
         
@@ -83,5 +83,5 @@ class MongoDBClient(DatabaseClient):
             logger.info(f"\"{self.connection_name}\" MongoDB connection closed")
             return True
         except Exception as e:
-            logger.error(f"Error while closing connection to MongoDB \"{self.connection_name}\" ",e)
+            logger.error(f"Error while closing connection to MongoDB \"{self.connection_name}\": {e}")
             return False

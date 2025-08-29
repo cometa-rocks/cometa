@@ -470,7 +470,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           } else {
             this._snackBar.open('No features found for this run', 'OK', {
               duration: 5000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
           }
         },
@@ -478,7 +478,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           this.log.msg('2', 'Error loading live steps for DDT run', 'API', err);
           this._snackBar.open('Error loading live steps for this run', 'OK', {
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           });
         }
       });
@@ -932,7 +932,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           } catch (e) {
              parent._snackBar.open('Error starting execution: Invalid response from server.', 'OK', { 
                duration: 10000,
-               panelClass: ['file-management-custom-snackbar'] 
+               panelClass: ['cometa-snackbar'] 
              });
              return; 
           }
@@ -960,7 +960,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
                 'OK',
                 { 
                   duration: 5000,
-                  panelClass: ['file-management-custom-snackbar']
+                  panelClass: ['cometa-snackbar']
                 }
               );
               parent.getResults(); // Refresh to show the queued test
@@ -993,7 +993,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             const errorMessage = res.error || 'Unknown error occurred during execution start.';
             parent._snackBar.open(`Error: ${errorMessage}`, 'OK', { 
               duration: 15000,
-              panelClass: ['file-management-custom-snackbar'] 
+              panelClass: ['cometa-snackbar'] 
             });
           }
         },
@@ -1016,7 +1016,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
               'OK',
               {
               duration: 15000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
               }
             );
         },
@@ -1135,7 +1135,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             // Show confirmation snackbar
             this._snackBar.open("Data-driven test result deleted successfully", "OK", {
               duration: 5000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
             this.cdRef.markForCheck(); // Ensure UI updates
           },
@@ -1143,7 +1143,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             // Handle error
             this._snackBar.open("Error deleting data-driven test result", "OK", {
               duration: 5000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
           }
         });
@@ -1265,7 +1265,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             // Show success message
             this._snackBar.open(`File "${file.name}" deleted successfully`, 'OK', { 
               duration: 5000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
             
             // Reload results
@@ -1289,7 +1289,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           } else {
             this._snackBar.open(errorMsg, 'OK', { 
               duration: 5000,
-              panelClass: ['file-management-custom-snackbar']
+              panelClass: ['cometa-snackbar']
             });
           }
         }
@@ -1311,7 +1311,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         } else {
           this._snackBar.open('Error deleting file', 'OK', { 
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           });
         }
       }
@@ -1325,7 +1325,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     if (file.status.toLowerCase() !== 'done') {
       this._snackBar.open('File is not ready for download', 'Close', {
         duration: 3000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       });
       return;
     }
@@ -1334,7 +1334,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       'Generating file to download, please be patient.',
       'OK',
       { duration: 10000,
-        panelClass: ['file-management-custom-snackbar']
+        panelClass: ['cometa-snackbar']
       }
     );
 
@@ -1347,7 +1347,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         if (!res.body) {
           this._snackBar.open('Download failed: Empty response', 'OK', {
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
              });
           return;
         }
@@ -1364,7 +1364,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           this.log.msg('2', `Error processing download response for ${file.name}`, 'Download', error);
           this._snackBar.open('Error processing download', 'Close', {
             duration: 5000,
-            panelClass: ['file-management-custom-snackbar']
+            panelClass: ['cometa-snackbar']
           });
         }
       },
@@ -1373,7 +1373,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         this.log.msg('2', `Download error for ${file.name}`, 'Download', error);
         this._snackBar.open('Error downloading file', 'Close', {
           duration: 5000,
-          panelClass: ['file-management-custom-snackbar']
+          panelClass: ['cometa-snackbar']
         });
       }
     });

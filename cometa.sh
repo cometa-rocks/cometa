@@ -5,6 +5,7 @@
 # ##################################################
 #
 # Changelog:
+# 2025-08-29 RRO Added check for Rosetta on Apple Silicon Macs, better logging, and show logs for all containers if no container specified
 # 2024-02-16 RRO Added option to restart recreate selenoid
 # 2023-08-12 RRO Added check on docker hub is reachable by downloading image "Hello-World"
 # 2022-10-04 ASO changed sed logic and checking if docker is installed and running.
@@ -30,12 +31,20 @@ Usage: $0 [OPTIONS]
 
 Options:
   -h, --help                Show this help message and exit
+  -i, -install              Install and setup Cometa (default behavior)
   -d, --debug               Enable debug mode (set -x)
-  -l, --logs [container]    Show logs for a container (selenoid|all)
+  -l, --logs [container]    Show logs for a container (selenoid|all) or all containers if none specified
   -r, --restart [container] Restart and recreate a container (e.g. selenoid)
   --root-mount-point        Use /data as the mount point instead of ./data
   --remove-cometa           Backup data, stop and remove Cometa and Redis volume
   --update-docker           (WIP) Update Docker and related components
+  --check-docker            Check if Docker is installed and running
+  --check-docker-compose    Check if Docker Compose is available
+  --check-disk-space        Check available disk space
+  --check-cpu-cores         Check number of CPU cores
+  --check-ram-space         Check available RAM
+  --check-requirements      Check all system requirements
+  --check-rosetta           Check and install Rosetta on Apple Silicon Macs
 
 Description:
   This script sets up and manages the Cometa test automation platform using Docker.
@@ -43,6 +52,8 @@ Description:
 
 Examples:
   $0 --help
+  $0 -install              # Install Cometa
+  $0 -i                    # Install Cometa (short form)
   $0 --logs selenoid
   $0 --restart front
 
@@ -198,8 +209,11 @@ function checkDockerCompose() {
             error "Missing docker compose and docker-compose. Please install docker compose and try again."
             exit 5;
         else
+            info "docker compose (without dash) is available"
             DOCKER_COMPOSE_COMMAND="docker compose"
         fi
+    else
+        info "docker-compose is available"
     fi
 }
 
@@ -249,6 +263,41 @@ function checkRequirements() {
     checkDiskSpace
     checkCPUCores
     checkRAMSpace
+}
+
+function checkRosetta() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # Check if running on Apple Silicon (ARM64)
+        if [[ "$(uname -m)" == "arm64" ]]; then
+            info "Detected Apple Silicon (ARM64) architecture"
+            
+            # Check if Rosetta is already installed
+            if pgrep oahd >/dev/null 2>&1; then
+                info "Rosetta is already installed and running"
+                return 0
+            else
+                info "Rosetta is not installed. Installing now..."
+                if softwareupdate --install-rosetta --agree-to-license; then
+                    info "Rosetta installed successfully"
+                else
+                    error "Failed to install Rosetta"
+                    return 1
+                fi
+            fi
+            
+            # Enable Rosetta support in Docker
+            info "Enabling Rosetta support in Docker..."
+            if docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; then
+                info "Rosetta support enabled in Docker"
+            else
+                warning "Failed to enable Rosetta support in Docker"
+            fi
+        else
+            info "Running on Intel Mac, Rosetta not needed"
+        fi
+    else
+        info "Not running on macOS, Rosetta not needed"
+    fi
 }
 
 function updateCrontab() {
@@ -420,14 +469,34 @@ function get_cometa_up_and_running() {
 # Show logfiles of docker containers
 #
 function show_logfiles() {
-    case $container_name in
-        selenoid)
-            docker logs -f --tail=100 cometa_selenoid
-            ;;
-        all)
-            docker-compose logs -f --tail=100 selenoid front django behave
-            ;;
-    esac
+    if [[ -z "$container_name" ]]; then
+        # No container specified, show all running containers and their logs
+        info "No container specified. Showing all running containers:"
+        docker-compose ps
+        
+        info "Showing logs from all containers (last 10 lines):"
+        docker-compose -f docker-compose-dev.yml logs -f --tail=10
+    else
+        case $container_name in
+            selenoid)
+                docker logs -f --tail=100 cometa_selenoid
+                ;;
+            all)
+                docker-compose logs -f --tail=100
+                ;;
+            *)
+                # Try to show logs for the specified container
+                if docker-compose ps | grep -q "$container_name"; then
+                    docker-compose logs -f --tail=100 "$container_name"
+                else
+                    error "Container '$container_name' not found or not running"
+                    info "Available containers:"
+                    docker-compose ps
+                    exit 1
+                fi
+                ;;
+        esac
+    fi
 }
 
 #
@@ -447,6 +516,11 @@ do
             ;;
         -l|--logs)
             container_name=$2
+            if [[ -n "$container_name" ]]; then
+                shift 2  # Consume both the option and the container name
+            else
+                shift    # Only consume the option
+            fi
             show_logfiles
             exit 0
             ;;
@@ -474,12 +548,55 @@ do
             info "Cometa has been removed. You are save to delete this directory and start with a fresh clone."
             exit 0
             ;;
+        --check-docker)
+            checkDocker
+            exit 0
+            ;;
+        --check-docker-compose)
+            checkDockerCompose
+            exit 0
+            ;;
+        --check-disk-space)
+            checkDiskSpace
+            exit 0
+            ;;
+        --check-cpu-cores)
+            checkCPUCores
+            exit 0
+            ;;
+        --check-ram-space)
+            checkRAMSpace
+            exit 0
+            ;;
+        --check-requirements)
+            checkRequirements
+            exit 0
+            ;;
+        --check-rosetta)
+            checkRosetta
+            exit 0
+            ;;
+        -i | -install)
+            # This will fall through to the default installation behavior
+            shift
+            ;;
+        *)
+            SHOW_HELP
+            exit 0
+            ;;
     esac
 done
 
-checkRequirements
-initiate_config_dirs
-get_cometa_up_and_running
+# Only proceed with installation if -i or -install was specified
+if [[ "$1" == "-i" || "$1" == "-install" ]]; then
+    checkRequirements
+    initiate_config_dirs
+    get_cometa_up_and_running
 
-info "The test automation platform is ready to rumble at https://localhost/"
-info "Thank you for using the easy peasy setup script."
+    info "The test automation platform is ready to rumble at https://localhost/"
+    info "Thank you for using the easy peasy setup script."
+else
+    # Show help by default if no valid option was provided
+    SHOW_HELP
+    exit 0
+fi

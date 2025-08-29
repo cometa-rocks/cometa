@@ -154,6 +154,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @Output() textareaFocusToParent = new EventEmitter<{isFocused: boolean, event: any}>();
 
+  //Added to send event (editVariables button) to parent component
+  @Output() editVariablesRequested = new EventEmitter<void>();
+  editVariables() {
+    this.logger.msg("4","editVariables button clicked","step-editor.component.ts");
+    this.editVariablesRequested.emit();
+  }
+
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
@@ -307,7 +314,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
-    this.textareaFocusToParent.emit({isFocused, event});
+    this.logger.msg("4","sendTextareaFocusToParent","step-editor", isFocused)
+    this.inputFocusService.setInputFocus(isFocused)
 
 
 
@@ -961,7 +969,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     
     // Inform parent of focus (without showing documentation)
-    this.sendTextareaFocusToParent(true, index, false);
+    // Commented function to prevent the focus from being sent twice to the parent since it already called in the html)
+    // this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
@@ -2089,9 +2098,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   exportClipboard() {
     if (this._clipboard.copyFromContent(JSON.stringify(this.getSteps()))) {
-      this._snackBar.open('Steps copied to clipboard!', 'OK');
+      this._snackBar.open('Steps copied to clipboard!', 'OK', {
+        panelClass: ['cometa-snackbar']
+      });
     } else {
-      this._snackBar.open('Error copying to clipboard.', 'OK');
+      this._snackBar.open('Error copying to clipboard.', 'OK', {
+        panelClass: ['cometa-snackbar']
+      });
     }
   }
 
@@ -2103,7 +2116,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.getSteps()
       );
     } else {
-      this._snackBar.open('There are no steps to export', 'OK');
+      this._snackBar.open('There are no steps to export', 'OK', {
+        panelClass: ['cometa-snackbar']
+      });
     }
   }
 
@@ -2115,14 +2130,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       try {
         stepsA = JSON.parse(result.target.result);
       } catch (err) {
-        this._snackBar.open('Invalid JSON syntax', 'OK');
+        this._snackBar.open('Invalid JSON syntax', 'OK', {
+          panelClass: ['cometa-snackbar']
+        });
         return;
       }
       if (Array.isArray(stepsA)) {
         const length = stepsA.length;
         for (let i = 0; i < length; i++) {
           if (!stepsA[i].hasOwnProperty('step_content')) {
-            this._snackBar.open('Invalid data properties', 'OK');
+            this._snackBar.open('Invalid data properties', 'OK', {
+              panelClass: ['cometa-snackbar']
+            });
             return;
           }
         }
@@ -2130,9 +2149,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         (
           document.getElementsByClassName('upload_json')[0] as HTMLInputElement
         ).value = '';
-        this._snackBar.open('Successfully imported steps!', 'OK');
+        this._snackBar.open('Successfully imported steps!', 'OK', {
+          panelClass: ['cometa-snackbar']
+        });
       } else {
-        this._snackBar.open('Invalid data', 'OK');
+        this._snackBar.open('Invalid data', 'OK', {
+          panelClass: ['cometa-snackbar']
+        });
         return;
       }
     };
@@ -2149,14 +2172,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         try {
           stepsA = JSON.parse(ref.componentInstance.json);
         } catch (err) {
-          this._snackBar.open('Invalid JSON syntax', 'OK');
+          this._snackBar.open('Invalid JSON syntax', 'OK', {
+          panelClass: ['cometa-snackbar']
+        });
           return;
         }
         if (Array.isArray(stepsA)) {
           const length = stepsA.length;
           for (let i = 0; i < length; i++) {
             if (!stepsA[i].hasOwnProperty('step_content')) {
-              this._snackBar.open('Invalid data properties', 'OK');
+              this._snackBar.open('Invalid data properties', 'OK', {
+              panelClass: ['cometa-snackbar']
+            });
               return;
             }
           }
@@ -2166,10 +2193,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
               'upload_json'
             )[0] as HTMLInputElement
           ).value = '';
-          this._snackBar.open('Successfully imported steps!', 'OK');
+          this._snackBar.open('Successfully imported steps!', 'OK', {
+          panelClass: ['cometa-snackbar']
+        });
           this.scrollStepsToBottom();
         } else {
-          this._snackBar.open('Invalid data', 'OK');
+          this._snackBar.open('Invalid data', 'OK', {
+          panelClass: ['cometa-snackbar']
+        });
           return;
         }
       }
