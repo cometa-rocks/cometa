@@ -17,9 +17,19 @@
       mat-icon-button>
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <div class="browser" *ngIf="result.browser">
-      <i [style.backgroundImage]="result.browser | browserIcon"></i>
-      {{ result.browser | browserComboText }}
+    <div>
+      <ng-container class="browser"*ngIf="data.type === 'browser'; else mobile">
+        <i [style.backgroundImage]="result.browser | browserIcon"></i>
+        {{ result.browser | browserComboText }}
+      </ng-container>
+      <ng-template #mobile>
+        <ng-template #mobile>
+          <div class="mobile-info">
+            <i class="android-icon"></i>
+            <span>Mobile</span>
+          </div>
+        </ng-template>
+      </ng-template>
     </div>
   </div>
   <div class="right">

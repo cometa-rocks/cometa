@@ -154,7 +154,7 @@
             [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
             matTooltip="{{ button.tooltip }}"
             [matTooltipPosition]="'above'"
-            (click)="row.mobile.length === 1 && onMobileSelectionChange({ value: row.mobile[0] }, row)">
+            (click)="row.mobile.length === 1 && onMobileSelectionChange({ value: row.mobile[0] }, row, 'mobile')">
             <mat-icon
               class="mobile-mat-icon-replay"
               [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
