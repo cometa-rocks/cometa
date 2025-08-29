@@ -154,6 +154,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @Output() textareaFocusToParent = new EventEmitter<{isFocused: boolean, event: any}>();
 
+  //Added to send event (editVariables button) to parent component
+  @Output() editVariablesRequested = new EventEmitter<void>();
+  editVariables() {
+    this.logger.msg("4","editVariables button clicked","step-editor.component.ts");
+    this.editVariablesRequested.emit();
+  }
+
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
