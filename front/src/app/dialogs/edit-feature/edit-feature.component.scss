@@ -103,7 +103,6 @@
       &:nth-child(n+5) {
         flex: 1 40% !important;
       }
-      // flex: 1 !important;
     }
   }
 }
@@ -416,7 +415,7 @@ a {
     }
 
     .checkbox-column {
-      flex: 1 1 calc(100% - 10px)!important;  // Dos columnas con 2 elementos cada una
+      flex: 1 1 calc(100% - 10px)!important;
       min-width: 250px!important;
       max-width: calc(100% - 10px)!important;
     }
@@ -469,8 +468,6 @@ a {
       gap: 10px;
       min-width: 0;
       flex: 1;
-      
-      
     }
   }
   
