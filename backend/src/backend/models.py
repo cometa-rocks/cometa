@@ -345,31 +345,31 @@ def create_feature_file(feature, steps, featureFilePathWithName, save_steps=True
                     result = checkLoop(step)
                     if not result['success']:
                         return result
-                    if subFeature:
-                        try:
-                            recursive_step_level = 0
-                            logger.debug(f"Sending feature length  {len(analyzed_features)} ")
-                            # get recursive steps from the sub feature
-                            subSteps, analyzed_features = recursiveSubSteps([step], [feature.feature_id], analyzed_features, feature.department_id, recursive_step_level)
-                            logger.debug(f"Analyzed feature length  {len(analyzed_features)} ")
-                        except Exception as error:
-                            return {"success": False, "error": str(error)}
-                        # otherwise loop over substeps
-                        for subStep in subSteps:
-                            # check if substep is enabled
-                            if subStep['enabled']:
-                                # check if its a loop related step
-                                subResult = checkLoop(subStep)
-                                if not subResult['success']:
-                                    return subResult
-                                subStep['step_type'] = "substep"
-                                # add the substep found in substep
-                                stepsToAdd.append(subStep)
-                                # save to the file
-                                add_step_to_feature_file(subStep, featureFile)
-                    else:
-                        # if enabled and not a sub feature execution add to the file
-                        add_step_to_feature_file(step, featureFile)
+                    # if subFeature:
+                    #     try:
+                    #         recursive_step_level = 0
+                    #         logger.debug(f"Sending feature length  {len(analyzed_features)} ")
+                    #         # get recursive steps from the sub feature
+                    #         subSteps, analyzed_features = recursiveSubSteps([step], [feature.feature_id], analyzed_features, feature.department_id, recursive_step_level)
+                    #         logger.debug(f"Analyzed feature length  {len(analyzed_features)} ")
+                    #     except Exception as error:
+                    #         return {"success": False, "error": str(error)}
+                    #     # otherwise loop over substeps
+                    #     for subStep in subSteps:
+                    #         # check if substep is enabled
+                    #         if subStep['enabled']:
+                    #             # check if its a loop related step
+                    #             subResult = checkLoop(subStep)
+                    #             if not subResult['success']:
+                    #                 return subResult
+                    #             subStep['step_type'] = "substep"
+                    #             # add the substep found in substep
+                    #             stepsToAdd.append(subStep)
+                    #             # save to the file
+                    #             add_step_to_feature_file(subStep, featureFile)
+                    # else:
+                    # if enabled and not a sub feature execution add to the file
+                    add_step_to_feature_file(step, featureFile)
             featureFile.write('\n')
             logger.debug("Step checks completed")
         
@@ -497,7 +497,7 @@ def write_multiline_send_keys_step(featureFile, step):
 def create_json_file(feature, steps, featureFileName, feature_result_id):
     steps_to_save = []
     for step in steps:
-        if step.get("step_type", None) not in ["normal", "substep"]:
+        if step.get("step_type", None) not in ["normal", "subfeature"]:
             continue
         # if step is not enabled, skip it
         if step.get("enabled", False)==False:
