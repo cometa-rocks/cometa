@@ -1579,6 +1579,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       return;
     }
 
+    // Close filePathAutocompletePanel
+    if (this.showFilePathAutocomplete) {
+      this.showFilePathAutocomplete = false;
+    }
+
     // Attempt to close autocomplete panels
     let panelClosed = false;
     this.autocompleteTriggers?.forEach(trigger => {

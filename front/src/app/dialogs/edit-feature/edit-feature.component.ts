@@ -1192,8 +1192,10 @@ export class EditFeature implements OnInit, OnDestroy {
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
     const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
     const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
+    const filePathAutocompleteOpen = this.stepEditor?.showFilePathAutocomplete || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null 
+      && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null && !filePathAutocompleteOpen){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
