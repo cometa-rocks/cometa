@@ -631,10 +631,10 @@ class HealeniumClient:
             # Healing data will be saved automatically via step data processing in common_functions.py
             logger.debug(f"Healing data prepared for automatic saving with step result")
             
-            # Store healing_info in context for common_functions.py to pick up
-            context.healing_data = healing_info
+            # Store raw healing_event in context for common_functions.py to pick up
+            context.healing_data = healing_event
             
-            return healing_data_json
+            return healing_event
         else:
             # No healing data found for this step
             logger.debug(f"No healing data available for step {step_index}")
