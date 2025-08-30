@@ -183,10 +183,10 @@ export class LiveStepComponent implements OnInit {
   }
   
   getHealingTooltip(healingData: HealeniumData): string {
-    return `Self-healed element (${healingData.confidence_score}%)
-Original: ${healingData.original_selector}
-Healed: ${healingData.healed_selector}
-Method: ${healingData.healing_method}
+    return `Self-healed element (${Math.round(healingData.score * 100)}%)
+Original: By.${healingData.original_selector.type}(${healingData.original_selector.value})
+Healed: By.${healingData.healed_selector.type}(${healingData.healed_selector.value})
+Method: Score-based Tree Comparison
 Time: +${healingData.healing_duration_ms}ms`;
   }
 }

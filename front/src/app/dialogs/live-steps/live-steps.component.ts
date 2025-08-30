@@ -772,18 +772,20 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       const steps = browserResult.steps || [];
       
       steps.forEach((step: StepStatus, index: number) => {
-        if (step.healing_data && step.healing_data.was_healed) {
+        if (step.healing_data) {
+          const confidence = Math.round(step.healing_data.score * 100);
+          
           healedSteps.push({
             stepIndex: index,
             stepName: step.name,
             browser: browserResult.browser_info,
-            originalSelector: step.healing_data.original_selector,
-            healedSelector: step.healing_data.healed_selector,
-            confidence: step.healing_data.confidence_score,
+            originalSelector: `By.${step.healing_data.original_selector.type}(${step.healing_data.original_selector.value})`,
+            healedSelector: `By.${step.healing_data.healed_selector.type}(${step.healing_data.healed_selector.value})`,
+            confidence: confidence,
             healingTime: step.healing_data.healing_duration_ms,
-            method: step.healing_data.healing_method
+            method: 'Score-based Tree Comparison'
           });
-          totalConfidence += step.healing_data.confidence_score;
+          totalConfidence += confidence;
           totalHealingTime += step.healing_data.healing_duration_ms;
         }
       });

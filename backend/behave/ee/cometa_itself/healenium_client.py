@@ -455,31 +455,6 @@ class HealeniumClient:
         except Exception as e:
             logger.debug(f"Failed to send healing notification: {e}")
     
-    def save_healing_to_database(self, healing_data_json, feature_result_id, step_index, step_name, session_id):
-        """Save healing data to Cometa database via API call"""
-        try:
-            import json
-            from utility.config_handler import get_cometa_backend_url
-            
-            healing_info = json.loads(healing_data_json)
-            payload = {
-                'feature_result_id': int(feature_result_id),
-                'step_name': step_name,
-                'step_index': step_index,
-                'original_selector': healing_info['original_selector'],
-                'healed_selector': healing_info['healed_selector'],
-                'confidence_score': healing_info['confidence_score'] / 100.0,  # Convert percentage to 0-1 range
-                'healing_duration_ms': healing_info.get('healing_duration_ms', 0),
-                'healing_session_id': session_id
-            }
-            response = requests.post(f'{get_cometa_backend_url()}/api/healenium/results/save/', json=payload, headers={'Host': 'cometa.local'})
-            if response.status_code == 201:
-                logger.debug(f"Successfully saved healing data for step {step_index}")
-            else:
-                logger.debug(f"Failed to save healing data: {response.status_code} - {response.text}")
-        except Exception as e:
-            logger.debug(f"Error saving healing data: {e}")
-
 
     def initialize_healenium_config(self, context):
         """Initialize Healenium configuration from environment variables"""
@@ -653,13 +628,11 @@ class HealeniumClient:
             if hasattr(context, 'all_healing_events'):
                 context.all_healing_events[step_index] = healing_data_json
             
-            # Save healing data to database
-            self.save_healing_to_database(healing_data_json, 
-                                        os.environ.get("feature_result_id"), 
-                                        step_index, step_name, session_id)
+            # Healing data will be saved automatically via step data processing in common_functions.py
+            logger.debug(f"Healing data prepared for automatic saving with step result")
             
-            # Clear it after use
-            context.healing_data = None
+            # Store healing_info in context for common_functions.py to pick up
+            context.healing_data = healing_info
             
             return healing_data_json
         else:

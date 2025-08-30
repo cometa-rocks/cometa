@@ -1296,6 +1296,10 @@ def after_step(context, step):
     else:
         context.counters["nok"] += 1
 
+    # Clear healing data after step processing to prevent cross-contamination
+    if hasattr(context, 'healing_data'):
+        context.healing_data = None
+    
     # Cleanup variables
     keys = [
         "DB_CURRENT_SCREENSHOT",

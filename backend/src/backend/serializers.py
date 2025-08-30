@@ -390,37 +390,9 @@ class StepResultSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_healing_data(self, instance):
-        """Get healing data for this step result if any exists"""
-        try:
-            from backend.ee.modules.healenium.models import HealeniumResult
-            
-            # Try to find healing result by step_result_id first
-            healing_result = HealeniumResult.objects.filter(
-                step_result=instance
-            ).order_by('-created_date').first()
-            
-            # If not found by step_result_id, try by feature_result_id and step index
-            if not healing_result:
-                # Get step index from step_execution_sequence or try to derive it
-                step_index = getattr(instance, 'step_execution_sequence', 0) - 1  # Convert to 0-based
-                healing_result = HealeniumResult.objects.filter(
-                    feature_result_id=instance.feature_result_id,
-                    step_index=step_index
-                ).order_by('-created_date').first()
-            
-            if healing_result:
-                return {
-                    'was_healed': True,
-                    'original_selector': healing_result.original_selector,
-                    'healed_selector': healing_result.healed_selector,
-                    'confidence_score': round(healing_result.confidence_score * 100, 1),  # Convert to percentage with 1 decimal
-                    'healing_duration_ms': healing_result.healing_duration_ms,
-                    'healing_method': 'Score-based Tree Comparison'  # Default method
-                }
-            return None
-        except Exception as e:
-            # If Healenium module is not available or any error occurs, return None
-            return None
+        """Get healing data directly from Step_result.healing_data field"""
+        # Return healing data directly from the JSONField
+        return instance.healing_data if instance.healing_data else None
 
     def get_belongs_to(self, instance):
         # logger.debug(f"StepResultSerializer: Getting belongs to for step result {instance.step_result_id}")

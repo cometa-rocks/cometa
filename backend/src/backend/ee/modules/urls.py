@@ -6,7 +6,6 @@ from .mobile.urls import register_mobile_routers, register_mobile_urlpatterns
 from .data_driven.urls import register_data_driven_urlpatterns, register_data_driven_routers
 from .rest_api.urls import register_rest_api_routers, register_rest_api_urlpatterns
 from .notification.urls import register_notification_urlpatterns
-from .healenium.urls import register_healenium_urlpatterns
 
 
 # Add new modules url here
@@ -26,7 +25,6 @@ def register_ee_modules_urlpatterns(urlpatterns):
     urlpatterns = register_rest_api_urlpatterns(urlpatterns)
     urlpatterns = register_mobile_urlpatterns(urlpatterns)
     urlpatterns = register_notification_urlpatterns(urlpatterns)
-    urlpatterns = register_healenium_urlpatterns(urlpatterns)
     return urlpatterns
     
 

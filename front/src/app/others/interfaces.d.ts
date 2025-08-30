@@ -133,12 +133,18 @@ interface StepRequirements {
 }
 
 interface HealeniumData {
-  was_healed: boolean;
-  original_selector: string;
-  healed_selector: string;
-  confidence_score: number;
+  score: number;
+  timestamp: number;
+  step_index: number;
+  original_selector: {
+    type: string;
+    value: string;
+  };
+  healed_selector: {
+    type: string;
+    value: string;
+  };
   healing_duration_ms: number;
-  healing_method: string;
 }
 
 interface StepResult {
