@@ -1050,4 +1050,56 @@ textarea {
   &.below {
     top: calc(var(--textarea-top) + var(--textarea-height) + 20px);
   }
+}  
+
+// Tootip custom. Material Design
+/*
+This custom tooltip has been created as a lightweight replacement for Angular Material’s matTooltip.
+It allows you to display a styled tooltip on hover without relying on Angular Material.
+
+Usage:
+1. Add the class .amv_custom-tooltip to any element that should display a tooltip.
+2. Set the tooltip text via the data-tooltip attribute.
+2.1 Use [attr.data-tooltip] instead of data-tooltip if you want to use a translation.
+
+*/
+.amv_custom-tooltip {
+  position: relative; 
+}
+
+.amv_custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translate(-50%, 8px);
+
+  display: block;                    
+  text-align: center;                
+  
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+
+  background: $grey;
+  color: white;
+  padding: 6px 10px; 
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  z-index: 1000;
+
+  max-width: 220px;
+  min-width: 120px;
+  white-space: normal;               
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none; 
+}
+
+.amv_custom-tooltip:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }

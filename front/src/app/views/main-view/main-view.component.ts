@@ -155,7 +155,7 @@ export class MainViewComponent implements OnInit {
           tooltip: 'View browser test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
-          click: (result: FeatureResult) => this.openVideo(result, result.video_url),
+          click: (result: FeatureResult) => this.openVideo(result, result.video_url, 'browser'),
           class: 'replay-button',
         },
         {
@@ -165,7 +165,7 @@ export class MainViewComponent implements OnInit {
           tooltip: 'View mobile test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
-          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording),
+          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording, 'mobile'),
           class: 'replay-button-2',
         },
         {
@@ -358,7 +358,7 @@ export class MainViewComponent implements OnInit {
     const selectedMobile = event.value;
 
     if (selectedMobile && selectedMobile.video_recording) {
-      this.openVideo(row, selectedMobile.video_recording);
+      this.openVideo(row, selectedMobile.video_recording, 'mobile');
     }
   }
 
@@ -389,7 +389,7 @@ export class MainViewComponent implements OnInit {
     });
   }
 
-  openVideo(result: FeatureResult, video_url:string) {
+  openVideo(result: FeatureResult, video_url:string, type: 'browser' | 'mobile') {
 
     this._sharedActions
       .loadingObservable(
@@ -403,7 +403,8 @@ export class MainViewComponent implements OnInit {
             panelClass: 'video-player-panel',
             data: {
               result: result,
-              video_url: video_url
+              video_url: video_url,
+              type: type
             },
           });
 

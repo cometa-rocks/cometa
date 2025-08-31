@@ -154,6 +154,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @Output() textareaFocusToParent = new EventEmitter<{isFocused: boolean, event: any}>();
 
+  //Added to send event (editVariables button) to parent component
+  @Output() editVariablesRequested = new EventEmitter<void>();
+  editVariables() {
+    this.logger.msg("4","editVariables button clicked","step-editor.component.ts");
+    this.editVariablesRequested.emit();
+  }
+
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
@@ -316,7 +323,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
-    this.textareaFocusToParent.emit({isFocused, event});
+    this.logger.msg("4","sendTextareaFocusToParent","step-editor", isFocused)
+    this.inputFocusService.setInputFocus(isFocused)
 
     if (index === undefined) {
       return;
@@ -978,7 +986,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     
     // Inform parent of focus (without showing documentation)
-    this.sendTextareaFocusToParent(true, index, false);
+    // Commented function to prevent the focus from being sent twice to the parent since it already called in the html)
+    // this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;

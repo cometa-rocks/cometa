@@ -258,7 +258,7 @@
             <textarea
               #stepTextarea
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
-              (blur)="fixStep($event, i)"
+              (blur)="fixStep($event, i); sendTextareaFocusToParent(false, i)"
               (click)="onStepTextareaClick($event, i, 0)"
               (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
               (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
@@ -508,6 +508,15 @@
       mat-stroked-button
       class="json_option">
       EXPORT JSON
+    </button>
+    <button
+      type="button"
+      color="primary"
+      (click)="editVariables()"
+      class="amv_custom-tooltip"
+      data-tooltip="V or Alt+V while editing a step"
+      mat-stroked-button>
+      EDIT VARIABLES
     </button>
     <input
       type="file"

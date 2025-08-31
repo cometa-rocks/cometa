@@ -464,6 +464,7 @@ export class EditFeature implements OnInit, OnDestroy {
     ];
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.logger.msg('4', 'inputFocus | Boolean Received in Parent', 'edit-feature', isFocused, );
       this.inputFocus = isFocused;
     });
 
@@ -1175,12 +1176,11 @@ export class EditFeature implements OnInit, OnDestroy {
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      
       if (contextMenuEl && contextMenuEl.style.display !== 'none') {
         // A context menu is open – don't process ESC in EditFeature
         return;
       }
-      
-
       
     }
     // If true... return | only execute switch case if input focus is false
@@ -1231,6 +1231,10 @@ export class EditFeature implements OnInit, OnDestroy {
           // Only trigger shortcut if not focused on input and not using Ctrl+V
           if(!event.ctrlKey && !this.inputFocus){
             // Edit variables
+            this.editVariables();
+          }else if(event.altKey){
+            //Added Alt+V to edit variables always, even if the focus is on an input or textarea
+            this.logger.msg('4', 'Alt+V key pressed', 'edit-feature');
             this.editVariables();
           }
           break;

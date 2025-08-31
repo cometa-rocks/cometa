@@ -209,13 +209,65 @@
                   <div class="hover-box">(G)</div>
                 </div>
               </div>
+            
+              <!-- Buttons Section - Single Column -->
+              <div class="checkbox-column buttons-section">
+                <div class="column-header">
+                  <mat-icon class="header-icon">play_arrow</mat-icon>
+                  <span class="header-title">Actions</span>
+                </div>
+                <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+                  <div class="button-container">
+                    <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                      <button
+                        type="button"
+                        color="primary"
+                        [disabled]="disableVariables"
+                        (click)="editVariables()"
+                        mat-stroked-button
+                        [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
+                        Edit Variables
+                      </button>
+                    </span>
+                    <div class="hover-box-Vshortcut">(V)</div>
+                  </div>
+                </ng-container>
+                
+                <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
+                  <div class="button-container">
+                    <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
+                      <div class="button-container">
+                        <button
+                          type="button"
+                          color="primary"
+                          [disabled]="disableMobile"
+                          (click)="openStartEmulatorScreen()"
+                          mat-stroked-button
+                          class="start-mobile-btn"
+                          [matTooltip]="'mobile_list.emulator_mobile' | translate"
+                          matTooltipPosition="above">
+                          Start Mobile
+                        </button>
+                        <mat-icon
+                          class="memberShip"
+                          [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
+                          card_membership
+                        </mat-icon>
+                      </div>
+                    </span>
+                    <div class="hover-box-Vshortcut">(S)</div>
+                  </div>
+                </ng-container>
+              </div>
+            
             </div>
 
             <!-- Divider -->
-            <mat-divider vertical class="section-divider"></mat-divider>
+            <!-- <mat-divider vertical class="section-divider"></mat-divider> -->
 
             <!-- Buttons Section - Single Column -->
-            <div class="buttons-section">
+            <!-- Moved into the Checkboxes Section -->
+            <!-- <div class="buttons-section">
               <div class="column-header">
                 <mat-icon class="header-icon">play_arrow</mat-icon>
                 <span class="header-title">Actions</span>
@@ -263,7 +315,9 @@
                 </div>
               </ng-container>
             </div>
+             -->
           </div>
+
         </ng-template>
       </mat-expansion-panel>
 
@@ -720,12 +774,14 @@
           </cometa-step-editor> -->
           <cometa-step-editor
             (textareaFocusToParent)="receiveDataFromChild($event)"
+            (editVariablesRequested)="editVariables()" 
             *ngIf="feature | async as feat"
             [mode]="data.mode"
             [department]="department"
             [feature]="feat"
             [variables]="variables"
             [name]="featureForm.get('feature_name').value">
+            <!--Added (editVariablesRequested) to listen to editVariables button in step-editor component-->
           </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>

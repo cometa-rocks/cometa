@@ -13,6 +13,8 @@ import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
+import { LogService } from '@services/log.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'video-player',
@@ -31,6 +33,7 @@ import { NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
     BrowserComboTextPipe,
     AsyncPipe,
     TitleCasePipe,
+    CommonModule,
   ],
 })
 export class VideoComponent implements OnInit {
@@ -42,7 +45,8 @@ export class VideoComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<VideoComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private _sanitizer: DomSanitizer
+    private _sanitizer: DomSanitizer,
+    private log: LogService
   ) {
     // Handle both data formats:
     // 1. { result: ..., video_url: ... } from feature-actions and main-view
@@ -56,6 +60,7 @@ export class VideoComponent implements OnInit {
       this.src = this._sanitizer.bypassSecurityTrustUrl(this.data.video_url);
       this.result = this.data;
     }
+    this.log.msg('4', '=== VideoComponent() === Im inside VideoComponent() Results', 'video', this.data);
   }
 
   ngOnInit() {
