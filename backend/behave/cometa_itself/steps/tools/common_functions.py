@@ -671,6 +671,7 @@ def saveToDatabase(
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
         "notes": notes_data,
+        "healing_data": getattr(context, 'healing_data', {}),
         "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
         "step_execution_sequence": context.counters['step_sequence']

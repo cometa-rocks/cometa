@@ -141,6 +141,7 @@ export namespace WebSockets {
    * @param {number} step_time Execution duration of step
    * @param {string} datetime Current datetime
    * @param {number} vulnerable_headers_count vulnerable_headers_count
+   * @param {HealeniumData} healing_data Optional Healenium healing information
    */
   export class StepFinished {
     static readonly type = '[WebSockets] Finished Step';
@@ -157,7 +158,8 @@ export namespace WebSockets {
       public datetime: string,
       public screenshots: any,
       public vulnerable_headers_count: number,
-      public mobiles_info: any[]
+      public mobiles_info: any[],
+      public healing_data?: HealeniumData
     ) {}
   }
 

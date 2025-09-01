@@ -85,6 +85,7 @@
         background-image: url(^assets/Google-loader.svg);
       }
     }
+    
     .screenshot {
       flex: 0 75px !important;
       text-align: center;
@@ -104,7 +105,13 @@
       width: 100%;
       cursor: pointer;
     }
+
+    .healing-icon {
+      color: #ffa726;
+      cursor: pointer;
+    }
   }
+
   .error-row {
     color: #d32f2f;
     font-weight: bold;
@@ -129,3 +136,4 @@
     }
   }
 }
+
