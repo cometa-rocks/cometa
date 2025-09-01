@@ -128,7 +128,7 @@ Author: dph000
           </div>
         </div>
       </div>
-      
+
       <!-- Feature name -->
       <div class="name">
         <ng-container *ngIf="item.reference.description; else noDescription">
@@ -149,7 +149,7 @@ Author: dph000
         <!-- Feature total amount of steps, execution time and date of execution -->
         <i class="my-icons clipboard"></i>
         <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
+          >{{ item.total }} Steps | {{ item.time | secondsToHumanReadable }} |
           <ng-container *ngIf="item.date as date">{{
             item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
           }}</ng-container></span
