@@ -982,8 +982,6 @@ textarea {
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
               0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
               0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-  max-height: 300px;
-  overflow-y: auto;
   z-index: 9999;
   min-width: 200px;
   
@@ -1016,6 +1014,8 @@ textarea {
 }
 
 .custom-autocomplete-options {
+  overflow-y: auto;
+  height: 140px;
   .custom-autocomplete-option {
     padding: 8px 16px;
     cursor: pointer;
