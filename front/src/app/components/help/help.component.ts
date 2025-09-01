@@ -8,9 +8,7 @@ import { SortByPipe } from '@pipes/sort-by.pipe';
 import { NgFor, AsyncPipe } from '@angular/common';
 
 // Mtx table hotkeys
-import { MtxGridColumn } from '@ng-matero/extensions/grid';
-import { MtxGridModule } from '@ng-matero/extensions/grid';
-
+import { MtxGridColumn, MtxGridColumnType, MtxGridModule } from '@ng-matero/extensions/grid';
 
 interface Shortcut {
   position: number;
@@ -32,52 +30,48 @@ export class HelpComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;
   @Select(ConfigState) config$: Observable<Config>;
 
-  @ViewChild('windowsCell', { static: true }) windowsCell!: TemplateRef<any>;
-  @ViewChild('macCell', { static: true }) macCell!: TemplateRef<any>;
-
   // Main View Feature
   ShortMainViewFeature: Shortcut[] = [
-    { position: 1, key: 'ESC', description: 'Quit the window.' },
-    { position: 2, key: 'SPACE', description: 'Run Feature.' },
-    { position: 6, key: 'C', description: 'Download excel file.' },
-    { position: 3, key: 'E', description: 'Edit Feature.' },
-    { position: 4, key: 'L', description: 'Show Log Output.' },
-    { position: 5, key: 'N', description: 'Enable/Disable notifications.' },
-    { position: 6, key: 'P', description: 'Download pdf file.' },
-    { position: 6, key: 'S', description: 'Edit Schedule.' },
+    { position: 1, key: 'ESC', windows: true, mac: false, description: 'Quit the window.' },
+    { position: 2, key: 'SPACE', windows: true, mac: false, description: 'Run Feature.' },
+    { position: 6, key: 'C', windows: true, mac: false, description: 'Download excel file.' },
+    { position: 3, key: 'E', windows: true, mac: false, description: 'Edit Feature.' },
+    { position: 4, key: 'L', windows: true, mac: false, description: 'Show Log Output.' },
+    { position: 5, key: 'N', windows: true, mac: false, description: 'Enable/Disable notifications.' },
+    { position: 6, key: 'P', windows: true, mac: false, description: 'Download pdf file.' },
+    { position: 6, key: 'S', windows: true, mac: false, description: 'Edit Schedule.' },
 
   ];
 
   // Main Page
 
   ShortMainPage: Shortcut[] = [
-    { position: 1, key: '+', description: '[+ Add] button: Add from side nav.' },
-    { position: 2, key: 'B', description: '[B] button: Create folder.' },
-    { position: 3, key: 'F', description: '[F] button: Create feature.' },
-    { position: 4, key: 'P', description: '[P] Header Icon: Profile.' },
-    { position: 5, key: 'M', description: '[M] Header Icon: Menu.' },
-    { position: 6, key: 'S', description: 'Open search.'},
-    { position: 7, key: 'ESC', description: 'Close search.'},
-    { position: 8, key: 'H', description: 'Return to home.'},
-    { position: 9, key: 'Shift + Alt + X', description: 'Remove all the filters.'},
+    { position: 1, key: '+', windows: true, mac: false, description: '[+ Add] button: Add from side nav.' },
+    { position: 2, key: 'B', windows: true, mac: false, description: '[B] button: Create folder.' },
+    { position: 3, key: 'F', windows: true, mac: false, description: '[F] button: Create feature.' },
+    { position: 4, key: 'P', windows: true, mac: false, description: '[P] Header Icon: Profile.' },
+    { position: 5, key: 'M', windows: true, mac: false, description: '[M] Header Icon: Menu.' },
+    { position: 6, key: 'S', windows: true, mac: false, description: 'Open search.'},
+    { position: 7, key: 'ESC', windows: true, mac: false, description: 'Close search.'},
+    { position: 8, key: 'H', windows: true, mac: false, description: 'Return to home.'},
+    { position: 9, key: 'Shift + Alt + X', windows: true, mac: false, description: 'Remove all the filters.'},
   ];
 
   // Data Driven Test
 
   ShortDataDriven: Shortcut[] = [
-    { position: 1, key: 'S', description: "[Columns Shown] button: Show table header's checkboxes." },
-    { position: 2, key: 'T', description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet.' },
+    { position: 1, key: 'S', windows: true, mac: false, description: "[Columns Shown] button: Show table header's checkboxes." },
+    { position: 2, key: 'T', windows: true, mac: false, description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet.' },
   ];
 
   // Create Folder
 
   ShortCreateFolder: Shortcut[] = [
-    { position: 1, key: 'CTRL+ENTER', description: 'Button: OK.' },
+    { position: 1, key: 'CTRL+ENTER', windows: true, mac: false, description: 'Button: OK.' },
   ];
 
   // Create Edit Feature
 
-  // quieor poner los de wuiindows en true y los d emac en fals epara todos estos
   ShortCreateEditFeature: Shortcut[] = [
     { position: 1, key: 'D', windows: true, mac: false, description: 'Checkbox: Depends on other feature.' },
     { position: 2, key: 'F', windows: true, mac: false, description: 'Checkbox: Continue on failure.' },
@@ -96,32 +90,42 @@ export class HelpComponent {
   // Step Editor
 
   ShortStepEditor: Shortcut[] = [
-    { position: 1, key: 'SHIFT', description: 'Checkbox: Hold Shift and click another checkbox to select all checkboxes between the first and the second click.' },
-    { position: 2, key: 'ALT+SHIFT+F', description: 'Step: When pressing shortuct inside the quotes of {"file_path"} its open matautocomplete dialog files.'}
+    { position: 1, key: 'SHIFT', windows: true, mac: false, description: 'Checkbox (Select): Hold Shift and click another checkbox to select all checkboxes between the first and the second click.' },
+    { position: 3, key: 'TAB', windows: true, mac: false, description: 'Textarea: Insert tab character in textarea.' },
+    { position: 4, key: 'CTRL+UP', windows: true, mac: false, description: 'Textarea: Insert new step above the current step.' },
+    { position: 5, key: 'ALT+UP', windows: true, mac: false, description: 'Textarea: Insert new step above the current step.' },
+    { position: 6, key: 'CTRL+DOWN', windows: true, mac: false, description: 'Textarea: Insert new step below the current step.' },
+    { position: 7, key: 'ALT+DOWN', windows: true, mac: false, description: 'Textarea: Insert new step below the current step.' },
+    { position: 8, key: 'CTRL+ALT+UP', windows: true, mac: false, description: 'Textarea: Copy the step above the current step.' },
+    { position: 9, key: 'CTRL+ALT+DOWN', windows: true, mac: false, description: 'Textarea: Copy the step below the current step.' },
+    { position: 10, key: 'ALT+SHIFT+F', windows: true, mac: false, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.' },
+    { position: 11, key: 'META+SHIFT+F', windows: false, mac: true, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.' }
+    
   ];
 
   // Administration
   ShortAdministration: Shortcut[] = [
-    { position: 10, key: 'CTRL+ENTER', description: 'Button: OK/CREATE/MODIFY.' },
+    { position: 10, key: 'CTRL+ENTER', windows: true, mac: false, description: 'Button: OK/CREATE/MODIFY.' },
   ];
 
+  // Reference model (template)
   columns: MtxGridColumn[] = [
     { 
       header: 'Windows', 
       field: 'windows',
-      type: 'boolean',
-      cellTemplate: this.windowsCell,
-      class: 'text-center'
+      type: 'string' as MtxGridColumnType,
+      formatter: (row: any) => row.windows ? '✓' : ' ',
+      class: 'text-center',
     },
     { 
       header: 'Mac', 
       field: 'mac',
-      type: 'boolean', 
-      cellTemplate: this.macCell,
-      class: 'text-center'
+      type: 'string' as MtxGridColumnType, 
+      formatter: (row: any) => row.mac ? '✓' : ' ',
+      class: 'text-center',
     },
-    { header: 'Shortcut', field: 'key', class: 'shortcut-key' },
-    { header: 'Description', field: 'description' },
+    { header: 'Shortcut', field: 'key', class: 'shortcut-key'},
+    { header: 'Description', field: 'description'},
   ];
 
   listMainViewFeature = this.ShortMainViewFeature;
