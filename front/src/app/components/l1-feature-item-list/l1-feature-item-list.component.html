@@ -183,7 +183,7 @@ Author: dph000
             <ng-container *ngIf="item.date; else noRuns">
               <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
                     matTooltipPosition="above">
-                <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
+                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
                 <span>{{ item.original_cron || item.schedule }}</span>
               </span>
