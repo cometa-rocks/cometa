@@ -1237,60 +1237,60 @@ export class EditFeature implements OnInit, OnDestroy {
             this.editVariables();
           }
           break;
-        case KEY_CODES.D:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Depends on other feature
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.D:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Depends on other feature
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         case KEY_CODES.S:
           if(!event.ctrlKey && !this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           }
           break;
-        case KEY_CODES.M:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Send notification on finish
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
-        case KEY_CODES.R:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Record video
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.M:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Send notification on finish
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
+        // case KEY_CODES.R:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Record video
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         case KEY_CODES.F:
           if(!event.ctrlKey && !this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
-        case KEY_CODES.H:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Need help
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
-        case KEY_CODES.N:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Network logging
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.H:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Need help
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
+        // case KEY_CODES.N:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Network logging
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         case KEY_CODES.T:
           if(!event.ctrlKey && !this.inputFocus) {
             // Telegram notification
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
-        case KEY_CODES.G:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Generate dataset
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.G:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Generate dataset
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         default:
           break;
       }
@@ -1363,15 +1363,15 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Check if mouse is over the dialog (puede ser step definition?)
-  isHovered = false;
+  // isHovered = false;
 
-  onMouseOver() {
-    this.isHovered = true;
-  }
+  // onMouseOver() {
+  //   this.isHovered = true;
+  // }
 
-  onMouseOut() {
-    this.isHovered = false;
-  }
+  // onMouseOut() {
+  //   this.isHovered = false;
+  // }
 
 
   // Deeply check if two arrays are equal, in length and values
