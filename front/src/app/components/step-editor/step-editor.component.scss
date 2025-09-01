@@ -921,7 +921,7 @@ textarea {
 }
 
 .disabled-menu-item {
-  color: #999;               
+  color: $text-secundary;               
   cursor: default;           
   pointer-events: none;      
   display: flex;             
@@ -929,7 +929,7 @@ textarea {
   opacity: 0.6;              
 }
 .disabled-menu-item mat-icon {
-  color: #999;               
+  color: $text-secundary;               
 }
 
 .api-testing-dialog {
@@ -955,7 +955,7 @@ textarea {
   overflow-y: auto;
 
   .collapsed-body {
-    color: #666;
+    color: $star-feature-icon-color;
     font-style: italic;
   }
 }
@@ -970,14 +970,14 @@ textarea {
     height: 16px;
     font-size: 10px;
     line-height: 16px;
-    color: white;
+    color: $pure-white;
   }
 }
 
 .custom-file-autocomplete-panel {
   position: absolute;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: $pure-white;
+  border: 1px solid $black-border-top-matautocomplete;
   border-radius: 4px;
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
               0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
@@ -1003,7 +1003,7 @@ textarea {
 
 .custom-autocomplete-header {
   padding: 8px 16px;
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: $grey-bg-matautocomplete;
   height: 40px;
   
   .custom-autocomplete-title {
@@ -1021,12 +1021,12 @@ textarea {
     cursor: pointer;
     transition: background-color 0.2s ease;
     
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
+    &:hover { 
+      background-color: $grey-bg-matautocomplete;
     }
     
     &:not(:last-child) {
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      border-bottom: 1px solid $black-border-bottom-matautocomplete;
     }
   }
 }
