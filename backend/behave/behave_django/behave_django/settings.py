@@ -140,6 +140,9 @@ TIME_ZONE = 'UTC'
 
 STATIC_URL = '/static/'
 
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 RUNTEST_COMMAND_PATH = '/opt/code/run_remote_from_django.sh'
 
 REDIS_PORT = os.getenv("REDIS_PORT",6379)
