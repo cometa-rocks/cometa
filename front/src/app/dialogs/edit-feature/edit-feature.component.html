@@ -805,7 +805,7 @@
               >Enable schedule</mat-checkbox
             >
           </div>
-          <div class="schedule-header-inline" *ngIf="featureForm.value.run_now">
+          <div class="schedule-header-inline">
             <h5 (click)="openScheduleHelp()" class="schedule-help">
               How to format a cron schedule (click)
             </h5>
@@ -870,12 +870,11 @@
               </mat-form-field>
             </div>
           </div>
-          
           <!-- Show help text when schedule is disabled -->
-          <h5 (click)="openScheduleHelp()" class="schedule-help" *ngIf="!featureForm.value.run_now">
+          <!-- <h5 (click)="openScheduleHelp()" class="schedule-help" *ngIf="!featureForm.value.run_now">
             How to format a cron schedule (click)
-          </h5>
-          <table *ngIf="featureForm.value.run_now" class="schedule">
+          </h5> -->
+          <table  class="schedule">
             <tr>
               <td>
                 <mat-form-field class="form-field-blue">
@@ -957,7 +956,7 @@
               </td>
             </tr>
           </table>
-          <div class="next_run" *ngIf="featureForm.value.run_now">
+          <div class="next_run" >
             <ng-container *ngIf="!parseError.error">
               <p>
                 <strong>Note:</strong> Your feature will be scheduled in
