@@ -21,7 +21,7 @@
               <ng-template
                 mat-tab-label
                 *ngLet="browser.value.feature_result_id as feature_result_id">
-                <div class="browser-tab" (click)="live(feature_result_id)">
+                <div class="browser-tab">
                   <i
                   class="browser-icon"
                   [style.backgroundImage]="
@@ -34,6 +34,7 @@
                   matTooltipPosition="below"
                   matTooltip="View your browser execution, GO live!"
                   *ngIf="showLiveIcon(browser)"
+                  (click)="live(feature_result_id)"
                   >live_tv</mat-icon>
                 </div>
                 <!-- contains mobiles -->
