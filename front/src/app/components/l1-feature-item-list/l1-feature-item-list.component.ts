@@ -548,7 +548,7 @@ export class L1FeatureItemListComponent implements OnInit {
       if (browsers.length === 1) {
         // Single version - show browser name and specific version
         const version = browsers[0].browser_version || 'latest';
-        return `${browserType} (version ${version})`;
+        return `${browserType} (${version})`;
       } else {
         // logger
         this.log.msg('1', 'Browsers: ', 'l1-feature-item-list', browsers.map(b => b.browser_version));
@@ -581,12 +581,11 @@ export class L1FeatureItemListComponent implements OnInit {
       // Single version - show browser name and version
       const browser = browsersOfType[0];
       const version = browser.browser_version || 'latest';
-      return `${browserType} (version ${version})`;
+      return `${browserType} (${version})`;
     } else {
       // Multiple versions - show browser name, "latest" and specific version
-      const browser = browsersOfType[0];
-      const version = browser.browser_version || 'latest';
-      return `${browserType} (latest, version ${version})`;
+      const versions = browsersOfType.map(b => b.browser_version || 'latest').join(', ');
+      return `${browserType} (${versions})`;
     }
   }
 
