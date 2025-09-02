@@ -8,10 +8,6 @@ cd /app/src/cometa_ollama_api
 echo "Applying database migrations..."
 python manage.py migrate --noinput
 
-# Collect static files
-echo "Collecting static files..."
-#python manage.py collectstatic --noinput
-
 # Initialize RAG system
 echo "Initializing RAG system..."
 ./init_rag.sh
