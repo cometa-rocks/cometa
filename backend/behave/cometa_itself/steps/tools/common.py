@@ -1,6 +1,8 @@
 import time
 import signal
 import logging
+import os
+import sys
 
 from .exceptions import *
 from .variables import *
@@ -32,6 +34,52 @@ logger = logging.getLogger("FeatureExecution")
 """
 Python library with common utility functions
 """
+
+# Lazy imports for Healenium to avoid circular dependencies
+_healenium_imports = {}
+
+def _lazy_import_healenium():
+    """Lazy import Healenium modules to avoid startup overhead"""
+    global _healenium_imports
+    if not _healenium_imports:
+        try:
+            parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+            
+            from ee.cometa_itself.healenium_client import (
+                HealeniumClient, 
+                healenium_context
+            )
+            _healenium_imports = {
+                'HealeniumClient': HealeniumClient,
+                'healenium_context': healenium_context
+            }
+        except ImportError:
+            _healenium_imports = None
+    return _healenium_imports
+
+
+def _handle_healing_check(context, selector_type, selector, find_start_time):
+    """Check if Healenium healed this element and store in context"""
+    if not getattr(context, 'healenium_enabled', False) or not hasattr(context, 'healenium_manager'):
+        return
+    
+    healenium = _lazy_import_healenium()
+    if not healenium:
+        return
+        
+    try:
+        # Get healing data from Healenium
+        selector_type_str = selector_type if isinstance(selector_type, str) else str(selector_type).lower()
+        healing_info = context.healenium_manager.get_healing_data_from_db(selector_type_str, selector, find_start_time - 5)
+        
+        if healing_info:
+            # Store in context for later saving
+            context.healing_data = healing_info
+            logger.info(f"Healing detected: {selector} -> {healing_info['healed_selector']['value']} (score: {healing_info['score']})")
+    except Exception as e:
+        logger.debug(f"Failed to check for healing: {str(e)}")
 
 
 class CometaTimeoutException(Exception):
@@ -165,7 +213,7 @@ def detect_selector_type(selector):
     # locator_type@@locator_value
     selector_type_and_selector = selector.split("@@", 1)
     
-    # if the value is gre
+    # if the value is greater than 1, process the selector type
     if len(selector_type_and_selector) > 1:
         selector_type = selector_type_and_selector[0]
         selector = selector_type_and_selector[1]
@@ -260,9 +308,13 @@ def waitSelectorNew(context, selector, max_timeout=None):
             # Check if it returned at least 1 element
             # This if used when find_element is used
             if isinstance(elements, WebElement):
+                # Check for healing after successful element find
+                _handle_healing_check(context, selector_type, selector, start_time)
                 return [elements]
             # This if used when find_elements is used
             if len(elements) > 0:
+                # Check for healing after successful element find
+                _handle_healing_check(context, selector_type, selector, start_time)
                 return elements
             else:
                 raise CometaElementNotFoundError(f"Element not found for selector: {selector}")
@@ -347,6 +399,8 @@ def waitSelectorOld(context, selector_type, selector, max_timeout=None):
                 elements = eval(types_new.get(selec_type, "css"))
                 # Check if it returned at least 1 element
                 if isinstance(elements, WebElement) or len(elements) > 0:
+                    # Check for healing after successful element find
+                    _handle_healing_check(context, selec_type, selector, start_time)
                     return elements
             except CustomError as err:
                 logger.error(

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.94",
+  "version": "3.0.95",
   "stable_version": "3.0.94",
   "language": "en",
   "appTitle": "co.meta",
@@ -240,6 +240,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+        {
+      "version": "3.0.95",
+      "date": "2025-08-30",
+      "features": [
+        {
+          "title": "Fix clicking behaviour on browser tab element on live steps component - #6775",
+          "description": "Fixed issue that after clicking on the browser tab was opening up the noVNC window tab."
+        }
+      ]
+    },
     {
       "version": "3.0.94",
       "date": "2025-08-25",

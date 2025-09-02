@@ -128,6 +128,7 @@ Author: dph000
           </div>
         </div>
       </div>
+
       <!-- Feature name -->
       <div class="name">
         <ng-container *ngIf="item.reference.description; else noDescription">
@@ -142,17 +143,71 @@ Author: dph000
           </span>
         </ng-template>
       </div>
+
+      <!-- Feature steps -->
       <div class="steps">
         <!-- Feature total amount of steps, execution time and date of execution -->
         <i class="my-icons clipboard"></i>
         <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
+          >{{ item.total }} Steps | {{ item.time | secondsToHumanReadable }} |
           <ng-container *ngIf="item.date as date">{{
             item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
           }}</ng-container></span
         >
       </div>
-      <!-- Feature ID -->
+
+      <!-- Feature browsers -->
+      <div class="browsers-container" *ngIf="item.browsers && item.browsers.length > 0">
+        <div class="browsers-data">
+          <div class="browsers">
+            <i
+              class="my-icons"
+              [matTooltip]="getBrowserTooltip(browserType)"
+              matTooltipPosition="above"
+              *ngFor="let browserType of getUniqueBrowsers(); trackBy: trackBrowserType"
+              [style.backgroundImage]="browserType | browserIcon"
+              [attr.data-browser]="browserType"
+              [attr.title]="browserType"></i>
+            <span 
+              class="browser-total" 
+              [matTooltip]="getBrowsersTooltip()"
+              matTooltipPosition="above">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Schedule -->
+      <div class="schedule-container">
+        <div class="schedule-data">
+          <p *ngIf="item.schedule" class="schedule-active">
+            <ng-container *ngIf="item.date; else noRuns">
+              <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
+                    matTooltipPosition="above">
+                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
+                <span>Schedule:&nbsp;</span>
+                <span>{{ item.original_cron || item.schedule }}</span>
+              </span>
+            </ng-container>
+
+            <ng-template #noRuns>
+              <span [matTooltip]="'schedule.no-last-run' | translate"
+              matTooltipPosition="above" class="schedule-active">
+                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
+                <span>Schedule:&nbsp;</span>
+                <span>{{ item.original_cron || item.schedule }}</span>
+              </span>
+            </ng-template>
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature department -->
+      <div *ngIf="finder" class="department-container">
+        <div class="department-data">
+          <mat-icon class="department-icon">domain</mat-icon>
+          <span class="department-name-text">{{ item.department }}</span>
+        </div>
+      </div>
 
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
       <ng-container>
@@ -197,7 +252,6 @@ Author: dph000
         </div>
       </div>
 
-
       <!-- Feature ID -->
       <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
         <ng-container>
@@ -211,39 +265,6 @@ Author: dph000
             </span>
           </p>
         </ng-container>
-      </div>
-
-      <!-- Feature Schedule -->
-      <div *ngIf="item.date" class="schedule-container">
-        <div class="schedule-data">
-          <p *ngIf="item.schedule" class="schedule-active">
-            <ng-container *ngIf="item.date; else noRuns">
-              <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
-                    matTooltipPosition="above">
-                <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
-                <span>Schedule:&nbsp;</span>
-                <span>{{ item.original_cron || item.schedule }}</span>
-              </span>
-            </ng-container>
-
-            <ng-template #noRuns>
-              <span [matTooltip]="'schedule.no-last-run' | translate"
-              matTooltipPosition="above" class="schedule-active">
-                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
-                <span>Schedule:&nbsp;</span>
-                <span>{{ item.original_cron || item.schedule }}</span>
-              </span>
-            </ng-template>
-          </p>
-        </div>
-      </div>
-
-      <!-- Feature department -->
-      <div *ngIf="finder" class="department-container">
-        <div class="department-data">
-          <mat-icon class="department-icon">domain</mat-icon>
-          <span class="department-name-text">{{ item.department }}</span>
-        </div>
       </div>
 
       <!-- Feature options button -->

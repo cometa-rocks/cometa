@@ -396,13 +396,7 @@ a {
           letter-spacing: 0.5px;
         }
     }
-      
-    &:hover .column-header {
-      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-      transform: translateY(-1px);
-      transition: all 0.2s ease;
-    }
-    
+          
     .checkbox-container {
       margin-right: 0;
       margin-bottom: 0;
@@ -418,6 +412,12 @@ a {
       flex: 1 1 calc(100% - 10px)!important;
       min-width: 250px!important;
       max-width: calc(100% - 10px)!important;
+
+      &:hover .column-header {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+      }
     }
     @include for-tablet-portrait-up-plus30 {
       gap: 0;
@@ -1097,4 +1097,46 @@ button {
   .maximum-notifications-check-telegram {
     margin-left: 0 !important;
   }
+}
+
+
+.amv_custom-tooltip {
+  position: relative; 
+}
+
+.amv_custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translate(-50%, 8px);
+
+  display: block;                    
+  text-align: center;                
+  
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+
+  background: $grey;
+  color: white;
+  padding: 6px 10px; 
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  z-index: 1000;
+
+  max-width: 220px;
+  min-width: 120px;
+  white-space: normal;               
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none; 
+}
+
+.amv_custom-tooltip:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
