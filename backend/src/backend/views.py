@@ -4914,7 +4914,7 @@ def GetBulkFileSchedules(request):
 @csrf_exempt
 def getFeatureHistory(request, feature_id, department_id):
     try:
-        backup_dir = os.path.join(settings.BASE_DIR, f'../../data/backups/features/department_{department_id}/feature_{feature_id}')
+        backup_dir = os.path.join(settings.BASE_DIR, f'../..{settings.BACKUP_FOLDER}department_{department_id}/feature_{feature_id}')
 
         if not os.path.exists(backup_dir):
             logger.error(f"Backup directory {backup_dir} not found")
