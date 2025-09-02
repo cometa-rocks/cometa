@@ -410,6 +410,12 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
   async onRunClick() {
+
+    // Prevent execution when browsers are outdated
+    if (this.shouldDisableRunButton()) {
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastClick = now - this.lastClickTime;
 
@@ -597,11 +603,18 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // ############################# OUTDATED BROWSER VERSIONS #############################
 
-
+  // Add this property to the class
+  private _hasLoggedBrowsers = false;
   /**
    * Check if a browser is outdated - SIMPLIFIED VERSION
    */
   public isSpecificBrowserOutdated(browser: any): boolean {
+    // Validate browser object has required properties
+    if (!browser.browser || !browser.browser_version) {
+      this.log.msg('1', 'isSpecificBrowserOutdated Invalid browser object:', 'l1-feature-item-list', browser);
+      return false; // Don't consider invalid browsers as outdated
+    }
+
     if (!browser) return false;
     
     // Skip mobile/tablet browsers - they are never considered outdated
@@ -618,28 +631,46 @@ export class L1FeatureItemListComponent implements OnInit {
     const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
     const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
     const allBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+
+     // Log only once
+    if (!this._hasLoggedBrowsers) {
+      this.log.msg('1', 'isSpecificBrowserOutdated Available browsers: ', 'l1-feature-item-list', availableBrowsers);
+      this.log.msg('1', 'isSpecificBrowserOutdated Local browsers: ', 'l1-feature-item-list', JSON.stringify(localBrowsers, null, 2));
+      this._hasLoggedBrowsers = true;
+    }
     
     if (allBrowsers.length === 0) {
       return false; // Can't determine, allow running
     }
+
+    // this.log.msg('1', 'isSpecificBrowserOutdated All browsers: ', 'l1-feature-item-list', JSON.stringify(allBrowsers, null, 2));
     
     // Simple check: if browser exists in available list, it's not outdated
-    const exists = allBrowsers.some(available => 
-      available.browser === browser.browser &&
-      available.browser_version === browser.browser_version &&
-      available.os === browser.os &&
-      available.os_version === browser.os_version
-    );
+    const exists = allBrowsers.some(available => {
+      const browserMatch = available.browser === browser.browser;
+      const versionMatch = available.browser_version === browser.browser_version;
+      
+      // Log only when there's a match to see what's working
+      if (browserMatch && versionMatch) {
+        this.log.msg('4', 'isSpecificBrowserOutdated FOUND MATCH:', 'l1-feature-item-list', {
+          selected: `${browser.browser} ${browser.browser_version}`,
+          available: `${available.browser} ${available.browser_version}`,
+          cloud: available.cloud
+        });
+      }
+      
+      return browserMatch && versionMatch;
+    });
 
-    this.log.msg('1', 'Browser exists outdated: ', 'l1-feature-item-list', exists);
+    this.log.msg('1', 'isSpecificBrowserOutdated Browser exists: ', 'l1-feature-item-list', exists);
     
-    return exists; // If it doesn't exist, it's outdated (!exists)
+    return !exists; // If it doesn't exist, it's outdated (!exists)
   }
 
   /**
    * Get simple browser status info - SIMPLIFIED VERSION
    */
-  public getSimpleBrowserStatusInfo(browser: any): string {
+  public getSimpleBrowserStatusInfo(browser?: any): string {
 
     this.log.msg('1', 'Browser outdated: ', 'l1-feature-item-list', browser);
 
@@ -663,6 +694,31 @@ export class L1FeatureItemListComponent implements OnInit {
     browser.real_mobile || 
     browser.device || 
     (browser.os && ['android', 'ios'].includes(browser.os.toLowerCase()));
+  }
+
+  /**
+ * Check if the run button should be disabled due to browser version issues - SIMPLIFIED
+ */
+  public shouldDisableRunButton(): boolean {
+    try {
+      // Check if the feature has browsers configured
+      if (!this.item?.browsers || this.item.browsers.length === 0) {
+        return false;
+      }
+
+      // Check if any browser is outdated using the simplified method
+      const hasOutdatedBrowser = this.item.browsers.some((browser: any) => {
+        this.log.msg('1', 'Browser outdated: ', 'l1-feature-item-list', JSON.stringify(browser, null, 2));
+        return this.isSpecificBrowserOutdated(browser);
+      });
+      
+      this.log.msg('1', 'Has outdated browser: ', 'l1-feature-item-list', hasOutdatedBrowser);
+      
+      return hasOutdatedBrowser;
+    } catch (error) {
+      // On error, don't disable the button - allow running
+      return false;
+    }
   }
 
   // ######################################################

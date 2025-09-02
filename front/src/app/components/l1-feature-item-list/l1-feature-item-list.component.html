@@ -74,10 +74,12 @@ Author: dph000
         </div>
         <div 
           class="run" 
-          [class.run-disabled]="isButtonDisabled"
+          [class.run-disabled]="isButtonDisabled || shouldDisableRunButton()"
+          matTooltipPosition="above"
           [class.running]="running"
           stopPropagation 
-          (click)="isButtonDisabled && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
+          (click)="running ? _sharedActions.openLiveSteps(item.id) : 
+          (shouldDisableRunButton() ? null : onRunClick())">
           <div class="triangle"></div>
           <ng-container *ngIf="!isButtonDisabled">
             <ng-container [ngSwitch]="running">
@@ -85,7 +87,7 @@ Author: dph000
               <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="isButtonDisabled && !running">
+          <ng-container *ngIf="isButtonDisabled && !running && !shouldDisableRunButton()">
             <mat-icon class="state-icon">hourglass_empty</mat-icon>
           </ng-container>
           <ng-container *ngIf="isButtonDisabled && running">
