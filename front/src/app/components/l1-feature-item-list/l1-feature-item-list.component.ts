@@ -630,14 +630,19 @@ export class L1FeatureItemListComponent implements OnInit {
       available.os === browser.os &&
       available.os_version === browser.os_version
     );
+
+    this.log.msg('1', 'Browser exists outdated: ', 'l1-feature-item-list', exists);
     
-    return !exists; // If it doesn't exist, it's outdated
+    return exists; // If it doesn't exist, it's outdated (!exists)
   }
 
   /**
    * Get simple browser status info - SIMPLIFIED VERSION
    */
   public getSimpleBrowserStatusInfo(browser: any): string {
+
+    this.log.msg('1', 'Browser outdated: ', 'l1-feature-item-list', browser);
+
     if (!browser || this.isMobileOrTablet(browser) || browser.browser_version === 'latest') {
       return '';
     }

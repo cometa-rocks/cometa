@@ -160,26 +160,29 @@ Author: dph000
       <div class="browsers-container" *ngIf="item.browsers && item.browsers.length > 0">
         <div class="browsers-data">
           <div class="browsers">
-            <i
-              class="my-icons"
-              [matTooltip]="getBrowserTooltip(browserType)"
-              matTooltipPosition="above"
-              *ngFor="let browserType of getUniqueBrowsers(); trackBy: trackBrowserType"
-              [style.backgroundImage]="browserType | browserIcon"
-              [attr.data-browser]="browserType"
-              [attr.title]="browserType">
-            </i>
-            <i 
-            
-            class="material-icons browser-version-warning"
-            [matTooltip]="getSimpleBrowserStatusInfo(browser)"
-            matTooltipPosition="above">
-            keyboard_arrow_down
-            </i>
-            <span 
-              class="browser-total" 
-              [matTooltip]="getBrowsersTooltip()"
-              matTooltipPosition="above">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
+            <div class="browser-content">
+              <div class="browser-icons">
+                <div class="browser-icon-container" *ngFor="let browser of getUniqueBrowsers(); trackBy: trackBrowserType">
+                  <i
+                    class="my-icons browser-icon"
+                    [matTooltip]="getBrowserTooltip(browser)"
+                    matTooltipPosition="above"
+                    [style.backgroundImage]="browser | browserIcon"
+                    [attr.data-browser]="browser"
+                    [attr.title]="browser">
+                  </i>
+                  <i 
+                    *ngIf="isSpecificBrowserOutdated(browser)"
+                    class="material-icons browser-version-warning"
+                    [matTooltip]="getSimpleBrowserStatusInfo(browser)"
+                    matTooltipPosition="above">keyboard_arrow_down</i>
+                </div>
+              </div>
+              <span 
+                class="browser-total" 
+                [matTooltip]="getBrowsersTooltip()"
+                matTooltipPosition="above">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
+            </div>
           </div>
         </div>
       </div>
