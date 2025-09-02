@@ -167,7 +167,15 @@ Author: dph000
               *ngFor="let browserType of getUniqueBrowsers(); trackBy: trackBrowserType"
               [style.backgroundImage]="browserType | browserIcon"
               [attr.data-browser]="browserType"
-              [attr.title]="browserType"></i>
+              [attr.title]="browserType">
+            </i>
+            <i 
+            
+            class="material-icons browser-version-warning"
+            [matTooltip]="getSimpleBrowserStatusInfo(browser)"
+            matTooltipPosition="above">
+            keyboard_arrow_down
+            </i>
             <span 
               class="browser-total" 
               [matTooltip]="getBrowsersTooltip()"

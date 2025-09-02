@@ -47,6 +47,11 @@ import {
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
 import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { BrowsersState } from '@store/browsers.state';
+import { BrowserstackState } from '@store/browserstack.state';
+import { Browserstack } from '@store/actions/browserstack.actions';
+import { Browsers } from '@store/actions/browsers.actions';
+
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -588,6 +593,323 @@ export class L1FeatureItemListComponent implements OnInit {
       return `${browserType} (${versions})`;
     }
   }
+
+
+  // ############################# OUTDATED BROWSER VERSIONS #############################
+
+
+  /**
+   * Check if a browser is outdated - SIMPLIFIED VERSION
+   */
+  public isSpecificBrowserOutdated(browser: any): boolean {
+    if (!browser) return false;
+    
+    // Skip mobile/tablet browsers - they are never considered outdated
+    if (this.isMobileOrTablet(browser)) {
+      return false;
+    }
+    
+    // If version is 'latest', it's never outdated
+    if (browser.browser_version === 'latest') {
+      return false;
+    }
+    
+    // Get available browsers
+    const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+    const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    const allBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+    if (allBrowsers.length === 0) {
+      return false; // Can't determine, allow running
+    }
+    
+    // Simple check: if browser exists in available list, it's not outdated
+    const exists = allBrowsers.some(available => 
+      available.browser === browser.browser &&
+      available.browser_version === browser.browser_version &&
+      available.os === browser.os &&
+      available.os_version === browser.os_version
+    );
+    
+    return !exists; // If it doesn't exist, it's outdated
+  }
+
+  /**
+   * Get simple browser status info - SIMPLIFIED VERSION
+   */
+  public getSimpleBrowserStatusInfo(browser: any): string {
+    if (!browser || this.isMobileOrTablet(browser) || browser.browser_version === 'latest') {
+      return '';
+    }
+    
+    if (this.isSpecificBrowserOutdated(browser)) {
+      return `⚠️ ${browser.browser} ${browser.browser_version} not available`;
+    }
+    
+    return '';
+  }
+
+  
+  /**
+   * Check if a browser is mobile or tablet
+   */
+  isMobileOrTablet(browser: any): boolean {
+    return browser.mobile_emulation || 
+    browser.real_mobile || 
+    browser.device || 
+    (browser.os && ['android', 'ios'].includes(browser.os.toLowerCase()));
+  }
+
+  // ######################################################
+ 
+  // /**
+  //  * Ensure browsers are loaded - SIMPLIFIED VERSION
+  //  */
+  // private ensureBrowsersLoaded(): void {
+  //   const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+  //   const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    
+  //   // Only load if we don't have any browsers
+  //   if ((!availableBrowsers || availableBrowsers.length === 0)) {
+  //     this._store.dispatch(new Browserstack.GetBrowserstack());
+  //   }
+    
+  //   if ((!localBrowsers || localBrowsers.length === 0)) {
+  //     this._store.dispatch(new Browsers.GetBrowsers());
+  //   }
+  // }
+
+  // ######################################################
+
+  // /**
+  //  * Check if a browser is outdated
+  //  */
+  // public isSpecificBrowserOutdated(browser: any): boolean {
+    //   if (!browser) return false;
+    
+    //   // Skip mobile/tablet browsers - they are never considered outdated
+    //   if (this.isMobileOrTablet(browser)) {
+  //     return false;
+  //   }
+    
+  //   // Ensure browsers are loaded
+  //   this.ensureBrowsersLoaded();
+    
+  //   // Get the available browsers from both BrowserstackState and BrowsersState
+  //   const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+  //   const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+    
+  //   // If no browsers available, can't determine
+  //   if ((!availableBrowsers || availableBrowsers.length === 0) && (!localBrowsers || localBrowsers.length === 0)) {
+  //     return false;
+  //   }
+    
+  //   // Combine both browser sources
+  //   const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+
+  //   this.log.msg('1', 'All available browsers: ', 'l1-feature-item-list', allAvailableBrowsers);
+    
+  //   // For local browsers, we need to handle them differently
+  //   if (this.isLocalBrowser(browser)) {
+  //     return this.isLocalBrowserOutdated(browser, allAvailableBrowsers);
+  //   }
+    
+  //   // For cloud browsers, use exact matching
+  //   return this.isCloudBrowserOutdated(browser, allAvailableBrowsers);
+  // }
+
+  // /**
+  //  * FOCUS: Only validates Browserstack browsers
+  //  * Local browsers are not validated and considered always valid
+  //  */
+  // private isLocalBrowser(browser: any): boolean {
+  //   return !browser.os;
+  // }
+  
+  // /**
+  //  * Check if a local browser is outdated
+  //  */
+  // private isLocalBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+  //   // For local Chrome browsers, we need to check version compatibility
+  //   if (selectedBrowser.browser === 'chrome') {
+  //     // Get all available Chrome versions (both local and cloud)
+  //     const chromeBrowsers = availableBrowsers.filter(browser => 
+  //       browser.browser === 'chrome'
+  //     );
+      
+  //     if (chromeBrowsers.length === 0) {
+  //       return false; // Can't determine, allow running
+  //     }
+      
+  //     // Extract version numbers and convert to integers for comparison
+  //     const availableVersions = chromeBrowsers.map(browser => {
+  //       const version = browser.browser_version;
+  //       if (version === 'latest') return 999; // Latest is always highest
+  //       // Fix: Don't add extra zeros, just get the version number
+  //       return parseInt(version, 10) || 0;
+  //     }).sort((a, b) => b - a); // Sort descending
+      
+  //     const selectedVersion = selectedBrowser.browser_version;
+  //     if (selectedVersion === 'latest') {
+  
+  //       return false; // Latest is never outdated
+  //     }
+      
+  //     // Fix: Don't add extra zeros, just get the version number
+  //     const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+      
+  //     // Check if selected version is significantly outdated (more than 5 versions behind)
+  //     const highestAvailable = availableVersions[0];
+      
+      
+  //     // For Chrome, be more strict - if it's more than 3 versions behind, consider it outdated
+  //     if (highestAvailable - selectedVersionNum > 3) {
+  //       return true;
+  //     }
+
+  //     return false;
+  //   }
+    
+  //   // For other local browsers, use exact matching
+  //   return this.isCloudBrowserOutdated(selectedBrowser, availableBrowsers);
+  // }
+
+
+  // /**
+  //  * IMPROVED: Check if a cloud browser is outdated (SAME logic as component)
+  //  * DEBUG: Enhanced with detailed logging
+  //  */
+  // private isCloudBrowserOutdated(selectedBrowser: any, availableBrowsers: any[]): boolean {
+    
+  //   // If the browser version is 'latest', it's never outdated
+  //   if (selectedBrowser.browser_version === 'latest') {
+  //     return false;
+  //   }
+    
+  //   // Find matching available browser by OS, OS version, browser type, and browser version
+  //   const matchingAvailableBrowser = availableBrowsers.find((availableBrowser: any) => {
+  //     const osMatch = availableBrowser.os === selectedBrowser.os;
+  //     const osVersionMatch = availableBrowser.os_version === selectedBrowser.os_version;
+  //     const browserMatch = availableBrowser.browser === selectedBrowser.browser;
+  //     const browserVersionMatch = availableBrowser.browser_version === selectedBrowser.browser_version;
+      
+  //     const isMatch = osMatch && osVersionMatch && browserMatch && browserVersionMatch;
+      
+  //     return isMatch;
+  //   });
+
+  //   // If no matching browser is found, it means the version is outdated/not available
+  //   if (!matchingAvailableBrowser) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
+
+
+  //   /**
+  //  * Ensure browsers are loaded from the store, with better error handling
+  //  */
+  //   private ensureBrowsersLoaded(): void {
+  //     try {
+  //       const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+  //       const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+        
+  //       // Only try to load if we don't have any browsers and haven't tried recently
+  //       const now = Date.now();
+  //       const lastBrowserLoadAttempt = this.item?._lastBrowserLoadAttempt || 0;
+  //       const shouldAttemptLoad = (now - lastBrowserLoadAttempt) > 30000; // 30 seconds between attempts
+        
+  //       if (shouldAttemptLoad && (!availableBrowsers || availableBrowsers.length === 0)) {
+  //         try {
+  //           this.item._lastBrowserLoadAttempt = now;
+  //           this._store.dispatch(new Browserstack.GetBrowserstack());
+  //         } catch (error) {
+  //           // Don't throw error, just log it
+  //         }
+  //       }
+        
+  //       if (shouldAttemptLoad && (!localBrowsers || localBrowsers.length === 0)) {
+  //         try {
+  //           this.item._lastBrowserLoadAttempt = now;
+  //           this._store.dispatch(new Browsers.GetBrowsers());
+  //         } catch (error) {
+  //           // Don't throw error, just log it
+  //         }
+  //       }
+  //     } catch (error) {
+  //       // Don't throw error, just log it and continue
+  //     }
+  //   }
+
+
+  //   /**
+  //  * Get simple browser status information for outdated browsers
+  //  */
+  // public getSimpleBrowserStatusInfo(browser: any): string {
+  //   if (!browser) return '';
+    
+  //   // Skip version checks for mobile/tablet browsers - they don't need version warnings
+  //   if (this.isMobileOrTablet(browser)) {
+  //     return ''; // Mobile browsers don't show version warnings
+  //   }
+    
+  //   // Ensure browsers are loaded
+  //   this.ensureBrowsersLoaded();
+    
+  //   // Get the available browsers from both BrowserstackState and BrowsersState
+  //   const availableBrowsers = this._store.selectSnapshot(BrowserstackState.getBrowserstacks) as any[];
+  //   const localBrowsers = this._store.selectSnapshot(BrowsersState.getBrowserJsons) as any[];
+  //   const allAvailableBrowsers = [...(availableBrowsers || []), ...(localBrowsers || [])];
+    
+  //   if (allAvailableBrowsers.length === 0) {
+  //     return '';
+  //   }
+    
+  //   if (this.isLocalBrowser(browser) && browser.browser === 'chrome') {
+  //     // Check local Chrome version
+  //     const chromeBrowsers = allAvailableBrowsers.filter(available => 
+  //       available.browser === 'chrome'
+  //     );
+      
+  //     if (chromeBrowsers.length > 0) {
+  //       const availableVersions = chromeBrowsers.map(available => {
+  //         const version = available.browser_version;
+  //         if (version === 'latest') return 999;
+  //         return parseInt(version, 10) || 0;
+  //       }).sort((a, b) => b - a);
+        
+  //       const selectedVersion = browser.browser_version;
+  //       if (selectedVersion !== 'latest') {
+  //         const selectedVersionNum = parseInt(selectedVersion, 10) || 0;
+  //         const highestAvailable = availableVersions[0];
+          
+  //         if (highestAvailable - selectedVersionNum > 3) {
+  //           return `⚠️ Chrome ${selectedVersion} outdated\n\nLatest available: ${highestAvailable}`;
+  //         }
+  //       }
+  //     }
+  //   } else {
+  //     // Check cloud browser
+  //     const matchingBrowser = allAvailableBrowsers.find(available => 
+  //       available.os === browser.os &&
+  //       available.os_version === browser.os_version &&
+  //       available.browser === browser.browser &&
+  //       available.browser_version === browser.browser_version
+  //     );
+      
+  //     if (!matchingBrowser) {
+  //       // Special handling for 'latest' versions - they should always be considered available
+  //       if (browser.browser_version === 'latest') {
+  //         return ''; // Latest versions don't show warnings
+  //       }
+  //       return `⚠️ ${browser.browser} ${browser.browser_version}\n\nNot available in current browser list`;
+  //     }
+  //   }
+    
+  //   return '';
+  // }
+  
+
 
 }
 
