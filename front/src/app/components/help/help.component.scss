@@ -26,12 +26,36 @@
   justify-content: center;
   text-align: center;
   width: 100%;
+
+  .shortcuts-table{
+    margin-bottom: 5%;
+    width: 500px;
+    text-align: center;
+
+    .table{
+      text-align: center;
+    }
+  }
+
+  ::ng-deep {
+    .text-center {
+      text-align: center;
+    }
+
+    // Para headers específicos
+    .mat-column-windows,
+    .mat-column-mac,
+    .mat-column-key {
+      text-align: center !important;
+      
+      .mat-sort-header-content span {
+        text-align: center !important;
+      }
+    }
+  }
+
 }
 
-.shortcuts-table{
-  margin-bottom: 5%;
-  width: 500px;
-}
 
 .shortcuts-h2{
   margin-bottom: 5%;
@@ -186,36 +210,4 @@ br {
   .telephone {
     color: $blue;
   }
-}
-
-.platform-support {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  text-align: center;
-  line-height: 24px;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 16px;
-  
-  &.supported {
-    color: #4caf50;
-    background-color: rgba(76, 175, 80, 0.2);
-    border: 2px solid #4caf50;
-  }
-  
-  &.not-supported {
-    color: #f44336;
-    background-color: rgba(244, 67, 54, 0.2);
-    border: 2px solid #f44336;
-  }
-}
-
-.shortcut-key {
-  font-weight: bold;
-  color: $blue;
-  font-family: 'Courier New', monospace;
-  background-color: rgba(0, 0, 0, 0.05);
-  padding: 4px 8px;
-  border-radius: 4px;
 }

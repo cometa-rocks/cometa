@@ -32,84 +32,86 @@ export class HelpComponent {
 
   // Main View Feature
   ShortMainViewFeature: Shortcut[] = [
-    { position: 1, key: 'ESC', windows: true, mac: false, description: 'Quit the window.' },
-    { position: 2, key: 'SPACE', windows: true, mac: false, description: 'Run Feature.' },
-    { position: 6, key: 'C', windows: true, mac: false, description: 'Download excel file.' },
-    { position: 3, key: 'E', windows: true, mac: false, description: 'Edit Feature.' },
-    { position: 4, key: 'L', windows: true, mac: false, description: 'Show Log Output.' },
-    { position: 5, key: 'N', windows: true, mac: false, description: 'Enable/Disable notifications.' },
-    { position: 6, key: 'P', windows: true, mac: false, description: 'Download pdf file.' },
-    { position: 6, key: 'S', windows: true, mac: false, description: 'Edit Schedule.' },
+    { position: 1, description: 'Quit the window.', key: 'ESC', windows: true, mac: false },
+    { position: 2, description: 'Run Feature.', key: 'SPACE', windows: true, mac: false },
+    { position: 6, description: 'Download excel file.', key: 'C', windows: true, mac: false },
+    { position: 3, description: 'Edit Feature.', key: 'E', windows: true, mac: false },
+    { position: 4, description: 'Show Log Output.', key: 'L', windows: true, mac: false },
+    { position: 5, description: 'Enable/Disable notifications.', key: 'N', windows: true, mac: false },
+    { position: 6, description: 'Download pdf file.', key: 'P', windows: true, mac: false },
+    { position: 6, description: 'Edit Schedule.', key: 'S', windows: true, mac: false },
 
   ];
 
   // Main Page
 
   ShortMainPage: Shortcut[] = [
-    { position: 1, key: '+', windows: true, mac: false, description: '[+ Add] button: Add from side nav.' },
-    { position: 2, key: 'B', windows: true, mac: false, description: '[B] button: Create folder.' },
-    { position: 3, key: 'F', windows: true, mac: false, description: '[F] button: Create feature.' },
-    { position: 4, key: 'P', windows: true, mac: false, description: '[P] Header Icon: Profile.' },
-    { position: 5, key: 'M', windows: true, mac: false, description: '[M] Header Icon: Menu.' },
-    { position: 6, key: 'S', windows: true, mac: false, description: 'Open search.'},
-    { position: 7, key: 'ESC', windows: true, mac: false, description: 'Close search.'},
-    { position: 8, key: 'H', windows: true, mac: false, description: 'Return to home.'},
-    { position: 9, key: 'Shift + Alt + X', windows: true, mac: false, description: 'Remove all the filters.'},
+    { position: 1, description: '[+ Add] button: Add from side nav.', key: '+', windows: true, mac: false},
+    { position: 2, description: '[B] button: Create folder.', key: 'B', windows: true, mac: false },
+    { position: 3, description: '[F] button: Create feature.', key: 'F', windows: true, mac: false },
+    { position: 4, description: '[P] Header Icon: Profile.', key: 'P', windows: true, mac: false },
+    { position: 5, description: '[M] Header Icon: Menu.', key: 'M', windows: true, mac: false },
+    { position: 6, description: 'Open search.', key: 'S', windows: true, mac: false },
+    { position: 7, description: 'Close search.', key: 'ESC', windows: true, mac: false },
+    { position: 8, description: 'Return to home.', key: 'H', windows: true, mac: false },
+    { position: 9, description: 'Remove all the filters.', key: 'Shift + Alt + X', windows: true, mac: false },
   ];
 
   // Data Driven Test
 
   ShortDataDriven: Shortcut[] = [
-    { position: 1, key: 'S', windows: true, mac: false, description: "[Columns Shown] button: Show table header's checkboxes." },
-    { position: 2, key: 'T', windows: true, mac: false, description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet.' },
+    { position: 1, description: "[Columns Shown] button: Show table header's checkboxes.", key: 'S', windows: true, mac: false },
+    { position: 2, description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet.', key: 'T', windows: true, mac: false },
   ];
 
   // Create Folder
 
   ShortCreateFolder: Shortcut[] = [
-    { position: 1, key: 'CTRL+ENTER', windows: true, mac: false, description: 'Button: OK.' },
+    { position: 1, description: 'Button: OK.', key: 'CTRL+ENTER', windows: true, mac: false },
   ];
 
   // Create Edit Feature
 
   ShortCreateEditFeature: Shortcut[] = [
-    { position: 1, key: 'D', windows: true, mac: false, description: 'Checkbox: Depends on other feature.' },
-    { position: 2, key: 'F', windows: true, mac: false, description: 'Checkbox: Continue on failure.' },
-    { position: 3, key: 'G', windows: true, mac: false, description: 'Checkbox: Generate dataset.' },
-    { position: 4, key: 'H',  windows: true, mac: false, description: 'Checkbox: Ask for help.' },
-    { position: 5, key: 'M', windows: true, mac: false, description: 'Checkbox: Send mail on finish.' },
-    { position: 6, key: 'N', windows: true, mac: false, description: 'Checkbox: Network logging.' },
-    { position: 7, key: 'R', windows: true, mac: false, description: 'Checkbox: Record video.' },
-    { position: 8, key: 'V', windows: true, mac: false, description: 'Button: Edit Variables.' },
-    { position: 9, key: 'S', windows: true, mac: false, description: 'Button: Open Mobiles.' },
-    { position: 10, key: 'CTRL+ENTER', windows: true, mac: false, description: 'Button: CREATE/SAVE.' },
-    { position: 11, key: 'CTRL+UP/DOWN', windows: true, mac: false, description: 'Textarea: Insert new step above or below.' },
-    { position: 12, key: 'CTRL+ALT+UP/DOWN', windows: true, mac: false, description: 'Textarea: Copy the step above or below of the reference step.' },
+    { position: 1,  description: 'Checkbox: Depends on other feature.', key: 'D', windows: true, mac: false },
+    { position: 2, description: 'Checkbox: Continue on failure.', key: 'F', windows: true, mac: false },
+    { position: 3, description: 'Checkbox: Generate dataset.', key: 'G', windows: true, mac: false },
+    { position: 4, description: 'Checkbox: Ask for help.', key: 'H',  windows: true, mac: false },
+    { position: 5, description: 'Checkbox: Send mail on finish.', key: 'M', windows: true, mac: false },
+    { position: 6, description: 'Checkbox: Network logging.', key: 'N', windows: true, mac: false },
+    { position: 7, description: 'Checkbox: Record video.', key: 'R', windows: true, mac: false },
+    { position: 8, description: 'Button: Edit Variables.', key: 'V', windows: true, mac: false },
+    { position: 9, description: 'Button: Open Mobiles.', key: 'S', windows: true, mac: false },
+    { position: 10, description: 'Button: CREATE/SAVE.', key: 'CTRL+ENTER', windows: true, mac: false },
+    { position: 11, description: 'Textarea: Insert new step above or below.', key: 'CTRL+UP/DOWN', windows: true, mac: false },
+    { position: 12, description: 'Textarea: Copy the step above or below of the reference step.', key: 'CTRL+ALT+UP/DOWN', windows: true, mac: false },
   ];
 
   // Step Editor
 
   ShortStepEditor: Shortcut[] = [
-    { position: 1, key: 'SHIFT', windows: true, mac: false, description: 'Checkbox (Select): Hold Shift and click another checkbox to select all checkboxes between the first and the second click.' },
-    { position: 3, key: 'TAB', windows: true, mac: false, description: 'Textarea: Insert tab character in textarea.' },
-    { position: 4, key: 'CTRL+UP', windows: true, mac: false, description: 'Textarea: Insert new step above the current step.' },
-    { position: 5, key: 'ALT+UP', windows: true, mac: false, description: 'Textarea: Insert new step above the current step.' },
-    { position: 6, key: 'CTRL+DOWN', windows: true, mac: false, description: 'Textarea: Insert new step below the current step.' },
-    { position: 7, key: 'ALT+DOWN', windows: true, mac: false, description: 'Textarea: Insert new step below the current step.' },
-    { position: 8, key: 'CTRL+ALT+UP', windows: true, mac: false, description: 'Textarea: Copy the step above the current step.' },
-    { position: 9, key: 'CTRL+ALT+DOWN', windows: true, mac: false, description: 'Textarea: Copy the step below the current step.' },
-    { position: 10, key: 'ALT+SHIFT+F', windows: true, mac: false, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.' },
-    { position: 11, key: 'META+SHIFT+F', windows: false, mac: true, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.' }
+    { position: 1, description: 'Checkbox (Select): Hold Shift and click another checkbox to select all checkboxes between the first and the second click.', key: 'SHIFT', windows: true, mac: false },
+    { position: 3, description: 'Textarea: Insert tab character in textarea.', key: 'TAB', windows: true, mac: false },
+    { position: 4, description: 'Textarea: Insert new step above the current step.', key: 'CTRL+UP', windows: true, mac: false },
+    { position: 5, description: 'Textarea: Insert new step above the current step.', key: 'ALT+UP', windows: true, mac: false },
+    { position: 6, description: 'Textarea: Insert new step below the current step.', key: 'CTRL+DOWN', windows: true, mac: false },
+    { position: 7, description: 'Textarea: Insert new step below the current step.', key: 'ALT+DOWN', windows: true, mac: false },
+    { position: 8, description: 'Textarea: Copy the step above the current step.', key: 'CTRL+ALT+UP', windows: true, mac: false },
+    { position: 9, description: 'Textarea: Copy the step below the current step.', key: 'CTRL+ALT+DOWN', windows: true, mac: false },
+    { position: 10, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.', key: 'ALT+SHIFT+F', windows: true, mac: false },
+    { position: 11, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.', key: 'META+SHIFT+F', windows: false, mac: true }
     
   ];
 
   // Administration
   ShortAdministration: Shortcut[] = [
-    { position: 10, key: 'CTRL+ENTER', windows: true, mac: false, description: 'Button: OK/CREATE/MODIFY.' },
+    { position: 10, description: 'Button: OK/CREATE/MODIFY.', key: 'CTRL+ENTER', windows: true, mac: false },
   ];
 
   // Reference model (template)
   columns: MtxGridColumn[] = [
+    { header: 'Description', field: 'description'},
+    { header: 'Shortcut', field: 'key', class: 'text-center'},
     { 
       header: 'Windows', 
       field: 'windows',
@@ -124,8 +126,6 @@ export class HelpComponent {
       formatter: (row: any) => row.mac ? '✓' : ' ',
       class: 'text-center',
     },
-    { header: 'Shortcut', field: 'key', class: 'shortcut-key'},
-    { header: 'Description', field: 'description'},
   ];
 
   listMainViewFeature = this.ShortMainViewFeature;
