@@ -9,13 +9,10 @@
  *
  * @author: Nico
  */
-import { Component, OnInit, Input, Inject } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatListModule } from '@angular/material/list';
-import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
@@ -30,9 +27,6 @@ import { LogService } from '@services/log.service';
     CommonModule,
     MatIconModule,
     MatButtonModule,
-    MatDividerModule,
-    MatListModule,
-    MatCardModule,
     MatChipsModule,
     TitleCasePipe,
   ],
@@ -40,6 +34,7 @@ import { LogService } from '@services/log.service';
 export class FeatureHistoryComponent implements OnInit {
 
   featureId: number;
+  departmentId: number;
   history: FeatureHistoryEntry[] = [];
   loading: boolean = false;
   error: string | null = null;
@@ -51,11 +46,13 @@ export class FeatureHistoryComponent implements OnInit {
 
   constructor(
     private _api: ApiService,
-    @Inject(MAT_DIALOG_DATA) public data: number,
+    @Inject(MAT_DIALOG_DATA) public data: { featureId: number, departmentId: number },
     private dialogRef: MatDialogRef<FeatureHistoryComponent>,
-    private log: LogService
+    private log: LogService,
+    
   ) {
-    this.featureId = data;
+    this.featureId = data.featureId;
+    this.departmentId = data.departmentId;
   }
 
   ngOnInit(): void {
@@ -71,7 +68,7 @@ export class FeatureHistoryComponent implements OnInit {
     this.error = null;
 
     // Use existing ApiService to call the backend
-    this._api.getFeatureHistory(this.featureId).subscribe({
+    this._api.getFeatureHistory(this.featureId, this.departmentId).subscribe({
       next: (response: FeatureHistoryResponse) => {
         if (response.success) {
           this.history = response.history;
@@ -152,27 +149,7 @@ export class FeatureHistoryComponent implements OnInit {
     return selectedEntry || null;
   }
 
-  getChangesForSelectedBackup(): any {
-    // Only run comparison when we actually have a selected backup for changes
-    if (this.selectedChangesBackupIds.size === 0 || !this.currentFeature) {
-      return null;
-    }
-    
-    // Don't show changes for the current version (topmost backup)
-    if (this.isCurrentVersion(Array.from(this.selectedChangesBackupIds)[0])) {
-      return null;
-    }
-    
-    // Return cached result if available
-    const selectedBackupId = Array.from(this.selectedChangesBackupIds)[0];
-    if (this.cachedChanges.has(selectedBackupId)) {
-      return this.cachedChanges.get(selectedBackupId);
-    }
-    
-    const changes = this.compareFeatureVersions();
-    this.cachedChanges.set(selectedBackupId, changes);
-    return changes;
-  }
+
 
   isCurrentVersion(backupId: string): boolean {
     // The topmost backup (index 0) is considered the current version
@@ -182,65 +159,12 @@ export class FeatureHistoryComponent implements OnInit {
     return false;
   }
 
-  compareFeatureVersions(): any {
-    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return null;
-    
-    const backupEntry = this.getSelectedBackupChanges();
-    if (!backupEntry) return null;
 
-    try {
-      // Helper function to safely compare boolean values
-      const compareBoolean = (current: any, backup: any, field: string) => {
-        // Convert both values to boolean for comparison
-        const currentVal = Boolean(current);
-        const backupVal = Boolean(backup);
-        
-        // If both are false (or undefined/null which become false), it's not a change
-        if (!currentVal && !backupVal) {
-          return false;
-        }
-        
-        // Otherwise, compare their boolean values
-        return currentVal !== backupVal;
-      };
-
-      const changes = {
-        feature_name: this.currentFeature.feature_name !== backupEntry.feature_name,
-        description: this.currentFeature.description !== backupEntry.description,
-        step_count_changed: this.hasStepCountChanged(backupEntry),
-        step_content_changed: this.hasStepContentChanged(backupEntry),
-        schedule_changed: this.hasScheduleChanged(backupEntry),
-        browsers_changed: this.hasBrowsersChanged(backupEntry),
-        send_mail: compareBoolean(this.currentFeature.send_mail, backupEntry.send_mail, 'send_mail'),
-        send_mail_on_error: compareBoolean(this.currentFeature.send_mail_on_error, backupEntry.send_mail_on_error, 'send_mail_on_error'),
-        network_logging: compareBoolean(this.currentFeature.network_logging, backupEntry.network_logging, 'network_logging'),
-        generate_dataset: compareBoolean(this.currentFeature.generate_dataset, backupEntry.generate_dataset, 'generate_dataset'),
-        continue_on_failure: compareBoolean(this.currentFeature.continue_on_failure, backupEntry.continue_on_failure, 'continue_on_failure'),
-        send_telegram_notification: compareBoolean(this.currentFeature.send_telegram_notification, backupEntry.send_telegram_notification, 'send_telegram_notification')
-      };
-
-      return {
-        hasChanges: Object.values(changes).some(change => change === true),
-        changes: changes,
-        current: this.currentFeature,
-        backup: backupEntry
-      };
-    } catch (error) {
-        console.error(error);
-      return {
-        hasChanges: false,
-        changes: {},
-        current: this.currentFeature,
-        backup: backupEntry,
-        error: 'Error comparing versions'
-      };
-    }
-  }
 
   hasStepCountChanged(backupEntry: any): boolean {
     // Simple step count comparison
-    const currentSteps = this.currentFeature.detailedSteps ? this.currentFeature.detailedSteps.length : 0;
-    const backupSteps = this.getBackupStepCount(backupEntry);
+    const currentSteps = this.currentFeature.steps || 0;
+    const backupSteps = backupEntry.steps_count || 0;
         
     return currentSteps !== backupSteps;
   }
@@ -250,11 +174,7 @@ export class FeatureHistoryComponent implements OnInit {
     return false;
   }
 
-  // Helper method to get backup step count
-  getBackupStepCount(backupEntry: any): number {
-    const backupSteps = this.getBackupSteps(backupEntry);
-    return backupSteps.length;
-  }
+
 
   // Helper method to get backup steps array
   getBackupSteps(backupEntry: any): any[] {    
@@ -263,20 +183,15 @@ export class FeatureHistoryComponent implements OnInit {
     }
     
     const backupSteps = backupEntry.steps;    
-    // The backup steps structure is: backupEntry.steps[0].step_content
-    if (backupSteps.length === 1 && backupSteps[0] && backupSteps[0].step_content) {
-      const actualSteps = backupSteps[0].step_content;
-
-      return Array.isArray(actualSteps) ? actualSteps : [];
+    // With new unified structure, steps are directly in backupEntry.steps
+    if (Array.isArray(backupSteps)) {
+      return backupSteps;
     }
 
     return [];
   }
 
-  hasStepChanged(currentStep: any, backupStep: any, currentStepIndex: number): boolean {
-    // This method is no longer needed with our new approach
-    return false;
-  }
+
 
   hasScheduleChanged(backupEntry: any): boolean {
     const currentSchedule = this.currentFeature.schedule;
@@ -355,10 +270,10 @@ export class FeatureHistoryComponent implements OnInit {
     if (key === 'step_count_changed') {
       // For step count, return the appropriate value based on which object we're displaying
       if (obj === this.currentFeature) {
-        // Use detailed steps count if available, otherwise fall back to basic steps count
-        return String(this.currentFeature.detailedSteps ? this.currentFeature.detailedSteps.length : (this.currentFeature.steps || 0));
+        // Use the same value as the UI button (from backend)
+        return String(this.currentFeature.steps || 0);
       } else {
-        // This is the backup entry
+        // This is the backup entry - use the same value as the UI button (from backend)
         return String(obj.steps_count || 0);
       }
     }
@@ -372,7 +287,7 @@ export class FeatureHistoryComponent implements OnInit {
     }
     
     if (key === 'browsers_changed') {
-      // For browsers, return a clean list of browsers without verbose descriptions
+      // For browsers, return a clean list of browsers
       const browsers = obj.browsers || [];
       if (browsers.length === 0) {
         return 'No browsers selected';
@@ -395,25 +310,14 @@ export class FeatureHistoryComponent implements OnInit {
     
     // Handle null/undefined - show consistent format
     if (value === null || value === undefined) {
-      return 'No'; // Changed from "Not set" to "No" for consistency
+      return 'No';
     }
     
     // Return as string
     return String(value);
   }
 
-  getStepCountChangeDescription(): string {
-    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
-    
-    const backupEntry = this.getSelectedBackupChanges();
-    if (!backupEntry) return 'N/A';
-    
-    const currentSteps = this.currentFeature.steps || 0;
-    const backupSteps = backupEntry.steps_count || 0;
-    
-    // Return just the step count for display in the comparison
-    return String(currentSteps);
-  }
+
 
   getStepContentChangeDescription(): string {
     if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
@@ -432,39 +336,12 @@ export class FeatureHistoryComponent implements OnInit {
       return 'Step content comparison not available (detailed steps not loaded)';
     }
 
-    const modifiedSteps: number[] = [];
-    
-    // Compare step by step
-    for (let i = 0; i < Math.min(backupEntrySteps.length, currentDetailedSteps.length); i++) {
-      const currentStep = currentDetailedSteps[i];
-      const backupStep = backupEntrySteps[i];
-
-      if (this.hasStepChanged(currentStep, backupStep, i)) {
-        modifiedSteps.push(i + 1); // Step numbers are 1-based for display
-      }
+    // Simple comparison: if step counts are different, content changed
+    if (backupEntrySteps.length !== currentDetailedSteps.length) {
+      return `Step count changed from ${backupEntrySteps.length} to ${currentDetailedSteps.length}`;
     }
 
-    if (modifiedSteps.length === 0) {
-      return 'No step content changes detected';
-    } else if (modifiedSteps.length === 1) {
-      return `Step ${modifiedSteps[0]} was modified`;
-    } else {
-      return `Steps ${modifiedSteps.join(', ')} were modified`;
-    }
-  }
-
-  getStepFlagChanges(backupEntry: any): string[] {
-    const changes: string[] = [];
-    
-    if (!backupEntry.steps || !Array.isArray(backupEntry.steps)) {
-      return changes;
-    }
-    
-    // This is a placeholder for more detailed step comparison
-    // In a real implementation, you would compare individual step properties
-    // like enabled status, screenshot flags, compare flags, etc.
-    
-    return changes;
+    return 'No step content changes detected';
   }
 
   getScheduleChangeDescription(): string {
@@ -502,58 +379,11 @@ export class FeatureHistoryComponent implements OnInit {
     return 'No schedule changes';
   }
 
-  getBrowsersChangeDescription(): string {
-    if (!this.currentFeature || this.selectedChangesBackupIds.size === 0) return 'N/A';
-    
-    const backupEntry = this.getSelectedBackupChanges();
-    if (!backupEntry) return 'N/A';
-    
-    const currentBrowsers = this.currentFeature.browsers || [];
-    const backupBrowsers = backupEntry.browsers || [];
-    
-    // Helper function to create simplified browser strings
-    const createBrowserString = (b: any) => {
-      const browser = b.browser || b.browser_name || 'Unknown';
-      const version = b.browser_version || b.version || 'latest';
-      return `${browser}-${version}`;
-    };
-    
-    // If both have no browsers
-    if (currentBrowsers.length === 0 && backupBrowsers.length === 0) {
-      return 'No browsers selected';
-    }
-    
-    // If backup has no browsers but current has browsers
-    if (backupBrowsers.length === 0 && currentBrowsers.length > 0) {
-      const currentConfigs = currentBrowsers.map(createBrowserString).join(', ');
-      return `Browsers added: ${currentConfigs}`;
-    }
-    
-    // If current has no browsers but backup has browsers
-    if (currentBrowsers.length === 0 && backupBrowsers.length > 0) {
-      const backupConfigs = backupBrowsers.map(createBrowserString).join(', ');
-      return `Browsers removed: ${backupConfigs}`;
-    }
-    
-    // If both have browsers, check if they're the same
-    if (currentBrowsers.length > 0 && backupBrowsers.length > 0) {
-      const currentBrowserStrings = currentBrowsers.map(createBrowserString).sort();
-      const backupBrowserStrings = backupBrowsers.map(createBrowserString).sort();
-      
-      // If configurations are the same, no change
-      if (JSON.stringify(currentBrowserStrings) === JSON.stringify(backupBrowserStrings)) {
-        return 'Browser selection unchanged';
-      }
-      
-      // If they're different, show the change
-      const currentConfigs = currentBrowserStrings.join(', ');
-      const backupConfigs = backupBrowserStrings.join(', ');
-      
-      return `Browser selection changed: ${backupConfigs} → ${currentConfigs}`;
-    }
-    
-    return 'Browser configuration error';
-  }
+
+
+
+
+
 
   getChangeLabel(key: string): string {
     const labels: { [key: string]: string } = {
@@ -574,7 +404,7 @@ export class FeatureHistoryComponent implements OnInit {
     return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
-  getSelectedBackupSteps(): FeatureHistoryStep[] {
+  getSelectedBackupSteps(): any[] {
     if (this.selectedBackupIds.size === 0) return [];
     const selectedBackupId = Array.from(this.selectedBackupIds)[0]; // Get the first selected backup ID
     const selectedEntry = this.history.find(entry => entry.backup_id === selectedBackupId);
@@ -589,50 +419,53 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
-  formatStep(step: FeatureHistoryStep): string {
+  formatStep(step: any): string {
     try {
-      const stepData = step.step_content;
-      
-      if (!stepData) {
+      // With the new unified backup structure, steps are directly in the backup data
+      if (!step) {
         return 'No step data';
       }
 
-      // If stepData is an array, we need to handle multiple steps
-      if (Array.isArray(stepData)) {
-        if (stepData.length === 0) {
+      // If step is an array, it contains individual step objects
+      if (Array.isArray(step)) {
+        if (step.length === 0) {
           return 'No steps found';
         }
         
-        // Return a clear summary with backup ID and step count
-        const filename = step.step_file || 'Unknown file';
-        return `Backup: ${filename} - ${stepData.length} steps`;
+        // Return a summary of the steps
+        return `${step.length} steps`;
       }
 
-      // Handle single step object (fallback)
-      if (typeof stepData === 'object') {
-        const keyword = stepData.step_keyword || '';
-        const content = stepData.step_content || '';
+      // If step is an object with step properties (individual step)
+      if (typeof step === 'object' && step.step_keyword && step.step_content) {
+        const keyword = step.step_keyword || '';
+        const content = step.step_content || '';
         
         if (keyword && content) {
-          return `${keyword} - ${content}`;
+          return `${keyword} ${content}`;
         } else if (keyword) {
           return keyword;
         } else if (content) {
           return content;
         }
       }
+
+      // If step is an object, it might contain step_content array (legacy format)
+      if (typeof step === 'object' && step.step_content && Array.isArray(step.step_content)) {
+        return `${step.step_content.length} steps`;
+      }
       
       return 'Invalid step data';
     } catch (error) {
+      console.error('Error in formatStep:', error);
       return 'Error formatting step';
     }
   }
 
-  getStepFlags(step: FeatureHistoryStep): { label: string; value: boolean; color: string }[] {
+  getStepFlags(step: any): { label: string; value: boolean; color: string }[] {
     try {
-      const stepData = step.step_content;
-      
-      if (!stepData || typeof stepData !== 'object') {
+      // With new unified structure, step is the actual step data
+      if (!step || typeof step !== 'object') {
         return [];
       }
 
@@ -646,9 +479,10 @@ export class FeatureHistoryComponent implements OnInit {
       ];
 
       return flags
-        .filter(flag => stepData[flag.key] === flag.showWhen)
+        .filter(flag => step[flag.key] === flag.showWhen)
         .map(flag => ({ label: flag.label, value: true, color: flag.color }));
     } catch (error) {
+      console.error('Error in getStepFlags:', error);
       return [];
     }
   }
@@ -672,9 +506,14 @@ export class FeatureHistoryComponent implements OnInit {
         .filter(flag => individualStep[flag.key] === flag.showWhen)
         .map(flag => ({ label: flag.label, value: true, color: flag.color }));
     } catch (error) {
+      console.error('Error in getIndividualStepFlags:', error);
       return [];
     }
   }
+
+  
+
+
 
   isArray(value: any): boolean {
     return Array.isArray(value);
@@ -691,26 +530,64 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
-  // Helper method to parse backup filename timestamp format (YYYY-MM-DD_HH-MM-SS)
+  // Helper method to parse backup timestamp format
   parseBackupTimestamp(timestamp: string): Date {
-    try {
-      // Handle the format: "2025-08-12 11:37:42" (from backup filename)
-      // Replace underscore with space to make it parseable
-      const normalizedTimestamp = timestamp.replace('_', ' ');
+    try {      
+      if (!timestamp) {
+        return new Date();
+      }
       
-      // Parse as UTC and convert to local timezone
-      const utcDate = new Date(normalizedTimestamp + ' UTC');
+      // Try different timestamp formats
+      let parsedDate: Date;
+      
+      // Format 1: ISO string (e.g., "2025-09-01T12:26:01.123Z")
+      if (timestamp.includes('T') && (timestamp.includes('Z') || timestamp.includes('+') || timestamp.includes('-'))) {
+        parsedDate = new Date(timestamp);
+      }
+      // Format 2: "2025-08-12 11:37:42" (space separated)
+      else if (timestamp.includes(' ') && timestamp.includes(':')) {
+        parsedDate = new Date(timestamp);
+      }
+      // Format 3: "2025-09-01_12-26-01" (YYYY-MM-DD_HH-MM-SS format)
+      else if (timestamp.includes('_') && timestamp.includes('-')) {
+        // Convert "2025-09-01_12-26-01" to "2025-09-01 12:26:01"
+        const normalizedTimestamp = timestamp.replace('_', ' ');
+        
+        // Try the normalized format first
+        parsedDate = new Date(normalizedTimestamp);
+        
+        // If that fails, try manual parsing
+        if (isNaN(parsedDate.getTime())) {
+          const parts = timestamp.split('_');
+          if (parts.length === 2) {
+            const datePart = parts[0]; // "2025-09-01"
+            const timePart = parts[1]; // "12-26-01"
+            const timeNormalized = timePart.replace(/-/g, ':'); // "12:26:01"
+            const fullTimestamp = `${datePart} ${timeNormalized}`; // "2025-09-01 12:26:01"
+            parsedDate = new Date(fullTimestamp);
+          }
+        }
+      }
+      // Format 4: Unix timestamp (number)
+      else if (!isNaN(Number(timestamp))) {
+        parsedDate = new Date(Number(timestamp));
+      }
+      // Format 5: Try as regular date string
+      else {
+        parsedDate = new Date(timestamp);
+      }
       
       // Validate the parsed date
-      if (isNaN(utcDate.getTime())) {
+      if (isNaN(parsedDate.getTime())) {
         throw new Error('Invalid date format');
       }
       
-      return utcDate;
+      return parsedDate;
     } catch (error) {
-      console.error(error);
-      // Fallback: try to parse as regular date
-      return new Date(timestamp);
+      console.error('Error parsing timestamp:', error);
+      console.error('Original timestamp:', timestamp);
+      // Fallback: return current date
+      return new Date();
     }
   }
 
@@ -747,8 +624,10 @@ export class FeatureHistoryComponent implements OnInit {
         });
       }
     } catch (error) {
-      console.error(error);
-      return timestamp; // Fallback to original timestamp if parsing fails
+      console.error('Error in formatDate:', error);
+      console.error('Original timestamp:', timestamp);
+      // Fallback: return a simple formatted string
+      return timestamp || 'Unknown date';
     }
   }
 
@@ -765,7 +644,8 @@ export class FeatureHistoryComponent implements OnInit {
       if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
       return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
     } catch (error) {
-      console.error(error);
+      console.error('Error in getRelativeTime:', error);
+      console.error('Original timestamp:', timestamp);
       return 'unknown time'; // Fallback if parsing fails
     }
   }
