@@ -68,7 +68,21 @@ class SQLDatabaseClient(DatabaseClient):
             
             query_lower = query.strip().lower()
             if query_lower.startswith(("create ", "alter ", "drop ", "insert ", "update ", "delete ")):
-                logger.info("DDL statement executed successfully.")
+                logger.info("DDL/DML statement executed successfully.")
+                # Commit the transaction to persist changes
+                try:
+                    self.connection.commit()
+                    logger.info("Transaction committed successfully.")
+                except Exception as commit_error:
+                    logger.error(f"Error while committing transaction: {commit_error}")
+                    # Rollback the transaction on commit failure
+                    try:
+                        self.connection.rollback()
+                        logger.info("Transaction rolled back due to commit failure.")
+                    except Exception as rollback_error:
+                        logger.error(f"Error while rolling back transaction: {rollback_error}")
+                    raise CustomError(f"Failed to commit transaction: {commit_error}")
+                
                 return {"message": "Query executed successfully"}
             
             
