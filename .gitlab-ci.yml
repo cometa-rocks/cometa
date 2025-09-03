@@ -167,10 +167,10 @@ stages:
   script:
     bash scripts/docker_cicd_deployment.sh
 
-# create a deploy job for amvara2 for branch stage
-deploy:amvara2.stage: 
+# create a deploy job for amvara6 for branch stage
+deploy:amvara6.stage: 
   <<: *docker_deployment_script
-  extends: .amvara2.stage
+  extends: .amvara6.stage
 
 # create a deploy job for amvara3 for branch prod
 deploy:amvara3.prod:
