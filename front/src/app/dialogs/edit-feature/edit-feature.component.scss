@@ -69,8 +69,24 @@
 }
 
 .edit-feature-info {
-  @media (max-width: 600px) {
-    flex-wrap: wrap;
+  display: flex;
+
+  @include for-tablet-portrait-up {
+    gap: 10px;
+  }
+
+  .edit-description {
+    flex: 1 60%;
+  }
+  .edit-app {
+    flex: 1 20%;
+  }
+  .edit-env {
+    flex: 1 20%;
+  }
+  flex-wrap: wrap;
+  @include for-tablet-landscape-up {
+    flex-wrap: nowrap;
   }
   .mat-form-field {
     @-moz-document url-prefix() {
@@ -79,8 +95,14 @@
       }
     }
 
-    @media (max-width: 600px) {
-      flex: 1 100% !important;
+    flex: 1 100% !important;
+    @include for-tablet-portrait-up {
+      &:nth-child(-n+4) {
+        flex: 1 5% !important;
+      }
+      &:nth-child(n+5) {
+        flex: 1 40% !important;
+      }
     }
   }
 }
@@ -329,31 +351,27 @@ a {
   }
 }
 
-  .depends {
-    display: flex;
-    align-items: flex-start;
-    gap: 25px;
-    margin-top: 20px;
-    padding: 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 12px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.depends {
+  display: flex;
+  align-items: flex-start;
+  gap: 25px;
+  margin-top: 20px;
+  padding: 0;
   
-  // Checkboxes Section - Four Columns with Headers
+  // padding-left: 0;
+  // padding: 20px 20px 20px 0; //
+  // background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  // border-radius: 12px;
+  // border: 1px solid #e9ecef;
+  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
   .checkboxes-section {
+    flex-wrap: wrap;
     display: flex;
+    flex-direction: row;
     gap: 20px;
-    flex: 1;
-    
-    .checkbox-column {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-width: 0;
-      flex: 1;
-      
-      .column-header {
+
+    .column-header {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -377,24 +395,79 @@ a {
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
-      }
+    }
+          
+    .checkbox-container {
+      margin-right: 0;
+      margin-bottom: 0;
+      margin-left: 10px;
       
+      &.notification-parent {
+        margin-right: 0;
+        margin-bottom: 0;
+      }
+    }
+
+    .checkbox-column {
+      flex: 1 1 calc(100% - 10px)!important;
+      min-width: 250px!important;
+      max-width: calc(100% - 10px)!important;
+
       &:hover .column-header {
         background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
         transform: translateY(-1px);
         transition: all 0.2s ease;
       }
-      
-      .checkbox-container {
-        margin-right: 0;
-        margin-bottom: 0;
-        margin-left: 10px;
-        
-        &.notification-parent {
-          margin-right: 0;
-          margin-bottom: 0;
-        }
+    }
+    @include for-tablet-portrait-up-plus30 {
+      gap: 0;
+      .checkbox-column {
+        min-width: 220px!important;
+        max-width: calc(50% - 10px)!important;
       }
+    }
+    @include for-desktop-up {
+      .checkbox-column {
+        max-width: calc(25% - 20px)!important;
+      }
+    }
+  }
+  // @include for-tablet-portrait-up {
+  //   .checkboxes-section { 
+  //     flex-direction: row;
+  //     gap: 20px;
+      
+      
+  //   }
+  //   // 
+  // }
+  // @include for-desktop-up {
+  //   padding: 20px;
+  //   .checkboxes-section {
+  //     flex-wrap: nowrap;
+  //     flex-direction: row;
+  //     gap: 20px;
+      
+  //     .checkbox-column {
+  //       flex: 1;
+  //       width: auto;           // ← Ancho automático
+  //     }
+  //   }
+    
+  // }
+  
+  // Checkboxes Section - Four Columns with Headers
+  .checkboxes-section {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    
+    .checkbox-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
     }
   }
   
@@ -416,7 +489,7 @@ a {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    min-width: 150px;
+    // min-width: 150px;
     
     .column-header {
       display: flex;
@@ -461,7 +534,7 @@ a {
 
         button {
           width: 80%;
-          min-width: 112px;
+          min-width: 112px; // First
         }
         
         .button-container {
@@ -474,7 +547,7 @@ a {
           
           button {
             width: 80%;
-            min-width: 112px;
+            min-width: 112px; // Second
           }
           
           .memberShip {
@@ -491,37 +564,65 @@ a {
     }
   }
   
-  // Responsive design
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 15px;
+  // Responsive design - Changed breakpoint to ensure Action column is visible
+  
+  // @media (max-width: 1200px) {
+  //   flex-direction: column;
+  //   flex: none;
+  //   gap: 15px;
     
-    .checkboxes-section {
-      flex-direction: column;
-      gap: 15px;
+  //   .checkboxes-section {
+  //     flex-direction: column;
+  //     gap: 15px;
       
-      .checkbox-column {
-        gap: 8px;
-      }
-    }
+  //     .checkbox-column {
+  //       gap: 8px;
+  //     }
+  //   }
     
-    .section-divider {
-      display: none;
-    }
+  //   .section-divider {
+  //     display: none;
+  //   }
     
-    .buttons-section {
-      min-width: auto;
-      width: 100%;
+  //   .buttons-section {
+  //     min-width: auto;
+  //     width: 100%;
+  //     // max-width: 287px; // Limit the maximum width when collapsed
+  //     align-self: flex-start; // Align to the left when collapsed
       
-      .button-container {
-        align-items: stretch;
+  //     .button-container {
+  //       align-items: stretch;
         
-        button {
-          width: 100%;
-        }
-      }
-    }
-  }
+  //       button {
+  //         width: 100%;
+  //       }
+  //     }
+  //   }
+  // }
+  
+  // // Additional breakpoint for very small screens to ensure proper spacing
+  // @media (max-width: 480px) {
+  //   padding: 15px;
+  //   gap: 12px;
+    
+  //   .checkboxes-section {
+  //     gap: 12px;
+      
+  //     .checkbox-column {
+  //       gap: 6px;
+  //     }
+  //   }
+    
+  //   .buttons-section {
+  //     max-width: 250px; // Even smaller max-width for very small screens
+      
+  //     .button-container {
+  //       button {
+  //         min-width: 120px;
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 ::ng-deep .options .mat-ripple-element {
@@ -563,18 +664,7 @@ button {
   display: none;
 }
 
-.edit-feature-info {
-  display: flex;
-  .edit-description {
-    flex: 1 60%;
-  }
-  .edit-app {
-    flex: 1 20%;
-  }
-  .edit-env {
-    flex: 1 20%;
-  }
-}
+
 
 .schedule::ng-deep .mat-form-field-infix {
   width: auto !important;
@@ -1007,4 +1097,46 @@ button {
   .maximum-notifications-check-telegram {
     margin-left: 0 !important;
   }
+}
+
+
+.amv_custom-tooltip {
+  position: relative; 
+}
+
+.amv_custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translate(-50%, 8px);
+
+  display: block;                    
+  text-align: center;                
+  
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+
+  background: $grey;
+  color: white;
+  padding: 6px 10px; 
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  z-index: 1000;
+
+  max-width: 220px;
+  min-width: 120px;
+  white-space: normal;               
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none; 
+}
+
+.amv_custom-tooltip:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }

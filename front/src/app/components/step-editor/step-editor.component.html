@@ -250,19 +250,28 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
             <!-- Textarea with autocomplete enabled -->
+             <!-- MAC ShortCuts
+              (keydown.alt.arrowup)="insertStep($event, i)"
+              (keydown.alt.arrowdown)="insertStep($event, i)"
+              (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
+             -->
             <textarea
               #stepTextarea
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
-              (blur)="fixStep($event, i)"
+              (blur)="fixStep($event, i); sendTextareaFocusToParent(false, i)"
               (click)="onStepTextareaClick($event, i, 0)"
               (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
               (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
               (keydown.enter)="onTextareaEnter($event, i)"
               (keydown.Tab)="onTextareaTab($event, i)"
               (keydown.control.arrowup)="insertStep($event, i)"
+              (keydown.alt.arrowup)="insertStep($event, i)"
               (keydown.control.arrowdown)="insertStep($event, i)"
+              (keydown.alt.arrowdown)="insertStep($event, i)"
               (keydown.alt.control.arrowup)="copyStep($event, i)"
               (keydown.alt.control.arrowdown)="copyStep($event, i)"
+              (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)"
+              (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
               class="code"
               spellcheck="false"
               autocomplete="off"
@@ -500,6 +509,15 @@
       class="json_option">
       EXPORT JSON
     </button>
+    <button
+      type="button"
+      color="primary"
+      (click)="editVariables()"
+      class="amv_custom-tooltip"
+      data-tooltip="V or Alt+V while editing a step"
+      mat-stroked-button>
+      EDIT VARIABLES
+    </button>
     <input
       type="file"
       class="upload_json"
@@ -581,3 +599,26 @@
   </ng-container>
 
 </mat-autocomplete>
+
+<!-- div for file paths {file_path} -->
+<div 
+  #filePathAutocompletePanel
+  class="custom-file-autocomplete-panel"
+  [class.visible]="showFilePathAutocomplete"
+  [class.hidden]="!showFilePathAutocomplete">
+  
+  <div class="custom-autocomplete-header">
+    <span class="custom-autocomplete-title">Select File</span>
+  </div>
+  
+  <div class="custom-autocomplete-options">
+    <div 
+      *ngFor="let option of filePathAutocompleteOptions; let i = index" 
+      class="custom-autocomplete-option"
+      [class.active]="i === activeOptionIndex"
+      (click)="onFilePathSelect({option: {value: option.path}}, currentFilePathStepIndex)"
+      (mouseenter)="setActiveOption(i)">
+      {{ option.label }}
+    </div>
+  </div>
+</div>

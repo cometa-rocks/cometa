@@ -39,6 +39,14 @@
       <button *ngIf="isDialog" mat-stroked-button [matMenuTriggerFor]="selectedColumns">
         Columns Shown
       </button>
+      <button *ngIf="isDialog"
+          color="primary"
+          (click)="onAddVar()"
+          class="amv_add_variable"
+          [disabled]="isEditing"
+          mat-stroked-button>
+          Add variable
+      </button>
       <div class="container-father" *ngIf="!isDialog">
         <button class="button-column not-feature" mat-stroked-button [matMenuTriggerFor]="selectedColumns">
           Columns Shown

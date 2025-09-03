@@ -172,9 +172,10 @@
     box-sizing: border-box;
   }
   .steps {
-    margin-top: 10px;
+    margin-top: 5px;
     margin-left: 10px;
-    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
     .stepsFolder {
       display: flex;
       align-items: center;
@@ -188,6 +189,7 @@
     color: #767676;
     font-size: 14px;
     letter-spacing: 0.5px;
+    margin-left: 4px;
   }
   .browser {
     color: #546e7a;
@@ -476,7 +478,8 @@ input {
 
 .schedule-container {
   margin-left: 10px;
-  margin-bottom: 5px;
+  flex-direction: row;
+  margin-top: 5px;
 }
 
 .feature-options {
@@ -542,7 +545,7 @@ input {
 .notification-icons-container {
   display: flex;
   position: absolute;
-  left: 19px; // Same position as star
+  left: 16px; // Same position as star
   bottom: 9px;
   gap: 8px; // Space between icons
   align-items: center;
@@ -726,13 +729,13 @@ input {
 }
 
 .department-container {
-  margin-left: 6px;
+  margin-left: 5.5px;
   .department-data {
     display: flex;
     align-items: center;
     gap: 4px; // Add spacing between icon and text
     .department-icon {
-      font-size: 18px;
+      font-size: 16px;
       color: $star-feature-icon-color;
       display: flex;
       align-items: center;
@@ -744,6 +747,60 @@ input {
       color: $star-feature-icon-color;
       display: flex;
       align-items: center;
+    }
+  }
+}
+
+// Feature browsers
+.browsers-container {
+  margin-left: 10px;
+  
+  .browsers-data {
+    .browsers {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+      
+      .browsers-label {
+        font-size: 0.9rem;
+        color: $text-pink;
+        margin-right: 5px;
+        font-weight: 500;
+      }
+      
+      .my-icons {
+        width: 12px;
+        height: 12px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: inline-block;
+        vertical-align: middle;
+        border-radius: 3px;
+        min-width: 12px;
+        min-height: 12px;
+        
+        // Fallback when no background image
+        &:not([style*="background-image"]) {
+          &::after {
+            content: attr(data-browser);
+            font-size: 10px;
+            color: $star-feature-icon-color;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            line-height: 1;
+          }
+        }
+      }
+
+      .browser-total {
+        font-size: 14px;
+        margin-left: 5px;
+      }
     }
   }
 }

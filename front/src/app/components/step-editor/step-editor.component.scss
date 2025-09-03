@@ -921,7 +921,7 @@ textarea {
 }
 
 .disabled-menu-item {
-  color: #999;               
+  color: $text-secundary;               
   cursor: default;           
   pointer-events: none;      
   display: flex;             
@@ -929,7 +929,7 @@ textarea {
   opacity: 0.6;              
 }
 .disabled-menu-item mat-icon {
-  color: #999;               
+  color: $text-secundary;               
 }
 
 .api-testing-dialog {
@@ -955,7 +955,7 @@ textarea {
   overflow-y: auto;
 
   .collapsed-body {
-    color: #666;
+    color: $star-feature-icon-color;
     font-style: italic;
   }
 }
@@ -970,6 +970,136 @@ textarea {
     height: 16px;
     font-size: 10px;
     line-height: 16px;
-    color: white;
+    color: $pure-white;
   }
+}
+
+.custom-file-autocomplete-panel {
+  position: absolute;
+  background: $pure-white;
+  border: 1px solid $black-border-top-matautocomplete;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
+              0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
+              0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  min-width: 200px;
+  
+  &.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  
+  &.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.custom-autocomplete-header {
+  padding: 8px 16px;
+  background-color: $grey-bg-matautocomplete;
+  height: 40px;
+  
+  .custom-autocomplete-title {
+    color: $blue;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 40px;
+    letter-spacing: 0.03125em;
+  }
+}
+
+.custom-autocomplete-options {
+  overflow-y: auto;
+  height: 140px;
+  .custom-autocomplete-option {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover { 
+      background-color: $grey-bg-matautocomplete;
+    }
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid $black-border-bottom-matautocomplete;
+    }
+  }
+}
+
+.custom-file-autocomplete-panel {
+  position: fixed; // Use fixed instead of absolute for better positioning
+  left: calc(var(--textarea-left) + 170px);
+  top: calc(var(--textarea-top) - 150px); // 200px panel height + 20px gap
+  z-index: 1000;
+  width: 600px;
+  max-height: 200px;
+  
+  // Ensure panel doesn't go off-screen
+  @media (max-width: 768px) {
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+  
+  // If panel would go above viewport, position below
+  &.below {
+    top: calc(var(--textarea-top) + var(--textarea-height) + 20px);
+  }
+}  
+
+// Tootip custom. Material Design
+/*
+This custom tooltip has been created as a lightweight replacement for Angular Material’s matTooltip.
+It allows you to display a styled tooltip on hover without relying on Angular Material.
+
+Usage:
+1. Add the class .amv_custom-tooltip to any element that should display a tooltip.
+2. Set the tooltip text via the data-tooltip attribute.
+2.1 Use [attr.data-tooltip] instead of data-tooltip if you want to use a translation.
+
+*/
+.amv_custom-tooltip {
+  position: relative; 
+}
+
+.amv_custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translate(-50%, 8px);
+
+  display: block;                    
+  text-align: center;                
+  
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+
+  background: $grey;
+  color: white;
+  padding: 6px 10px; 
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  z-index: 1000;
+
+  max-width: 220px;
+  min-width: 120px;
+  white-space: normal;               
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none; 
+}
+
+.amv_custom-tooltip:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }

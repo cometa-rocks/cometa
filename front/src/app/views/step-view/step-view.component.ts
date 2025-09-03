@@ -485,4 +485,30 @@ export class StepViewComponent implements OnInit {
     
     return previousItem.belongs_to.feature_id !== currentItem.belongs_to.feature_id;
   }
+
+  /**
+   * Get healing data for a specific step item
+   */
+  getHealingDataForStep(item: any): HealeniumData | undefined {
+    // Check if the item itself has healing_data
+    if (item?.healing_data) {
+      return item.healing_data;
+    }
+    // Check if the item has info.healing_data
+    if (item?.info?.healing_data) {
+      return item.info.healing_data;
+    }
+    return undefined;
+  }
+
+  /**
+   * Generate healing tooltip text
+   */
+  getHealingTooltip(healingData: HealeniumData): string {
+    return `Self-healed element (${Math.round(healingData.score * 100)}%)
+Original: By.${healingData.original_selector.type}(${healingData.original_selector.value})
+Healed: By.${healingData.healed_selector.type}(${healingData.healed_selector.value})
+Method: Score-based Tree Comparison
+Time: +${healingData.healing_duration_ms}ms`;
+  }
 }

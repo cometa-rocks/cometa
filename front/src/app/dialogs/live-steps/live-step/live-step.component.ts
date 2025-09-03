@@ -70,6 +70,8 @@ export class LiveStepComponent implements OnInit {
   status$ = new BehaviorSubject<string>('waiting');
 
   error$ = new BehaviorSubject<string>('');
+  
+  healingData$ = new BehaviorSubject<HealeniumData | undefined>(undefined);
 
   constructor(
     private _store: Store,
@@ -135,6 +137,13 @@ export class LiveStepComponent implements OnInit {
           this.screenshots = steps[this.index].screenshots;
           if (steps[this.index].error)
             this.error$.next(steps[this.index].error);
+          // Update healing data
+          if (steps[this.index].healing_data) {
+            this.healingData$.next(steps[this.index].healing_data);
+          } else if (steps[this.index].info && steps[this.index].info.healing_data) {
+            // Check if healing data is nested in info
+            this.healingData$.next(steps[this.index].info.healing_data);
+          }
         } else {
           this.status$.next('waiting');
         }
@@ -171,5 +180,13 @@ export class LiveStepComponent implements OnInit {
         });
       });
     }
+  }
+  
+  getHealingTooltip(healingData: HealeniumData): string {
+    return `Self-healed element (${Math.round(healingData.score * 100)}%)
+Original: By.${healingData.original_selector.type}(${healingData.original_selector.value})
+Healed: By.${healingData.healed_selector.type}(${healingData.healed_selector.value})
+Method: Score-based Tree Comparison
+Time: +${healingData.healing_duration_ms}ms`;
   }
 }

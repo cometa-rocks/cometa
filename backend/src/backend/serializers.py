@@ -383,10 +383,16 @@ class AccountRoleSerializer(serializers.ModelSerializer):
 class StepResultSerializer(serializers.ModelSerializer):
 
     belongs_to = serializers.SerializerMethodField()
+    healing_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Step_result
         fields = '__all__'
+
+    def get_healing_data(self, instance):
+        """Get healing data directly from Step_result.healing_data field"""
+        # Return healing data directly from the JSONField
+        return instance.healing_data if instance.healing_data else None
 
     def get_belongs_to(self, instance):
         # logger.debug(f"StepResultSerializer: Getting belongs to for step result {instance.step_result_id}")

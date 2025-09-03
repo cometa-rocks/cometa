@@ -4912,9 +4912,9 @@ def GetBulkFileSchedules(request):
         return JsonResponse({'success': False, 'error': 'Error retrieving schedule data.'})
 
 @csrf_exempt
-def getFeatureHistory(request, feature_id):
+def getFeatureHistory(request, feature_id, department_id):
     try:
-        backup_dir = os.path.join(settings.BASE_DIR, '../../data/backups/features/')
+        backup_dir = os.path.join(settings.BASE_DIR, f'../..{settings.BACKUP_FOLDER}department_{department_id}/feature_{feature_id}')
 
         if not os.path.exists(backup_dir):
             logger.error(f"Backup directory {backup_dir} not found")
@@ -4923,100 +4923,81 @@ def getFeatureHistory(request, feature_id):
                 'error': 'Backup directory not found'
             })
         
-        logger.debug(f"Getting feature history for feature {feature_id}")
+        logger.debug(f"Getting feature history for feature {feature_id} in department {department_id} in {backup_dir}")
 
         history_entries = []
         
-        # Get all files in the backup directory
-        backup_files = os.listdir(backup_dir)
+        # Get all backup files from the feature's backup folder
+        backup_files = [file for file in os.listdir(backup_dir) if file.endswith('.json')]
+        logger.debug(f"Found {len(backup_files)} backup files for feature {feature_id} in department {department_id}")
         
-        # Filter files that belong to this feature_id
-        logger.debug(f"Filtering files for feature {feature_id}")
-        feature_backup_files = [
-            file for file in backup_files 
-            if file.startswith(f"{feature_id}_") and file.endswith("_meta.json")
-        ]
-        # Filter files that belong to this feature_id and are not meta files (steps)
-        feature_backup_files_steps = [
-            file for file in backup_files 
-            if file.startswith(f"{feature_id}_") and not file.endswith("_meta.json")
-        ]
-        logger.debug(f"Found {len(feature_backup_files)} feature backup files")
-        
-        for backup_file in feature_backup_files:
+        # New structure: only 1 backup file per backup with format:
+        # {"feature_info": _meta.json content, "steps": step .json content, time: timestamp}
+        for backup_file in backup_files:
             try:
-                meta_file_path = os.path.join(backup_dir, backup_file)
+                backup_file_path = os.path.join(backup_dir, backup_file)
                 
-                with open(meta_file_path, 'r') as f:
-                    meta_data = json.load(f)
-                    
-                # Extract user info
-                user_id = meta_data.get('last_edited')
+                with open(backup_file_path, 'r') as f:
+                    backup_data = json.load(f)
+                
+                # Extract feature info and steps from the unified backup file
+                feature_info = backup_data.get('feature_info', {})
+                steps_data = backup_data.get('steps', [])
+                backup_timestamp = backup_data.get('time', '')
+                
+                # Extract user info from feature_info
+                last_edited = feature_info.get('last_edited')
+                user_id = None
                 user_name = "Unknown User"
                 
-                if user_id:
-                    try:
-                        user = OIDCAccount.objects.get(user_id=user_id)
-                        user_name = user.name
-                    except OIDCAccount.DoesNotExist:
-                        pass
-                
-                # Extract date from filename for better sorting
-                # Format: <feature_id>_<feature_name>_<date>_<time>_meta.json
-                filename_parts = backup_file.split('_')
-                if len(filename_parts) >= 4:
-                    date_part = filename_parts[-3]  # 2025-07-28
-                    time_part = filename_parts[-2]  # 12-22-28
-                    backup_timestamp = f"{date_part} {time_part.replace('-', ':')}"
-                else:
-                    backup_timestamp = meta_data.get('last_edited_date', '')
-                
-                # Get backup_id to match with step files
-                backup_id = backup_file.replace('_meta.json', '')
-                
-                # Find corresponding step files for this backup
-                steps_data = []
-                total_steps_count = 0
-                for step_file in feature_backup_files_steps:
-                    if step_file.startswith(backup_id) and not step_file.endswith('_meta.json'):
+                if last_edited:
+                    # Handle case where last_edited might be a user object or just an ID
+                    if isinstance(last_edited, dict) and 'user_id' in last_edited:
+                        # It's a user object, extract the ID and name
+                        user_id = last_edited.get('user_id')
+                        user_name = last_edited.get('name', 'Unknown User')
+                    elif isinstance(last_edited, (int, str)):
+                        # It's just an ID, try to get user info from database
                         try:
-                            step_file_path = os.path.join(backup_dir, step_file)
-                            with open(step_file_path, 'r') as f:
-                                step_content = json.load(f)
-                                steps_data.append({
-                                    'step_file': step_file,
-                                    'step_content': step_content
-                                })
-                                # Count individual steps within this step file
-                                if isinstance(step_content, list):
-                                    total_steps_count += len(step_content)
-                                elif isinstance(step_content, dict) and 'step_content' in step_content:
-                                    # Handle case where step_content is nested
-                                    if isinstance(step_content['step_content'], list):
-                                        total_steps_count += len(step_content['step_content'])
-                        except Exception as e:
-                            logger.warning(f"Failed to read step file {step_file}: {e}")
-                            continue
+                            user = OIDCAccount.objects.get(user_id=last_edited)
+                            user_id = last_edited
+                            user_name = user.name
+                        except OIDCAccount.DoesNotExist:
+                            user_id = last_edited
+                            user_name = "Unknown User"
+                
+                # Count total steps
+                total_steps_count = 0
+                if isinstance(steps_data, list):
+                    total_steps_count = len(steps_data)
+                elif isinstance(steps_data, dict) and 'step_content' in steps_data:
+                    # Handle case where step_content is nested
+                    if isinstance(steps_data['step_content'], list):
+                        total_steps_count = len(steps_data['step_content'])
+                
+                # Extract backup_id from filename for identification
+                backup_id = backup_file.replace('.json', '')
                 
                 history_entries.append({
                     'backup_id': backup_id,
                     'timestamp': backup_timestamp,
                     'user_name': user_name,
                     'user_id': user_id,
-                    'feature_name': meta_data.get('feature_name', ''),
-                    'description': meta_data.get('description', ''),
-                    'steps_count': total_steps_count,  # Use actual count of individual steps
+                    'feature_name': feature_info.get('feature_name', ''),
+                    'description': feature_info.get('description', ''),
+                    'steps_count': total_steps_count,
                     'steps': steps_data,
-                    'browsers': meta_data.get('browsers', []),
-                    'schedule': meta_data.get('schedule', ''),
-                    'send_mail': meta_data.get('send_mail', False),
-                    'send_mail_on_error': meta_data.get('send_mail_on_error', False),
-                    'network_logging': meta_data.get('network_logging', False),
-                    'generate_dataset': meta_data.get('generate_dataset', False),
-                    'continue_on_failure': meta_data.get('continue_on_failure', False),
-                    'send_telegram_notification': meta_data.get('send_telegram_notification', False)
+                    'browsers': feature_info.get('browsers', []),
+                    'schedule': feature_info.get('schedule', ''),
+                    'send_mail': feature_info.get('send_mail', False),
+                    'send_mail_on_error': feature_info.get('send_mail_on_error', False),
+                    'network_logging': feature_info.get('network_logging', False),
+                    'generate_dataset': feature_info.get('generate_dataset', False),
+                    'continue_on_failure': feature_info.get('continue_on_failure', False),
+                    'send_telegram_notification': feature_info.get('send_telegram_notification', False)
                 })
             except Exception as e:
+                logger.warning(f"Failed to read backup file {backup_file}: {e}")
                 continue
         
         # Sort by timestamp (newest first)
