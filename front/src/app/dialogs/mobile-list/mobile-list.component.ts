@@ -488,6 +488,21 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this.isStartingMobile = false;
     }, this.clickTimeout);
 
+    // Check if the user already has this mobile emulator running in ANY department
+    const existingContainerInAnyDepartment = this.isThisMobileContainerRunningInAnyDepartment(mobile_id);
+    if (existingContainerInAnyDepartment) {
+      const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
+      const departmentName = this.departments.find(d => d.department_id === existingContainerInAnyDepartment.department_id)?.department_name || 'Unknown Department';
+      
+      this.snack.open(
+        `You already have the ${mobile?.mobile_image_name} emulator running in the ${departmentName} department. Please stop it first before starting it in another department.`,
+        'OK',
+        { duration: 5000 }
+      );
+      this.isStartingMobile = false;
+      return;
+    }
+
     let serviceStatusCount = this.runningMobiles.filter(container => container.service_status === 'Running').length;
 
     if (serviceStatusCount >= 3) {
@@ -497,10 +512,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
     else{
       const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
       
-      // Check if there's already a container for this mobile and clean it up
-      const existingContainer = this.runningMobiles.find(c => c.image === mobile_id);
+      // Check if there's already a container for this mobile in the current department and clean it up
+      const existingContainer = this.runningMobiles.find(c => c.image === mobile_id && c.department_id === this.selectedDepartment?.id);
       if (existingContainer) {
-
         this.runningMobiles = this.runningMobiles.filter(c => c.id !== existingContainer.id);
       }
       
@@ -543,7 +557,13 @@ export class MobileListComponent implements OnInit, OnDestroy {
           // Check if it's a specific error and provide better feedback
           let errorMessage = 'Error while starting the mobile';
           if (error.status === 500) {
-            errorMessage = 'Server error: Please try again in a moment';
+            // Check for unique constraint violation
+            if (error.error && error.error.detail && error.error.detail.includes('unique_image_created_by')) {
+              const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
+              errorMessage = `You already have the ${mobile?.mobile_image_name} emulator running in another department. Please stop it first before starting it here.`;
+            } else {
+              errorMessage = 'Server error: Please try again in a moment';
+            }
           } else if (error.status === 0) {
             errorMessage = 'Network error: Unable to connect to server';
           } else if (error.error && error.error.message) {
@@ -551,7 +571,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
           }
           
           // Show error snackbar
-          this.snack.open(errorMessage, 'OK');
+          this.snack.open(errorMessage, 'OK', { duration: 5000 });
           
           // Clear cache on error as well
           this.clearTableDataCache();
@@ -875,6 +895,19 @@ export class MobileListComponent implements OnInit, OnDestroy {
     
     for (let container of this.runningMobiles) {
       if (container.image == mobile_id && container.department_id == this.selectedDepartment?.id) {
+        // Additional check to ensure container is actually running
+        if (container.service_status === 'Running' || container.service_status === 'Stopped') {
+          return container;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Check if the user already has this mobile emulator running in ANY department
+  isThisMobileContainerRunningInAnyDepartment(mobile_id): Container | null {
+    for (let container of this.runningMobiles) {
+      if (container.image == mobile_id) {
         // Additional check to ensure container is actually running
         if (container.service_status === 'Running' || container.service_status === 'Stopped') {
           return container;
