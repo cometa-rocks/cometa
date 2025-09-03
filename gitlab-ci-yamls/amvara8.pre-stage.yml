@@ -1,4 +1,4 @@
-.amvara8.build:
+.amvara8.pre-stage:
   stage: deploy
   variables:
     DEPLOY_TARGET_FOLDER: "/development/cometa"
