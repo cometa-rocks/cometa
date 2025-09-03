@@ -4,10 +4,6 @@ set -e
 # Navigate to the correct directory
 cd /app/src/cometa_ollama_api
 
-# Run database migrations
-echo "Applying database migrations..."
-python manage.py migrate --noinput
-
 # Initialize RAG system
 echo "Initializing RAG system..."
 ./init_rag.sh

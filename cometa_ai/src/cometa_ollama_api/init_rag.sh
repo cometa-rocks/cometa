@@ -41,7 +41,11 @@ while retries < max_retries:
             sys.exit(1)
 "
 
-# Apply migrations
+# Create and apply migrations
+echo "Creating migrations..."
+mkdir -p apps/rag_system/migrations
+touch apps/rag_system/migrations/__init__.py
+python manage.py makemigrations --noinput
 echo "Applying migrations..."
 python manage.py migrate
 
