@@ -2691,7 +2691,10 @@ class StepResultViewSet(viewsets.ModelViewSet):
             logger.debug(f"StepResultViewSet: Getting list of step results for feature result {feature_result_id}")
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
-            queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
+            # order_by is step_execution_sequence (not step_result_id) because sometimes 
+            # due to async calls from behave to django if nth step contains data big in size and n+1th step request body is small,
+            # n+1th step gets saved before nth step and shows incorrect order in the step results
+            queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_execution_sequence')
 
             # get the amount of data per page using the queryset
             page = self.paginate_queryset(queryset)
@@ -2754,6 +2757,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
 
 
 class EnvironmentViewSet(viewsets.ModelViewSet):
+
     """
     API endpoint that allows users to be viewed or edited.
     """
