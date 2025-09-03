@@ -37,11 +37,11 @@
     - $COMPOSE -f docker-compose-build.yml up -d --build --force-recreate --remove-orphans
 
   after_script:
-    - echo "Post deployment docker cleanuo"
+    - echo "Post deployment docker cleanup"
     - docker system prune -a -f
   tags:
     - build
   only:
     refs:
-      - development
+      - pre-stage
 
