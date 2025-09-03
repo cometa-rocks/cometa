@@ -29,31 +29,13 @@
 
   .shortcuts-table{
     margin-bottom: 5%;
-    width: 500px;
+    width: 600px;
     text-align: center;
 
     .table{
       text-align: center;
     }
   }
-
-  ::ng-deep {
-    .text-center {
-      text-align: center;
-    }
-
-    // Para headers específicos
-    .mat-column-windows,
-    .mat-column-mac,
-    .mat-column-key {
-      text-align: center !important;
-      
-      .mat-sort-header-content span {
-        text-align: center !important;
-      }
-    }
-  }
-
 }
 
 

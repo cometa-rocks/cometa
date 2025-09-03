@@ -73,7 +73,7 @@ export class HelpComponent {
   // Create Edit Feature
 
   ShortCreateEditFeature: Shortcut[] = [
-    { position: 1,  description: 'Checkbox: Depends on other feature.', key: 'D', windows: true, mac: false },
+    { position: 1, description: 'Checkbox: Depends on other feature.', key: 'D', windows: true, mac: false },
     { position: 2, description: 'Checkbox: Continue on failure.', key: 'F', windows: true, mac: false },
     { position: 3, description: 'Checkbox: Generate dataset.', key: 'G', windows: true, mac: false },
     { position: 4, description: 'Checkbox: Ask for help.', key: 'H',  windows: true, mac: false },
@@ -93,9 +93,9 @@ export class HelpComponent {
     { position: 1, description: 'Checkbox (Select): Hold Shift and click another checkbox to select all checkboxes between the first and the second click.', key: 'SHIFT', windows: true, mac: false },
     { position: 3, description: 'Textarea: Insert tab character in textarea.', key: 'TAB', windows: true, mac: false },
     { position: 4, description: 'Textarea: Insert new step above the current step.', key: 'CTRL+UP', windows: true, mac: false },
-    { position: 5, description: 'Textarea: Insert new step above the current step.', key: 'ALT+UP', windows: true, mac: false },
+    { position: 5, description: 'Textarea: Insert new step above the current step.', key: 'ALT+UP', windows: false, mac: true },
     { position: 6, description: 'Textarea: Insert new step below the current step.', key: 'CTRL+DOWN', windows: true, mac: false },
-    { position: 7, description: 'Textarea: Insert new step below the current step.', key: 'ALT+DOWN', windows: true, mac: false },
+    { position: 7, description: 'Textarea: Insert new step below the current step.', key: 'ALT+DOWN', windows: false, mac: true },
     { position: 8, description: 'Textarea: Copy the step above the current step.', key: 'CTRL+ALT+UP', windows: true, mac: false },
     { position: 9, description: 'Textarea: Copy the step below the current step.', key: 'CTRL+ALT+DOWN', windows: true, mac: false },
     { position: 10, description: 'Textarea: Open file autocomplete dialog when cursor is inside {"file_path"} quotes.', key: 'ALT+SHIFT+F', windows: true, mac: false },
@@ -111,20 +111,18 @@ export class HelpComponent {
   // Reference model (template)
   columns: MtxGridColumn[] = [
     { header: 'Description', field: 'description'},
-    { header: 'Shortcut', field: 'key', class: 'text-center'},
+    { header: 'Shortcut', field: 'key'},
     { 
       header: 'Windows', 
       field: 'windows',
       type: 'string' as MtxGridColumnType,
       formatter: (row: any) => row.windows ? '✓' : ' ',
-      class: 'text-center',
     },
     { 
       header: 'Mac', 
       field: 'mac',
       type: 'string' as MtxGridColumnType, 
       formatter: (row: any) => row.mac ? '✓' : ' ',
-      class: 'text-center',
     },
   ];
 
