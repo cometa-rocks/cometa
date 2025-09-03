@@ -177,14 +177,15 @@ deploy:amvara3.prod:
   <<: *docker_deployment_script
   extends: .amvara3.prod
 
-# create a deploy job for amvara3 for branch prod
-deploy:kubernetes.client1.prod:
-  <<: *kubernetes_deployment_script
-  tags: # on what runners we'd like to run this job
-    - amvara3
-  only: # on what branch we'd like to run this job
-    refs:
-      - master
+
+# # create a deploy job for amvara3 for branch prod
+# deploy:kubernetes.client1.prod:
+#   <<: *kubernetes_deployment_script
+#   tags: # on what runners we'd like to run this job
+#     - amvara3
+#   only: # on what branch we'd like to run this job
+#     refs:
+#       - master
 
 # # create a deploy job for client01 for branch prod
 # deploy:client01.int:
