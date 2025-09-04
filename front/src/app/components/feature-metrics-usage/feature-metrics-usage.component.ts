@@ -28,8 +28,14 @@ import { TranslateModule } from '@ngx-translate/core';
 })
 export class FeatureMetricsUsageComponent implements OnInit, OnChanges {
 
+    // @Input() data$: any;    
+
     ngOnInit() {
 
+    }
+
+    ngOnChanges(): void {
+        // Handle input changes if needed
     }
 
     //   Use mat-card for this component
