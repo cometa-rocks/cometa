@@ -531,8 +531,17 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
       // Call the API service on component initialization
       this._api.startMobile(body).subscribe(
-        (container: Container) => {
-          // Update the service status to Running
+        (response: any) => {
+          // Check if the response indicates success or failure
+          if (response.success === false) {
+            // Handle validation error from backend
+            this.snack.open(response.message, 'OK', { duration: 5000 });
+            this.isStartingMobile = false;
+            return;
+          }
+
+          // Handle successful container creation
+          const container: Container = response;
           container.service_status = 'Running';
 
           // Add the container to the runningMobiles list
