@@ -302,6 +302,15 @@ Author: dph000
       </cometa-l1-feature-starred-list>
     </ng-container>
 
+    <!-- List of the feature metrics usage -->
+    <!-- FEATURE METRICS USAGE -->
+    <ng-container *ngIf="(aciveList$ | async) == 'feature-metrics-usage'">
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-feature-metrics-usage></cometa-feature-metrics-usage>
+    </ng-container>
+
     <!-- List of the features in the trash bin -->
     <!-- TRASH BIN -->
     <ng-container *ngIf="(aciveList$ | async) == 'trashbin'">

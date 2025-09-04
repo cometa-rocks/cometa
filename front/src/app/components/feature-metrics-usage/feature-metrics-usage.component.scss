@@ -1,0 +1,11 @@
+@import 'color';
+@import 'breakpoints';
+
+.feature-metrics-usage-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Use mobile first on this component 
+// Use mat-card for this component
