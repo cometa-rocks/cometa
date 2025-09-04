@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { addMinutes, isValid, parse, parseISO, subMinutes } from 'date-fns';
+import { isValid, parse, parseISO } from 'date-fns';
 
 @Pipe({
   name: 'amParse',
@@ -14,30 +14,11 @@ export class AmParsePipe implements PipeTransform {
     // contains microseconds, which is not supported in date-fns
     // Update: Datetime with Z UTC value contains 20 characters
     value = `${value}`;
-    // Try to parse as ISO - transforms time into timezone
-    // Si termina en 'Z', es UTC - crear fecha UTC pura
-
-    // TrYING TO PARSE UTC DATE
-    // if (value.endsWith('Z')) {
-    //   // Extraer componentes de la fecha UTC
-    //   const year = parseInt(value.substring(0, 4));
-    //   const month = parseInt(value.substring(5, 7)) - 1; // Los meses van de 0-11
-    //   const day = parseInt(value.substring(8, 10));
-    //   const hour = parseInt(value.substring(11, 13));
-    //   const minute = parseInt(value.substring(14, 16));
-    //   const second = parseInt(value.substring(17, 19));
-      
-    //   const utcDate = new Date(Date.UTC(year, month, day, hour, minute, second));
-    //   console.log('transform - UTC date:', utcDate);
-    //   return utcDate;
-    // }
-    
-    // Para fechas sin 'Z', usar parseISO
+    // Try to parse as ISO
     const iso = parseISO(value);
     if (isValid(iso)) {
       return iso;
     }
-    
     // Try to parse as UTC
     if (value.length > 20) {
       value = value.substring(0, 20);
@@ -90,10 +71,10 @@ export class AmParsePipe implements PipeTransform {
   /**
    * Automatically converts the UTC date to local time offset
    * @param date Date
-   *   
-   */ 
-  // formatTimezone(date: Date): Date {
-  //   const offset = date.getTimezoneOffset();
-  //   return Math.sign(offset) !== -1 ? addMinutes(date, offset) : subMinutes(date, Math.abs(offset));
-  // }
+   * 
+  formatTimezone(date: Date): Date {
+    const offset = date.getTimezoneOffset();
+    return Math.sign(offset) !== -1 ? addMinutes(date, offset) : subMinutes(date, Math.abs(offset));
+  }
+   */
 }

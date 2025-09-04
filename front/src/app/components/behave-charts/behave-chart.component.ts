@@ -16,6 +16,7 @@ import { SeriesSplineOptions } from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { NgIf, AsyncPipe } from '@angular/common';
 import { LogService } from '@services/log.service';
+
 @Component({
   selector: 'behave-chart-desktop-steps',
   templateUrl: './behave-chart.component.html',
@@ -42,8 +43,6 @@ export class BehaveChartTestComponent
   constructor(private _amParse: AmParsePipe, private log: LogService) {}
 
   ngOnInit() {
-
-    //  Dat from 
     // Wait for ngOnChanges and ngAfterViewInit to process chart data
     this.chart$ = combineLatest([this.data$, this.afterViewInitFired$]).pipe(
       filter(([_, init]: [any[], boolean]) => init),
@@ -52,9 +51,6 @@ export class BehaveChartTestComponent
         const chart_schema = MAIN_VIEW_CHART_SCHEMA;
         // Calculate data for chart
         const chart_data = this.getSeriesData(data);
-
-        // this.log.msg('1', 'ngOnInit - data chart-data:', 'behave-chart', JSON.stringify(chart_data, null, 2));
-
         // Replace chart data if available
         if (chart_data) {
           // Set ok, nok, pixel and execution on chart schema
@@ -64,8 +60,6 @@ export class BehaveChartTestComponent
             chart_data.pixel;
           (chart_schema.series[3] as SeriesSplineOptions).data =
             chart_data.time;
-
-
           // Set minimum and maximum navigator extremes,
           // this is because when data is updated the chart preserves the min and max of the first page
           (
@@ -99,9 +93,6 @@ export class BehaveChartTestComponent
         this._amParse.transform(a.result_date).getTime() -
         this._amParse.transform(b.result_date).getTime()
     );
-
-    // console.log('getSeriesData - data:', data);
-
     // Initialize array values of series
     const pixelArray = [];
     const timeArray = [];
@@ -109,15 +100,6 @@ export class BehaveChartTestComponent
     const nokArray = [];
     // Iterate each run and push corresponding fields to each array
     for (const run of data) {
-      const parsedDate = this._amParse.transform(run.result_date);
-      const timestamp = parsedDate.getTime();
-      
-      console.log('Original:', run.result_date);
-      console.log('Parsed date:', parsedDate);
-      console.log('Timestamp:', timestamp);
-      console.log('New Date(timestamp):', new Date(timestamp));
-      console.log('---');
-
       pixelArray.push([
         this._amParse.transform(run.result_date).getTime(),
         run.pixel_diff,
@@ -134,6 +116,8 @@ export class BehaveChartTestComponent
         this._amParse.transform(run.result_date).getTime(),
         run.fails,
       ]);
+
+      this.log.msg('1', 'timeArray', 'behave-chart', JSON.stringify(timeArray, null, 2));
     }
     return {
       ok: okArray,
