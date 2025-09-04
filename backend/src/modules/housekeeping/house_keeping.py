@@ -10,7 +10,7 @@
 import sys
 from threading import Thread
 from django.http import JsonResponse
-from backend.models import Department, Feature_result, Step_result
+from backend.models import Department, Feature_result, Step_result, Feature, Browser
 from backend.utility.classes import LogCommand
 from datetime import datetime, timedelta
 from .models import HouseKeepingLogs
@@ -21,6 +21,7 @@ from backend.utility.functions import getLogger
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from django.core.management import call_command
+from django.db import transaction
 logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
@@ -74,7 +75,149 @@ class HouseKeepingThread(LogCommand, Thread):
         except Exception as exception:
             self.log(f"Exception occurred while vacuuming PostgreSQL django_session table: {str(exception)}")
             return False
-        
+    
+    def update_outdated_browser_from_features(self):
+        """
+        For each feature browser config:
+          - If exact name+version exists in DB: keep.
+          - Else if name exists in DB: set version to 'latest'.
+          - Else (name not found): replace name with first available DB browser and set version to 'latest'.
+        """
+        self.log("============================================")
+        self.log("Starting outdated browser update in features")
+        self.log("============================================")
+
+        # Normalizes strings
+        def _norm(s):
+            return (s or "").strip().lower()
+
+        # Load DB browsers once and make lookups fast
+        available_browsers_qs = Browser.objects.all().order_by("pk")
+        available_browsers_list = list(available_browsers_qs)
+
+        if not available_browsers_list:
+            self.log("No browsers available in database; nothing will be changed.", type="warning")
+            return
+
+        # fast lookups
+        # exact_set: "name|version" presence - exact match
+        # names_set: "name" presence - name match
+        exact_set = set() 
+        names_set = set()
+        # first_browser_json: first available browser json (in case browser name not found, assign first available browser)
+        first_browser_json = None
+
+        for browser in available_browsers_list:
+            browser_json = (getattr(browser, "browser_json", None) or {})
+            name = _norm(browser_json.get("browser"))
+            version  = (browser_json.get("browser_version") or "").strip()
+            if not name:
+                continue
+
+            # Add name to names_set
+            names_set.add(name)
+
+            # Add name|version to exact_set if version is present
+            if version:
+                exact_set.add(f"{name}|{version}")
+
+            # Assign first available browser json if not assigned yet
+            if first_browser_json is None:
+                first_browser_json = browser_json
+
+        if first_browser_json is None:
+            self.log("No valid browser entries (missing names); nothing will be changed.", type="warning")
+            return
+
+        # Set fallback browser in case browser name not found
+        fallback_name = first_browser_json.get("browser") 
+        fallback_version = "latest"
+
+        # Process features
+        features_qs = Feature.objects.all()
+        total_features = features_qs.count()
+        self.log(f"Processing {total_features} features")
+
+        updated_features = 0
+        total_browsers_updated = 0
+
+        @transaction.atomic
+        def _run():
+
+            # makes it so inner function can access outer function variables
+            nonlocal updated_features, total_browsers_updated
+
+            for feature in features_qs:
+                selected_browsers = getattr(feature, "browsers", None)
+                if not selected_browsers:
+                    self.log(f"Feature {feature.feature_name} has no browsers configured, skipping", spacing=1)
+                    continue
+
+                changed = False
+                new_selected_browsers = []
+
+                for browser in selected_browsers:
+                    name = _norm(browser.get("browser"))
+                    version_raw = (browser.get("browser_version") or "").strip()
+                    version_lc  = version_raw.lower()
+
+                    # already 'latest' and name exists -> no action
+                    if version_lc == "latest" and name in names_set:
+                        new_selected_browsers.append(browser)
+                        continue
+
+                    # exact name+version exists -> no action
+                    if version_raw and f"{name}|{version_raw}" in exact_set:
+                        new_selected_browsers.append(browser)
+                        continue
+
+                    # name exists but version outdated/missing -> set to 'latest'
+                    if name in names_set:
+                        if version_lc != "latest":
+                            updated_browser = dict(browser)
+                            updated_browser["browser_version"] = "latest"
+                            new_selected_browsers.append(updated_browser)
+                            changed = True
+                            total_browsers_updated += 1
+                            self.log(f"Updated {browser.get('browser')} {version_raw or '(none)'} → latest", spacing=2)
+                        else:
+                            new_selected_browsers.append(browser)
+                        continue
+
+                    # name not found -> replace with first available + 'latest'
+                    updated_browser = dict(browser)
+                    updated_browser["browser"] = fallback_name
+                    updated_browser["browser_version"] = fallback_version
+                    new_selected_browsers.append(updated_browser)
+                    changed = True
+                    total_browsers_updated += 1
+                    self.log(
+                        f"Browser '{browser.get('browser')}' not found. Using fallback: {fallback_name} latest",
+                        spacing=2
+                    )
+
+                if changed:
+                    feature.browsers = new_selected_browsers
+                    try:
+                        feature.save(dontSaveSteps=True, backup_feature_info=True)
+                        updated_features += 1
+                        self.log(f"Feature {feature.feature_name} updated successfully", spacing=1)
+                    except Exception as e:
+                        self.log(f"Error saving feature {feature.feature_name}: {str(e)}", type="error", spacing=1)
+                else:
+                    self.log(f"Feature {feature.feature_name} doesn't require updates", spacing=1)
+
+        _run()
+
+        # Summary
+        self.log("============================================")
+        self.log("Browser update completed:")
+        self.log(f"- Features processed: {total_features}")
+        self.log(f"- Features updated: {updated_features}")
+        self.log(f"- Browsers updated: {total_browsers_updated}")
+        self.log("============================================")
+
+    
     # This method will check for video and delete the file if exists
     def __delete_video_file_if_exists(self, result: Feature_result):
         video_files = []
@@ -355,6 +498,11 @@ class HouseKeepingThread(LogCommand, Thread):
             count_six_month_previous_logs  = len(six_month_old_records)
             six_month_old_records.delete()
             self.log(f"Deleted {count_six_month_previous_logs} Housekeeping logs from DB")
+
+            # Update outdated browser from features
+            self.update_outdated_browser_from_features()
+
+
         except Exception as e:
             self.house_keeping_logs.success = False
             self.log(f"Exception while doing housekeeping {str(e)}")
