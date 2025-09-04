@@ -125,9 +125,24 @@ export class ConfigState {
     return this._api.getServerInfo().pipe(
       tap(server => {
         configFile.serverInfo = server;
-        // @ts-ignore
-        setState(configFile);
-        log('Config', configFile);
+      }),
+      tap(() => {
+        // Load backend configurations to determine if payments are enabled
+        this._api.getCometaConfigurations().subscribe(configs => {
+          const getValue = (name: string) => configs.find((c: any) => c.configuration_name === name)?.configuration_value === 'True';
+          configFile.payment_enabled = getValue('COMETA_STAGE_ENABLE_PAYMENT') || getValue('COMETA_PROD_ENABLE_PAYMENT');
+          
+          // Load Stripe if payments enabled
+          if (configFile.payment_enabled) {
+            const script = document.createElement('script');
+            script.src = 'https://js.stripe.com/v3/';
+            document.head.appendChild(script);
+          }
+          
+          // @ts-ignore
+          setState(configFile);
+          log('Config', configFile);
+        });
       })
     );
   }
