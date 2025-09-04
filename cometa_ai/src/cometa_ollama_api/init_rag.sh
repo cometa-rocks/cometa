@@ -43,6 +43,7 @@ while retries < max_retries:
 
 # Create and apply migrations
 echo "Creating migrations..."
+mkdir -p staticfiles
 mkdir -p apps/rag_system/migrations
 touch apps/rag_system/migrations/__init__.py
 python manage.py makemigrations --noinput
