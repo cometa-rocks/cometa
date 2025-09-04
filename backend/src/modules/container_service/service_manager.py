@@ -266,8 +266,8 @@ class DockerServiceManager:
 
                 # Stop the container if it's running or restarting
                 if status in ['running', 'restarting']:
-                    logger.info(f"Stopping container {service_name_or_id} (state: {status})")
-                    container.stop(timeout=10)
+                    logger.info(f"Killing container {service_name_or_id} (state: {status})")
+                    container.kill()
                     # Wait for container to stop
                     for _ in range(5):
                         container.reload()
@@ -290,14 +290,14 @@ class DockerServiceManager:
                 return True, f"Container not found: {service_name_or_id}"
             except Exception as e:
                 if "is already in progress" in str(e):
-                    logger.info(f"Container {service_name_or_id} is already in progress. Skipping deletion.")
-                    return True, f"Container {service_name_or_id} is already in progress. Skipping deletion."
+                    logger.info(f"Container {service_name_or_id} is already in progress.")
+                    # return True, f"Container {service_name_or_id} is already in progress. Skipping deletion."
                 logger.error(f"Error deleting container {service_name_or_id} on attempt {attempt}: {str(e)}")
-                traceback.print_exc()
                 if attempt < max_delete_attempts:
                     logger.info(f"Retrying deletion in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                 else:
+                    traceback.print_exc()
                     logger.error(f"Max delete attempts reached for {service_name_or_id}. Giving up.")
                     return False, f"Failed to delete container after {max_delete_attempts} attempts: {str(e)}"
 
