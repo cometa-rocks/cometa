@@ -217,8 +217,8 @@ def connect_mobile_and_application(context, mobile_code, capabilities={}, variab
         
     mobile_configuration["capabilities"]["is_test"] = True
 
-    if context.record_video:
-        mobile_configuration["capabilities"]["record_video"] = True
+
+    mobile_configuration["capabilities"]["record_video"] = context.record_video
     
     # Prepare the appium options
     options = AppiumOptions()
@@ -242,7 +242,7 @@ def connect_mobile_and_application(context, mobile_code, capabilities={}, variab
         "mobile_configuration": mobile_configuration,
     }
     if context.record_video:
-        logger.info("Video recordig enabled")
+        logger.info("Video recording enabled")
         mobile_info['session_id'] = new_mobile.session_id.replace('-','')
     # Save in the list of mobile
     context.mobiles[variable_name if variable_name else "default"] = mobile_info

@@ -98,7 +98,7 @@ def get_feature_backup_file_path(feature, feature_file_name):
     Returns the store path for the given feature meta and steps files
     """
     # folder path
-    backup_folder_path = f'/data/backups/features/department_{feature.department_id}/feature_{feature.feature_id}'
+    backup_folder_path = f'{settings.BACKUP_FOLDER}department_{feature.department_id}/feature_{feature.feature_id}'
     # Make sure path exists
     try:
         logger.debug("Creating feature backup file path")

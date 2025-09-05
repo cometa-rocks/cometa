@@ -1,17 +1,4 @@
-<!-- feature-history.component.html
-
-Component containing the feature history page
-
-Author: Nico
-
--->
-
-<!-- <div class="container">
-  <h2>
-    <mat-icon>format_paint</mat-icon>
-    Upcoming feature! Please, come again later.
-  </h2>
-</div> -->
+<!-- feature-history.component.html -->
 
 <div class="feature-history-container">
   <div class="header">
@@ -100,26 +87,6 @@ Author: Nico
 
                   <div class="step-content">
                     <div class="step-text">{{ formatStep(step) }}</div>
-                    
-                    <!-- Individual Steps Display -->
-                    <div *ngIf="step.step_content && isArray(step.step_content)" class="individual-steps">
-                      <div *ngFor="let individualStep of step.step_content; let individualStepIndex = index" class="individual-step-compact">
-                        <div class="step-line">
-                          <span class="step-number-badge">{{ individualStepIndex + 1 }}</span>
-                          <span class="step-keyword">{{ individualStep.step_keyword }}</span>
-                          <span class="step-content-text">{{ individualStep.step_content }}</span>
-                          <div class="step-flags-inline" *ngIf="getIndividualStepFlags(individualStep).length > 0">
-                            <div 
-                              *ngFor="let flag of getIndividualStepFlags(individualStep)" 
-                              class="flag-chip-inline"
-                              [ngClass]="'flag-' + flag.color">
-                              <mat-icon>{{ getFlagIcon(flag.label) }}</mat-icon>
-                              {{ flag.label }}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                     
                     <div class="step-flags" *ngIf="getStepFlags(step).length > 0">
                       <div 

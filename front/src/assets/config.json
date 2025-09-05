@@ -18,6 +18,7 @@
   "sorting": "execution",
   "reverse": false,
   "useNewDashboard": true,
+  "payment_enabled": false,
   "co_active_list": "recent",
   "co_features_pagination": 10,
   "co_first_time_cometa": true,
@@ -252,8 +253,12 @@
     },
     {
       "version": "3.0.95",
-      "date": "2025-08-30",
+      "date": "2025-08-28",
       "features": [
+        {
+          "title": "Conditionally load stripe library - #6754",
+          "description": "Stripe library now will only be loaded if payments are enabled in Co.Meta."
+        },
         {
           "title": "Fix clicking behaviour on browser tab element on live steps component - #6775",
           "description": "Fixed issue that after clicking on the browser tab was opening up the noVNC window tab."
