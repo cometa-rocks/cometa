@@ -291,6 +291,14 @@ Author: dph000
         [data$]="table"></cometa-l1-feature-recent-list>
     </ng-container>
 
+
+    <ng-container *ngIf="(aciveList$ | async) == 'metrics'">
+      <cometa-l1-filter
+      class="filter-bar"
+      [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-feature-metrics-usage></cometa-feature-metrics-usage>
+    </ng-container>
+
     <!-- List of the starred features -->
     <!-- STARRED -->
     <ng-container *ngIf="(aciveList$ | async) == 'starred'">
