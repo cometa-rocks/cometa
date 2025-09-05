@@ -1,6 +1,6 @@
 {
-  "version": "3.0.96",
-  "stable_version": "3.0.96",
+  "version": "3.0.97",
+  "stable_version": "3.0.97",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.97",
+      "date": "2025-09-05",
+      "features": [
+        {
+          "title": "Whats new dialog improvements - #6809",
+          "description": "Added a harmonious size to the whats new dialog."
+        }
+      ]
+    },
     {
       "version": "3.0.96",
       "date": "2025-09-05",
