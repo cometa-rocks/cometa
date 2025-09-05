@@ -1,6 +1,6 @@
 {
-  "version": "3.0.95",
-  "stable_version": "3.0.94",
+  "version": "3.0.97",
+  "stable_version": "3.0.97",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.97",
+      "date": "2025-09-05",
+      "features": [
+        {
+          "title": "Whats new dialog improvements - #6809",
+          "description": "Added a harmonious size to the whats new dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.96",
+      "date": "2025-09-05",
+      "features": [
+        {
+          "title": "Time in Highcharts graph and results table - #6796",
+          "description": "Fixed issue where the execution time displayed in the Highcharts graph did not match with the execution time in the results table. Now both display the same hour consistently."
+        }
+      ]
+    },
     {
       "version": "3.0.95",
       "date": "2025-08-28",
