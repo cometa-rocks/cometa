@@ -82,6 +82,7 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
 
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
+TEST_LOG_DIRECTORY = "/opt/code/behave_logs"
 
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
@@ -199,7 +200,7 @@ def before_all(context):
     context.start_time = time.time()  # Add timing start
     # Create a logger for file handler
     fileHandle = logging.FileHandler(
-        f"/code/src/logs/{os.environ['feature_result_id']}.log"
+        f"{TEST_LOG_DIRECTORY}/{os.environ['feature_result_id']}.log"
     )
     fileHandle.setFormatter(formatter)
     logger.addHandler(fileHandle)
