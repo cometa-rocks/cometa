@@ -24,6 +24,7 @@ import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { SharedActionsService } from './services/shared-actions.service';
 import { ChatbotComponent } from './components/chatbot/chatbot.component';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa',
@@ -61,23 +62,63 @@ export class CometaComponent implements OnInit {
     private _dialog: MatDialog,
     private _tourService: TourService,
     private _whatsNew: WhatsNewService,
-    public _sharedActions: SharedActionsService
+    public _sharedActions: SharedActionsService,
+    private log: LogService
   ) {
     this._socket.Init();
     this.translate.setDefaultLang('en');
+  }
+
+  ngOnInit() {
+    // Migration of localStorage keys (compatibility 6 months)
+    this.migrateLocalStorage();
+    
+    // Load config first
+    this._sharedActions.loadConfig();
+    
+    // Subscribe to config changes to initialize language and heartbeat
+    this.config$.subscribe(config => {
+      if (config && config.languageCodes) {
+        this.initializeLanguage(config);
+        this.initializeHeartbeat(config);
+      }
+    });
+    
+    // Start create feature tour
+    this._tourService.startTour('CreateFeature');
+    
+    // Log Easter Egg
+    const styles = [
+      'font-weight: bold',
+      'color: #E5B355',
+      'font-size:30px',
+      'text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
+    ];
+    console.log('%c co.meta loves developers', styles.join(';'));
+  }
+
+  private initializeLanguage(config: Config) {
     let lang =
       localStorage.getItem('lang') ||
       navigator.language ||
       navigator['userLanguage'];
+    
     // Check selected language exists in our possibilities
-    const languagePossibilities = Object.keys(this.config.languageCodes);
+    this.log.msg('1', `Selected language: ${config.languageCodes}`, 'app');
+    const languagePossibilities = Object.keys(config.languageCodes);
     if (!languagePossibilities.includes(lang)) {
       lang = 'en';
     }
     const userLang = lang.length > 2 ? lang.substring(0, 2) : lang;
     this.translate.use(userLang);
-    // Heartbeat
-    this.heartbeat = interval(this.config.heartbeat)
+  }
+
+  private initializeHeartbeat(config: Config) {
+    if (this.heartbeat) {
+      this.heartbeat.unsubscribe();
+    }
+    
+    this.heartbeat = interval(config.heartbeat)
       .pipe(
         switchMap(_ =>
           this._http
@@ -93,27 +134,6 @@ export class CometaComponent implements OnInit {
         })
       )
       .subscribe();
-
-    // Open What's New dialog automatically
-    // All logic is handled in service
-    this._whatsNew.collectAndOpen();
-  }
-
-  ngOnInit() {
-    // Migration of localStorage keys (compatibility 6 months)
-    this.migrateLocalStorage();
-    // Start create feature tour
-    this._tourService.startTour('CreateFeature');
-    // Load config 
-    this._sharedActions.loadConfig(); 
-    // Log Easter Egg
-    const styles = [
-      'font-weight: bold',
-      'color: #E5B355',
-      'font-size:30px',
-      'text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
-    ];
-    console.log('%c co.meta loves developers', styles.join(';'));
   }
 
   /**

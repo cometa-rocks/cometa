@@ -194,10 +194,10 @@ function switchDataMountPoint() {
     # check if first parameter contains root
     if [[ "$1" == "root" ]]; then
         # change ./data => /data
-        sed -i_template "s#- \./data#- /data#g" docker-compose.yml
+        sed -i_template "s#- \./data#- /data#g" docker-compose-dev.yml
     else
         # change /data => ./data
-        sed -i_template "s#- /data#- \./data#g" docker-compose.yml
+        sed -i_template "s#- /data#- \./data#g" docker-compose-dev.yml
     fi
 }
 
@@ -359,14 +359,14 @@ function get_cometa_up_and_running() {
 
 
     #
-    # Replace <server> in docker-compose.yml with "local"
+    # Replace <server> in docker-compose-dev.yml with "local"
     #
-    sed -i_template "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
+    sed -i_template "s|<server>|local|g" docker-compose-dev.yml && info "Replaced <server> in docker-compose-dev.yml with local"
 
     #
-    # Replace <outside_port> in docker-compose.yml with "80"
+    # Replace <outside_port> in docker-compose-dev.yml with "80"
     #
-    sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
+    sed -i_template "s|<outside_port>|80|g" docker-compose-dev.yml && info "Replaced <outside_port> in docker-compose-dev.yml with 80"
 
     #
     # Check if data/front/apache2/metadata/accounts.google.com.client or data/front/apache2/metadata/git.amvara.de.client exists
@@ -408,7 +408,8 @@ function get_cometa_up_and_running() {
     # Bring up the system
     #
     info "Starting containers"
-    $DOCKER_COMPOSE_COMMAND up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
+    info "using ${DOCKER_COMPOSE_COMMAND} command"
+    $DOCKER_COMPOSE_COMMAND -f docker-compose-dev.yml up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
 
     #
     # How to wait for System ready?
@@ -441,7 +442,7 @@ function get_cometa_up_and_running() {
     info "Waiting for containers to become healthy (timeout: ${TOTAL_TIMEOUT} seconds)..."
 
     # check if docker-compose contains django start command
-    if ! grep -qE '^\s*command:\s*bash start\.sh' docker-compose.yml; then
+    if ! grep -qE '^\s*command:\s*bash start\.sh' docker-compose-dev.yml; then
         info "Django service command is NOT 'bash start.sh -dev'"
         # your logic here
     fi
@@ -449,7 +450,7 @@ function get_cometa_up_and_running() {
 
     # Check inside django container if gunicorn is running
     log_wfr "Waiting for gunicorn to start "
-    docker exec -it cometa_django ps aux | grep gunicorn | grep -v grep > /dev/null 2>&1 && log_res "[done]" || { log_res "[failed]"; info "Starting cometa_django container"; docker exec cometa_django ./start.sh > /dev/null 2>&1 & }
+    docker exec -it cometa_django ps aux | grep gunicorn | grep -v grep > /dev/null 2>&1 && log_res "[done]" || { log_res "[failed]"; info "Re-Starting cometa_django container"; docker exec cometa_django ./start.sh > /dev/null 2>&1 & }
 
     # Wait for django to become healthy
     log_wfr "Waiting for parseBrowsers "
@@ -472,7 +473,7 @@ function show_logfiles() {
     if [[ -z "$container_name" ]]; then
         # No container specified, show all running containers and their logs
         info "No container specified. Showing all running containers:"
-        docker-compose ps
+        docker-compose -f docker-compose-dev.yml ps
         
         info "Showing logs from all containers (last 10 lines):"
         docker-compose -f docker-compose-dev.yml logs -f --tail=10
@@ -482,16 +483,16 @@ function show_logfiles() {
                 docker logs -f --tail=100 cometa_selenoid
                 ;;
             all)
-                docker-compose logs -f --tail=100
+                docker-compose -f docker-compose-dev.yml logs -f --tail=100
                 ;;
             *)
                 # Try to show logs for the specified container
                 if docker-compose ps | grep -q "$container_name"; then
-                    docker-compose logs -f --tail=100 "$container_name"
+                    docker-compose -f docker-compose-dev.yml logs -f --tail=100 "$container_name"
                 else
                     error "Container '$container_name' not found or not running"
                     info "Available containers:"
-                    docker-compose ps
+                    docker-compose -f docker-compose-dev.yml ps
                     exit 1
                 fi
                 ;;
@@ -531,7 +532,7 @@ do
         -r | --restart)
             container_name=$2
             info "Recreating $container_name"
-            docker-compose up -d --force-recreate $container_name && info [ok] || warn "Restarting failed. look at the logs"
+            docker-compose -f docker-compose-dev.yml up -d --force-recreate $container_name && info [ok] || warn "Restarting failed. look at the logs"
             exit 0
             ;;
         --root-mount-point)
@@ -542,7 +543,7 @@ do
             info "Backup data directory"
             tar -czvf ../cometa_data.tgz data/
             info "Stopping Cometa"
-            docker-compose down
+            docker-compose -f docker-compose-dev.yml down
             info "Removing Cometa Redis volume"
             docker volume rm cometa_redis_data
             info "Cometa has been removed. You are save to delete this directory and start with a fresh clone."
@@ -578,7 +579,8 @@ do
             ;;
         -i | -install)
             # This will fall through to the default installation behavior
-            shift
+	    install=1
+	    shift
             ;;
         *)
             SHOW_HELP
@@ -588,7 +590,7 @@ do
 done
 
 # Only proceed with installation if -i or -install was specified
-if [[ "$1" == "-i" || "$1" == "-install" ]]; then
+if [[ "$install" == "1" || "$1" == "-install" ]]; then
     checkRequirements
     initiate_config_dirs
     get_cometa_up_and_running
