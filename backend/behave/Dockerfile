@@ -69,11 +69,11 @@ RUN mkdir -p /code/behave/videos
 RUN mkdir -p /code/behave/pdf
 RUN mkdir -p /data/test/downloads
 RUN mkdir -p /code/behave/department_data
-RUN mkdir -p /code/src/logs
+RUN mkdir -p /opt/code/behave_logs
 RUN mkdir -p /home/cometa
 
 RUN chown -R cometa:cometa /code
-RUN chown -R cometa:cometa /code/src/logs
+RUN chown -R cometa:cometa /opt/code/behave_logs
 RUN chown -R cometa:cometa /share
 RUN chown -R cometa:cometa /opt/code
 RUN chown -R cometa:cometa /home/cometa
@@ -88,7 +88,7 @@ RUN chown -R cometa:cometa /var/log/supervisor/
 
 
 RUN chmod -R 755 /code 
-RUN chmod -R 755 /code/src/logs
+RUN chmod -R 755 /opt/code/behave_logs
 RUN chmod -R 755 /share
 RUN chmod -R 755 /opt/code 
 # RUN chmod -R 755 /proc/kmsg 
