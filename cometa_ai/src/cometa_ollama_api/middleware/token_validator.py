@@ -36,7 +36,7 @@ def validate_secrets(secret):
         
         return secret       
     except Exception as e:
-        traceback.print_exc()
+        logger.exception("Error occurred during secret validation")
         return None
 
 

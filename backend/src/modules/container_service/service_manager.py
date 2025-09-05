@@ -653,7 +653,12 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
+# to initialize the service manager for runserver as by default DockerServiceManager
+service_manager = DockerServiceManager
+    
+if 'runserver' in sys.argv:
+    logger.debug("Loading service manager for runserver")
+    service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
 
 class ServiceManager(service_manager):
     def __init__(self, *args, **kwargs):
