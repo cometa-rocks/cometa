@@ -87,7 +87,18 @@ export class CometaComponent implements OnInit {
     // Start create feature tour
     this._tourService.startTour('CreateFeature');
     
-    // Log Easter Egg
+
+    // Set local storage co_loglvl and co_logtag to info incase they are not set
+    if (!localStorage.getItem('co_loglvl')) {
+      localStorage.setItem('co_loglvl', 'info');
+      this.log.msg('1', `co_loglvl not set, setting to info`, 'app');
+    }
+    if (!localStorage.getItem('co_logtag')) {
+      localStorage.setItem('co_logtag', 'info');
+      this.log.msg('1', `co_logtag not set, setting to info`, 'app');
+    }
+    
+    // Log Cometa loves developers
     const styles = [
       'font-weight: bold',
       'color: #E5B355',
@@ -103,11 +114,16 @@ export class CometaComponent implements OnInit {
       navigator.language ||
       navigator['userLanguage'];
     
+    // Show the selected language
+    this.log.msg('1', `Selected language: ${lang}`, 'app');
+    
     // Check selected language exists in our possibilities
-    this.log.msg('1', `Selected language: ${config.languageCodes}`, 'app');
+    this.log.msg('1', `Available languages: `, 'app', config.languageCodes);
     const languagePossibilities = Object.keys(config.languageCodes);
     if (!languagePossibilities.includes(lang)) {
+      this.log.msg('1', `Selected language not found in our possibilities: ${lang}`, 'app');
       lang = 'en';
+      this.log.msg('1', `Selected language set to default: ${lang}`, 'app');
     }
     const userLang = lang.length > 2 ? lang.substring(0, 2) : lang;
     this.translate.use(userLang);
