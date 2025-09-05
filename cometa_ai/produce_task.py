@@ -26,17 +26,16 @@ worker_name = "src.workers.image_analyst.analyze_image"
 
 # Enqueue the task
 job = queue.enqueue(worker_name, messages=messages)
-print(f"Task queued, job ID: {job.id}")
+logger.info(f"Task queued, job ID: {job.id}")
 
 # Polling the job status to wait for it to finish
 while job.is_queued or job.is_scheduled or job.is_started:
-    print(f"Waiting for job {job.id} to finish...")
+    logger.info(f"Waiting for job {job.id} to finish...")
     time.sleep(2)
 
 # Once the job is finished, retrieve the result
 if job.is_finished:
     # This will contain the return value from analyze_image
-    print(f"Task completed successfully, result: ")
-    print(job.result)
+    logger.info(f"Task completed successfully, result: {job.result}")
 elif job.is_failed:
-    print(f"Task failed, reason: {job.exc_info}")
+    logger.error(f"Task failed, reason: {job.exc_info}")
