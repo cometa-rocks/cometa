@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-echo "Initializing RAG system for Co.meta..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:4](main) -\033[0m Initializing RAG system for Co.meta..."
 cd /app/src/cometa_ollama_api
 
 # Wait for the database to be ready
-echo "Waiting for database to be ready..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:8](main) -\033[0m Waiting for database to be ready..."
 python -c "
 import sys
 import time
@@ -42,16 +42,16 @@ while retries < max_retries:
 "
 
 # Create and apply migrations
-echo "Creating migrations..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:45](main) -\033[0m Creating migrations..."
 mkdir -p staticfiles
 mkdir -p apps/rag_system/migrations
 touch apps/rag_system/migrations/__init__.py
 python manage.py makemigrations --noinput
-echo "Applying migrations..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:50](main) -\033[0m Applying migrations..."
 python manage.py migrate
 
 # Clear existing RAG data and ingest documents from JSON
-echo "Ingesting documentation into RAG system..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:54](main) -\033[0m Ingesting documentation into RAG system..."
 python manage.py ingest_from_json --clear apps/rag_system/ingestion_documents.json
 
-echo "RAG system initialization complete!" 
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:57](main) -\033[0m RAG system initialization complete!" 

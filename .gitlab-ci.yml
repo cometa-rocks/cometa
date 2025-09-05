@@ -166,16 +166,23 @@ stages:
   # redundancy. 
   script:
     bash scripts/docker_cicd_deployment.sh
+    
+
+# create a deploy job for amvara3 for branch prod
+deploy:amvara3.prod:
+  <<: *docker_deployment_script
+  extends: .amvara3.prod
 
 # create a deploy job for amvara6 for branch stage
 deploy:amvara6.stage: 
   <<: *docker_deployment_script
   extends: .amvara6.stage
 
-# create a deploy job for amvara3 for branch prod
-deploy:amvara3.prod:
-  <<: *docker_deployment_script
-  extends: .amvara3.prod
+# pre stage deploy to amvara8 and it usages the docker-compose-build.yml file to deploy the application
+# this used to make sure Dockerfile for all services are working correctly
+# Deploy to amvara8
+deploy:amvara8.pre-stage:
+  extends: .amvara8.pre-stage
 
 
 # # create a deploy job for amvara3 for branch prod
@@ -201,12 +208,6 @@ deploy:amvara3.prod:
 # deploy:client04.prod:
 #  <<: *deployment_script
 #  extends: .client04.prod
-
-# pre stage deploy to amvara8 and it usages the docker-compose-build.yml file to deploy the application
-# this used to make sure Dockerfile for all services are working correctly
-# Deploy to amvara8
-deploy:amvara8.pre-stage:
-  extends: .amvara8.pre-stage
 
 
 # build cometa front, django and behave in amvara8 server  and push to docker hub

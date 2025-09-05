@@ -173,7 +173,7 @@ LOGGING = {
     },
     'formatters': {
         'verbose': {
-            'format': '[%(asctime)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) - %(message)s',
+            '()': 'main.formatters.ColoredFormatter',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'django.server': {

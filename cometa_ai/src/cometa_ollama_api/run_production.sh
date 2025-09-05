@@ -5,11 +5,11 @@ set -e
 cd /app/src/cometa_ollama_api
 
 # Initialize RAG system
-echo "Initializing RAG system..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][run_production.sh:8](main) -\033[0m Initializing RAG system..."
 ./init_rag.sh
 
 # Start Gunicorn with Uvicorn workers
-echo "Starting Gunicorn with Uvicorn workers..."
+echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][run_production.sh:12](main) -\033[0m Starting Gunicorn with Uvicorn workers..."
 gunicorn main.asgi:application \
     --bind 0.0.0.0:8002 \
     --workers 2 \

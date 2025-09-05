@@ -296,7 +296,7 @@ class ConfigurationManager:
 
     # Load configuration from db to memory which is later used in the entire cometa_backend
     def load_configuration_from_db(self):
-        logger.info("Loading configurations from the database to memory")
+        # logger.info("Loading configurations from the database to memory")
         
         # Define the SQL query to load all configurations
         query = """

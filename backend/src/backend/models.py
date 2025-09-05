@@ -714,6 +714,9 @@ class Permissions(models.Model):
     delete_variable = models.BooleanField(default=False)
     manage_house_keeping_logs = models.BooleanField(default=False)
     manage_configurations = models.BooleanField(default=False)
+
+    #mobile related
+    manage_mobiles = models.BooleanField(default=False)
     
     def __str__( self ):
         return u"%s" % self.permission_name
