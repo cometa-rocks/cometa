@@ -1,0 +1,266 @@
+@import 'app/common/_color.scss';
+@import 'app/common/_breakpoints.scss';
+
+.usage-metrics-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+  background-color: $body-bg-color;
+  min-height: 50vh;
+  width: 50%;
+
+  @include for-tablet-portrait-up {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+  }
+
+  @include for-desktop-up {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+.metric-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  mat-card-header {
+    padding: 16px 16px 8px 16px;
+
+    @include for-tablet-portrait-up {
+      padding: 20px 20px 12px 20px;
+    }
+
+    mat-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: $usage-text-primary;
+      margin: 0;
+    }
+  }
+
+  mat-card-content {
+    padding: 8px 16px 16px 16px;
+
+    @include for-tablet-portrait-up {
+      padding: 12px 20px 20px 20px;
+    }
+  }
+}
+
+// Average Execution Time Card
+.average-time-card {
+  background: linear-gradient(135deg, $usage-card-blue 0%, $usage-card-blue-dark 100%);
+
+  .metric-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    @include for-tablet-portrait-up {
+      flex-direction: column;
+      gap: 24px;
+    }
+  }
+
+  .metric-value-group {
+    display: flex;
+    gap: 8px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-1px);
+    }
+
+    .metric-value-large {
+      font-size: 16px;
+      font-weight: 700;
+      color: $usage-text-primary;
+    }
+
+    .metric-value-small {
+      font-size: 16px;
+      font-weight: 600;
+      color: $usage-text-primary;
+    }
+
+    .metric-unit {
+      font-size: 16px;
+      color: $usage-text-secondary;
+      font-weight: 500;
+    }
+
+    .metric-icon {
+      font-size: 16px;
+      width: 24px;
+      height: 24px;
+      color: $usage-accent-blue;
+    }
+  }
+}
+
+// Total Execution Time Card
+.total-time-card {
+  background: linear-gradient(135deg, $usage-card-blue 0%, $usage-card-blue-dark 100%);
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+
+    @include for-tablet-portrait-up {
+      gap: 16px;
+    }
+  }
+
+  .metric-item {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+
+    &:nth-child(1), &:nth-child(2) {
+      background: rgba(52, 152, 219, 0.1);
+    }
+
+    &:nth-child(3), &:nth-child(4) {
+      background: rgba(39, 174, 96, 0.1);
+    }
+
+    .metric-unit {
+      font-size: 14px;
+      color: $usage-text-secondary;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: $usage-text-primary;
+
+      @include for-tablet-portrait-up {
+        font-size: 24px;
+      }
+    }
+  }
+}
+
+// Total Tests Executed Card
+.tests-executed-card {
+  background: linear-gradient(135deg, $usage-card-blue 0%, $usage-card-blue-dark 100%);
+
+  .metric-content-single {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+
+    .metric-value-large {
+      font-size: 32px;
+      font-weight: 700;
+      color: $usage-text-primary;
+
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+      }
+    }
+
+    .metric-icon-large {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: $usage-accent-blue;
+
+      @include for-tablet-portrait-up {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+}
+
+// Total Number of Features Card
+.features-card {
+  background: linear-gradient(135deg, $usage-card-green 0%, $usage-card-green-dark 100%);
+
+  .metric-content-single {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+
+    .metric-value-large {
+      font-size: 32px;
+      font-weight: 700;
+      color: $usage-text-primary;
+
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+      }
+    }
+
+    .metric-icon-large {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: $usage-accent-green;
+
+      @include for-tablet-portrait-up {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+}
+
+// Loading and Error States
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    color: $usage-text-secondary;
+  }
+
+  p {
+    margin: 0;
+    color: $usage-text-secondary;
+    font-size: 16px;
+  }
+}
+
+.error-container {
+  mat-icon {
+    color: $remove;
+  }
+}
