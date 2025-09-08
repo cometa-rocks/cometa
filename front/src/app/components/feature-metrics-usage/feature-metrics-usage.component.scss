@@ -1,19 +1,73 @@
 @import 'app/common/_color.scss';
 @import 'app/common/_breakpoints.scss';
 
+//################# Loading and Error States ###############
+
+// Loading and Error States
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.loading-content,
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+}
+
+.loading-title,
+.error-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $usage-text-primary;
+  margin: 0;
+}
+
+.loading-subtitle,
+.error-message {
+  font-size: 16px;
+  color: $usage-text-secondary;
+  margin: 0;
+}
+
+.error-icon {
+  font-size: 48px;
+  color: $remove;
+}
+
+.retry-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+//################# Usage Metrics Container ###############
+
 .usage-metrics-container {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
   padding: 16px;
   background-color: $body-bg-color;
-  min-height: 50vh;
-  width: 50%;
+  min-height: 80vh;
 
   @include for-tablet-portrait-up {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     padding: 20px;
+    min-height: 50vh;
+    width: 50%;
   }
 
   @include for-desktop-up {
@@ -84,8 +138,13 @@
     padding: 12px;
     transition: all 0.3s ease;
 
-    &:hover {
-        background: rgba(255, 255, 255, 0.9);
+    &:nth-child(1) {
+        background: rgba($usage-accent-blue, 0.1);
+        transform: translateY(-1px);
+    }
+  
+    &:nth-child(2) {
+        background: rgba($usage-accent-green, 0.1);
         transform: translateY(-1px);
     }
 
@@ -138,11 +197,11 @@
     transition: all 0.3s ease;
 
     &:nth-child(1), &:nth-child(2) {
-      background: rgba(52, 152, 219, 0.1);
+      background: rgba($usage-accent-blue, 0.1);
     }
 
     &:nth-child(3), &:nth-child(4) {
-      background: rgba(39, 174, 96, 0.1);
+      background: rgba($usage-accent-green, 0.1);
     }
 
     .metric-unit {
@@ -191,9 +250,9 @@
       color: $usage-accent-blue;
 
       @include for-tablet-portrait-up {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
       }
     }
   }
@@ -231,36 +290,5 @@
         height: 24px;
       }
     }
-  }
-}
-
-// Loading and Error States
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-
-  mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    margin-bottom: 16px;
-    color: $usage-text-secondary;
-  }
-
-  p {
-    margin: 0;
-    color: $usage-text-secondary;
-    font-size: 16px;
-  }
-}
-
-.error-container {
-  mat-icon {
-    color: $remove;
   }
 }

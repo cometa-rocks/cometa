@@ -22,6 +22,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgIf, AsyncPipe, DecimalPipe } from '@angular/common';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'cometa-feature-metrics-usage',
@@ -46,6 +47,7 @@ export class FeatureMetricsUsageComponent implements OnInit {
   constructor(
     private _api: ApiService,
     private log: LogService,
+    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -53,7 +55,7 @@ export class FeatureMetricsUsageComponent implements OnInit {
     this.loadUsageStatistics();
   }
 
-  private loadUsageStatistics() {
+  loadUsageStatistics() {
     this.loading = true;
     this.error = null;
     
@@ -64,6 +66,7 @@ export class FeatureMetricsUsageComponent implements OnInit {
         console.log('[FeatureMetricsUsageComponent] Received data from API:', data);
         this.statistics = data;
         this.loading = false;
+        this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
         console.error('[FeatureMetricsUsageComponent] Error calling API:', err);
@@ -77,27 +80,52 @@ export class FeatureMetricsUsageComponent implements OnInit {
    * Formats a large number with commas
    */
   formatNumber(value: string | number): string {
-    if (!value) return '0';
+    console.log('[formatNumber] Input value:', value, 'Type:', typeof value);
+    
+    if (!value) {
+      console.log('[formatNumber] Value is falsy, returning 0');
+      return '0';
+    }
+    
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? '0' : num.toLocaleString();
+    console.log('[formatNumber] Parsed number:', num, 'isNaN:', isNaN(num));
+    
+    const result = isNaN(num) ? '0' : num.toLocaleString();
+    console.log('[formatNumber] Final result:', result);
+    
+    return result;
   }
 
   /**
    * Formats execution time for display
    */
   formatTime(value: string | number): string {
-    if (!value) return '0';
+    console.log('[formatTime] Input value:', value, 'Type:', typeof value);
+    
+    if (!value) {
+      console.log('[formatTime] Value is falsy, returning 0');
+      return '0';
+    }
+    
     const ms = typeof value === 'string' ? parseFloat(value) : value;
+    console.log('[formatTime] Parsed ms:', ms);
+    
     const hours = Math.floor(ms / (1000 * 60 * 60));
     const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    
+    console.log('[formatTime] Calculated - hours:', hours, 'minutes:', minutes, 'seconds:', seconds);
 
+    let result;
     if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`;
+      result = `${hours}h ${minutes}m ${seconds}s`;
     } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
+      result = `${minutes}m ${seconds}s`;
     } else {
-      return `${seconds}s`;
+      result = `${seconds}s`;
     }
+    
+    console.log('[formatTime] Final result:', result);
+    return result;
   }
 }

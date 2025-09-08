@@ -1104,7 +1104,8 @@ export class ApiService {
   }
 
   getUsageStatistics() {
-    return this._http.get(`${this.base}cometausage/`);
+    console.log('[ApiService] Calling /cometausage/ endpoint');
+    return this._http.get<any>(`${this.base}cometausage/`);
   }
 
 }
