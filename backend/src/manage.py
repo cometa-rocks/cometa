@@ -22,7 +22,28 @@ if __name__ == "__main__":
     load_configurations()
     if 'runserver' in sys.argv:
         setup_config_file_watcher()
+
+    # This change is avoid dependency on .initiated file in the codebase
+    # which often leads to confusion and override of default values in DB, 
+    # instead directly check if default values are loaded from database
+    from backend.utility.configurations import ConfigurationManager
+    if len(sys.argv) >= 2 and sys.argv[1] == 'is_default_values_loaded':
+        default_values_loaded = ConfigurationManager.get_configuration("DEFAILT_VALUES_LOADED", "True") == "True"
+        if not default_values_loaded:
+            print("False")
+        else:
+            print("True")        
+        # Break the flow since request was to check if default values are loaded
+        sys.exit(0)
     
+    # Update database to set default values loaded to True
+    if len(sys.argv) >= 2 and sys.argv[1] == 'set_default_values_loaded':
+        ConfigurationManager.update_configuration_in_db("DEFAILT_VALUES_LOADED", "True", False)
+        # Break the flow since request was to set default values loaded to True
+        sys.exit(0)
+
+        
+
     # This initiates migrations for the first time and creates __init__.py file in migrations folder
     from initiate.initiate_setups import initiate_migrations
     initiate_migrations()

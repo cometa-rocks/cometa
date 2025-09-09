@@ -116,7 +116,8 @@ default_cometa_configurations = {
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
     "OLLAMA_AI_SECRET_KEY":"",
-    "COMETA_BROWSER_MAX_VERSIONS": 3
+    "COMETA_BROWSER_MAX_VERSIONS": 3, 
+    "DEFAILT_VALUES_LOADED": False
 }
 
 public_configuraion_values = [
@@ -340,6 +341,21 @@ class ConfigurationManager:
                 "default_value": configuration_value,
                 "encrypted": False,
             }
+
+    @classmethod
+    def update_configuration_in_db(self, configuration_name, configuration_value, encrypted=False):
+        
+        conf = ConfigurationManager()
+        conf.create_db_connection()
+        updated_on = timezone.now()
+        string_query = f"Update configuration_configuration set configuration_value = '{configuration_value}', updated_on = '{updated_on}', encrypted = {encrypted} where configuration_name = '{configuration_name}';"
+        # Generate the SQL query
+        query = sql.SQL(string_query)
+        # Execute the query
+        conf.__sql_cursor.execute(query)
+        conf.__db_connection.commit()
+        conf.close_db_connection()
+        logger.info(f"Updated configuration {configuration_name}:{configuration_value} in the database")
 
     @classmethod
     def get_configuration(cls, key: str, default=""):
