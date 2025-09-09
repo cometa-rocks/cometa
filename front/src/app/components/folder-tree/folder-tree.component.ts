@@ -138,5 +138,4 @@ export class FolderTreeComponent implements OnInit {
     this.toggleListType(listType); // Toggles the list type
     this._store.dispatch(new Features.ReturnToFolderRoute(0)); // Remove the current route
   }
-  
 }
