@@ -6,7 +6,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chromium.options import ChromiumOptions
 
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, glob, logging, re
+import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, glob, logging, re, threading
 
 from pprint import pprint, pformat
 from pathlib import Path
@@ -16,6 +16,7 @@ import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 import copy
 from concurrent.futures import ThreadPoolExecutor
+from behave.model_core import Status
 
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/opt/code/cometa_itself/steps")
@@ -32,6 +33,7 @@ from tools.models import Condition
 # from tools.kubernetes_service import KubernetesServiceManager
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s.%(msecs)03d][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
+
 
 load_configurations()
 
@@ -80,6 +82,7 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
 
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
+TEST_LOG_DIRECTORY = "/opt/code/behave_logs"
 
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
@@ -197,7 +200,7 @@ def before_all(context):
     context.start_time = time.time()  # Add timing start
     # Create a logger for file handler
     fileHandle = logging.FileHandler(
-        f"/code/src/logs/{os.environ['feature_result_id']}.log"
+        f"{TEST_LOG_DIRECTORY}/{os.environ['feature_result_id']}.log"
     )
     fileHandle.setFormatter(formatter)
     logger.addHandler(fileHandle)
@@ -250,6 +253,11 @@ def before_all(context):
     # logger.debug(context.VARIABLES)
     # job parameters if executed using schedule step
     context.PARAMETERS = os.environ["PARAMETERS"]
+    # telegram notification data if executed from telegram
+    telegram_env = os.environ.get("telegram_notification", "{}")
+    context.telegram_notification = json.loads(telegram_env)
+    if telegram_env != "{}":
+        logger.info(f"Telegram notification data loaded: {context.telegram_notification}")
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ["BROWSER_INFO"])
     # get the connection URL for the browser
@@ -385,10 +393,43 @@ def before_all(context):
         "cloud", "browserstack"
     )  # default it back to browserstack incase it is not set.
     
+    logger.debug(f"data: {data}")
+    context.record_video = data["video"] if "video" in data else False
+    logger.debug(f"context.record_video {context.record_video }")
+    
+    # read the steps from the step json file which is created by django container in the file system
+    logger.debug(f"FEATURE_JSON_FILE: {os.environ['FEATURE_JSON_FILE']}")
+    with open(os.environ['FEATURE_JSON_FILE'], 'r') as f:
+        context.steps = json.load(f)
+    logger.debug(f"context.steps: {context.steps}")
+        
+    logger.debug(f"Total steps found: {len(context.steps)}")
+
+    if len(context.steps) == 0:
+        logger.error(f"No steps found in the feature json file: {os.environ['FEATURE_JSON_FILE']}")
+        context.config.stop = True  # Tells Behave to stop execution
+        return
+    
+    # update counters total
+    context.counters["total"] = len(context.steps)
+    os.environ["total_steps"] = str(context.counters["total"])
+
     # FIXME move this logic to browser creation file and window
     context.service_manager = ServiceManager()
     context.browser_hub_url = "cometa_selenoid"   
     context.USE_COMETA_BROWSER_IMAGES = USE_COMETA_BROWSER_IMAGES
+    
+    # Initialize Healenium configuration using HealeniumClient
+    try:
+        from ee.cometa_itself.healenium_client import HealeniumClient
+        healenium_manager = HealeniumClient(context)
+        healenium_manager.initialize_healenium_config(context)
+        context.healenium_manager = healenium_manager
+    except ImportError:
+        logger.info("Healenium module not available, healing disabled")
+        context.healenium_enabled = False
+        context.all_healing_events = {}
+        context.healenium_manager = None
     
     if USE_COMETA_BROWSER_IMAGES:
         logger.debug(f"Using cometa browsers, Starting browser ")
@@ -421,9 +462,15 @@ def before_all(context):
         
         response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
                              data=json.dumps(container_configuration))
+        
+        response_data = response.json()
+        logger.debug(f"Browser creation response data: {response_data}")
+        if response.status_code not in [200, 201]:
+            raise Exception(response_data['message'])
+
         logger.debug(response.json())
-        if not response or not response.json()['success'] == True:
-            raise Exception("Error while starting browser, Please contact administrator")    
+        if response_data['success'] == False:
+            raise Exception(response_data['message'])    
         
         # service_id = response.json()['containerservice']['hostname']
         data = response.json()['containerservice']
@@ -440,14 +487,28 @@ def before_all(context):
         context.browser_info["container_service"] = {"Id": container_information["service_url"]}
         context.container_services.append(container_information)
         context.browser_hub_url = container_information['service_url']
-        connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
+        
+        # Setup Healenium proxy using HealeniumClient
+        if hasattr(context, 'healenium_manager') and context.healenium_manager:
+            connection_url = context.healenium_manager.setup_healenium_proxy(context, container_information, USE_COMETA_BROWSER_IMAGES)
+        else:
+            connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
+        
         status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
         is_running = context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
         if not is_running:
             return
+    
+    # Set connection URL for Selenoid if not using COMETA browsers  
+    if not USE_COMETA_BROWSER_IMAGES:
+        if hasattr(context, 'healenium_manager') and context.healenium_manager:
+            connection_url = context.healenium_manager.setup_healenium_proxy(context, {}, USE_COMETA_BROWSER_IMAGES)
+        else:
+            connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
+        # Initialize data dict for Selenoid path
+        data = {}
+    
     # video recording on or off
-    context.record_video = data["video"] if "video" in data else True
-    logger.debug(f"context.record_video {context.record_video }")
     # create the options based on the browser name
     if context.browser_info["browser"] == "firefox":
         options = FirefoxOptions()
@@ -531,6 +592,7 @@ def before_all(context):
     options.set_capability(
         "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
     )
+    logger.debug(f"options: {options.to_capabilities()}")
         
     if context.browser_info["browser"] == "chrome" and context.network_logging_enabled:
         # If network logging enabled then fetch vulnerability headers info from server
@@ -620,6 +682,7 @@ def before_all(context):
     else:
         context.browser = webdriver.Remote(command_executor=connection_url, options=options)
         
+    context.connection_url = connection_url
     logger.debug("Session id: %s" % context.browser.session_id)
 
     # set headers for the request
@@ -637,21 +700,7 @@ def before_all(context):
     # update feature_result with session_id
     requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
-    # get all the steps from django
-    response = requests.get(f'{get_cometa_backend_url()}/steps/%s/?subSteps=True' % context.feature_id,
-                            headers={"Host": "cometa.local"})
 
-    # save the steps to environment variable ... this will overload ENV variables in bash size. Must use context, not env.
-    # os.environ['STEPS'] = json.dumps(response.json()['results'])
-
-    # Store all steps of this feature into the context for using it later
-    context.steps = response.json()["results"]
-    logger.debug(f"Total steps found: {len(context.steps)}")
-
-    # update counters total
-    context.counters["total"] = len(response.json()["results"])
-
-    os.environ["total_steps"] = str(context.counters["total"])
 
     # FIXME Need to understand how Live screen will behave when the browser information is not send to socket
     # send a websocket request about that feature has been started
@@ -680,8 +729,10 @@ def get_video_url(context):
 
 @error_handling()
 def after_all(context):
-    del os.environ["current_step"]
-    del os.environ["total_steps"]
+    if os.environ.get("current_step", None) is not None:
+        del os.environ["current_step"] 
+    if os.environ.get("total_steps", None) is not None:
+        del os.environ["total_steps"]
     # check if any alertboxes are open before quiting the browser
 
     if hasattr(context,"pw"):
@@ -712,6 +763,14 @@ def after_all(context):
     except Exception as err:
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
+    
+    # Clean up Healenium proxy using HealeniumClient
+    try:
+        if hasattr(context, 'healenium_manager') and context.healenium_manager:
+            context.healenium_manager.cleanup_healenium(context)
+    except Exception as e:
+        logger.debug(f"Error cleaning up Healenium: {e}")
+    
 
 
     # if IS_KUBERNETES_DEPLOYMENT:
@@ -721,14 +780,15 @@ def after_all(context):
         
     
     # Close all Mobile sessions
-    for key, mobile in context.mobiles.items():
-        logger.debug(mobile['driver'])
-        try:
-            mobile['driver'].quit()
-            
-        except Exception as err:
-            logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
-            logger.error(str(err))
+    if hasattr(context, "mobiles"):
+        for key, mobile in context.mobiles.items():
+            logger.debug(mobile['driver'])
+            try:
+                mobile['driver'].quit()
+                
+            except Exception as err:
+                logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
+                logger.error(str(err))
     # testcase has finished, send websocket about processing data
     request = requests.get(f'{get_cometa_socket_url()}/feature/%s/processing' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
@@ -743,6 +803,9 @@ def after_all(context):
     logger.debug("Removed all services started by test")
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
+    if len(context.steps) == 0:
+        raise Exception(f"No steps found in the feature \"{context.feature_info['feature_name']}\"")
+    
     if context.record_video:
         if context.cloud == "browserstack":
             # Observed browserstack delay when creating video files
@@ -783,12 +846,11 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
-    files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
-    file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
-
-    meta_file_path = f"{files_path}/features/{file_name}_meta.json"
-    feature_file_path = f"{files_path}/features/{file_name}.feature"
-    feature_json_file_path = f"{files_path}/features/{file_name}.json"
+    files_path = os.environ['FOLDERPATH']
+    file_name = os.environ['FEATURE_NAME']
+    meta_file_path = os.environ['JSON_FILE']
+    feature_file_path = os.environ['FEATURE_FILE']
+    feature_json_file_path = os.environ['FEATURE_JSON_FILE']
     xmlFilePath = f"{files_path}/junit_reports/TESTS-features.{file_name}.xml"
 
     logger.debug("Adding path to temp files for housekeeping")
@@ -859,6 +921,13 @@ def after_all(context):
 """ % stdout.replace(
         "\n\n", "\n"
     )
+    
+    # Add healing summary using HealeniumClient
+    try:
+        if hasattr(context, 'healenium_manager') and context.healenium_manager:
+            log_content += context.healenium_manager.generate_healing_summary(context)
+    except Exception as e:
+        logger.debug(f"Error generating healing summary: {e}")
 
     # save xml file as log for the user
     data["log"] = log_content
@@ -914,12 +983,23 @@ def after_all(context):
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
     
     import threading       
-    # FIXME This code seems not working need to verify
+    # Store context data for thread access
+    telegram_notification_data = getattr(context, 'telegram_notification', {})
+    download_dir = context.downloadDirectoryOutsideSelenium
+    temp_files = context.tempfiles
+    
     def clean_up_and_notification():
+        
         
         notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
         headers = {'Host': 'cometa.local'}
         logger.debug(f"Sending notification request on URL : {notifications_url}")
+        
+        # If this was a telegram execution, pass the telegram notification data
+        if telegram_notification_data and telegram_notification_data.get('telegram_chat_id'):
+            headers['X-Telegram-Notification'] = json.dumps(telegram_notification_data)
+            logger.info(f"Including telegram notification data for chat_id: {telegram_notification_data.get('telegram_chat_id')}")
+        
         response = requests.get(notifications_url, headers=headers)
         
   
@@ -934,14 +1014,14 @@ def after_all(context):
             logger.error(f"Notification request failed with status {response.status_code}: {response.text}")
     
         # remove download folder if no files where downloaded during the testcase
-        downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
+        downloadedFiles = glob.glob(download_dir + "/*")
         if len(downloadedFiles) == 0:
-            if os.path.exists(context.downloadDirectoryOutsideSelenium):
-                os.rmdir(context.downloadDirectoryOutsideSelenium)
+            if os.path.exists(download_dir):
+                os.rmdir(download_dir)
 
         # do some cleanup and remove all the temp files generated during the feature
-        logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
-        for tempfile in set(context.tempfiles):
+        logger.debug("Cleaning temp files: {}".format(pformat(temp_files)))
+        for tempfile in set(temp_files):
             try:
                 os.remove(tempfile)
             except Exception as err:
@@ -983,6 +1063,19 @@ def before_step(context, step):
     context.LAST_STEP_VARIABLE_AND_VALUE = None
     context.step_exception = None
     
+    # Prepare step for healing using HealeniumClient
+    try:
+        if hasattr(context, 'healenium_manager') and context.healenium_manager:
+            context.healenium_manager.prepare_step_for_healing(context)
+        else:
+            # Fallback for when manager is not available
+            if hasattr(context, 'healing_data'):
+                context.healing_data = None
+    except Exception as e:
+        logger.debug(f"Error preparing step for healing: {e}")
+        if hasattr(context, 'healing_data'):
+            context.healing_data = None
+    
     # this variable will be used to have executed step count,
     # this is also used to save screenshot in async manner
     context.counters['step_sequence'] += 1
@@ -991,6 +1084,10 @@ def before_step(context, step):
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
     logger.info(f"-> {step_name}")
+    
+    # Store step info for healing collector
+    context.step_index = context.counters["index"]
+    context.step_name = step_name
     # step index -
     index = context.counters["index"]
     # pass all the data about the step to the step_data in context, step_data has name, screenshot, compare, enabled and type
@@ -1014,6 +1111,7 @@ def before_step(context, step):
         "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "belongs_to": context.step_data["belongs_to"],
     })
+    
    
 
 def find_vulnerable_headers(context, step_index) -> int:
@@ -1142,6 +1240,15 @@ def after_step(context, step):
     # FIXME understand why do we need to send the browser_info with this step
     logger.debug(f"Sending websocket to front to let front know about the step {step_name} Status: [{context.CURRENT_STEP_STATUS}]")
 
+    # Process healing data using HealeniumClient
+    healing_data = None
+    try:
+        if hasattr(context, 'healenium_manager') and context.healenium_manager:
+            healing_data = context.healenium_manager.process_healing_after_step(
+                context, index, step_name, context.browser.session_id
+            )
+    except Exception as e:
+        logger.debug(f"Error processing healing data: {e}")
     # Create payload for the request
     payload = {
         "user_id": context.PROXY_USER["user_id"],
@@ -1159,8 +1266,15 @@ def after_step(context, step):
         "screenshots": json.dumps(context.websocket_screen_shot_details),  # load screenshots object
         "vulnerable_headers_count": vulnerable_headers_count,
         "step_type": context.STEP_TYPE,
-        "mobiles_info": hostnames
+        "mobiles_info": hostnames,
+        "healing_data": healing_data
     }
+    
+    # Log healing data if present
+    if healing_data:
+        logger.info(f"WebSocket payload includes healing data for step {index}: {healing_data}")
+    else:
+        logger.debug(f"No healing data for step {index}")
     
     # Execute the request asynchronously
     with ThreadPoolExecutor() as executor:
@@ -1184,6 +1298,10 @@ def after_step(context, step):
     else:
         context.counters["nok"] += 1
 
+    # Clear healing data after step processing to prevent cross-contamination
+    if hasattr(context, 'healing_data'):
+        context.healing_data = None
+    
     # Cleanup variables
     keys = [
         "DB_CURRENT_SCREENSHOT",

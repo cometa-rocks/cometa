@@ -1,0 +1,77 @@
+# Healenium Self-Healing Test Automation Services
+
+# Environment variables (optional):
+#   HLM_LOG_LEVEL=info|warn|debug (default: info)
+#   KEY_SELECTOR_URL=true|false (default: false)
+
+services:
+  # Healenium PostgreSQL Database
+  hlm-db:
+    image: postgres:15.5-alpine
+    platform: linux/amd64
+    container_name: cometa_hlm_db
+    environment:
+      POSTGRES_DB: healenium
+      POSTGRES_USER: healenium_user
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - hlm_pg_data:/var/lib/postgresql/data
+      - ./data/healenium/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U healenium_user -d healenium"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - testing
+    restart: unless-stopped
+
+  # Healenium Backend Service (Spring Boot)
+  hlm-backend:
+    image: healenium/hlm-backend:3.4.9
+    platform: linux/amd64
+    container_name: cometa_hlm_backend
+    environment:
+      SPRING_POSTGRES_DB: healenium
+      SPRING_POSTGRES_SCHEMA: healenium
+      SPRING_POSTGRES_USER: healenium_user
+      SPRING_POSTGRES_DB_HOST: cometa_hlm_db
+      KEY_SELECTOR_URL: ${KEY_SELECTOR_URL:-false}    # Can be overridden for production
+      COLLECT_METRICS: true
+      FIND_ELEMENTS_AUTO_HEALING: true
+      HLM_LOG_LEVEL: ${HLM_LOG_LEVEL:-info}           # Default to info, can override to debug/warn
+    ports:
+      - "7878:7878"
+    depends_on:
+      hlm-db:
+        condition: service_healthy
+    volumes:
+      - ./backend/behave/logs:/logs
+    networks:
+      testing:
+        aliases:
+          - hlm-backend
+    restart: unless-stopped
+
+  # Healenium Selector Imitator Service
+  hlm-selector-imitator:
+    image: healenium/hlm-selector-imitator:1.6
+    platform: linux/amd64
+    container_name: cometa_hlm_selector_imitator
+    ports:
+      - "8008:8000"
+    networks:
+      testing:
+        aliases:
+          - selector-imitator
+    restart: unless-stopped
+
+# Shared network - will be created if it doesn't exist
+networks:
+  testing:
+    driver: "bridge"
+    external: false  # Allow creation if not exists
+
+# Healenium data volume
+volumes:
+  hlm_pg_data:

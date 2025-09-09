@@ -48,8 +48,6 @@ def run_test(request):
     logger.info('Running Test')
 
     # get data sent from django
-    json_path = request.POST["json_path"] # file path that contains the necessary information about the feature
-    logger.debug("Feature JSON path: {}".format(json_path))
     feature_run = request.POST['feature_run'] # feature_run id that will contain the feature_results
     logger.debug('Feature run id: {}'.format(feature_run))
     X_SERVER = request.POST['HTTP_X_SERVER'] # where the request is coming from
@@ -64,8 +62,15 @@ def run_test(request):
     logger.debug('Feature id: {}'.format(feature_id))
     department = request.POST['department'] # department where the feature belongs, set in request so we can get the department settings
     logger.debug('Department the feature belongs to: {}'.format(department))
-    PARAMETERS = request.POST['parameters'] # job parameters if the job was scheculed using schedule step
-    logger.debug('Job Parameters: {}'.format(PARAMETERS)) 
+    PARAMETERS = request.POST['parameters'] # job parameters if the job was scheduled using schedule step
+    logger.debug('Job Parameters: {}'.format(PARAMETERS))
+    
+    # Get telegram notification data if present
+    telegram_notification = request.POST.get('telegram_notification', '{}')
+    if telegram_notification != '{}':
+        logger.info('Telegram notification data received: {}'.format(telegram_notification))
+    else:
+        logger.debug('No telegram notification data')
     
     # assign environment variables to share data between files and threads
     environment_variables = {
@@ -75,7 +80,8 @@ def run_test(request):
         'VARIABLES': VARIABLES,
         'PARAMETERS': PARAMETERS,
         'department': department,
-        'feature_id': feature_id
+        'feature_id': feature_id,
+        'telegram_notification': telegram_notification
     }
 
     # Loads user data
@@ -112,8 +118,7 @@ def run_test(request):
         environment_variables['CONNECTION_URL'] = connection_url
         # Add the current browser to the thread pool
         job = django_rq.enqueue(
-            run_browser, 
-            json_path, 
+            run_browser,  
             environment_variables, 
             browser=browser, 
             feature_id=feature_id, 

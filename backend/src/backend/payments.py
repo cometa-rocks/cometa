@@ -13,7 +13,7 @@ import json
 import stripe
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from sentry_sdk import capture_exception
@@ -217,7 +217,7 @@ def get_user_subscriptions(user, **kwargs):
         # return []
     # Retrieve customer information including his subscriptions
     # json = stripe.Customer.retrieve(user.stripe_customer_id, expand=['subscriptions'])
-    today = datetime.utcnow()
+    today = datetime.now(timezone.utc)
     # Get subscriptions for the logged user, within today and being 'active'
     subscriptions = UserSubscription.objects.filter(
         user__user_id = user.user_id,
@@ -869,8 +869,8 @@ def customer_subscription_created_or_updated(webhook):
         user = get_account_from_customer_id(webhook.get('customer'))
         # Create or Update user subscription
         data_update = {
-            'period_start': datetime.utcfromtimestamp(webhook.get('current_period_start')),
-            'period_end': datetime.utcfromtimestamp(webhook.get('current_period_end')),
+            'period_start': datetime.fromtimestamp(webhook.get('current_period_start'), timezone.utc),
+            'period_end': datetime.fromtimestamp(webhook.get('current_period_end'), timezone.utc),
             'status': webhook.get('status')
         }
         logger.debug('New period_start: %s' % str(data_update['period_start']))

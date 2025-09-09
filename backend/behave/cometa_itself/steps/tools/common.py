@@ -1,18 +1,24 @@
 import time
 import signal
 import logging
+import os
+import sys
 
 from .exceptions import *
 from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException, InvalidSelectorException, WebDriverException
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import (
+    InvalidSelectorException,
+    NoSuchElementException,
+    WebDriverException,
+    TimeoutException,
+    ElementClickInterceptedException
+)
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-import time, requests, json, os, datetime, sys, subprocess, re, shutil
+import time, requests, json, os, datetime, sys, subprocess, re, shutil, random, string
 
 sys.path.append("/opt/code/behave_django")
 
@@ -28,6 +34,52 @@ logger = logging.getLogger("FeatureExecution")
 """
 Python library with common utility functions
 """
+
+# Lazy imports for Healenium to avoid circular dependencies
+_healenium_imports = {}
+
+def _lazy_import_healenium():
+    """Lazy import Healenium modules to avoid startup overhead"""
+    global _healenium_imports
+    if not _healenium_imports:
+        try:
+            parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+            
+            from ee.cometa_itself.healenium_client import (
+                HealeniumClient, 
+                healenium_context
+            )
+            _healenium_imports = {
+                'HealeniumClient': HealeniumClient,
+                'healenium_context': healenium_context
+            }
+        except ImportError:
+            _healenium_imports = None
+    return _healenium_imports
+
+
+def _handle_healing_check(context, selector_type, selector, find_start_time):
+    """Check if Healenium healed this element and store in context"""
+    if not getattr(context, 'healenium_enabled', False) or not hasattr(context, 'healenium_manager'):
+        return
+    
+    healenium = _lazy_import_healenium()
+    if not healenium:
+        return
+        
+    try:
+        # Get healing data from Healenium
+        selector_type_str = selector_type if isinstance(selector_type, str) else str(selector_type).lower()
+        healing_info = context.healenium_manager.get_healing_data_from_db(selector_type_str, selector, find_start_time - 5)
+        
+        if healing_info:
+            # Store in context for later saving
+            context.healing_data = healing_info
+            logger.info(f"Healing detected: {selector} -> {healing_info['healed_selector']['value']} (score: {healing_info['score']})")
+    except Exception as e:
+        logger.debug(f"Failed to check for healing: {str(e)}")
 
 
 class CometaTimeoutException(Exception):
@@ -161,7 +213,7 @@ def detect_selector_type(selector):
     # locator_type@@locator_value
     selector_type_and_selector = selector.split("@@", 1)
     
-    # if the value is gre
+    # if the value is greater than 1, process the selector type
     if len(selector_type_and_selector) > 1:
         selector_type = selector_type_and_selector[0]
         selector = selector_type_and_selector[1]
@@ -256,9 +308,13 @@ def waitSelectorNew(context, selector, max_timeout=None):
             # Check if it returned at least 1 element
             # This if used when find_element is used
             if isinstance(elements, WebElement):
+                # Check for healing after successful element find
+                _handle_healing_check(context, selector_type, selector, start_time)
                 return [elements]
             # This if used when find_elements is used
             if len(elements) > 0:
+                # Check for healing after successful element find
+                _handle_healing_check(context, selector_type, selector, start_time)
                 return elements
             else:
                 raise CometaElementNotFoundError(f"Element not found for selector: {selector}")
@@ -343,6 +399,8 @@ def waitSelectorOld(context, selector_type, selector, max_timeout=None):
                 elements = eval(types_new.get(selec_type, "css"))
                 # Check if it returned at least 1 element
                 if isinstance(elements, WebElement) or len(elements) > 0:
+                    # Check for healing after successful element find
+                    _handle_healing_check(context, selec_type, selector, start_time)
                     return elements
             except CustomError as err:
                 logger.error(
@@ -463,12 +521,82 @@ def send_step_screen_shot_details(feature_id, feature_result_id, user_id, browse
     
     logger.debug(f"response : {response} {response.text}")
 
-def click_element_by_css(context, selector):
-    elem = waitSelector(context, "css", selector)
-    for el in elem:
-        if el.is_displayed():
-            el.click()
+
+def get_element_using_common_selector_and_click(context, selector_value, selector_type="css", start_time=None):
+    # start_time is used to calculate the remaining time for the step to complete
+    # if start_time is not provided, it will be calculated using time.time() 
+    # considering that step have not used any time before calling this method
+    start_time = time.time() if start_time is None else start_time
+    elements = waitSelector(context, selector_type, selector_value)
+    element = elements[0]
+    step_timeout = context.step_data.get('timeout', 30)
+
+    # 1. Wait for the element to be displayed using EC.visibility_of
+    elapsed = time.time() - start_time
+    remaining_time = max(0.5, step_timeout - elapsed)
+    logger.debug(f"Waiting for element to be displayed, remaining time {remaining_time}")
+    try:
+        wait_displayed = WebDriverWait(context.browser, remaining_time)
+        wait_displayed.until(EC.visibility_of(element))
+    except TimeoutException:
+        raise CometaTimeoutException(f"Element with css selector '{selector_value}' was not displayed after {remaining_time:.1f} seconds")
+    elapsed = time.time() - start_time
+    remaining_time = max(0.5, step_timeout - elapsed)
+    click_on_element_with_retry(context, element, selector_value, remaining_time, start_time, step_timeout)  
+
+
+# This function is used to get an element using a selector type and value
+# it waits for the element for the step timeout using given selector type 
+# unlike waitSelector which uses all selector type
+def get_element_using_selector_type_and_click(context, selector_type, selector_value, start_time=None):
+    # start_time is used to calculate the remaining time for the step to complete
+    # if start_time is not provided, it will be calculated using time.time() 
+    # considering that step have not used any time before calling this method
+    start_time = time.time() if start_time is None else start_time
+    step_timeout = context.step_data.get('timeout', 60)
+
+    # 1. Wait for the element to be displayed using EC.visibility_of
+    logger.debug(f"Waiting for element to be displayed, remaining time {step_timeout}")
+    try:
+        wait_displayed = WebDriverWait(context.browser, step_timeout)
+        element = wait_displayed.until(EC.visibility_of_element_located(by=selector_type, value=selector_value))
+    except TimeoutException:
+        raise CometaTimeoutException(f"Element '{selector_type}:{selector_value}' was not displayed after {remaining_time:.1f} seconds")
+    
+    # total elapsed time to complete above logic
+    elapsed = time.time() - start_time
+    # total time remaining to complete click action
+    remaining_time = max(0.5, step_timeout - elapsed)
+    click_on_element_with_retry(context, element, selector_value, remaining_time, start_time, step_timeout)  
+
+
+
+# This function is used to click on an element with a selector type and value
+# it handles the retry logic for the click operation and avoids ElementClickInterceptedException
+# by retrying the click operation with a delay of 0.5 seconds
+# this method should be used to perform click operation on an element
+def click_on_element_with_retry(context, element, selector_value, remaining_time, start_time, step_timeout):
+    error = None
+    while remaining_time > 0:
+        try:
+            WebDriverWait(context.browser, max(0.5, remaining_time)).until(EC.element_to_be_clickable(element))
+            logger.debug(f"Clicking element '{selector_value}', remaining time {remaining_time:.1f}s")
+            element.click()
+            return  # success
+        except ElementClickInterceptedException as e:
+            logger.debug(f"Click intercepted on '{selector_value}', retrying...")
+            error = e
+            time.sleep(0.5)
+        except Exception as e:
+            logger.debug(f"Unhandled exception when clicking '{selector_value}'")
+            error = e
             break
+
+        elapsed = time.time() - start_time
+        remaining_time = step_timeout - elapsed
+
+    # Raise the last encountered error if retries fail
+    raise error if error else Exception(f"Failed to click element '{selector_value}' after {step_timeout}s")
 
 
 def click_element(context, element):
@@ -478,8 +606,10 @@ def click_element(context, element):
 
 def tempFile(source):
     # file ext
+    # generate a random string of 10 characters and add it to the filename to avoid parallel execution file name conflict
+    random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
     filename = os.path.basename(source).split("/")[-1]
-    target = "/tmp/%s" % filename
+    target = f"/tmp/{random_string}_{filename}"
 
     # check if file exists
     if os.path.exists(target):
@@ -491,10 +621,10 @@ def tempFile(source):
             logger.error("Unable to remove the file.")
             logger.exception(err)
 
-            # get the timestamp
+            # get the timestamp and add more random text
             ts = time.time()
-            logger.debug(f"Setting a different filename: /tmp/{ts}-{filename}")
-            target = f"/tmp/{ts}-{filename}"
+            logger.debug(f"Setting a different filename: /tmp/{ts}_{filename}")
+            target = f"/tmp/{ts}_{filename}"
 
     logger.info(f"TMP file will be created at {target} for {source}.")
 

@@ -99,6 +99,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 ],
 })
 export class ModifyEmulatorDialogComponent {
+  isSaving = false;
 
   editMobileForm: FormGroup;
   selectedApks: any[] = [];
@@ -136,15 +137,43 @@ export class ModifyEmulatorDialogComponent {
 
 
   ngOnInit(): void {
-    this.installedApks = this.data.uploadedAPKsList.filter(apk =>
-      this.data.runningContainer.apk_file.includes(apk.id)
-    );
+    // Load already installed APKs
+    if (this.data.runningContainer && this.data.runningContainer.apk_file) {
+      this.installedApks = this.data.uploadedAPKsList.filter(apk =>
+        this.data.runningContainer.apk_file.includes(apk.id)
+      );
+    } else {
+      this.installedApks = [];
+    }
+    
+    // Clear any previously selected APKs
+    this.selectedApks = [];
+    
+    // Log for debugging
+    this.logger.msg("1", "Installed APKs loaded:", "modify-emulator", {
+      count: this.installedApks.length,
+      apkIds: this.data.runningContainer?.apk_file || [],
+      apkNames: this.installedApks.map(apk => apk.name)
+    });
   }
 
   onSelectApp(event: any): void {
     const selectedApp = event.value;
     if (selectedApp && !this.selectedApks.some(apk => apk.id === selectedApp.id)) {
+      // Check if APK is already installed
+      const isAlreadyInstalled = this.installedApks.some(apk => apk.id === selectedApp.id);
+      if (isAlreadyInstalled) {
+        this.snack.open(
+          `APK "${selectedApp.name}" is already installed`,
+          'OK',
+          { duration: 3000 }
+        );
+        this.editMobileForm.get('selectedApp')?.reset();
+        return;
+      }
+      
       this.selectedApks.push(selectedApp);
+      this.editMobileForm.get('selectedApp')?.reset();
     }
   }
 
@@ -154,7 +183,12 @@ export class ModifyEmulatorDialogComponent {
   }
 
   isApkSelected(apk: any): boolean {
-    return this.selectedApks.some(selected => selected.name === apk.name);
+    // Check if APK is selected for installation
+    const isSelected = this.selectedApks.some(selected => selected.id === apk.id);
+    // Check if APK is already installed
+    const isInstalled = this.installedApks.some(installed => installed.id === apk.id);
+    
+    return isSelected || isInstalled;
   }
 
   closeDialog(): void {
@@ -162,52 +196,94 @@ export class ModifyEmulatorDialogComponent {
   }
 
   saveChanges(): void {
+    this.isSaving = true;
+    
     const selectedApp = this.editMobileForm.value.selectedApp;
     const isShared = this.editMobileForm.value.shared;
     const currentSharedStatus = this.data.runningContainer?.shared;
 
-    if (this.editMobileForm.valid && currentSharedStatus !== isShared) {
+    // Check if there are any changes to save
+    const hasSharedChanges = currentSharedStatus !== isShared;
+    const hasNewApks = this.selectedApks.length > 0;
+    
+    // If no changes, just close the dialog without updating
+    if (!hasSharedChanges && !hasNewApks) {
+      this.isSaving = false;
+      this.dialogRef.close({ updatedContainer: this.data.runningContainer });
+      return;
+    }
+
+    if (this.editMobileForm.valid && hasSharedChanges) {
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
-        .subscribe((updatedContainer: any) => {
-          // Install APKs sequentially
-          const installApks = this.selectedApks.reduce((obs, apk) => {
-            return obs.pipe(
-              concatMap(() => this.installAPK(apk.id, updatedContainer))
-            );
-          }, of(null));
+        .subscribe({
+          next: (updatedContainer: any) => {
+          // Install APKs sequentially if there are new ones
+          if (hasNewApks) {
+            const installApks = this.selectedApks.reduce((obs, apk) => {
+              return obs.pipe(
+                concatMap(() => this.installAPK(apk.id, updatedContainer))
+              );
+            }, of(null));
 
-          installApks.subscribe({
-            next: () => {
-              // Update apk_file list after all installations
-              updatedContainer.apk_file = this.selectedApks.map(apk => apk.id);
-              this.dialogRef.close({ updatedContainer });
-            },
-            error: (error) => {
-              console.error('Error installing APKs:', error);
-              this.snack.open("Error installing one or more APKs", "OK");
-            }
-          });
+            installApks.subscribe({
+              next: () => {
+                // Update apk_file list after all installations
+                // Preserve existing APKs and add new ones
+                const existingApks = updatedContainer.apk_file || [];
+                const newApkIds = this.selectedApks.map(apk => apk.id);
+                updatedContainer.apk_file = this.mergeApkIds(existingApks, newApkIds);
+                this.isSaving = false;
+                this.dialogRef.close({ updatedContainer });
+              },
+              error: (error) => {
+                console.error('Error installing APKs:', error);
+                this.isSaving = false;
+                this._cdr.detectChanges();
+              }
+            });
+          } else {
+            // Only shared status changed, no new APKs
+            this.isSaving = false;
+            this.dialogRef.close({ updatedContainer });
+          }
+        },
+                  error: (error) => {
+            console.error('Error updating shared status:', error);
+            this.isSaving = false;
+            this._cdr.detectChanges();
+          }
         });
     } else {
-      // Install APKs sequentially
-      const installApks = this.selectedApks.reduce((obs, apk) => {
-        return obs.pipe(
-          concatMap(() => this.installAPK(apk.id, this.data.runningContainer))
-        );
-      }, of(null));
+      // Only installing new APKs, shared status unchanged
+      if (hasNewApks) {
+        const installApks = this.selectedApks.reduce((obs, apk) => {
+          return obs.pipe(
+            concatMap(() => this.installAPK(apk.id, this.data.runningContainer))
+          );
+        }, of(null));
 
-      installApks.subscribe({
-        next: () => {
-          // Update apk_file list after all installations
-          this.data.runningContainer.apk_file = this.selectedApks.map(apk => apk.id);
-          this.dialogRef.close({ updatedContainer: this.data.runningContainer });
-        },
-        error: (error) => {
-          console.error('Error installing APKs:', error);
-          this.snack.open("Error installing one or more APKs", "OK");
-        }
-      });
+        installApks.subscribe({
+          next: () => {
+            // Update apk_file list after all installations
+            // Preserve existing APKs and add new ones
+            const existingApks = this.data.runningContainer.apk_file || [];
+            const newApkIds = this.selectedApks.map(apk => apk.id);
+            this.data.runningContainer.apk_file = this.mergeApkIds(existingApks, newApkIds);
+            this.isSaving = false;
+            this.dialogRef.close({ updatedContainer: this.data.runningContainer });
+          },
+          error: (error) => {
+            console.error('Error installing APKs:', error);
+            this.isSaving = false;
+            this._cdr.detectChanges();
+          }
+        });
+      } else {
+        // No changes at all
+        this.isSaving = false;
+        this.dialogRef.close({ updatedContainer: this.data.runningContainer });
+      }
     }
   }
 
@@ -228,51 +304,94 @@ export class ModifyEmulatorDialogComponent {
           this._cdr.detectChanges();
           return response;
         } else {
-          this.snack.open(response.message, 'OK');
-          throw new Error(response.message);
+          // Check if the error is due to APK already being installed
+          const errorMessage = response.message || 'Unknown error occurred';
+          if (errorMessage.toLowerCase().includes('already installed') || 
+              errorMessage.toLowerCase().includes('already exists')) {
+            this.snack.open(`APK is already installed in the mobile`, 'OK');
+            // Still return success since the APK is already there
+            return response;
+          } else {
+            this.snack.open(errorMessage, 'OK');
+            throw new Error(errorMessage);
+          }
         }
       }),
       catchError(error => {
         console.error('An error occurred while installing APK', error);
-        this.snack.open('Failed to install APK', 'OK');
+        
+        // Check if it's a network error or server error
+        let errorMessage = 'Failed to install APK';
+        if (error.status === 0) {
+          errorMessage = 'Network error: Unable to connect to server';
+        } else if (error.status >= 500) {
+          errorMessage = 'Server error: Please try again later';
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snack.open(errorMessage, 'OK', {
+          panelClass: 'high-z-index-snackbar'
+        });
         return throwError(() => error);
       })
     );
   }
 
-  // Not implementated yet in backend
-  // removeInstalledApk(apk: any): void {
-  //   let updatedApkList = this.data.runningContainer.apk_file.filter(id => id !== apk.id);
-  //   let updateData = { apk_file: apk.id };
+  // Remove installed APK
+  removeInstalledApk(apk: any): void {
+    if (!apk.id) {
+      console.error("APK ID is missing!", apk);
+      return;
+    }
 
-  //   if (!apk.id) {
-  //     console.error("APK ID is missing!", apk);
-  //     return;
-  //   }
+    this.isRemovingApk[apk.id] = true;
 
-  //   this.isRemovingApk[apk.id] = true;
+    let updateData = { apk_file_remove: apk.id };
 
-  //   this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
-  //     (response: any) => {
-  //       if (response && response.containerservice) {
-  //         this.snack.open(`APK "${apk.name}" uninstalled successfully`, 'OK');
-  //         this.data.runningContainer.apk_file = updatedApkList;
-  //         this.installedApks = this.data.uploadedAPKsList.filter(apk =>
-  //           updatedApkList.includes(apk.id)
-  //         );
-  //         this._cdr.detectChanges();
-  //       } else {
-  //         this.isRemovingApk[apk.id] = false;
-  //         this.snack.open(response.message, 'OK');
-  //       }
-  //     },
-  //     error => {
-  //       this.isRemovingApk[apk.id] = false;
-  //       console.error('Error removing APK:', error);
-  //       this.snack.open('Failed to remove APK', 'OK');
-  //     }
-  //   );
-  // }
+    this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe({
+      next: (response: any) => {
+        if (response && response.containerservice) {
+          this.snack.open(`APK "${apk.name}" uninstalled successfully`, 'OK');
+          
+          // Update local data
+          this.data.runningContainer = response.containerservice;
+          
+          // Update installed APKs list
+          this.installedApks = this.data.uploadedAPKsList.filter(apk =>
+            this.data.runningContainer.apk_file.includes(apk.id)
+          );
+          
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message || 'Failed to uninstall APK', 'OK');
+        }
+        this.isRemovingApk[apk.id] = false;
+      },
+      error: (error) => {
+        this.isRemovingApk[apk.id] = false;
+        console.error('Error removing APK:', error);
+        
+        // Enhanced error handling
+        let errorMessage = 'Failed to remove APK';
+        if (error.status === 0) {
+          errorMessage = 'Network error: Unable to connect to server';
+        } else if (error.status >= 500) {
+          errorMessage = 'Server error: Please try again later';
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snack.open(errorMessage, 'OK', {
+          panelClass: 'high-z-index-snackbar'
+        });
+      }
+    });
+  }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     let updateData = { shared: isShared.checked };
@@ -301,17 +420,44 @@ export class ModifyEmulatorDialogComponent {
 
   importClipboard(androidVersion: string) {
     navigator.clipboard.writeText(androidVersion).then(() => {
-    this.isIconActive[androidVersion] = true;
-    this._cdr.detectChanges();
-    setTimeout(() => {
-      this.isIconActive[androidVersion] = false;
-      this._cdr.detectChanges();
-    }, 400);
-    this.snack.open('Text copied to clipboard', 'Close');
-    }).catch(err => {
-      console.error('Error copying: ', err);
-      this.snack.open('Error copying text', 'Close');
+      this.isIconActive[androidVersion] = true;
+      setTimeout(() => {
+        this.isIconActive[androidVersion] = false;
+        this._cdr.detectChanges();
+      }, 3000);
     });
+  }
+
+  openNoVNC(): void {
+    if (this.data.runningContainer && this.data.runningContainer.service_id) {
+      // Check if container is in a valid state for noVNC
+      if (this.data.runningContainer.service_status === 'Stopped' || 
+          this.data.runningContainer.service_status === 'Pausing' || 
+          this.data.runningContainer.service_status === 'Restarting') {
+        this.snack.open('Mobile device is not ready for noVNC connection', 'OK', { duration: 3000 });
+        return;
+      }
+      
+      // Use the same URL format as the main component
+      const complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${this.data.runningContainer.service_id}`;
+      window.open(complete_url, '_blank');
+      
+      this.snack.open('Opening noVNC in a new tab...', 'OK', { duration: 2000 });
+    } else {
+      this.snack.open('Mobile device not available for noVNC', 'OK', { duration: 3000 });
+    }
+  }
+
+  /**
+   * Merges existing APK IDs with new ones, avoiding duplicates
+   * @param existingApks Array of existing APK IDs
+   * @param newApkIds Array of new APK IDs to add
+   * @returns Array with merged APK IDs without duplicates
+   */
+  private mergeApkIds(existingApks: any[], newApkIds: number[]): any[] {
+    const existingSet = new Set(existingApks);
+    newApkIds.forEach(id => existingSet.add(id));
+    return Array.from(existingSet);
   }
 
 }

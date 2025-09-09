@@ -1,2 +1,13 @@
 node_modules
 dist
+.angular
+.git
+.github
+.vscode
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.output.log
+.cursorrules

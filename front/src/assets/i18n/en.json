@@ -21,7 +21,7 @@
         "feature": "Click to define a new feature for your application. (F)",
         "home": "We have on this section the co.meta tutorial, help and documentation.",
         "data_driven_sidenav": "Execution of tests based on the variables provided by the excel sheet",
-        "variables_sidenav": "In this section, we can add or edit variables among other functionalities",
+        "variables_sidenav": "In this section, we can add or edit variables among other functionalities.",
         "team_drives": "Upcoming feature",
         "recent": "The last tests you have run",
         "starred": "Upcoming feature",
@@ -42,7 +42,7 @@
         "generate_dataset": "Create a dataset from your web application",
         "continue_on_failure_global": "If enabled, the feature's steps will continue even in the presence of errors; if disabled, individual step settings take precedence",
         "explanation": "Enabling this option allows other users to help you on this feature",
-        "edit_variable": "In this section, we can add or edit variables among other functionalities",
+        "edit_variable": "In this section, we can add or edit variables among other functionalities. The button position will be changed soon!",
         "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
         "maximum_notification_on_error": "If checked, please set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails.",
         "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
@@ -62,6 +62,7 @@
         "skipped": "# Skipped",
         "time": "Execution time",
         "browser": "Browser",
+        "browsers": "Browsers",
         "pixel": "Pixel difference"
     },
     "need_help": {
@@ -95,7 +96,10 @@
     "regions": "Regions",
     "products": "Products",
     "continue_on_failure": {
-        "tooltip": "This checkbox is disabled because Continue on failure is already enabled on a top item."
+        "tooltip": "This checkbox is disabled. To enable it, go to your Profile Settings and configure the 'Continue on failure' option."
+    },
+    "record_video": {
+        "tooltip": "This checkbox is disabled. To enable it, go to your Profile Settings and configure the 'Record video' option."
     },
     "save": "Marks the current item as saved.",
     "unsave": "Unmarks the current item as saved.",
@@ -191,7 +195,7 @@
     "mobile_presentation": "Run mobile tests based on automation configurations",
     "emulator_mobile": "Run mobile tests using specified automation configurations",
     "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
-    "close_emulator": "Stop the mobile emulator",
+    "close_emulator": "Close the mobile emulator",
     "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
     "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
     "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time.",
@@ -224,10 +228,6 @@
     "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
     "not_starred": "Add to favorites"
   },
-  "step_editor": {
-    "feature_link_tooltip": "Click to navigate to the feature",
-    "feature_link_not_found": "Feature not found"
-  },
   "live_steps": {
     "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
     "button_when_starting": "Wait until the feature is started"
@@ -236,9 +236,18 @@
     "all_steps": "Select all steps",
     "all_screenshots": "Select all screenshots",
     "all_compare": "Select all compare",
-    "compare_enabled": "Enabling compare automatically activates screenshot",
-    "screenshot_disabled": "Disabling this checkbox implies disabling the compare checkbox",
+    "compare_enabled": "Enabling compare automatically activates screenshot. Use Shift+Click to select multiple steps.",
+    "screenshot_disabled": "Disabling this checkbox implies disabling the compare checkbox. Use Shift+Click to select multiple steps.",
     "feature_link_tooltip": "Click to navigate to the feature",
-    "feature_link_not_found": "Feature not found"
+    "feature_link_not_found": "Feature not found",
+    "select_all_steps": "Select or deselect all steps in the list. Selected steps can be copied, deleted, or used for bulk actions. This does not affect other checkboxes like Enable, Screenshot, or Compare.",
+    "copy_selected_steps": "Copy all selected steps to the clipboard so you can paste them elsewhere in the list.",
+    "paste_steps_here": "Paste the steps you have copied at the current position in the list.",
+    "delete_selected_steps": "Delete all selected steps from the list",
+    "select_step_tooltip": "Select this step for bulk operations (copy, delete). Use Shift+Click to select multiple steps."
+  },
+  "mobile_validation": {
+    "ignore_tooltip": "If you ignore, the changes will be saved with the current mobile reference errors",
+    "correct_tooltip": "Navigate to the problematic step to fix the mobile reference error"
   }
 }

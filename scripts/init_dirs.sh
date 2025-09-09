@@ -40,6 +40,7 @@ dirs=(
     "$BASE_DIR/front/apache2/modules"
     "$BASE_DIR/cometa/screenshots"
     "$BASE_DIR/cometa/videos"
+    "$BASE_DIR/cometa/backups"
     "$BASE_DIR/cometa"
     "$BASE_DIR/cometa/pdf"
     "$BASE_DIR/cometa/downloads"

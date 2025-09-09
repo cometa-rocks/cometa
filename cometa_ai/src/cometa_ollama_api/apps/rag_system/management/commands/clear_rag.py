@@ -51,9 +51,7 @@ class Command(BaseCommand):
                     DocumentChunk.objects.all().delete()
                     Document.objects.all().delete()
                     
-                    self.stdout.write(self.style.SUCCESS(
-                        f'Successfully deleted {document_count} documents and {chunk_count} chunks from the database'
-                    ))
+                    logger.info(f'Successfully deleted {document_count} documents and {chunk_count} chunks from the database')
             except Exception as e:
                 self.stderr.write(self.style.ERROR(f'Error clearing database records: {e}'))
                 return
@@ -65,20 +63,16 @@ class Command(BaseCommand):
                 if force:
                     chroma_path = os.environ.get('CHROMA_PATH', DEFAULT_CHROMA_PATH)
                     if os.path.exists(chroma_path):
-                        self.stdout.write(f'Forcibly removing ChromaDB directory: {chroma_path}')
+                        logger.info(f'Forcibly removing ChromaDB directory: {chroma_path}')
                         try:
                             # Remove directory and all contents
                             shutil.rmtree(chroma_path)
                             # Recreate empty directory
                             os.makedirs(chroma_path, exist_ok=True)
-                            self.stdout.write(self.style.SUCCESS(f'Completely reset ChromaDB directory'))
+                            logger.info(f'Completely reset ChromaDB directory')
                         except OSError as e:
                             if e.errno == 16:  # Device or resource busy
-                                self.stdout.write(self.style.WARNING(
-                                    f'Device or resource busy error detected. '
-                                    f'This is normal if ChromaDB directory is mounted as a volume. '
-                                    f'Will proceed with collection deletion instead.'
-                                ))
+                                logger.warning('Device or resource busy error detected. This is normal if ChromaDB directory is mounted as a volume. Will proceed with collection deletion instead.')
                             else:
                                 self.stderr.write(self.style.ERROR(f'Error forcibly clearing ChromaDB directory: {e}'))
                 
@@ -90,16 +84,16 @@ class Command(BaseCommand):
                 try:
                     vector_store = VectorStore()
                     count = vector_store.get_collection_count()
-                    self.stdout.write(f'Verified new empty collection created with {count} documents')
+                    logger.info(f'Verified new empty collection created with {count} documents')
                 except Exception as verify_error:
                     self.stderr.write(self.style.ERROR(
                         f'Could not verify collection recreation: {verify_error}. '
                         f'Try running with --force option.'
                     ))
                     
-                self.stdout.write(self.style.SUCCESS('Successfully cleared vector store'))
+                logger.info('Successfully cleared vector store')
             except Exception as e:
                 self.stderr.write(self.style.ERROR(f'Error clearing vector store: {e}'))
                 return
         
-        self.stdout.write(self.style.SUCCESS('RAG system successfully cleared')) 
+        logger.info('RAG system successfully cleared') 

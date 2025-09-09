@@ -46,7 +46,10 @@
 }
 
 .table-wrapper {
-  height: 40vh;
+  // Height of the table wrapper, put 35px to not interact with the buttons add variables when resize th window dialog
+  height: 35vh;
+  // Separation with column show button 
+  margin-top: 15px;
   overflow-y: auto;
   scroll-behavior: smooth;
 
@@ -125,6 +128,11 @@
   }
 }
 
+.amv_add_variable {
+  margin-left: 15px;
+  font-weight: bold;
+}
+
 .add-variable {
   display: inline-block;
 }
@@ -183,7 +191,7 @@ p.inuse {
   }
 
   .add, .button-column{
-    margin-bottom: 10px;
+    // margin-bottom: 10px;//Conflicts with pagination-mobile for the Close button
     width: auto;
   }
 }
@@ -204,4 +212,8 @@ p.inuse {
   margin: 0;
   padding: 8px 0;
   width: 100%;
+}
+
+.not-feature {
+  height: 45px;
 }

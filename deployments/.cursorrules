@@ -1,0 +1,287 @@
+# Cometa Deployment & Infrastructure - Cursor Rules
+
+## Project Overview
+This directory contains deployment configurations, infrastructure as code, and operational components for the Cometa automated testing and monitoring platform. These components handle containerization, orchestration, and deployment automation.
+
+## Infrastructure as Code Standards
+
+### Docker Guidelines
+- Use multi-stage builds for optimization
+- Implement proper layer caching
+- Use specific version tags for base images
+- Minimize image sizes
+- Implement proper security scanning
+
+### Docker Compose
+- Use environment-specific configurations
+- Implement proper service dependencies
+- Use named volumes for data persistence
+- Implement proper networking
+- Use health checks for services
+
+### Kubernetes (when applicable)
+- Use proper resource limits and requests
+- Implement proper service discovery
+- Use ConfigMaps and Secrets appropriately
+- Implement proper health checks
+- Use proper namespace organization
+
+## Configuration Management
+
+### Environment Configuration
+- Use environment variables for configuration
+- Never commit sensitive data
+- Use different configs for different environments
+- Implement proper configuration validation
+- Use configuration management tools
+
+### Secrets Management
+- Use proper secrets management tools
+- Never store secrets in version control
+- Implement proper secret rotation
+- Use encrypted secrets storage
+- Implement proper access controls
+
+### Configuration Files
+- Use YAML for configuration files
+- Implement proper validation
+- Use consistent naming conventions
+- Document all configuration options
+- Implement configuration inheritance
+
+## Deployment Strategies
+
+### Blue-Green Deployment
+- Implement proper traffic switching
+- Use health checks for validation
+- Implement rollback procedures
+- Monitor deployment success
+- Test deployments thoroughly
+
+### Rolling Updates
+- Implement proper update strategies
+- Use health checks for validation
+- Implement rollback procedures
+- Monitor update progress
+- Handle update failures gracefully
+
+### Canary Deployments
+- Implement proper traffic splitting
+- Monitor canary performance
+- Implement automatic rollback
+- Use proper metrics for validation
+- Test canary deployments thoroughly
+
+## Monitoring & Observability
+
+### Infrastructure Monitoring
+- Monitor resource usage and performance
+- Track service health and availability
+- Monitor network performance
+- Implement proper alerting
+- Use monitoring dashboards
+
+### Application Monitoring
+- Monitor application performance
+- Track error rates and types
+- Monitor API response times
+- Implement proper logging
+- Use APM tools when appropriate
+
+### Logging Strategy
+- Implement structured logging
+- Use proper log levels
+- Implement log aggregation
+- Handle log rotation
+- Monitor log performance
+
+## Security & Compliance
+
+### Container Security
+- Use minimal base images
+- Implement proper user permissions
+- Scan images for vulnerabilities
+- Use proper network policies
+- Implement proper access controls
+
+### Network Security
+- Use proper network segmentation
+- Implement firewall rules
+- Use secure communication protocols
+- Monitor network traffic
+- Implement proper SSL/TLS
+
+### Access Control
+- Implement proper authentication
+- Use role-based access control
+- Implement proper authorization
+- Monitor access patterns
+- Implement audit logging
+
+## Performance & Scalability
+
+### Resource Management
+- Implement proper resource limits
+- Use horizontal scaling when appropriate
+- Implement proper load balancing
+- Monitor resource usage
+- Optimize resource allocation
+
+### Caching Strategy
+- Implement proper caching layers
+- Use appropriate cache backends
+- Implement cache invalidation
+- Monitor cache performance
+- Use CDN for static assets
+
+### Database Optimization
+- Use proper connection pooling
+- Implement proper indexing
+- Monitor query performance
+- Use read replicas when appropriate
+- Implement proper backup strategies
+
+## Backup & Recovery
+
+### Data Backup
+- Implement automated backup systems
+- Use proper backup storage
+- Test backup restoration
+- Monitor backup success
+- Implement backup verification
+
+### Disaster Recovery
+- Implement disaster recovery plans
+- Test recovery procedures
+- Document recovery steps
+- Monitor recovery readiness
+- Implement proper failover
+
+### Configuration Backup
+- Backup configuration files
+- Version control configurations
+- Document configuration changes
+- Implement configuration rollback
+- Monitor configuration health
+
+## CI/CD Pipeline
+
+### Continuous Integration
+- Use GitLab CI for automation
+- Implement automated testing
+- Use proper build caching
+- Monitor build performance
+- Implement proper notifications
+
+### Continuous Deployment
+- Automate deployment processes
+- Implement proper validation
+- Use proper deployment strategies
+- Monitor deployment success
+- Implement rollback procedures
+
+### Quality Gates
+- Implement proper testing
+- Use code quality checks
+- Implement security scanning
+- Use performance testing
+- Monitor quality metrics
+
+## Environment Management
+
+### Development Environment
+- Use Docker Compose for local development
+- Implement proper service dependencies
+- Use local configuration files
+- Implement proper debugging tools
+- Use development-specific settings
+
+### Staging Environment
+- Mirror production configuration
+- Use production-like data
+- Implement proper testing
+- Monitor staging performance
+- Use staging for validation
+
+### Production Environment
+- Use proper security measures
+- Implement proper monitoring
+- Use production-grade infrastructure
+- Implement proper backup
+- Monitor production health
+
+## Operational Procedures
+
+### Deployment Procedures
+- Document deployment steps
+- Implement proper validation
+- Use deployment checklists
+- Monitor deployment progress
+- Handle deployment failures
+
+### Maintenance Procedures
+- Plan maintenance windows
+- Implement proper notifications
+- Use maintenance checklists
+- Monitor maintenance progress
+- Validate maintenance success
+
+### Incident Response
+- Document incident procedures
+- Implement proper escalation
+- Use incident tracking
+- Monitor incident resolution
+- Document lessons learned
+
+## Documentation & Knowledge Management
+
+### Infrastructure Documentation
+- Document infrastructure components
+- Maintain network diagrams
+- Document configuration details
+- Keep deployment guides updated
+- Document operational procedures
+
+### Runbooks
+- Maintain operational runbooks
+- Document troubleshooting steps
+- Keep procedures updated
+- Include contact information
+- Document escalation procedures
+
+### Change Management
+- Document all changes
+- Use proper change tracking
+- Implement change approval
+- Monitor change impact
+- Document change results
+
+## Best Practices
+
+### Automation
+- Automate repetitive tasks
+- Use proper scripting languages
+- Implement proper error handling
+- Monitor automation success
+- Document automation procedures
+
+### Testing
+- Test all changes thoroughly
+- Use proper testing environments
+- Implement automated testing
+- Monitor test results
+- Document testing procedures
+
+### Monitoring
+- Monitor all critical systems
+- Implement proper alerting
+- Use monitoring dashboards
+- Track performance metrics
+- Monitor security events
+
+### Security
+- Implement security best practices
+- Use proper access controls
+- Monitor security events
+- Implement security scanning
+- Follow security guidelines  

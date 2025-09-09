@@ -4,7 +4,8 @@ FROM node:18 AS build
 WORKDIR /app
 RUN apt-get update 
 COPY package*.json ./
-COPY . ./
+# copy everything from the current directory to the app directory except the .git, node_modules,  folder
+COPY . ./ 
 RUN npm ci --legacy-peer-deps 
 RUN npx ng build -c production 
 
@@ -30,8 +31,8 @@ RUN ls -la /app/appium-inspector/dist-browser/
 RUN ls -la /app/appium-inspector/dist-browser/locales/
 RUN ls
 
-# Stage 2: Serve the application with Nginx
-FROM httpd:2.4.48
+# Stage 2: Serve the application with Apache
+FROM httpd:2.4.64
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 
@@ -39,8 +40,8 @@ SHELL ["/bin/bash", "-c"]
 
 
 # Create a non-root user 'cometa'
-RUN groupadd -g 472 cometa \
-    && useradd -u 472 -g cometa -d /home/cometa -s /bin/bash cometa
+RUN groupadd -g 1472 cometa \
+&& useradd -u 1472 -g cometa -d /home/cometa -s /bin/bash cometa
 
 # Create necessary directories and set ownership/permissions
 RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
@@ -48,19 +49,20 @@ RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
     && chown -R cometa:cometa /code /screenshots /usr/local/apache2 /share/apache2/conf \
     && chmod -R 755 /code /screenshots /usr/local/apache2 /share/apache2/conf
 
-# Copy build artifacts and configuration files
-COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
-COPY --chown=cometa:cometa apache-conf/ /usr/local/apache2/conf/
-COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/
+# # Copy build artifacts and configuration files
+# COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs 
+# # COPY --chown=cometa:cometa apache-conf/ /usr/local/apache2/conf/
+# COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/
 COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
 
 WORKDIR /code/front
 
 # Copy the Angular build output to the Nginx HTML directory
-COPY --from=build /app/dist/ /usr/local/apache2/htdocs
-COPY ./apache2/conf /code/front/apache2/cometa_conf
-COPY ./apache2/metadata /code/front/apache2/metadata
-COPY ./apache2/modules /code/front/apache2/modules
+COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
+# COPY --from=build --chown=cometa:cometa /app/dist/ /usr/local/apache2/htdocs 
+COPY --chown=cometa:cometa ./apache2/conf/*.conf /usr/local/apache2/conf
+COPY --chown=cometa:cometa ./apache2/metadata/* /code/front/apache2/metadata
+COPY --chown=cometa:cometa ./apache2/modules /usr/local/apache2/modules
 
 RUN mkdir -p /usr/local/apache2/htdocs/mobile/inspector
 # Copy appium Inspector code from inspector build
@@ -69,20 +71,21 @@ COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/d
 COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/dist-browser/index.html /usr/local/apache2/htdocs/mobile/inspector/index.html
 
 RUN apt-get update
-RUN apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget telnet
-RUN apt-get install -y autoconf automake libtool
-RUN apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
-RUN apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
-RUN apt-get install -y libapache2-mod-security2
+# Install Apache and most dependencies
+RUN apt-get install -y apache2 libapache2-mod-auth-openidc libcjose0 libjansson4 libcurl4 zlib1g
+# Install libssl1.1 from Debian 11 for mod_auth_openidc compatibility
+RUN apt-get install -y wget && \
+    wget -q http://deb.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1w-0+deb11u1_amd64.deb && \
+    rm -f libssl1.1_1.1.1w-0+deb11u1_amd64.deb
+RUN apt-get install -y libapache2-mod-security2 curl vim iputils-ping telnet
 
 # Set permissions and ownership for Apache logs
 RUN touch /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log \
     && chown -R www-data:www-data /usr/local/apache2/logs \
     && chmod -R 755 /usr/local/apache2/logs
 
-
-COPY start_server.sh start_server.sh
-COPY s_apache_conf.sh s_apache_conf.sh
+COPY --chown=cometa:cometa start_server.sh start_server.sh
 
 RUN chown -R www-data:www-data /usr/local/apache2/logs
 RUN chmod -R 777 /usr/local/apache2/logs
@@ -92,18 +95,13 @@ RUN touch /usr/local/apache2/logs/access.log
 
 # # Ensure start.sh has execution permissions and run it
 RUN chmod +x ./start_server.sh
-RUN chmod +x ./s_apache_conf.sh
-# Expose port 80
-EXPOSE 80
 
 USER cometa
 
 EXPOSE 80 443
 
 # Start Nginx server
-ENTRYPOINT ["start_server.sh"]
-
-
+ENTRYPOINT ["bash", "/code/front/start_server.sh"]
 
 
 # Command for multi-architecture build:

@@ -31,11 +31,11 @@ class MobileViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer,)
     response_manager = ResponseManager("Mobile")
 
-    # @require_permissions("manage_house_keeping_logs")
+    @require_permissions("manage_mobiles")
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, args, kwargs)
 
-    # @require_permissions("manage_house_keeping_logs")
+    @require_permissions("manage_mobiles")
     def list(self, request, *args, **kwargs):
         filters = {key: value[0] if isinstance(value, list) else value  for key, value in request.query_params.items()}
         mobiles = Mobile.objects.filter(**filters)
@@ -44,7 +44,7 @@ class MobileViewSet(viewsets.ModelViewSet):
         )
         # return super().list(request, args, kwargs)
 
-    # @require_permissions("manage_house_keeping_logs")
+    @require_permissions("manage_mobiles")
     def update(self, request, *args, **kwargs):
         Mobile.objects.all().delete()
         logger.info("Deleted all the mobiles")
@@ -71,7 +71,8 @@ class MobileViewSet(viewsets.ModelViewSet):
 
 
 @csrf_exempt
-def parseCometaMobiles(request):
+@require_permissions("manage_mobiles")
+def parseCometaMobiles(request, *args, **kwargs):
     mobilesFile = '/opt/code/defaults/mobiles.json'
     
     # Check if the file exists

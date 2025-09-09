@@ -36,9 +36,7 @@ class Command(BaseCommand):
         
         # Clear existing data if requested
         if clear_first:
-            self.stdout.write("Clearing existing RAG data...")
             call_command('clear_rag', '--force')
-            self.stdout.write(self.style.SUCCESS("RAG data cleared successfully"))
         
         # Load the JSON file
         try:
@@ -47,7 +45,6 @@ class Command(BaseCommand):
         except json.JSONDecodeError as e:
             raise CommandError(f"Invalid JSON file: {e}")
         
-        self.stdout.write(f"Found {len(documents_data)} documents to ingest")
         
         # Create document processor
         processor = DocumentProcessor(
@@ -65,10 +62,9 @@ class Command(BaseCommand):
             description = doc_data.get('description', '')
             
             if not url:
-                self.stdout.write(self.style.WARNING(f"Skipping document '{name}' - missing URL"))
                 continue
             
-            self.stdout.write(f"Processing document: {name} from {url}")
+            logger.info(f"Processing document: {name} from {url}")
             
             try:
                 # Download the document
@@ -109,7 +105,7 @@ class Command(BaseCommand):
                     # Generate embeddings and add to vector store
                     texts = [chunk.content for chunk in chunks]
                     
-                    self.stdout.write(f"Adding {len(chunks)} chunks to vector store...")
+                    logger.info(f"Adding {len(chunks)} chunks to vector store...")
                     
                     # Create metadata
                     metadata = [{
@@ -134,28 +130,24 @@ class Command(BaseCommand):
                     document.chunk_count = len(chunks)
                     document.save()
                     
-                    self.stdout.write(self.style.SUCCESS(f"Successfully processed document: {name}"))
-                    self.stdout.write(self.style.SUCCESS(f"Created {len(chunks)} chunks"))
+                    logger.info(f"Successfully processed document: {name}")
+                    logger.info(f"Created {len(chunks)} chunks")
                     successful += 1
                     
                 else:
                     document.status = Document.STATUS_FAILED
                     document.error_message = "No chunks were created"
                     document.save()
-                    self.stdout.write(self.style.ERROR(f"Failed to process document: {name}"))
                     failed += 1
                     
             except requests.RequestException as e:
-                self.stdout.write(self.style.ERROR(f"Error downloading document from {url}: {e}"))
                 failed += 1
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Error processing document {name}: {e}"))
                 failed += 1
                 
         # Summary
-        self.stdout.write("\n" + "="*50)
-        self.stdout.write(f"Ingestion complete. Successfully processed {successful} documents")
+        logger.info(f"Ingestion complete. Successfully processed {successful} documents")
         if failed > 0:
-            self.stdout.write(self.style.WARNING(f"Failed to process {failed} documents"))
+            logger.warning(f"Failed to process {failed} documents")
         else:
-            self.stdout.write(self.style.SUCCESS("All documents processed successfully")) 
+            logger.info("All documents processed successfully") 

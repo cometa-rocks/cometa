@@ -67,6 +67,13 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import {
+  SimpleAlertData,
+  SimpleAlertDialog,
+} from '@dialogs/simple-alert/simple-alert.component';
+import {
+  MobileValidationErrorDialog,
+} from '@dialogs/mobile-validation-error/mobile-validation-error.component';
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
@@ -91,11 +98,13 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatIconModule } from '@angular/material/icon';
+import { DatePipe } from '@angular/common';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
+import { MatDividerModule } from '@angular/material/divider';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
@@ -121,6 +130,7 @@ import { User } from '@store/actions/user.actions';
     NgIf,
     MatLegacyDialogModule,
     MatExpansionModule,
+    MatDividerModule,
     MatLegacyFormFieldModule,
     MatLegacySelectModule,
     NgFor,
@@ -143,6 +153,7 @@ import { User } from '@store/actions/user.actions';
     StepEditorComponent_1,
     DisableAutocompleteDirective,
     AsyncPipe,
+    DatePipe,
     AmParsePipe,
     AmDateFormatPipe,
     SortByPipe,
@@ -151,7 +162,8 @@ import { User } from '@store/actions/user.actions';
     DraggableWindowModule,
     MobileListComponent,
     FilesManagementComponent,
-    TelegramNotificationHelp
+    TelegramNotificationHelp,
+    MobileValidationErrorDialog
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -188,8 +200,10 @@ export class EditFeature implements OnInit, OnDestroy {
   departmentSettings$: Observable<Department['settings']>;
   variable_dialog_isActive: boolean = false;
 
+
   steps$: Observable<FeatureStep[]>;
 
+  selected_department!: string;
   // next runs an array of next executions
   nextRuns = [];
   // parse error
@@ -297,9 +311,6 @@ export class EditFeature implements OnInit, OnDestroy {
   browserstackBrowsers = new BehaviorSubject<BrowserstackBrowser[]>([]);
 
   // List of default values to be displayed on the feature information selectors
-  selected_department;
-  selected_application;
-  selected_environment;
   department;
   variables!: VariablePair[];
 
@@ -441,6 +452,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private logger: LogService,
   ) {
 
+
     this.featureId = this.data.feature.feature_id;
 
     this.features = [
@@ -452,6 +464,7 @@ export class EditFeature implements OnInit, OnDestroy {
     ];
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.logger.msg('4', 'inputFocus | Boolean Received in Parent', 'edit-feature', isFocused, );
       this.inputFocus = isFocused;
     });
 
@@ -553,6 +566,8 @@ export class EditFeature implements OnInit, OnDestroy {
         ]),
       ],
     });
+
+
     // Gets the currently active route
     let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
     // Initialize the departments, applications and environments
@@ -563,19 +578,49 @@ export class EditFeature implements OnInit, OnDestroy {
     this.environments$ = this._store.selectSnapshot(EnvironmentsState);
     // Initialize the values selected by default on the mat selector
     // Selected the department where the user is currently at or the first available department, only used when creating a new testcase
-    this.selected_department =
-      route.length > 0 ? route[0].name : this.departments$[0].department_name;
-    this.selected_application = this.applications$[0].app_name;
-    this.selected_environment = this.environments$[0].environment_name;
+    // Set default values in the form instead of using selected_* variables
+    const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0].department_name;
+    const defaultApplication = this.applications$[0].app_name;
+    const defaultEnvironment = this.environments$[0].environment_name;
     
     // Add reactive behavior for notification controls
     this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
-      if (!sendNotificationEnabled) {
+      if (sendNotificationEnabled) {
+        // When send_notification is enabled, automatically check both child options
+        this.featureForm.get('send_mail').setValue(true, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(true, { emitEvent: false });
+      } else {
         // When send_notification is disabled, also disable child options
         this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
         this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
       }
     });
+
+    // Add reactive behavior for child notification controls
+    // When both child options are unchecked, also uncheck the parent
+    const sendMailControl = this.featureForm.get('send_mail');
+    const sendTelegramControl = this.featureForm.get('send_telegram_notification');
+    
+    // Subscribe to both child controls
+    sendMailControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+    
+    sendTelegramControl.valueChanges.subscribe(() => {
+      this.updateParentNotificationState();
+    });
+  }
+
+  // Update parent notification state based on child checkboxes
+  private updateParentNotificationState(): void {
+    const sendMailValue = this.featureForm.get('send_mail').value;
+    const sendTelegramValue = this.featureForm.get('send_telegram_notification').value;
+    
+    // If both child options are unchecked, uncheck the parent
+    if (!sendMailValue && !sendTelegramValue) {
+      this.featureForm.get('send_notification').setValue(false, { emitEvent: false });
+    }
+
   }
 
   // Save the state of the expansion panel - Now generic for all features
@@ -712,7 +757,7 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
     } catch (error) {
-      console.error('Error loading panel states:', error);
+      console.error('Error saving panel state:', error);
     }
   }
 
@@ -765,7 +810,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error handling expansion change:', error);
+      console.error('Error saving panel state:', error);
     }
   }
 
@@ -804,8 +849,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
-    return this._store.dispatch(new StepDefinitions.ClearNewFeature());
-    this.inputFocusSubscription.unsubscribe();
+    this._store.dispatch(new StepDefinitions.ClearNewFeature());
+    if (this.inputFocusSubscription) {
+      this.inputFocusSubscription.unsubscribe();
+    }
     if (this.notificationSubscription) {
       this.notificationSubscription.unsubscribe();
     }
@@ -1027,15 +1074,69 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Open variables popup, only if a environment is selected (see HTML)
   openStartEmulatorScreen() {
-    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
-    const departmentId = this.departments$.find(
-      dep =>
-        dep.department_name === this.featureForm.get('department_name').value
-    ).department_id;
+    // Check if form values are properly set
+    const departmentName = this.featureForm.get('department_name').value;
+    const environmentName = this.featureForm.get('environment_name').value;
+    
+    if (!departmentName || !environmentName) {
+      this._snackBar.open('Please select both department and environment first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department is available
+    if (!this.department) {
+      this._snackBar.open('Please select a department first', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Check if department has files property
+    if (!this.department.files) {
+      this._snackBar.open('No files available for this department', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
+    
+    // Check if departments array is available
+    if (!this.departments$ || this.departments$.length === 0) {
+      this._snackBar.open('No departments available', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
+    // Find department ID from departments array
+    const selectedDepartment = this.departments$.find(
+      dep => dep.department_name === this.featureForm.get('department_name').value
+    );
+    
+    if (!selectedDepartment) {
+      this._snackBar.open('Department not found', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+      return;
+    }
+
     this._dialog
       .open(MobileListComponent, {
         data: {
-          department_id: departmentId,
+          department_id: selectedDepartment.department_id,
           uploadedAPKsList: uploadedAPKsList
         },
         panelClass: 'mobile-emulator-panel',
@@ -1056,6 +1157,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   handleBrowserChange(browsers) {
+    this.logger.msg('4', 'handleBrowserChange', 'edit-feature');
     this.browserstackBrowsers.next(browsers);
   }
 
@@ -1063,13 +1165,23 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+
+     // Check if mobile validation dialog is open using DOM query
+     const mobileValidationDialog = document.querySelector('mobile-validation-error') as HTMLElement | null;
+     if (mobileValidationDialog) {
+       // Mobile validation dialog is open – don't process ESC in EditFeature
+       return;
+     }
+
     // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
     if (event.key === 'Escape') {
       const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      
       if (contextMenuEl && contextMenuEl.style.display !== 'none') {
         // A context menu is open – don't process ESC in EditFeature
         return;
       }
+      
     }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
@@ -1080,12 +1192,15 @@ export class EditFeature implements OnInit, OnDestroy {
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
     const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
     const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
+    const filePathAutocompleteOpen = this.stepEditor?.showFilePathAutocomplete || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null 
+      && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null && !filePathAutocompleteOpen){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
           if (this.hasChanged()) {
+            this.logger.msg('4', 'Form has changed, ESC key hit - will show Popup now', 'edit-feature');
             this._dialog
               .open(AreYouSureDialog, {
                 data: {
@@ -1100,6 +1215,7 @@ export class EditFeature implements OnInit, OnDestroy {
                 if (exit) this.dialogRef.close();
               });
           } else {
+            this.logger.msg('4', 'Form has not changed, ESC key hit - will not show popup', 'edit-feature');
             this.dialogRef.close();
           }
           break;
@@ -1116,62 +1232,66 @@ export class EditFeature implements OnInit, OnDestroy {
           if(!event.ctrlKey && !this.inputFocus){
             // Edit variables
             this.editVariables();
+          }else if(event.altKey){
+            //Added Alt+V to edit variables always, even if the focus is on an input or textarea
+            this.logger.msg('4', 'Alt+V key pressed', 'edit-feature');
+            this.editVariables();
           }
           break;
-        case KEY_CODES.D:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Depends on other feature
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.D:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Depends on other feature
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         case KEY_CODES.S:
           if(!event.ctrlKey && !this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           }
           break;
-        case KEY_CODES.M:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Send notification on finish
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
-        case KEY_CODES.R:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Record video
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.M:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Send notification on finish
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
+        // case KEY_CODES.R:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Record video
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         case KEY_CODES.F:
           if(!event.ctrlKey && !this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
-        case KEY_CODES.H:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Need help
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
-        case KEY_CODES.N:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Network logging
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.H:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Need help
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
+        // case KEY_CODES.N:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Network logging
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         case KEY_CODES.T:
           if(!event.ctrlKey && !this.inputFocus) {
             // Telegram notification
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
-        case KEY_CODES.G:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Generate dataset
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
+        // case KEY_CODES.G:
+        //   if(!event.ctrlKey && !this.inputFocus) {
+        //     // Generate dataset
+        //     this.toggleDependsOnOthers(KeyPressed);
+        //   }
+        //   break;
         default:
           break;
       }
@@ -1179,7 +1299,8 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Shortcut emitter to parent component
-  receiveDataFromChild(isFocused: boolean) {
+  receiveDataFromChild(isFocused: boolean, eventType?: any) {
+    this.logger.msg('4', `step editor field was clicked and now has focus - eventType: ${eventType}`, 'edit-feature');
     this.inputFocus = isFocused;
   }
 
@@ -1204,8 +1325,12 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
     }
     else if (KeyPressed === KEY_CODES.F) {
-      const continueOnFailure = this.featureForm.get('continue_on_failure').value;
-      this.featureForm.get('continue_on_failure').setValue(!continueOnFailure);
+      // Check if continue_on_failure is disabled before allowing toggle
+      const continueOnFailureControl = this.featureForm.get('continue_on_failure');
+      if (!continueOnFailureControl.disabled) {
+        const continueOnFailure = continueOnFailureControl.value;
+        continueOnFailureControl.setValue(!continueOnFailure);
+      }
     }
     else if (KeyPressed === KEY_CODES.H) {
       const needHelp = this.featureForm.get('need_help').value;
@@ -1219,8 +1344,12 @@ export class EditFeature implements OnInit, OnDestroy {
           this.featureForm.get('send_notification').setValue(!sendNotification);
         }
         else if (KeyPressed === KEY_CODES.R) {
-          const video = this.featureForm.get('video').value;
-          this.featureForm.get('video').setValue(!video);
+          // Check if video is disabled before allowing toggle
+          const videoControl = this.featureForm.get('video');
+          if (!videoControl.disabled) {
+            const video = videoControl.value;
+            videoControl.setValue(!video);
+          }
         }
         else if (KeyPressed === KEY_CODES.N) {
           const networkLogging = this.featureForm.get('network_logging').value;
@@ -1235,34 +1364,200 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Check if mouse is over the dialog (puede ser step definition?)
-  isHovered = false;
+  // isHovered = false;
 
-  onMouseOver() {
-    this.isHovered = true;
-  }
+  // onMouseOver() {
+  //   this.isHovered = true;
+  // }
 
-  onMouseOut() {
-    this.isHovered = false;
-  }
+  // onMouseOut() {
+  //   this.isHovered = false;
+  // }
 
 
   // Deeply check if two arrays are equal, in length and values
-  arraysEqual(a: any[], b: any[]): boolean {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; ++i) {
-      if (a[i] !== b[i]) return false;
+  // arraysEqual(a: any[], b: any[]): boolean {
+  //   if (a === b) return true;
+  //   if (a == null || b == null) return false;
+  //   if (a.length !== b.length) return false;
+  //   for (let i = 0; i < a.length; ++i) {
+  //     if (a[i] !== b[i]) return false;
+  //   }
+  //   return true;
+  // }
+
+
+  /**
+   * Check if the form has changed. This function is used in hasChanged()
+   * to check if the form has changed. This is needed because Angulars dirtyChecks
+   * marks a form as dirty, when the user clicks on a field, but the value is not changed.
+   * @returns true if the form has changed, false otherwise
+   */
+  private hasFeatureFormChanged(): boolean {
+    this.logger.msg('4', 'hasFeatureFormChanged() - checking formular', 'edit-feature');
+
+    const formValue = this.featureForm.value;
+    const originalValue = this.feature.getValue();
+
+    return Object.keys(formValue).some(key => {
+      const field = this.featureForm.get(key);
+
+      // Only check if field is dirty
+      if (!field.dirty) {
+        this.logger.msg('4', `hasFeatureFormChanged() - ${key} is not dirty`, 'edit-feature');
+        return false;
+      }
+
+      // Exclude run_now from comparison, if previous was undefined and now is false
+      if (key === 'run_now' && originalValue[key] === undefined && formValue[key] === false) {
+        this.logger.msg('4', `hasFeatureFormChanged() - ${key} is not dirty`, 'edit-feature');
+        return false;
+      }
+
+      const current = formValue[key];
+      const original = originalValue[key];
+
+      let returnValue: boolean;
+
+      if (Array.isArray(current)) {
+        returnValue = JSON.stringify(current) !== JSON.stringify(original);
+      } else {
+        // Normalize values for comparison: treat undefined, null, and empty string as equivalent
+        // Also ensure boolean values are properly compared
+        const normalizedCurrent = current === '' ? undefined : current;
+        const normalizedOriginal = original === '' ? undefined : original;
+        returnValue = normalizedCurrent !== normalizedOriginal;
+      }
+
+      this.logger.msg('4', `hasFeatureFormChanged() - ${key}: original=${JSON.stringify(original)}, current=${JSON.stringify(current)}, changed=${returnValue}`, 'edit-feature');
+      return returnValue;
+    });
+  }
+
+  /**
+   * Generic method to check if steps have changed
+   * This method compares original steps with current steps and is designed to be future-proof
+   * for any new properties that might be added to the FeatureStep interface
+   * @param originalSteps - The original steps array
+   * @param currentSteps - The current steps array
+   * @returns true if steps have changed, false otherwise
+   */
+  private hasStepsChanged(originalSteps: FeatureStep[], currentSteps: FeatureStep[]): boolean {
+
+    // XXX - FIXMEQAD for not checking if either originalSteps or currentSteps is undefined, 
+    // because it is only used for documentation purposes and is not saved in the backend
+    if (originalSteps === undefined || currentSteps === undefined) {
+      this.logger.msg('4', `Skipping steps for being undefined`, 'edit-feature');
+      return false;
     }
-    return true;
+
+    // XXX - FIXME QAD: original=0 current=1 ... means the current was just added
+    if (originalSteps.length === 0 && currentSteps.length == 1) {
+      this.logger.msg('4', `Steps length changed: original=${originalSteps.length}, current=${currentSteps.length}`, 'edit-feature');
+      this.logger.msg('4', `Ignoring steps length change for being just added.`, 'edit-feature');
+      return false;
+    }
+
+    // Check if arrays have different lengths
+    if (originalSteps.length !== currentSteps.length) {
+      this.logger.msg('4', `Steps length changed: original=${originalSteps.length}, current=${currentSteps.length}`, 'edit-feature');
+      return true;
+    }
+
+    // Compare each step using generic property comparison
+    for (let i = 0; i < currentSteps.length; i++) {
+      const originalStep = originalSteps[i];
+      const currentStep = currentSteps[i];
+
+      if (this.hasStepChanged(originalStep, currentStep)) {
+        this.logger.msg('4', `Step ${i} has changed`, 'edit-feature');
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Generic method to check if a single step has changed
+   * This method automatically handles any properties present in the FeatureStep interface
+   *
+   * There are two QAD XXX Fixme fixes for step_actions and selected. These
+   * variables are only needed temporarily and server for mass actions on steps and documentation.
+   * as these are not relevant to steps content save to the database, we can skip them.
+   *
+   * @param originalStep - The original step
+   * @param currentStep - The current step
+   * @returns true if the step has changed, false otherwise
+   */
+  private hasStepChanged(originalStep: FeatureStep, currentStep: FeatureStep): boolean {
+    // Get all properties from both objects (this handles future additions automatically)
+    const allProperties = new Set([
+      ...Object.keys(currentStep || {})
+    ]);
+
+    for (const property of allProperties) {
+      // XXX - FIXMEQAD for not checking step_action property, 
+      // because it is only used for documentation purposes and is not saved in the backend
+      if (property === 'step_action') {
+        this.logger.msg('4', `Skipping step_action property`, 'edit-feature');
+        continue;
+      }
+
+      // XXX - FIXMEQAD for not checking if either originalValue or currentValue is undefined, 
+      // because it is only used for documentation purposes and is not saved in the backend
+      if (originalStep?.[property] === undefined || currentStep?.[property] === undefined) {
+        this.logger.msg('4', `Skipping step_action property ${property} for being undefined`, 'edit-feature');
+        continue;
+      }
+
+      this.logger.msg('4', `Checking Step property ${property}`, 'edit-feature');
+      const originalValue = originalStep?.[property];
+      const currentValue = currentStep?.[property];
+
+      // Handle different data types appropriately
+      if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
+        if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
+          this.logger.msg('4', `Step property ${property} array changed: original=${JSON.stringify(originalValue)}, current=${JSON.stringify(currentValue)}`, 'edit-feature');
+          return true;
+        }
+      } else if (typeof originalValue === 'object' && typeof currentValue === 'object' && originalValue !== null && currentValue !== null) {
+        if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
+          this.logger.msg('4', `Step property ${property} object changed: original=${JSON.stringify(originalValue)}, current=${JSON.stringify(currentValue)}`, 'edit-feature');
+          return true;
+        }
+      } else {
+        // Normalize values for comparison: treat undefined, null, and empty string as equivalent
+        const normalizedOriginal = originalValue === '' ? undefined : originalValue;
+        const normalizedCurrent = currentValue === '' ? undefined : currentValue;
+
+        if (normalizedOriginal !== normalizedCurrent) {
+          this.logger.msg('4', `Step property ${property} changed: original=${JSON.stringify(originalValue)}, current=${JSON.stringify(currentValue)}`, 'edit-feature');
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
    * Check if edit feature form has different values from original object
+   * 
+   * Note: This method was causing issues where the form was being marked as dirty
+   * when opening the edit dialog without making any changes. The issue was caused by:
+   * 1. The notification subscription in the constructor that was modifying form values
+   * 2. Setting form values without using { emitEvent: false } which triggered change events
+   * 
+   * The fix involved:
+   * 1. Moving the notification subscription to ngOnInit after form initialization
+   * 2. Using { emitEvent: false } when setting form values in edit mode
    */
-  hasChanged(): boolean {
+  public hasChanged(): boolean {
     // Retrieve original feature data, when mode is `new` it will only have `feature_id: 0`
     const featureOriginal = this.feature.getValue();
+    this.logger.msg('4', 'hasChanged() - checking formular', 'edit-feature');
+
     /**
      * Detect changes in formular
      * Procedure:
@@ -1270,100 +1565,127 @@ export class EditFeature implements OnInit, OnDestroy {
      *  2. Check if the form field has been modified (dirty)
      *  3. Check if the original feature value is different from the new one
      */
+    if (this.data.mode === 'new') {
+      this.logger.msg('4', 'Feature Form is new', 'edit-feature');
+    }
+
     if (this.featureForm.dirty) {
       // The first selectors needs custom comparison logic
       // Check Department
-      const departmentField = this.featureForm.get('department_name');
-      if (departmentField.dirty && departmentField.value) {
-        const departmentId = this.departments$.find(
-          dep => dep.department_name === departmentField.value
-        ).department_id;
-        if (
-          this.data.mode === 'new' ||
-          featureOriginal.department_id !== departmentId
-        )
-          return true;
+      this.logger.msg('4', 'Feature Form is dirty - checking details', 'edit-feature');
+
+      // Check if the form has changed
+      if (this.hasFeatureFormChanged()) {
+        this.logger.msg('4', 'Feature Form has changed', 'edit-feature');
+        return true;
       }
-      // Check application
-      const applicationField = this.featureForm.get('app_name');
-      if (applicationField.dirty && applicationField.value) {
-        const appId = this.applications$.find(
-          app => app.app_name === applicationField.value
-        ).app_id;
-        if (this.data.mode === 'new' || featureOriginal.app_id !== appId)
-          return true;
-      }
-      // Check environment
-      const environmentField = this.featureForm.get('environment_name');
-      if (environmentField.dirty && environmentField.value) {
-        const environmentId = this.environments$.find(
-          env => env.environment_name === environmentField.value
-        ).environment_id;
-        if (
-          this.data.mode === 'new' ||
-          featureOriginal.environment_id !== environmentId
-        )
-          return true;
-      }
-      // Declare an array of fields with the same key name in original feature and modified
-      let fields = [
-        'description',
-        'depends_on_others',
-        'send_mail',
-        'need_help',
-        'feature_name',
-        'video',
-        'continue_on_failure',
-      ];
-      // Add fields mandatory for Send email
-      if (this.featureForm.get('send_mail').value) {
-        fields = [
-          ...fields,
-          'email_address',
-          'email_cc_address',
-          'email_bcc_address',
-          'email_subject',
-          'email_body',
-          'send_mail_on_error',
-          'maximum_notification_on_error',
-          'check_maximum_notification_on_error',
-          'attach_pdf_report_to_email',
-          'do_not_use_default_template',
-        ];
-      }
-      // Add fields mandatory for Schedule
-      if (this.featureForm.get('run_now').value) {
-        fields = [
-          ...fields,
-          'minute',
-          'hour',
-          'day_month',
-          'month',
-          'day_week',
-        ];
-      }
-      // Iterate each field
-      for (const key of fields) {
-        const field = this.featureForm.get(key);
-        // Check if field is changed and has value
-        if (field.dirty && field.value) {
-          // Custom logic for array values
-          if (Array.isArray(field.value)) {
-            if (
-              this.data.mode === 'new' ||
-              JSON.stringify(field.value) !==
-                JSON.stringify(featureOriginal[key])
-            ) {
-              return true;
-            }
-          } else {
-            if (featureOriginal[key] !== field.value) {
-              return true;
-            }
-          }
-        }
-      }
+      
+      // // Checking Department
+      // const departmentField = this.featureForm.get('department_name');
+      // if (departmentField.dirty && departmentField.value) {
+      //   const departmentId = this.departments$.find(
+      //     dep => dep.department_name === departmentField.value
+      //   ).department_id;
+      //   if (
+      //     this.data.mode === 'new' ||
+      //     featureOriginal.department_id !== departmentId
+      //   )
+      //   this.logger.msg('4', 'Department changed', 'edit-feature');
+      //     return true;
+      // }
+
+      // // Check application
+      // const applicationField = this.featureForm.get('app_name');
+      // if (applicationField.dirty && applicationField.value) {
+      //   const appId = this.applications$.find(
+      //     app => app.app_name === applicationField.value
+      //   ).app_id;
+      //   if (this.data.mode === 'new' || featureOriginal.app_id !== appId)
+      //     this.logger.msg('4', 'Application changed', 'edit-feature');
+      //     return true;
+      // }
+
+      // // Check environment
+      // const environmentField = this.featureForm.get('environment_name');
+      // if (environmentField.dirty && environmentField.value) {
+      //   const environmentId = this.environments$.find(
+      //     env => env.environment_name === environmentField.value
+      //   ).environment_id;
+      //   if (
+      //     this.data.mode === 'new' ||
+      //     featureOriginal.environment_id !== environmentId
+      //   )
+      //     this.logger.msg('4', 'Environment changed', 'edit-feature');
+      //     return true;
+      // }
+      // // Declare an array of fields with the same key name in original feature and modified
+      // let fields = [
+      //   'description',
+      //   'depends_on_others',
+      //   'send_mail',
+      //   'need_help',
+      //   'feature_name',
+      //   'video',
+      //   'continue_on_failure',
+      //   'send_notification',
+      //   'send_telegram_notification',
+      //   'network_logging',
+      //   'generate_dataset',
+      // ];
+      // // Add fields mandatory for Send email
+      // if (this.featureForm.get('send_mail').value) {
+      //   fields = [
+      //     ...fields,
+      //     'email_address',
+      //     'email_cc_address',
+      //     'email_bcc_address',
+      //     'email_subject',
+      //     'email_body',
+      //     'send_mail_on_error',
+      //     'maximum_notification_on_error',
+      //     'check_maximum_notification_on_error',
+      //     'attach_pdf_report_to_email',
+      //     'do_not_use_default_template',
+      //   ];
+      // }
+      // // Add fields mandatory for Schedule
+      // if (this.featureForm.get('run_now').value) {
+      //   fields = [
+      //     ...fields,
+      //     'minute',
+      //     'hour',
+      //     'day_month',
+      //     'month',
+      //     'day_week',
+      //   ];
+      // }
+      // // Iterate each field
+      // for (const key of fields) {
+      //   const field = this.featureForm.get(key);
+      //   // Check if field is changed and has value
+      //   if (field.dirty && field.value) {
+      //     // Custom logic for array values
+      //     if (Array.isArray(field.value)) {
+      //       if (
+      //         this.data.mode === 'new' ||
+      //         JSON.stringify(field.value) !==
+      //           JSON.stringify(featureOriginal[key])
+      //       ) {
+      //         this.logger.msg('4', 'Field changed: ' + key, 'edit-feature');
+      //         return true;
+      //       }
+      //     } else {
+      //       if (featureOriginal[key] !== field.value) {
+      //         this.logger.msg('4', 'Field changed: ' + key, 'edit-feature');
+      //         return true;
+      //       }
+      //     }
+      //   }
+      // }
+    } else {
+      this.logger.msg('4', 'Feature Form is not dirty - no changes detected', 'edit-feature');
     }
+    
     /**
      * Detect changes made outside of formular code
      */
@@ -1371,41 +1693,52 @@ export class EditFeature implements OnInit, OnDestroy {
     if (
       JSON.stringify(this.browsersOriginal) !==
       JSON.stringify(this.browserstackBrowsers.getValue())
-    )
+    ) {
+      this.logger.msg('4', 'Browsers Form changed', 'edit-feature');
       return true;
+    } else {
+      this.logger.msg('4', 'Browsers Form not changed', 'edit-feature');
+    }
+
     /**
      * Detect changes in Step Editor
+     * This replaces the complex manual comparison logic with a reliable deep comparison
      */
     if (this.stepEditor) {
       const currentSteps = this.stepEditor.getSteps();
-      if (this.stepsOriginal.length === currentSteps.length) {
-        // Deep compare then
-        // Compare step fields
-        const fieldsToCompare = [
-          'step_content',
-          'enabled',
-          'screenshot',
-          'compare',
-        ];
-        for (let i = 0; i < currentSteps.length; i++) {
-          for (const field of fieldsToCompare) {
-            if (currentSteps[i][field] !== this.stepsOriginal[i][field]) {
-              return true;
-            }
-          }
-        }
-      } else {
+      this.logger.msg('4', '=== Steps Original ===', 'edit-feature');
+      this.logger.msg('4', this.stepsOriginal, 'edit-feature');
+      this.logger.msg('4', '=== Steps Current ===', 'edit-feature');
+      this.logger.msg('4', currentSteps, 'edit-feature');
+
+      // Check if steps have changed using generic comparison
+      if (this.hasStepsChanged(this.stepsOriginal, currentSteps)) {
+        this.logger.msg('4', 'Steps have changed', 'edit-feature');
         return true;
       }
     }
+    this.logger.msg('4', 'End of hasChanged() - No changes detected', 'edit-feature');
     return false;
   }
+
 
   @ViewChild(BrowserSelectionComponent, { static: false })
   _browserSelection: BrowserSelectionComponent;
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    this.logger.msg('4', '=== ngOnInit() ===', 'edit-feature');
+
+    // Log all featureForm values for debugging
+    this.logger.msg('4', '=== FeatureForm Values ===', 'edit-feature');
+    Object.keys(this.featureForm.controls).forEach(key => {
+      const control = this.featureForm.get(key);
+      this.logger.msg('4', `${key}:`, 'edit-feature', control?.value);
+    });
+    this.logger.msg('4', '===============FeatureForm Values===============', 'edit-feature');
+
+
     // Initialize department if there's already a value in the form
     if (this.featureForm.get('department_name').value) {
       this.allDepartments$.subscribe(data => {
@@ -1429,6 +1762,10 @@ export class EditFeature implements OnInit, OnDestroy {
           
           if (this.department) {
             this.fileUpload.validateFileUploadStatus(this.department);
+            // Update disabled states when department changes
+            this.initializeDisabledStates();
+            // Force change detection to update visual state
+            this.cdr.markForCheck();
           }
           this.cdr.detectChanges();
         });
@@ -1528,23 +1865,45 @@ export class EditFeature implements OnInit, OnDestroy {
           day_week: this.featureForm.get('day_week').value
         });
       }
+      // Update disabled state of schedule controls
+      this.updateScheduleControlsState();
     });
 
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {
       // Code for editing feautre
       const featureInfo = this.data.info;
+
+      // Log the featureInfo data that will populate the form
+      this.logger.msg('4', '=== FeatureInfo Data (will populate form) ===', 'edit-feature');
+      this.logger.msg('4', 'featureInfo:', JSON.stringify(featureInfo, null, 2), 'edit-feature');
+      this.logger.msg('4', '=== End FeatureInfo Data ===', 'edit-feature');
+
       // Initialize the selected by default application, department and environment
-      this.selected_application = featureInfo.app_name;
-      this.selected_department = featureInfo.department_name;
-      this.selected_environment = featureInfo.environment_name;
-      this.feature.next(featureInfo);
+      // Set form values directly instead of using selected_* variables
+      this.featureForm.get('app_name').setValue(featureInfo.app_name, { emitEvent: false });
+      this.featureForm.get('department_name').setValue(featureInfo.department_name, { emitEvent: false });
+      this.featureForm.get('environment_name').setValue(featureInfo.environment_name, { emitEvent: false });
+      
+      // Force initialize department object after setting form value
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === featureInfo.department_name
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
+      // this.feature.next(featureInfo);
       // Assign observable of department settings
       this.departmentSettings$ = this._store.select(
         CustomSelectors.GetDepartmentSettings(featureInfo.department_id)
       );
       this.browserstackBrowsers.next(featureInfo.browsers);
       this.browsersOriginal = deepClone(featureInfo.browsers);
-      this.featureForm.get('run_now').setValue(featureInfo.schedule !== '');
+      this.featureForm.get('run_now').setValue(featureInfo.schedule !== '', { emitEvent: false });
       if (featureInfo.schedule) {
         const cron_fields = [
           'minute',
@@ -1559,7 +1918,7 @@ export class EditFeature implements OnInit, OnDestroy {
         const cron_values = cronToDisplay.split(' ');
         
         for (let i = 0; i < cron_fields.length; i++) {
-          this.featureForm.get(cron_fields[i]).setValue(cron_values[i]);
+          this.featureForm.get(cron_fields[i]).setValue(cron_values[i], { emitEvent: false });
         }
         
         // Set the timezone dropdown to the original timezone if available
@@ -1588,31 +1947,62 @@ export class EditFeature implements OnInit, OnDestroy {
       // Try to save all possible feature properties in the form using the same property names
       for (const key in featureInfo) {
         if (this.featureForm.get(key) instanceof UntypedFormControl) {
-          this.featureForm.get(key).setValue(featureInfo[key]);
+          this.featureForm.get(key).setValue(featureInfo[key], { emitEvent: false });
         }
       }
-      
+
       // Special handling for nested telegram_options FormGroup
       if (featureInfo.telegram_options) {
         const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
         if (telegramOptionsGroup) {
-          telegramOptionsGroup.patchValue(featureInfo.telegram_options);
+          telegramOptionsGroup.patchValue(featureInfo.telegram_options, { emitEvent: false });
         }
       }
-      
+
       // Backward compatibility: Enable send_notification if send_mail or send_telegram_notification are enabled
       // but send_notification is not explicitly set
       if (featureInfo.send_notification === undefined || featureInfo.send_notification === null) {
         const shouldEnableNotifications = featureInfo.send_mail || featureInfo.send_telegram_notification;
-        this.featureForm.get('send_notification').setValue(shouldEnableNotifications);
+        this.featureForm.get('send_notification').setValue(shouldEnableNotifications, { emitEvent: false });
+        // Ensure the original feature data also has a valid boolean value for send_notification
+        featureInfo.send_notification = shouldEnableNotifications;
       }
+      this.feature.next(featureInfo);
+
+      // Log the featureInfo data after send notification is set
+      this.logger.msg('4', '=== FeatureInfo Data (after send notification is set) ===', 'edit-feature');
+      this.logger.msg('4', 'featureInfo:', JSON.stringify(featureInfo, null, 2), 'edit-feature');
+      this.logger.msg('4', '=== End FeatureInfo Data ===', 'edit-feature');
+
+      // Log the form values after they have been populated with featureInfo data
+      this.logger.msg('4', '=== FeatureForm Values AFTER Population ===', 'edit-feature');
+      Object.keys(this.featureForm.controls).forEach(key => {
+        const control = this.featureForm.get(key);
+        this.logger.msg('4', `${key}:`, 'edit-feature', control?.value);
+      });
+      this.logger.msg('4', '=== End FeatureForm Values AFTER Population ===', 'edit-feature');
       
       this.stepsOriginal = this.data.steps;
     } else {
-      // Code for creating a feature
-      // set user preselect options
+      // Code for creating a new feature
+
+      // get the data from backend
       this.feature.next(this.data.feature);
+
+      // set run_now = false per default
+      this.featureForm.get('run_now').setValue(false, { emitEvent: false });
+
+      // set user preselect options
       this.preSelectedOptions();
+
+      // Initialize departmentSettings$ for new features
+      // Use a default observable that emits undefined since there's no department_id yet
+      // this.departmentSettings$ = of(undefined);
+
+      // Auto-focus the name input when creating a new feature
+      setTimeout(() => {
+        this.focusFormControl('feature_name');
+      }, 300); // Delay to ensure input is rendered
     }
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
@@ -1634,16 +2024,129 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
 
-    // Auto-focus the name input when creating a new feature
-    if (this.data.mode === 'new') {
-      setTimeout(() => {
-        this.focusFormControl('feature_name');
-      }, 300); // Delay to ensure input is rendered
+
+    // Add reactive behavior for notification controls AFTER form values are initialized
+    // This prevents the form from being marked as dirty when initializing values
+    this.notificationSubscription = this.featureForm.get('send_notification').valueChanges.subscribe(sendNotificationEnabled => {
+      if (!sendNotificationEnabled) {
+        // When send_notification is disabled, also disable child options
+        this.featureForm.get('send_mail').setValue(false, { emitEvent: false });
+        this.featureForm.get('send_telegram_notification').setValue(false, { emitEvent: false });
+      }
+    });
+
+    this.logger.msg('4', '=== ngOnInit() - after notificationSubscription ===', 'edit-feature');
+    // Subscribe to department settings changes to update continue_on_failure state
+    this.departmentSettings$.subscribe(settings => {
+      if (settings) {
+        // Update the department object with new settings
+        if (this.department) {
+          this.department.settings = settings;
+        }
+        this.updateContinueOnFailureState();
+      }
+    });
+
+    // Initialize disabled states
+    this.initializeDisabledStates();
+    
+    // Force change detection after initializing disabled states
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
+
+    this.logger.msg('4', '=== End of ngOnInit() ===', 'edit-feature');
+  }
+
+  /**
+   * Initialize disabled states for form controls to avoid "changed after checked" errors
+   */
+  private initializeDisabledStates() {
+    // Note: Department field is now enabled in all modes to allow user interaction
+    // Previously it was disabled in edit mode, but this prevented user interaction
+
+    // Update schedule controls state
+    this.updateScheduleControlsState();
+
+    // Update continue_on_failure checkbox state
+    this.updateContinueOnFailureState();
+
+    // Update video checkbox state
+    this.updateVideoState();
+  }
+
+  /**
+   * Update the disabled state of schedule controls based on run_now value
+   */
+  private updateScheduleControlsState() {
+    const scheduleControls = ['minute', 'hour', 'day_month', 'month', 'day_week'];
+    const isScheduleEnabled = this.featureForm.get('run_now').value;
+    
+    scheduleControls.forEach(controlName => {
+      const control = this.featureForm.get(controlName);
+      if (isScheduleEnabled) {
+        control.enable();
+      } else {
+        control.disable();
+      }
+    });
+  }
+
+  /**
+   * Update the disabled state of continue_on_failure checkbox based on department and user settings
+   */
+  private updateContinueOnFailureState() {
+    const control = this.featureForm.get('continue_on_failure');
+    if (!control) return;
+
+    // Check if department settings or user settings disable the checkbox
+    const departmentDisabled = this.department?.settings?.continue_on_failure === true;
+    const userDisabled = this.user.settings?.continue_on_failure === true;
+    const isDisabled = departmentDisabled || userDisabled;
+    
+    if (isDisabled) {
+      control.disable();
+    } else {
+      control.enable();
     }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Update the disabled state of video checkbox based on user settings
+   */
+  private updateVideoState() {
+    const control = this.featureForm.get('video');
+    if (!control) return;
+
+    // Check if user settings disable the video checkbox
+    // Use the same logic as in user component: check if recordVideo property exists, then check recordVideo value
+    const userDisabled = this.user.settings?.hasOwnProperty('recordVideo') 
+      ? this.user.settings?.recordVideo === true 
+      : false;
+    
+    if (userDisabled) {
+      control.disable();
+    } else {
+      control.enable();
+    }
+    
+    // Force change detection to update visual state
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Get the disabled state for buttons based on saving state
+   */
+  getButtonsDisabledState(): boolean {
+    return this.saving$.value;
   }
 
   /**
    * Select user specified selections if any.
+   * Prioritizes current department context over user preselected department.
    */
   preSelectedOptions() {
     const {
@@ -1653,22 +2156,87 @@ export class EditFeature implements OnInit, OnDestroy {
       recordVideo,
     } = this.user.settings;
 
-    this.departments$.find(d => {
-      if (d.department_id == preselectDepartment)
-        this.selected_department = d.department_name;
-    });
+    // Get current route to determine department context
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    
+    // Only set department from user preferences if no current department context is available
+    // This ensures the current department context takes priority
+    if (!this.selected_department) {
+      // Check if we have a current department context from the route
+      if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
+        // Use current department context
+        const currentDepartment = this.departments$.find(d => d.department_id === currentRoute[0].folder_id);
+        if (currentDepartment) {
+          this.selected_department = currentDepartment.department_name;
+        }
+      }
+      
+      // Fallback to user preselected department if no current context
+      if (!this.selected_department) {
+        this.departments$.find(d => {
+          if (d.department_id == preselectDepartment)
+            this.selected_department = d.department_name;
+        });
+      }
+    }
+
+    // Set the department form value if we have a selected department
+    let departmentToSet = null;
+    if (this.selected_department) {
+      departmentToSet = this.selected_department;
+      this.featureForm.get('department_name').setValue(this.selected_department, { emitEvent: false });
+    } else {
+      // Fallback: set default department if none is selected
+      const route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+      const defaultDepartment = route.length > 0 ? route[0].name : this.departments$[0]?.department_name;
+      if (defaultDepartment) {
+        departmentToSet = defaultDepartment;
+        this.featureForm.get('department_name').setValue(defaultDepartment, { emitEvent: false });
+      }
+    }
+    
+    // Force initialize department object after setting form value
+    if (departmentToSet) {
+      this.allDepartments$.subscribe(data => {
+        if (data) {
+          this.department = data.find(
+            dep => dep.department_name === departmentToSet
+          );
+          if (this.department) {
+            this.fileUpload.validateFileUploadStatus(this.department);
+          }
+          this.cdr.detectChanges();
+        }
+      });
+    }
+
+    // Set application and environment from user preferences (these don't have context priority)
+    let appSet = false;
+    let envSet = false;
+    
     this.applications$.find(a => {
-      if (a.app_id == preselectApplication)
-        this.selected_application = a.app_name;
+      if (a.app_id == preselectApplication) {
+        this.featureForm.get('app_name').setValue(a.app_name, { emitEvent: false });
+        appSet = true;
+      }
     });
     this.environments$.find(e => {
-      if (e.environment_id == preselectEnvironment)
-        this.selected_environment = e.environment_name;
+      if (e.environment_id == preselectEnvironment) {
+        this.featureForm.get('environment_name').setValue(e.environment_name, { emitEvent: false });
+        envSet = true;
+      }
     });
+    
+    // Fallback: set default application and environment if none is selected
+    if (!appSet && this.applications$ && this.applications$.length > 0) {
+      this.featureForm.get('app_name').setValue(this.applications$[0].app_name, { emitEvent: false });
+    }
+    if (!envSet && this.environments$ && this.environments$.length > 0) {
+      this.featureForm.get('environment_name').setValue(this.environments$[0].environment_name, { emitEvent: false });
+    }
     this.featureForm.patchValue({
       video: recordVideo != undefined ? recordVideo : true,
-      // ... add addition properties here.
-    });
+    }, { emitEvent: false });
   }
 
   stepsOriginal: FeatureStep[] = [];
@@ -1754,7 +2322,10 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   /**
-   * Creates a new feature or edits an existing one. It executes whenever the user clicks on the create / save button in the feature dialog
+   * Click on SAVE BUTTON - Creates a new feature or edits an existing one. 
+   * It executes whenever the user clicks on the create / save button in the feature dialog
+   * 
+   * 
    * @returns
    */
   async editOrCreate() {
@@ -1784,6 +2355,24 @@ export class EditFeature implements OnInit, OnDestroy {
         return; // User chose to rename the feature
       }
     }
+
+    // Validate mobile references in steps before saving
+    let validationResult = await this.validateMobileReferences();
+    // FIXME .... why are we using a while loop?
+    while (!validationResult.isValid) {
+      const action = await this.showMobileValidationError(validationResult.errors);
+      if (action === 'ignore') {
+        this.logger.msg('4', 'User chose to ignore the errors, continue with save', 'edit-feature');
+        // User chose to ignore the errors, continue with save
+        break;
+      } else if (action === 'correct') {
+        this.logger.msg('4', 'User chose to correct the errors, cancel the save process completely', 'edit-feature');
+        // User chose to correct, cancel the save process completely
+        return;
+      }
+    }
+
+    
     
     // Get current steps from Store
     let currentSteps = [];
@@ -1805,15 +2394,6 @@ export class EditFeature implements OnInit, OnDestroy {
             }
             return;
           }
-          /**
-           OLD LOGIC - Before 2021-12-30
-          this._snackBar.open('One or more steps are invalid, fix them before saving.', 'OK', { duration: 5000 });
-          // Focus on on first invalid step
-          try {
-            document.querySelector<HTMLTextAreaElement>('.invalid-step textarea').focus();
-          } catch (err) { console.log('Failed to focus on step input') }
-          return;
-          */
         }
       }
     } else {
@@ -2402,7 +2982,7 @@ export class EditFeature implements OnInit, OnDestroy {
       this.departments$ = this._store.selectSnapshot(DepartmentsState);
       
     } catch (error) {
-      console.error('Error refreshing departments:', error);
+      this.logger.msg('2', 'Error refreshing departments', 'edit-feature', error);
     }
   }
 
@@ -2455,7 +3035,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error initializing localStorage:', error);
+      this.logger.msg('2', 'Error initializing localStorage', 'edit-feature', error);
     }
   }
 
@@ -2520,8 +3100,292 @@ export class EditFeature implements OnInit, OnDestroy {
         this.logger.msg('4', 'Synchronized user settings with localStorage panel states', 'Panel States');
       }
     } catch (error) {
-      console.error('Error synchronizing user settings with localStorage:', error);
+      this.logger.msg('2', 'Error synchronizing user settings with localStorage', 'edit-feature', error);
     }
   }
 
+  /**
+   * Checks if a quoted text should be skipped during mobile reference validation
+   * @param quotedText The text inside quotes to validate
+   * @returns boolean indicating if the quoted text should be skipped
+   */
+  private shouldSkipQuotedTextValidation(quotedText: string): boolean {
+    // Skip empty quotes
+    if (!quotedText || quotedText.trim() === '') {
+      return true;
+    }
+    
+    // Check if this is a system variable (starts with { and ends with })
+    if (quotedText.startsWith('{') && quotedText.endsWith('}')) {
+      // These are system variables, so they're always valid
+      return true;
+    }
+    
+    // Check if this is a mobile placeholder
+    if (quotedText === '{mobile_code}' || quotedText === '{mobile_name}') {
+      // These are placeholders, so they're always valid
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Validates that all mobile references in steps are still valid
+   * @returns Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>}>
+   */
+  private async validateMobileReferences(): Promise<{isValid: boolean, errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>}> {
+    const errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}> = [];
+    
+    this.logger.msg('4', 'validateMobileReferences()', 'edit-feature');
+
+    // Get current steps
+    let currentSteps = [];
+    if (this.stepEditor) {
+      currentSteps = this.stepEditor.getSteps();
+    } else {
+      const featureId = this.data.mode === 'clone' ? 0 : this.data.feature.feature_id;
+      currentSteps = this._store.selectSnapshot(CustomSelectors.GetFeatureSteps(featureId));
+    }
+
+    // Get current mobile containers and app packages
+    this.logger.msg('4', 'ValidateMobilereferences - Getting Container List', 'edit-feature');
+    const containers = await this._api.getContainersList().toPromise();
+    const runningMobiles = containers.filter(c => c.service_status === 'Running');
+    const allMobiles = containers; // Include all mobiles for reference
+    this.logger.msg('4', `ValidateMobilereferences - Container List with Running mobiles: ${runningMobiles.length}`, 'edit-feature');
+    
+    // // Get app packages from department files
+    // const appPackages = (this.department?.files as any[])
+    //   ?.filter(file => file.name.toLowerCase().endsWith('.apk') && !file.is_removed)
+    //   ?.map(file => file.name.replace(/\.apk$/i, '')) || [];
+
+    // Check each step for mobile references
+    currentSteps.forEach((step, index) => {
+      if (!step.step_content || !step.enabled) return;
+
+      this.logger.msg('4', `ValidateMobilereferences step: ${step.step_content}`, 'edit-feature');
+
+      const content = step.step_content;
+      
+      // Find steps that contain mobile references and get the text inside the quotes
+      const quoteRegex = /mobile "([^"]*)"/g;
+      let match;
+      
+      while ((match = quoteRegex.exec(content)) !== null) {
+        const quotedText = match[1];
+        const quoteStart = match.index + 8; // Position after opening quote
+        const quoteEnd = match.index + 8 + quotedText.length; // Position at closing quote
+
+        this.logger.msg('4', `ValidateMobilereferences quotedText: ${quotedText}`, 'edit-feature');
+        
+        // Skip validation for certain types of quoted text
+        if (this.shouldSkipQuotedTextValidation(quotedText)) {
+          continue;
+        }
+        
+        // Check if it's an actual mobile code (hostname)
+        const mobileWithHostname = allMobiles.find(m => m.hostname === quotedText);
+        if (mobileWithHostname) {          
+          if (mobileWithHostname.service_status === 'Running') {            
+            continue; // Valid running mobile code
+          } else {
+            // Mobile exists but is not running            
+            errors.push({
+              stepIndex: index + 1,
+              stepContent: step.step_content,
+              error: `Mobile code "${quotedText}" is not running. Please start the mobile or select a different one.`,
+              quoteStart: quoteStart,
+              quoteEnd: quoteEnd
+            });
+            continue;
+          }
+        }
+        
+        // Check if it's an actual mobile name (image_name)
+        const mobileWithImageName = allMobiles.find(m => m.image_name === quotedText);
+        if (mobileWithImageName) {
+          if (mobileWithImageName.service_status === 'Running') {
+            continue; // Valid running mobile name
+          } else {
+            // Mobile exists but is not running
+            errors.push({
+              stepIndex: index + 1,
+              stepContent: step.step_content,
+              error: `Mobile name "${quotedText}" is not running. Please start the mobile or select a different one.`,
+              quoteStart: quoteStart,
+              quoteEnd: quoteEnd
+            });
+            continue;
+          }
+        }
+        
+        // // Check if it's an actual app package
+        // if (appPackages.includes(quotedText)) {
+        //   continue; // Valid app package
+        // }
+        
+        // Only check for mobile-like references if the step contains mobile-related actions
+        const stepAction = step.step_action || '';
+        const isMobileStep = /mobile|activity/i.test(stepAction) || 
+                           /mobile|activity/i.test(content);
+        
+        if (!isMobileStep) {
+          // This step doesn't seem to be related to mobile actions, skip validation
+          continue;
+        }
+        
+        // Only validate if this looks like it could be a mobile code, mobile name, or app package
+        // Check if the quoted text is in a position that suggests it's a mobile parameter
+        const beforeQuote = content.substring(0, match.index);
+        
+        // Check if this is after "mobile" (for mobile_code or mobile_name)
+        const isAfterMobile = /mobile\s*"[^"]*"\s*$/i.test(beforeQuote) || /mobile\s*$/i.test(beforeQuote);
+        
+        // // Check if this is after "package" or "app" (for app_package)
+        // const isAfterPackage = /package\s*"[^"]*"\s*$/i.test(beforeQuote) || /app\s*"[^"]*"\s*$/i.test(beforeQuote) || /package\s*$/i.test(beforeQuote) || /app\s*$/i.test(beforeQuote);
+        
+        
+        // // Only validate if it's after mobile, package, or app keywords
+        // if (!isAfterMobile && !isAfterPackage) {
+        //   continue;
+        // }
+        
+        // If we get here, it's potentially an invalid mobile reference
+        // Determine the type of mobile reference based on context and content
+        let errorType = 'mobile reference';
+        let shouldFlag = false;
+        
+        // Check if it looks like a mobile code (usually contains numbers and letters, 1+ characters)
+        if (/^[a-zA-Z0-9_-]+$/.test(quotedText) && quotedText.length >= 1) {
+          if (isAfterMobile) {
+            // For mobile parameters, prefer mobile name for longer text or text that looks more like a name
+            if (quotedText.length > 8 || /^[a-zA-Z]+$/.test(quotedText)) {
+              errorType = 'mobile name';
+            } else {
+              errorType = 'mobile code';
+            }
+          } 
+          // else if (isAfterPackage) {
+          //   errorType = 'app package';
+          // }
+          shouldFlag = true;
+        }
+        // Check if it looks like a mobile name (usually contains spaces or special characters)
+        else if ((quotedText.includes(' ') || quotedText.includes('-') || quotedText.includes('_')) && quotedText.length > 1) {
+          if (isAfterMobile) {
+            errorType = 'mobile name';
+          }
+          shouldFlag = true;
+        }
+        // Check if it looks like an app package (usually contains dots)
+        // else if (quotedText.includes('.') && quotedText.length > 1) {
+        //   errorType = 'app package';
+        //   shouldFlag = true;
+        // }
+        
+        if (shouldFlag) {
+          errors.push({
+            stepIndex: index + 1,
+            stepContent: step.step_content,
+            error: `Invalid ${errorType}: "${quotedText}" - This mobile is not available.`,
+            quoteStart: quoteStart,
+            quoteEnd: quoteEnd
+          });
+        }
+      }
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors: errors
+    };
+  }
+
+  /**
+   * Shows a dialog with mobile validation errors and allows 
+   * user to navigate to problematic steps.
+   * 
+   * Validates:
+   * 1: Mobile code is ok
+   * 2: Mobile name is ok
+   * 
+   * @param errors Array of validation errors
+   * @returns Promise<MobileValidationAction> The action chosen by the user
+   */
+  private async showMobileValidationError(errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>): Promise<MobileValidationAction> {
+    this.logger.msg('4', 'showMobileValidationError()', 'edit-feature');
+    
+    const errorMessages = errors.map(err => 
+      `Step ${err.stepIndex}: ${err.error}`
+    ).join('\n\n');
+
+    // Create a dialog with Ignore and Correct buttons
+    const errorCount = errors.length;
+    const dialogTitle = errorCount === 1 ? 'Mobile Validation Error' : `Mobile Validation Errors (${errorCount} found)`;
+    
+    const dialogRef = this._dialog.open(MobileValidationErrorDialog, {
+      width: '600px',
+      autoFocus: true,
+      data: {
+        title: dialogTitle,
+        message: `The following mobile references are invalid:\n\n${errorMessages}\n\nPlease update these references before saving.`,
+        errors: errors
+      } as MobileValidationErrorData
+    });
+
+    const result = await dialogRef.afterClosed().toPromise();
+    
+    // If user chose to correct, navigate to the first error
+    if (result === 'correct') {
+      const firstError = errors[0];
+      if (firstError && this.stepEditor) {
+        // Open the Steps panel if it's not already open
+        const stepsPanel = this.expansionPanels?.find(panel => panel.id === '6');
+        if (stepsPanel && !stepsPanel.expanded) {
+          stepsPanel.open();
+        }
+        
+        // Focus on the step with error
+        this.stepEditor.focusStep(firstError.stepIndex - 1);
+        
+        // Select the problematic text if we have position information
+        if (firstError.quoteStart !== undefined && firstError.quoteEnd !== undefined) {
+          this.logger.msg('4', `showMobileValidationError - quoteStart ${firstError.quoteStart} and quoteEnd ${firstError.quoteEnd}  are defined`, 'edit-feature');
+          // FIXME .... why are we using setTimeout()?
+          setTimeout(() => {
+            const textarea = this.stepEditor.stepTextareas?.toArray()[firstError.stepIndex - 1]?.nativeElement;
+            if (textarea) {
+              textarea.setSelectionRange(firstError.quoteStart, firstError.quoteEnd);
+              textarea.focus();
+              
+              // If this is a mobile code error, automatically open the mobile dropdown
+              const selectedText = textarea.value.substring(firstError.quoteStart, firstError.quoteEnd);
+              if (selectedText && /^[a-zA-Z0-9_-]+$/.test(selectedText) && selectedText.length >= 6) {
+                // This looks like a mobile code, trigger the dropdown
+                setTimeout(() => {
+                  // Call the step editor's method to check and show mobile dropdown
+                  this.stepEditor.checkAndShowMobileDropdown(textarea, firstError.stepIndex - 1, firstError.quoteStart);
+                }, 200);
+              }
+            }
+          }, 100);
+        }
+        
+        // Show a snackbar to indicate the errors
+        const errorCount = errors.length;
+        const snackbarMessage = errorCount === 1 
+          ? `Step ${firstError.stepIndex} has an invalid mobile reference. Please update it.`
+          : `${errorCount} steps have invalid mobile references. Please update them.`;
+        
+        this._snackBar.open(
+          snackbarMessage, 
+          'OK', 
+          { duration: 8000 }
+        );
+      }
+    }
+    
+    return result || 'ignore';
+  }
 }

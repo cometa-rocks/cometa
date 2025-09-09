@@ -10,7 +10,7 @@ from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
 import asyncio
 import io
-import tarfile
+import tarfile, docker
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -143,3 +143,16 @@ def create_tarball(file_path):
     tar_stream.seek(0)  # Go back to the beginning of the BytesIO object
     logger.debug(f"tar file created, Path : {file_path}")
     return tar_stream
+
+
+def detect_deployment_environment():
+    try:
+        # Test Docker client connection
+        docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
+        # Try to ping the Docker daemon to verify connection
+        docker_client.ping()
+        logger.debug("Docker is available, using DockerServiceManager")
+        return 'docker'
+    except Exception as e:
+        logger.debug(f"Docker is not available ({str(e)}), using KubernetesServiceManager")
+        return 'kubernetes'

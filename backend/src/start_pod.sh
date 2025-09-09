@@ -85,14 +85,28 @@ if [ "$ENVIRONMENT" != "dev" ]; then
     echo "# Running in production mode - starting gunicorn       #"
     echo "# to enable dev mode, use parameter '-dev' on start.sh #"
     echo "########################################################"
-    gunicorn \
-        cometa_pj.wsgi:application \
-        --workers=${WORKERS:-$GUNI_WORKERS} \
-        --threads=${THREADS:-2} \
-        --worker-class=gthread \
+#     gunicorn \
+#     cometa_pj.wsgi:application \
+#     --workers=${WORKERS:-$GUNI_WORKERS} \
+#     --threads=${THREADS:-2} \
+#     --worker-class=gthread \
+#     --bind 0.0.0.0:8000 \
+#     --timeout=60 \
+#     --graceful-timeout=30 \
+#     --max-requests=1000 \
+#     --max-requests-jitter=200 \
+#     --access-logfile=- \
+#     --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+    
+     gunicorn cometa_pj.wsgi:application \
+        --worker-class=sync \
+        --workers=7 \
+        --threads=1 \
+        --timeout=180 --graceful-timeout=30 \
+        --max-requests=75 --max-requests-jitter=25 \
         --bind 0.0.0.0:8000 \
-        --access-logfile=- \
-        --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+        --access-logfile - \
+        --access-logformat '%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 fi
 
 echo "###################################################"

@@ -96,14 +96,18 @@ urlpatterns = [
     url(r'^steps/(?P<feature_result_id>[0-9]+)/(?P<step_execution_sequence>[0-9]+)/update/', views.updateStepScreenShotDetails),
     # url(r'^setScreenshots/(?P<step_result_id>[0-9]+)/', views.UpdateScreenshots),
     url(r'^steps/(?P<feature_id>[0-9]+)/', views.GetSteps),
+    url(r'^execution_steps/(?P<feature_id>[0-9]+)/', views.GetExecutionSteps),
     url(r'^updateTask/', views.UpdateTask),
     url(r'^getJson/(?P<feature_id>[0-9]+)/', views.GetJsonFile),
     url(r'^killTask/(?P<feature_id>[0-9]+)/', views.KillTask),
     url(r'^killTaskPID/(?P<pid>[0-9]+)/', views.KillTaskPID),
     url(r'^stepsByName/', views.GetStepsByName),
     url(r'^schedule/(?P<feature_id>.+)/', views.UpdateSchedule),
+    url(r'^schedule_data_driven/(?P<file_id>.+)/', views.UpdateFileSchedule),
+    url(r'^bulk_file_schedules/', views.GetBulkFileSchedules),
     url(r'^validateCron/', views.ValidateCron),
     url(r'^exectest/', views.runTest),
+    url(r'^generateFeatureFile/', views.generateFeatureFile),
     url(r'^exec_batch/', views.runBatch),
     url(r'^info/', views.GetInfo),
     url(r'^migrateScreenshots', views.MigrateScreenshots),
@@ -111,6 +115,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^parseBrowsers/', views.parseBrowsers),
+    url(r'^feature/(?P<department_id>[0-9]+)/(?P<feature_id>[0-9]+)/history/', views.getFeatureHistory),
     # url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
     url(r'browsers/lyrid', cache_page(browserstackCacheTime)(views.get_lyrid_browsers)),
@@ -138,6 +143,12 @@ urlpatterns = [
     url(r'^cometausage/', views.CometaUsage),
     url(r'^api/chat/completion/', ai_chat.chat_completion),
     url(r'^health', views.health_check),
+    # Telegram authentication callback
+    url(r'^auth/telegram/(?P<token>[a-zA-Z0-9_-]+)/$', views.telegram_auth_callback, name='telegram_auth_callback'),
+    # Telegram post-OAuth callback
+    url(r'^telegram/complete/$', views.telegram_auth_complete, name='telegram_auth_complete'),
+    # Telegram auth success page
+    url(r'^telegram/success/$', views.telegram_auth_success, name='telegram_auth_success'),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 

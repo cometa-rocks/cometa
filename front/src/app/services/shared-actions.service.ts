@@ -47,6 +47,7 @@ import { Console } from 'console';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { StarredService } from '@services/starred.service';
 import { take } from 'rxjs/operators';
+import { FeatureHistoryComponent } from '@components/feature-history/feature-history.component';
 
 
 /**
@@ -636,6 +637,36 @@ export class SharedActionsService {
         'OK',
         { duration: 2000 }
       );
+    });
+  }
+
+  openFeatureHistory(featureId: number) {
+    // Get current department context from the store
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    let departmentId: number | null = null;
+    
+    // Extract department ID from current route context
+    if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
+      departmentId = currentRoute[0].folder_id;
+    }
+    
+    // If no department context, try to get from user preferences or first available department
+    if (!departmentId) {
+      const departments = this._store.selectSnapshot(CustomSelectors.GetDepartmentFolders);
+      if (departments && departments.length > 0) {
+        departmentId = departments[0].folder_id;
+      }
+    }
+    
+    //open dialog that occupies 90% of the screen
+    this._dialog.open(FeatureHistoryComponent, {
+      data: { 
+        featureId: featureId, 
+        departmentId: departmentId 
+      },
+      width: '90%',
+      height: '90%',
+      panelClass: 'full-screen-dialog', 
     });
   }
   

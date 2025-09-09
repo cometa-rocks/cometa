@@ -9,11 +9,13 @@ Author: dph000
   class="items-container"
   *ngIf="item.type === 'feature'; else folderItem">
   <ng-container *ngLet="item.id | featureRunning | async as running">
+    
     <div
       class="wrapper"
       (click)="_sharedActions.goToFeature(item.id)"
       [class.running]="running"
       [class.menu-open]="isMenuOpen">
+
       <!-- Need help box -->
       <div
         class="top-left-container"
@@ -126,6 +128,7 @@ Author: dph000
           </div>
         </div>
       </div>
+
       <!-- Feature name -->
       <div class="name">
         <ng-container *ngIf="item.reference.description; else noDescription">
@@ -140,57 +143,47 @@ Author: dph000
           </span>
         </ng-template>
       </div>
+
+      <!-- Feature steps -->
       <div class="steps">
         <!-- Feature total amount of steps, execution time and date of execution -->
         <i class="my-icons clipboard"></i>
         <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
+          >{{ item.total }} Steps | {{ item.time | secondsToHumanReadable }} |
           <ng-container *ngIf="item.date as date">{{
             item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
           }}</ng-container></span
         >
       </div>
-      <!-- Feature ID -->
-      <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
-      <ng-container>
-        <div
-          class="star-feature-in-feature"
-          [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
-          matTooltipPosition="above">
-          <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
+
+      <!-- Feature browsers -->
+      <div class="browsers-container" *ngIf="item.browsers && item.browsers.length > 0">
+        <div class="browsers-data">
+          <div class="browsers">
+            <i
+              class="my-icons"
+              [matTooltip]="getBrowserTooltip(browserType)"
+              matTooltipPosition="above"
+              *ngFor="let browserType of getUniqueBrowsers(); trackBy: trackBrowserType"
+              [style.backgroundImage]="browserType | browserIcon"
+              [attr.data-browser]="browserType"
+              [attr.title]="browserType"></i>
+            <span 
+              class="browser-total" 
+              [matTooltip]="getBrowsersTooltip()"
+              matTooltipPosition="above">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
+          </div>
         </div>
-      </ng-container>
-
-      <!-- Feature ID -->
-      <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
-        <ng-container>
-          <p class="id-text">
-            <span class="icon-container-clipboard">
-              <i class="material-icons clipboard-icon">content_copy</i>
-            </span>
-            <span class="id-label">ID:</span>
-            <span class="id-container">
-              {{ item.id }}
-            </span>
-          </p>
-        </ng-container>
       </div>
 
-
-
-
-      <!-- Feature browser -->
-      <div class="browser" *ngIf="item.browsers[0] as browser">
-        <i class="my-icons" [ngClass]="browser.browser"></i>
-        <span>{{ browser | browserComboText }}</span>
-      </div>
+      <!-- Feature Schedule -->
       <div class="schedule-container">
         <div class="schedule-data">
           <p *ngIf="item.schedule" class="schedule-active">
             <ng-container *ngIf="item.date; else noRuns">
               <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
                     matTooltipPosition="above">
-                <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
+                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
                 <span>{{ item.original_cron || item.schedule }}</span>
               </span>
@@ -207,6 +200,73 @@ Author: dph000
           </p>
         </div>
       </div>
+
+      <!-- Feature department -->
+      <div *ngIf="finder" class="department-container">
+        <div class="department-data">
+          <mat-icon class="department-icon">domain</mat-icon>
+          <span class="department-name-text">{{ item.department }}</span>
+        </div>
+      </div>
+
+      <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
+      <ng-container>
+        <div
+          stopPropagation
+          class="star-feature-in-feature"
+          [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
+          matTooltipPosition="above">
+          <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
+        </div>
+      </ng-container>
+
+      <!-- Notification icons container -->
+      <div 
+        class="notification-icons-container" 
+        [ngClass]="{'with-star': (isStarred$ | async)}"
+        *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification || true">
+        
+        <!-- edit-feature-button -->
+        <button stopPropagation mat-icon-button (click)="_sharedActions.openEditFeature(item.id, 'edit')" matTooltip="Edit {{ item.name }}" matTooltipPosition="above" class="edit-feature-button">
+          <mat-icon class="edit-feature-icon">edit</mat-icon>
+        </button>
+        
+        <!-- Email notification icon -->
+        <div
+          stopPropagation
+          *ngIf="item.reference?.send_mail && item.reference?.email_address && item.reference?.email_address.length > 0"
+          class="notification-icon email-notification"
+          [matTooltip]="getEmailTooltip()"
+          matTooltipPosition="above">
+          <mat-icon class="notification-icon-material">email</mat-icon>
+        </div>
+        
+        <!-- Telegram notification icon -->
+        <div
+          stopPropagation
+          *ngIf="item.reference?.send_telegram_notification"
+          class="notification-icon telegram-notification"
+          [matTooltip]="getTelegramTooltip()"
+          matTooltipPosition="above">
+          <mat-icon class="notification-icon-material">chat</mat-icon>
+        </div>
+      </div>
+
+      <!-- Feature ID -->
+      <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
+        <ng-container>
+          <p class="id-text">
+            <span class="icon-container-clipboard">
+              <i class="material-icons clipboard-icon">content_copy</i>
+            </span>
+            <span class="id-label">ID:</span>
+            <span class="id-container">
+              {{ item.id }}
+            </span>
+          </p>
+        </ng-container>
+      </div>
+
       <!-- Feature options button -->
       <button
         type="button"
@@ -282,6 +342,16 @@ Author: dph000
           mat-menu-item>
           <mat-icon>folder</mat-icon>
           <span>Move</span>
+        </button>
+        <mat-divider></mat-divider>
+        <!-- Feature History -->
+        <button
+          type="button"
+          mat-menu-item
+          (click)="_sharedActions.openFeatureHistory(item.id)"
+          class="modify-feature">
+          <mat-icon>history</mat-icon>
+          <span>History</span>
         </button>
         <mat-divider></mat-divider>
         <button

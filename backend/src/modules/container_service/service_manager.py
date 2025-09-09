@@ -15,6 +15,10 @@ import uuid, time, sys, json
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
+
+from backend.utility.functions import detect_deployment_environment
+
+
 # src container/django container service_manager.py 
 
 class KubernetesServiceManager:
@@ -105,7 +109,7 @@ class KubernetesServiceManager:
         except ApiException as e:
             logger.debug(f"Exception occurred while deleting service: {e}")
 
-    def create_service(self,configuration):
+    def create_service(self, configuration):
         try:
             self.__create_pod_and_wait_to_running()
             if not self.__create_pod_url():
@@ -123,9 +127,9 @@ class KubernetesServiceManager:
                         'State':{
                             'Running':pod.status.phase
                         }
-                     
                 }
         except Exception:
+            self.delete_service(service_name_or_id=configuration['Id'])
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
             traceback.print_exc()
             return False      
@@ -133,11 +137,19 @@ class KubernetesServiceManager:
     def delete_service(self, service_name_or_id):
         try:
             self.__delete_pod(pod_id = service_name_or_id)
-            self.__delete_pod_url(pod_url_id = service_name_or_id)
-            return True, "Container removed"
         except Exception as e:
             traceback.print_exc()
             return False, str(e)
+
+        try:
+            self.__delete_pod_url(pod_url_id = service_name_or_id)
+        except Exception as e:
+            traceback.print_exc()
+            return False, str(e)
+
+        return True, "Container removed"
+
+    
 
 class DockerServiceManager:
     deployment_type = "docker"
@@ -149,9 +161,15 @@ class DockerServiceManager:
 
     # This method will create the container base on the environment
     def create_service(self, configuration) -> dict:
-        logger.info(f"Creating container with configuration : {configuration}")
-        container = self.docker_client.containers.run(**configuration)
-        return container.attrs
+        try:
+            logger.info(f"Creating container with configuration : {configuration}")
+            container = self.docker_client.containers.run(**configuration)
+            return container.attrs
+        except docker.errors.NotFound:
+            return {"error": f"Image {configuration['image']} not found"}
+        except Exception as e:
+            return {"error": f"{str(e)}"}
+        
 
     def get_service_name(self, uuid):
         return self.inspect_service(uuid)['Config']['Hostname']           
@@ -248,8 +266,8 @@ class DockerServiceManager:
 
                 # Stop the container if it's running or restarting
                 if status in ['running', 'restarting']:
-                    logger.info(f"Stopping container {service_name_or_id} (state: {status})")
-                    container.stop(timeout=10)
+                    logger.info(f"Killing container {service_name_or_id} (state: {status})")
+                    container.kill()
                     # Wait for container to stop
                     for _ in range(5):
                         container.reload()
@@ -271,12 +289,15 @@ class DockerServiceManager:
                 logger.info(f"Container not found during deletion: {service_name_or_id}. Error: {str(not_found)}")
                 return True, f"Container not found: {service_name_or_id}"
             except Exception as e:
+                if "is already in progress" in str(e):
+                    logger.info(f"Container {service_name_or_id} is already in progress.")
+                    # return True, f"Container {service_name_or_id} is already in progress. Skipping deletion."
                 logger.error(f"Error deleting container {service_name_or_id} on attempt {attempt}: {str(e)}")
-                traceback.print_exc()
                 if attempt < max_delete_attempts:
                     logger.info(f"Retrying deletion in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                 else:
+                    traceback.print_exc()
                     logger.error(f"Max delete attempts reached for {service_name_or_id}. Giving up.")
                     return False, f"Failed to delete container after {max_delete_attempts} attempts: {str(e)}"
 
@@ -368,30 +389,276 @@ class DockerServiceManager:
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
 
+        # Check if emulator is ready
+        try:
+            exit_code, output = container.exec_run("adb devices")
+            if exit_code != 0:
+                return False, "Unable to check emulator status. Please ensure ADB is available."
+            
+            # Parse the output properly
+            lines = output.decode('utf-8').strip().split('\n')
+            if len(lines) < 2:  # Should have header + at least one device
+                return False, "No emulator device found. Please wait for the emulator to start."
+            
+            # Check the specific device status (skip header line)
+            device_found = False
+            for line in lines[1:]:
+                if line.strip():  # Skip empty lines
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        device_found = True
+                        device_status = parts[1].strip()
+                        if device_status == 'offline':
+                            logger.info(f"APK installation skipped - Emulator device offline")
+                            return False, "Emulator is still starting up. Please wait a moment and try again."
+                        elif device_status != 'device':
+                            logger.info(f"APK installation skipped - Emulator in unexpected state: {device_status}")
+                            return False, f"Emulator is in unexpected state: {device_status}. Please restart the emulator."
+            
+            if not device_found:
+                logger.info(f"APK installation skipped - No emulator device detected")
+                return False, "No emulator device detected. Please ensure the emulator is running."
+            
+            # Check if system is fully booted
+            exit_code, output = container.exec_run("adb shell getprop sys.boot_completed")
+            if exit_code != 0 or output.strip() != b"1":
+                logger.info(f"APK installation skipped - Android system still booting")
+                return False, "Android system is still booting. Please wait a moment and try again."
+            
+            # Check if package service is available
+            exit_code, output = container.exec_run("adb shell pm list packages -3")
+            if exit_code != 0:
+                if b"Can't find service: package" in output:
+                    logger.info(f"APK installation skipped - Package service not ready")
+                    return False, "Android package service is not ready yet. Please wait a moment and try again."
+                else:
+                    logger.warning(f"APK installation skipped - Package service error: {output.decode('utf-8').strip()}")
+                    return False, f"Error checking package service: {output.decode('utf-8').strip()}"
+                
+        except Exception as e:
+            return False, f"Error checking emulator status: {str(e)}"
+
         command = f"adb install \"/tmp/{apk_file_name}\""
 
         # Run the tar extraction command in the container
         exit_code, output = container.exec_run(command)
         if exit_code == 0:
-            return True, f"App {apk_file_name} installed in the mobile container {service_name_or_id}"
+            # Extract package name from the installed APK
+            package_name = self._extract_package_name(service_name_or_id, apk_file_name)
+            if package_name:
+                return True, f"App {apk_file_name} installed with package {package_name}", package_name
+            else:
+                return True, f"App {apk_file_name} installed in the mobile container {service_name_or_id}", None
         else:
             return False, f"Error while installing app in the mobile container {service_name_or_id}\n{output}"
+
+    def _extract_package_name(self, service_name_or_id, apk_file_name):
+        """
+        Extract package name from APK file using aapt
+        """
+        try:
+            container = self.docker_client.containers.get(service_name_or_id)
+            
+            # Use aapt to extract package information
+            command = f"aapt dump badging \"/tmp/{apk_file_name}\" | grep package:\ name"
+            exit_code, output = container.exec_run(command)
+            
+            if exit_code == 0:
+                output_str = output.decode('utf-8').strip()
+                # Parse: package: name='com.example.app'
+                if "package: name='" in output_str:
+                    package_name = output_str.split("'")[1] if "'" in output_str else None
+                    logger.info(f"Extracted package name: {package_name} from {apk_file_name}")
+                    return package_name
+                else:
+                    logger.warning(f"Could not parse package name from output: {output_str}")
+                    return None
+            else:
+                logger.warning(f"Failed to extract package name from {apk_file_name}: {output.decode('utf-8')}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error extracting package name from {apk_file_name}: {str(e)}")
+            return None
+
+    def _get_package_name_from_filename(self, apk_file_name):
+        """
+        Extract package name from APK filename using common patterns
+        """
+        # Remove .apk extension
+        name_without_ext = apk_file_name.replace('.apk', '')
+        
+        # Common patterns for package names in filenames
+        possible_package_names = []
+        
+        # Pattern 1: com.example.app_123 -> com.example.app
+        if '_' in name_without_ext:
+            parts = name_without_ext.split('_')
+            if len(parts) > 1:
+                possible_package_names.append(parts[0])
+        
+        # Pattern 2: com.example.app-v123 -> com.example.app
+        if '-' in name_without_ext:
+            parts = name_without_ext.split('-')
+            if len(parts) > 1:
+                possible_package_names.append(parts[0])
+        
+        # Pattern 3: com.example.app -> com.example.app (no version)
+        if '.' in name_without_ext and '_' not in name_without_ext and '-' not in name_without_ext:
+            possible_package_names.append(name_without_ext)
+        
+        return possible_package_names
+
+    def _find_package_by_filename(self, service_name_or_id, apk_file_name):
+        """
+        Find package name by searching through installed packages and matching by filename
+        This is a fallback method when package name is not stored
+        """
+        try:
+            container = self.docker_client.containers.get(service_name_or_id)
+            
+            # Get list of all installed packages
+            command = "adb shell pm list packages -3 -f"
+            exit_code, output = container.exec_run(command)
+            
+            if exit_code == 0:
+                output_str = output.decode('utf-8').strip()
+                lines = output_str.split('\n')
+                
+                logger.info(f"Searching for APK '{apk_file_name}' in {len(lines)} installed packages")
+                
+                # Search for the APK filename in the package list
+                # Format: package:/data/app/com.example.app-1/base.apk=com.example.app
+                for line in lines:
+                    if apk_file_name in line:
+                        # Extract package name from the line
+                        if '=' in line:
+                            package_name = line.split('=')[1].strip()
+                            logger.info(f"Found package name '{package_name}' for APK '{apk_file_name}'")
+                            return package_name
+                
+                # If exact match not found, try partial match
+                logger.info(f"Exact match not found, trying partial match for '{apk_file_name}'")
+                
+                # Remove file extension for partial matching
+                apk_name_without_ext = apk_file_name.replace('.apk', '')
+                
+                for line in lines:
+                    if apk_name_without_ext in line:
+                        if '=' in line:
+                            package_name = line.split('=')[1].strip()
+                            logger.info(f"Found package name '{package_name}' for APK '{apk_file_name}' (partial match)")
+                            return package_name
+                
+                # If still not found, try to extract from the filename itself
+                # Many APK filenames contain the package name
+                logger.info(f"Trying to extract package name from filename '{apk_file_name}'")
+                
+                # Common patterns for package names in filenames
+                possible_package_names = self._get_package_name_from_filename(apk_file_name)
+                
+                # Check if any of these possible package names are actually installed
+                for possible_package in possible_package_names:
+                    # Check if this package is actually installed
+                    check_command = f"adb shell pm list packages | grep {possible_package}"
+                    check_exit_code, check_output = container.exec_run(check_command)
+                    
+                    if check_exit_code == 0:
+                        package_name = check_output.decode('utf-8').strip().replace('package:', '')
+                        logger.info(f"Found package name '{package_name}' for APK '{apk_file_name}' (extracted from filename)")
+                        return package_name
+                
+                logger.warning(f"Could not find package name for APK '{apk_file_name}' in installed packages")
+                logger.info(f"Available packages: {lines[:5]}...")  # Show first 5 packages for debugging
+                return None
+            else:
+                logger.warning(f"Failed to list installed packages: {output.decode('utf-8')}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error finding package by filename for {apk_file_name}: {str(e)}")
+            return None
+
+    def uninstall_apk(self, service_name_or_id, package_name):
+        """
+        Uninstall APK from the mobile container using package name
+        """
+        container = self.docker_client.containers.get(service_name_or_id)
+
+        # Check if emulator is ready (same checks as install_apk)
+        try:
+            exit_code, output = container.exec_run("adb devices")
+            if exit_code != 0:
+                return False, "Unable to check emulator status. Please ensure ADB is available."
+            
+            # Parse the output properly
+            lines = output.decode('utf-8').strip().split('\n')
+            if len(lines) < 2:  # Should have header + at least one device
+                return False, "No emulator device found. Please wait for the emulator to start."
+            
+            # Check the specific device status (skip header line)
+            device_found = False
+            for line in lines[1:]:
+                if line.strip():  # Skip empty lines
+                    parts = line.split('\t')
+                    if len(parts) >= 2:
+                        device_found = True
+                        device_status = parts[1].strip()
+                        if device_status == 'offline':
+                            logger.info(f"APK uninstallation skipped - Emulator device offline")
+                            return False, "Emulator is still starting up. Please wait a moment and try again."
+                        elif device_status != 'device':
+                            logger.info(f"APK uninstallation skipped - Emulator in unexpected state: {device_status}")
+                            return False, f"Emulator is in unexpected state: {device_status}. Please restart the emulator."
+            
+            if not device_found:
+                logger.info(f"APK uninstallation skipped - No emulator device detected")
+                return False, "No emulator device detected. Please ensure the emulator is running."
+            
+            # Check if system is fully booted
+            exit_code, output = container.exec_run("adb shell getprop sys.boot_completed")
+            if exit_code != 0 or output.strip() != b"1":
+                logger.info(f"APK uninstallation skipped - Android system still booting")
+                return False, "Android system is still booting. Please wait a moment and try again."
+            
+            # Check if package service is available
+            exit_code, output = container.exec_run("adb shell pm list packages -3")
+            if exit_code != 0:
+                if b"Can't find service: package" in output:
+                    logger.info(f"APK uninstallation skipped - Package service not ready")
+                    return False, "Android package service is not ready yet. Please wait a moment and try again."
+                else:
+                    logger.warning(f"APK uninstallation skipped - Package service error: {output.decode('utf-8').strip()}")
+                    return False, f"Error checking package service: {output.decode('utf-8').strip()}"
+                
+        except Exception as e:
+            return False, f"Error checking emulator status: {str(e)}"
+
+        # Check if package is installed
+        command = f"adb shell pm list packages | grep {package_name}"
+        exit_code, output = container.exec_run(command)
+        if exit_code != 0:
+            return False, f"Package {package_name} is not installed on the device"
+
+        # Uninstall the package
+        command = f"adb uninstall {package_name}"
+        exit_code, output = container.exec_run(command)
+        
+        if exit_code == 0:
+            return True, f"Package {package_name} uninstalled successfully from the mobile container {service_name_or_id}"
+        else:
+            return False, f"Error while uninstalling package {package_name} from the mobile container {service_name_or_id}\n{output}"
 
 
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-# Select ServiceManager Parent class based on the deployment 
+# to initialize the service manager for runserver as by default DockerServiceManager
 service_manager = DockerServiceManager
-
-IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
-
-if IS_KUBERNETES_DEPLOYMENT:
-    service_manager = KubernetesServiceManager
-    logger.debug(
-        f'Deployment type is {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT","docker")}'
-    )
-
+    
+if 'runserver' in sys.argv:
+    logger.debug("Loading service manager for runserver")
+    service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
 
 class ServiceManager(service_manager):
     def __init__(self, *args, **kwargs):
@@ -422,6 +689,59 @@ class ServiceManager(service_manager):
     def install_apk(self, service_name_or_id, apk_file_name, *args, **kwargs):
         return super().install_apk(service_name_or_id, apk_file_name, *args, **kwargs)
 
+    def uninstall_apk(self, service_name_or_id, package_name, *args, **kwargs):
+        return super().uninstall_apk(service_name_or_id, package_name, *args, **kwargs)
+
+    def uninstall_apk_simple(self, service_name_or_id, apk_file_name):
+        """
+        Simple method to uninstall APK by trying common package name patterns
+        This is a fallback when package name is not known
+        """
+        container = self.docker_client.containers.get(service_name_or_id)
+        
+        # Get possible package names from filename
+        possible_package_names = self._get_package_name_from_filename(apk_file_name)
+        
+        # Add the filename without extension as a possibility
+        name_without_ext = apk_file_name.replace('.apk', '')
+        if name_without_ext not in possible_package_names:
+            possible_package_names.append(name_without_ext)
+        
+        logger.info(f"Trying to uninstall APK '{apk_file_name}' with possible package names: {possible_package_names}")
+        
+        # Try each possible package name
+        for package_name in possible_package_names:
+            try:
+                logger.info(f"Trying to uninstall package: {package_name}")
+                
+                # Check if package is installed
+                check_command = f"adb shell pm list packages | grep {package_name}"
+                exit_code, output = container.exec_run(check_command)
+                
+                if exit_code == 0:
+                    # Package is installed, try to uninstall it
+                    uninstall_command = f"adb uninstall {package_name}"
+                    exit_code, output = container.exec_run(uninstall_command)
+                    
+                    if exit_code == 0:
+                        logger.info(f"Successfully uninstalled package: {package_name}")
+                        return True, f"Successfully uninstalled package: {package_name}"
+                    else:
+                        logger.warning(f"Failed to uninstall package {package_name}: {output.decode('utf-8')}")
+                else:
+                    logger.info(f"Package {package_name} is not installed")
+                    
+            except Exception as e:
+                logger.error(f"Error trying to uninstall package {package_name}: {str(e)}")
+        
+        return False, f"Could not uninstall APK '{apk_file_name}'. Tried package names: {possible_package_names}"
+
+    def _find_package_by_filename(self, service_name_or_id, apk_file_name, *args, **kwargs):
+        return super()._find_package_by_filename(service_name_or_id, apk_file_name, *args, **kwargs)
+
+    def _get_package_name_from_filename(self, apk_file_name, *args, **kwargs):
+        return super()._get_package_name_from_filename(apk_file_name, *args, **kwargs)
+
     def inspect_service(self, service_name_or_id,  *args, **kwargs):
         return super().inspect_service(service_name_or_id,  *args, **kwargs)
     
@@ -434,6 +754,15 @@ class ServiceManager(service_manager):
         except Exception as e:
             logger.error("Exception loading the test hostAliases configurations", e)
             return []
+
+    def get_container_environments(self):
+        # Load the container environment variables
+        try:
+            container_envs = ConfigurationManager.get_configuration("CONTAINER_ENVS", '{}')
+            return json.loads(container_envs)
+        except Exception as e:
+            logger.error("Exception loading the container environments configurations", e)
+            return {}
         
     def get_video_volume(self):
         info = self.inspect_service("cometa_behave")
@@ -447,6 +776,7 @@ class ServiceManager(service_manager):
 
     def prepare_emulator_service_configuration(self, image):
         host_mappings = self.get_host_name_mapping()
+        container_envs = self.get_container_environments()
         
         # Flatten the host mappings for `extra_hosts`
         extra_hosts = [
@@ -470,7 +800,8 @@ class ServiceManager(service_manager):
                 "environment": {
                     "DISPLAY": ":0",
                     "VIDEO_PATH": "/video",
-                    "AUTO_RECORD": "true"
+                    "AUTO_RECORD": "true",
+                    **container_envs  # Add custom container environments from configuration
                 },  # Set the DISPLAY environment variable
                 "network": "cometa_testing",  # Attach the container to the 'testing' network
                 "restart_policy": {"Name": "unless-stopped"},
@@ -494,6 +825,7 @@ class ServiceManager(service_manager):
         browser_cpu=int(ConfigurationManager.get_configuration("COMETA_BROWSER_CPU","1"))
         
         host_mappings = self.get_host_name_mapping()
+        container_envs = self.get_container_environments()
         
         if super().deployment_type == "docker":        
             video_volume = self.get_video_volume()
@@ -526,6 +858,7 @@ class ServiceManager(service_manager):
                     "SE_SESSION_REQUEST_TIMEOUT": "7200",
                     "SE_NODE_SESSION_TIMEOUT": "7200",
                     "SE_NODE_OVERRIDE_MAX_SESSIONS": "true",
+                    **container_envs  # Add custom container environments from configuration
                 },  # Set environment variables
                 "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
                 "restart_policy": {"Name": "unless-stopped"},
@@ -596,6 +929,9 @@ class ServiceManager(service_manager):
                                 {"name": "SE_SESSION_REQUEST_TIMEOUT", "value": "7200"},
                                 {"name": "SE_NODE_SESSION_TIMEOUT", "value": "7200"},
                                 {"name": "SE_NODE_OVERRIDE_MAX_SESSIONS", "value": "true"}
+                            ] + [
+                                {"name": key, "value": str(value)} 
+                                for key, value in container_envs.items()
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},
@@ -687,3 +1023,29 @@ class ServiceManager(service_manager):
             )
 
     
+import threading
+
+def remove_running_containers(feature_result):
+    def _remove_containers():
+        logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+        for mobile in feature_result.mobile:
+            # While running mobile tests User have options to connect to already running mobile or start mobile during test
+            # If Mobile was started by the test then remove it after execution 
+            # If Mobile was started by the user and test only connected to it do not stop it
+            if mobile['is_started_by_test']:
+                logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+                ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+        browser_container_info = feature_result.browser.get("container_service",False)
+        if browser_container_info:
+            ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"])
+
+    try:
+        logger.debug(f"Starting a thread clean up the containers")
+        # Create and start thread to handle container removal
+        cleanup_thread = threading.Thread(target=_remove_containers)
+        cleanup_thread.start()
+        logger.debug(f"Container cleanup thread {cleanup_thread.getName()} started")
+    except Exception:
+        logger.debug("Exception while cleaning up the containers")
+        traceback.print_exc()

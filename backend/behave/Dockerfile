@@ -1,4 +1,4 @@
-# Use Python 3.9 base image from the Docker Hub
+# Use Python 3.11 base image from the Docker Hub
 FROM python:3.11
 
 LABEL AUTHOR="COMETA ROCKS S.L."
@@ -7,13 +7,15 @@ LABEL AUTHOR="COMETA ROCKS S.L."
 USER root
 
 # Install necessary packages
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update && apt-get install --no-install-recommends -y \
     rsyslog \
     vim \
     jq \
     nano \
     telnet \
     supervisor \
+    psmisc \
     libgl1 \
     && apt-get purge -y --auto-remove exim* \
     && rm -rf /var/lib/apt/lists/*
@@ -22,26 +24,36 @@ RUN apt-get purge -y exim*
 # Update pip
 RUN python -m pip install --upgrade pip
 
+# Install MSSQL related library
+# 1. Clean up any broken repo files
+RUN rm -f /etc/apt/sources.list.d/mssql-release.list
+
+# 2. Import Microsoft’s GPG key (new method, no apt-key warnings)
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
+  | gpg --dearmor \
+  | tee /usr/share/keyrings/microsoft-prod.gpg > /dev/null
+
+# 3. Add Microsoft SQL Server ODBC repo (use Debian 11, works on Debian 12 too)
+# TODO: Check if this is the correct version of Debian
+RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" \
+  > /etc/apt/sources.list.d/mssql-release.list
+# 4. Update apt and install ODBC driver
+RUN apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+
+
+
+
 RUN export DEBIAN_FRONTEND=noninteractive \
-    && curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /usr/share/keyrings/microsoft.gpg > /dev/null \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" | tee /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update -y \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev \
+    && apt-get update && apt-get install -y \
+    unixodbc \
+    unixodbc-dev \
+    odbcinst \
+    curl \
+    gnupg2 \
     && rm -rf /var/lib/apt/lists/*
-
-
-
-RUN apt-get update && apt-get install -y \
-unixodbc \
-unixodbc-dev \
-odbcinst \
-libodbc1 \
-curl \
-gnupg2 \
-&& rm -rf /var/lib/apt/lists/*
 # Create a non-root user 'cometa' with UID 472 and GID 472
-RUN groupadd -g 472 cometa && \
-    useradd -u 472 -g cometa -m cometa -s /bin/bash
+RUN groupadd -g 1472 cometa \
+&& useradd -u 1472 -g cometa -d /home/cometa -s /bin/bash cometa
 
 RUN usermod -aG sudo cometa
     
@@ -57,11 +69,11 @@ RUN mkdir -p /code/behave/videos
 RUN mkdir -p /code/behave/pdf
 RUN mkdir -p /data/test/downloads
 RUN mkdir -p /code/behave/department_data
-RUN mkdir -p /code/src/logs
-
+RUN mkdir -p /opt/code/behave_logs
+RUN mkdir -p /home/cometa
 
 RUN chown -R cometa:cometa /code
-RUN chown -R cometa:cometa /code/src/logs
+RUN chown -R cometa:cometa /opt/code/behave_logs
 RUN chown -R cometa:cometa /share
 RUN chown -R cometa:cometa /opt/code
 RUN chown -R cometa:cometa /home/cometa
@@ -76,13 +88,13 @@ RUN chown -R cometa:cometa /var/log/supervisor/
 
 
 RUN chmod -R 755 /code 
-RUN chmod -R 755 /code/src/logs
+RUN chmod -R 755 /opt/code/behave_logs
 RUN chmod -R 755 /share
 RUN chmod -R 755 /opt/code 
 # RUN chmod -R 755 /proc/kmsg 
 RUN chmod -R 755 /var/run 
 RUN chmod -R 755 /var/log/supervisor/ 
-RUN chmod -R 755 /usr/local/lib/python3.11/
+RUN chmod -R 755 /usr/local/lib/python3.11/ || true
 # RUN chmod -R 755 /usr/local/bin/chardetect/
 
 # RUN rsyslogd -n
@@ -112,19 +124,16 @@ RUN poetry --version
 # # Configure Poetry to avoid creating virtual environments
 RUN poetry config virtualenvs.create false --local
 USER root
-# RUN apt-get install --reinstall python3.11 python3.11-venv python3.11-dev \
-#     && python3 -m ensurepip \
-#     && python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"
-    
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update -y \
-    && apt-get install -y gcc g++ make unixodbc-dev python3-dev libssl-dev openssl \
-    && apt-get install -y --reinstall python3.11 python3.11-venv python3.11-dev \
-    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
+    && apt-get install -y gcc g++ make python3-dev libssl-dev openssl \
     && python3 -m ensurepip \
-    && python3 -m pip install --upgrade pip setuptools wheel \
-    && poetry config virtualenvs.create false \
+    && python3 -m pip install --upgrade pip setuptools wheel
+
+# Configure Poetry for root user and install Python dependencies
+RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
+
 
 
 USER cometa

@@ -22,6 +22,17 @@ $grey: #6e6f6d; // Used in canceled elements in feature list items (replacing $o
 $orange: #f57c00;
 // Color of the background when the user wants presses the add button on mobile
 $transparent-bg: rgba(0, 0, 0, 0.15);
+$transparent-bg-hover: rgba(0, 0, 0, 0.07);
+$pure-white: #ffffff;
+
+// Matautocomplete
+$grey-bg-matautocomplete: #0000000A;
+$black-border-bottom-matautocomplete: #0000000F;
+$black-border-top-matautocomplete: #0000001F;
+
+$text-secundary: #999;
+
+
 /* Header */
 $header-bg-color: #1a1a1a;
 $header-env-bg-color: #282828;
@@ -30,6 +41,21 @@ $header-env-bg-color: #282828;
 $good: #00a99d;
 $medium: #f97412;
 $bad: #d4145a;
+$skipped: rgb(182, 182, 101); // Used as background color in skipped elements in step view
+
+/* Step View */
+$error-background: rgba(212, 20, 90, 0.05); // Subtle error background
+$error-box-shadow: 0 2px 6px rgba(212, 20, 90, 0.1); // Subtle error shadow
+$error-border: 1px solid rgba(212, 20, 90, 0.2); // Subtle error border
+
+
+// Item-feature-list- bottom icons ##########################################
+
+$edit-feature-icon-color: #555;
+$star-feature-icon-color: #666;
+
+// END - Item-feature-list- bottom icons ##########################################
+
 
 // MOBILE ##########################################
 
@@ -116,6 +142,12 @@ $starred-color-deparment: #5F6368;
 $screenshot-bg-color: #5f6368;
 
 // END - SCREENSHOT #####################################
+
+// edit-feature #########################################
+
+$edit-feature-button-bg-color:  linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+
+// END - edit-feature #####################################
 
 /* Option Pages */
 $opt-bg-color: #e5b355;

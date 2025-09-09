@@ -68,6 +68,15 @@ export class EditSchedule {
   static panelClass = 'no-resize-dialog';
   schedule: UntypedFormGroup;
 
+  // ID of feature being scheduled (if in feature mode). Could be same as file_id when working in file mode for backward compatibility
+  feature_id: number | null = null;
+
+  // When scheduling a data-driven file
+  file_id: number | null = null;
+
+  // Indicates context type
+  contextType: 'feature' | 'file' = 'feature';
+
   // formLayout is a variable to steer the layout of the schedule edit form
   // ... value: "1" ... means the first layout
   // ... value: "2" ... second layout proposed from Cosimo
@@ -186,9 +195,10 @@ export class EditSchedule {
   // Input focus tracking to disable keyboard shortcuts while typing
   inputFocus: boolean = false;
 
+  // Accept either a feature ID (number) or an object containing a fileId for data-driven tests
   constructor(
     private dialogRef: MatDialogRef<EditSchedule>,
-    @Inject(MAT_DIALOG_DATA) private feature_id: number,
+    @Inject(MAT_DIALOG_DATA) private data: any,
     private _api: ApiService,
     private snackBar: MatSnackBar,
     private _dialog: MatDialog,
@@ -198,7 +208,24 @@ export class EditSchedule {
     private inputFocusService: InputFocusService,
     private cdr: ChangeDetectorRef
   ) {
-    this.log.msg('1', 'Edit Schedule Constuctor', 'edit-schedule');
+    this.log.msg('4', 'Edit Schedule Constuctor scheduleenabled', 'edit-schedule', this.enableSchedule.getValue());
+
+    // Determine context (feature scheduling vs data-driven file scheduling)
+    this.contextType = 'feature'; // default
+    this.feature_id = null as any;
+    this.file_id = null as any;
+
+    if (typeof this.data === 'number') {
+      // Existing behaviour – scheduling a feature
+      this.contextType = 'feature';
+      this.feature_id = this.data as number;
+    } else if (this.data && typeof this.data === 'object' && this.data.fileId !== undefined) {
+      // New behaviour – scheduling a data-driven file
+      this.contextType = 'file';
+      this.file_id = this.data.fileId;
+      // For compatibility with existing logic that references feature_id
+      this.feature_id = this.file_id;
+    }
 
     // Set up InputFocusService subscription like other components
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
@@ -206,10 +233,19 @@ export class EditSchedule {
     });
 
     // set the default layout of the form for editing schedule
-    // "1" is the crontab like layout
+    // "1" is the crontab like layout (horizontal)
     // "2" is the vertical form layout
-    this.formLayout = 2;
-    this.formLayoutTextSelected = 'horizontal';
+    const savedLayout = localStorage.getItem('co_schedule_form_layout');
+    if (savedLayout === '1' || savedLayout === '2') {
+      this.formLayout = Number(savedLayout);
+    } else {
+      // Default to horizontal layout (1) if no preference saved
+      this.formLayout = 1;
+    }
+
+    // Initialize helper text and icon according to the current layout
+    this.formLayoutTextSelected = this.formLayout === 1 ? 'vertical' : 'horizontal';
+    this.formLayoutIcon = this.formLayout === 1 ? 'rotate_right' : 'rotate_left';
 
     // Create empty form
     this.schedule = this._fb.group({});
@@ -225,13 +261,70 @@ export class EditSchedule {
       );
       this.schedule.addControl(field, control);
     }
-    // Retrieve information about the feature
-    this.feature = this._store.selectSnapshot(FeaturesState.GetFeatureInfo)(
-      this.feature_id
-    );
-    // Set the enabled state of Schedule
-    this.enableSchedule.next(this.feature.schedule !== '');
-    if (this.enableSchedule.getValue()) {
+    if (this.contextType === 'feature') {
+      this.feature = this._store.selectSnapshot(FeaturesState.GetFeatureInfo)(
+        this.feature_id
+      );
+      // Set the enabled state of Schedule for a feature
+      this.enableSchedule.next(this.feature.schedule !== '');
+
+      this.log.msg('4', 'Feature this feature', 'edit-schedule', JSON.stringify(this.feature, null, 2));
+      this.log.msg('4', 'Feature schedule', 'edit-schedule', this.feature.schedule);
+      this.log.msg('4', 'Feature schedule status enabled', 'edit-schedule', this.enableSchedule.getValue());
+    } else {
+      // File mode – load existing schedule from backend
+      this.feature = {
+        schedule: '',
+        original_cron: null,
+        original_timezone: null,
+      } as any;
+      
+      // Load existing schedule for the file
+      this._api.getFileSchedule(this.file_id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.feature.schedule = response.schedule || '';
+            this.feature.original_cron = response.original_cron;
+            this.feature.original_timezone = response.original_timezone;
+            
+            // Enable schedule if one exists
+            this.enableSchedule.next(response.schedule !== '');
+
+            this.log.msg('4', 'Api response schedule', 'edit-schedule', response.schedule);
+
+            this.log.msg('4', 'Api schedule status enabled', 'edit-schedule', this.enableSchedule.getValue());
+            // If schedule exists, populate the form
+            if (response.schedule) {
+              const cronToDisplay = response.original_cron || response.schedule;
+              const cron_values = cronToDisplay.split(' ');
+              for (let i = 0; i < this.fields.length; i++) {
+                this.schedule.get(this.fields[i]).setValue(cron_values[i]);
+              }
+              
+              // Set timezone
+              if (response.original_timezone) {
+                const availableTimezones = [...this.allTimezones, 'browser-timezone'];
+                if (availableTimezones.includes(response.original_timezone)) {
+                  this.selectedTimezone = response.original_timezone;
+                } else {
+                  this.selectedTimezone = 'browser-timezone';
+                }
+              }
+            }
+          } else {
+            // No schedule exists, keep defaults
+            this.enableSchedule.next(false);
+          }
+        },
+        error: (error) => {
+          // Failed to load file schedule
+          this.enableSchedule.next(false);
+        }
+      });
+    }
+
+    // For features, handle schedule loading immediately since data is available
+    if (this.contextType === 'feature' && this.enableSchedule.getValue()) {
       // Insert schedule value parts into form
       // Use original_cron if available (for timezone-aware schedules), otherwise use schedule
       const cronToDisplay = this.feature.original_cron || this.feature.schedule;
@@ -255,8 +348,10 @@ export class EditSchedule {
         // Fallback to browser timezone if no original timezone is stored
         this.selectedTimezone = 'browser-timezone';
       }
-    } else {
-      // Initialize form with default values
+    }
+    
+    // Initialize form with default values if no schedule exists
+    if (!this.enableSchedule.getValue()) {
       this.schedule.setValue({
         minute: '0,15,30,45',
         hour: '*/2',
@@ -478,27 +573,42 @@ export class EditSchedule {
       this.formLayout == 1 ? 'vertical' : 'horizontal';
     // Toggle the Icon
     this.formLayoutIcon = this.formLayout == 1 ? 'rotate_right' : 'rotate_left';
+    // Persist the user preference in localStorage so the chosen layout is remembered
+    localStorage.setItem('co_schedule_form_layout', this.formLayout.toString());
   }
 
+  /**
+   * Update the schedule
+   * When pressing save button in the schedule edit form
+   * This method is called
+   * It prepares the data to send to the backend
+   * 
+   */
   updateSchedule() {
-    let schedule = [
-      this.schedule.value.minute,
-      this.schedule.value.hour,
-      this.schedule.value.day,
-      this.schedule.value.month,
-      this.schedule.value.dayWeek,
-    ].join(' ');
-    
-    // Prepare data to send - include timezone information for proper backend processing
-    const dataToSend: any = {
-      schedule: schedule
-    };
+
+    // Initialize the data to send with empty object
+    let dataToSend: any = {};
+
+    this.log.msg('4', 'Data to send', 'edit-schedule', JSON.stringify(dataToSend, null, 2));
+    this.log.msg('4', 'Enable schedule getvalue', 'edit-schedule', this.enableSchedule.getValue());
     
     if (!this.enableSchedule.getValue()) {
-      dataToSend.schedule = '';
       // Clear timezone info when schedule is disabled
       dataToSend.original_timezone = null;
     } else {
+
+      // Build the schedule
+      let schedule = [
+        this.schedule.value.minute,
+        this.schedule.value.hour,
+        this.schedule.value.day,
+        this.schedule.value.month,
+        this.schedule.value.dayWeek,
+      ].join(' ');
+
+       // Prepare data to send - include timezone information for proper backend processing
+      dataToSend.schedule = schedule;
+
       // Add timezone information for backend conversion (same logic as edit-feature)
       if (this.selectedTimezone === 'browser-timezone') {
         dataToSend.original_timezone = this.userTimezone;
@@ -506,31 +616,57 @@ export class EditSchedule {
         dataToSend.original_timezone = this.selectedTimezone;
       }
     }
+
+     // Log final data being sent
+     this.log.msg('4', 'Final data being sent to backend', 'edit-schedule', JSON.stringify(dataToSend, null, 2));
     
-    if (schedule !== this.feature.schedule) {
-      // Use patchFeature like edit-feature component does to send timezone information
-      this._api.patchFeature(this.feature_id, dataToSend).subscribe(res => {
-        if (res.success) {
-          this.snackBar.open('Schedule modified', 'OK');
-          this._store.dispatch(
-            new Features.ModifyFeatureInfo(
-              this.feature_id,
-              'schedule',
-              dataToSend.schedule
-            )
-          );
-          this.dialogRef.close();
-        } else {
+    if (this.contextType === 'feature') {
+      const currentSchedule = this.feature.schedule || '';
+      const newSchedule = dataToSend.schedule || '';
+      if (currentSchedule !== newSchedule || !this.enableSchedule.getValue()) {
+        // Existing behaviour for features
+        this._api.patchFeature(this.feature_id, dataToSend).subscribe(res => {
+          this.log.msg('4', 'Backend response', 'edit-schedule', JSON.stringify(res, null, 2));
+          if (res.success) {
+            this.snackBar.open('Schedule modified', 'OK');
+            this._store.dispatch(
+              new Features.ModifyFeatureInfo(
+                this.feature_id,
+                'schedule',
+                dataToSend.schedule || '' //This way its the correct way (don't sending schedule if doesn't exist)
+              )
+            );
+            this.dialogRef.close();
+          } else {
+            this.snackBar.open('An error ocurred', 'OK');
+          }
+        });
+      } else {
+        this.dialogRef.close();
+      }
+    } else {
+      // File mode – always send the request (we don't have previous schedule info)
+      this._api.updateFileSchedule(this.file_id, dataToSend).subscribe({
+        next: (res: any) => {
+          this.log.msg('4', 'Backend response', 'edit-schedule', JSON.stringify(res, null, 2));
+          if (res.success) {
+            this.snackBar.open('Schedule modified', 'OK');
+            this.dialogRef.close();
+          } else {
+            this.snackBar.open('An error ocurred', 'OK');
+          }
+        },
+        error: _ => {
           this.snackBar.open('An error ocurred', 'OK');
         }
       });
-    } else {
-      this.dialogRef.close();
     }
   }
 
   changeSchedule(e: MatSlideToggleChange) {
+    this.log.msg('4', 'Change Schedule before', 'edit-schedule', e.checked);
     this.enableSchedule.next(e.checked);
+    this.log.msg('4', 'Change Schedule after', 'edit-schedule', e.checked);
   }
 
   enableSchedule = new BehaviorSubject<boolean>(false);

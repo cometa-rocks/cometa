@@ -3,6 +3,7 @@ import {
   Component,
   HostListener,
   OnInit,
+  Inject
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { Observable, finalize } from 'rxjs';
@@ -34,6 +35,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { API_BASE } from 'app/tokens';
 
 @Component({
   selector: 'data-driven-execution',
@@ -136,7 +138,9 @@ export class DataDrivenExecution implements OnInit {
     private cdRef: ChangeDetectorRef,
     private _store: Store,
     private _dialog: MatDialog,
-    public dialogRef: MatDialogRef<DataDrivenExecution>
+    public dialogRef: MatDialogRef<DataDrivenExecution>,
+    @Inject(API_BASE) private _api_base: string
+
   ) {}
 
   ngOnInit() {
@@ -273,13 +277,23 @@ export class DataDrivenExecution implements OnInit {
   preSelectedOrDefaultOptions() {
     const { preselectDepartment } = this.user.settings;
 
+    // Get current route to determine department context
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    
     this.departments$.subscribe(deps => {
-      this.department =
-        deps.find(
-          d =>
-            d.department_id ==
-            (this.department_id ? this.department_id : preselectDepartment)
-        ) || deps[0];
+      let departmentId = this.department_id;
+      
+      // If no department_id is set, check for current department context
+      if (!departmentId && currentRoute.length > 0 && currentRoute[0].type === 'department') {
+        departmentId = currentRoute[0].folder_id;
+      }
+      
+      // Fallback to user preselected department if no current context
+      if (!departmentId) {
+        departmentId = preselectDepartment;
+      }
+      
+      this.department = deps.find(d => d.department_id == departmentId) || deps[0];
       this.department_id = this.department.department_id;
       this.generateFileData();
     });
@@ -303,7 +317,7 @@ export class DataDrivenExecution implements OnInit {
   execute_data_driven(file: UploadedFile, parent) {
     this._http
       .post(
-        '/backend/exec_data_driven/',
+        `${this._api_base}exec_data_driven/`,
         {
           file_id: file.id,
         },
@@ -317,15 +331,29 @@ export class DataDrivenExecution implements OnInit {
         next(res: any) {
           res = JSON.parse(res);
           if (res.success) {
-            parent._dialog.open(DataDrivenTestExecuted, {
-              minWidth: '500px',
-              panelClass: 'edit-feature-panel',
-              data: {
-                run_id: res.run_id,
-                file_name: file.name,
-              },
-            });
-            parent.dialogRef.close();
+            if (res.status === 'queued') {
+              // Handle queued DDT test
+              parent._snackBar.open(
+                res.snackbar_message || `Data-driven test for ${file.name} has been queued and will start shortly.`,
+                'OK',
+                { 
+                  duration: 5000,
+                  panelClass: ['cometa-snackbar']
+                }
+              );
+              parent.dialogRef.close(); // Close dialog for queued test
+            } else {
+              // Handle successful immediate execution
+              parent._dialog.open(DataDrivenTestExecuted, {
+                minWidth: '500px',
+                panelClass: 'edit-feature-panel',
+                data: {
+                  run_id: res.run_id,
+                  file_name: file.name,
+                },
+              });
+              parent.dialogRef.close();
+            }
           }
         },
         error(err) {

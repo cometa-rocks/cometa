@@ -23,6 +23,8 @@ import secrets
 import base64
 from psycopg2.errors import ForeignKeyViolation
 from django.core.management.utils import get_random_secret_key
+from backend.utility.functions import detect_deployment_environment
+from django.utils import timezone
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -36,6 +38,7 @@ streamLogger.setFormatter(formatter)
 # add the stream handle to logger
 logger.addHandler(streamLogger)
 
+
 default_cometa_configurations = {
     "COMETA_STRIPE_CHARGE_AUTOMATICALLY": False,
     "COMETA_BROWSERSTACK_PASSWORD": "",
@@ -48,6 +51,12 @@ default_cometa_configurations = {
     "COMETA_FEEDBACK_MAIL": "cometa@amvara.de",
     "COMETA_SENTRY_DJANGO": "",
     "COMETA_STRIPE_LIVE_KEY": "",
+    "COMETA_FEATURE_HEALENIUM": False,
+    "COMETA_HEALENIUM_DB_HOST": "cometa_hlm_db",
+    "COMETA_HEALENIUM_DB_PORT": "5432",
+    "COMETA_HEALENIUM_DB_NAME": "healenium",
+    "COMETA_HEALENIUM_DB_USER": "healenium_user",
+    "COMETA_HEALENIUM_DB_PASSWORD": "",
     "COMETA_PROD_ENABLE_PAYMENT": False,
     "COMETA_ENCRYPTION_PASSPHRASE": "$RANDOM_ENCRYPTION_PASSPHRASE",
     "COMETA_UPLOAD_ENCRYPTION_PASSPHRASE": "$RANDOM_UPLOAD_ENCRYPTION_PASSPHRASE",
@@ -63,6 +72,7 @@ default_cometa_configurations = {
     "COMETA_EMAIL_TLS": False,
     "COMETA_EMAIL_USER": "",
     "COMETA_EMAIL_PASSWORD": "",
+    "COMETA_EMAIL_FROM_DEFAULT": "no-reply@cometa.rocks",
     "COMETA_PROXY_ENABLED": False,
     "COMETA_NO_PROXY": "",
     "COMETA_PROXY": "",
@@ -74,7 +84,7 @@ default_cometa_configurations = {
     "REDIS_DB": 0,
     "REDIS_DB_TSL_SSL_ENABLED": False,
     "REDIS_CA_CERTIFICATE_FILE": "/share/certs/ca-cert.pem",
-    "COMETA_DEPLOYMENT_ENVIRONMENT": "docker", # it can be 'docker' or 'kubernetes'
+    "COMETA_DEPLOYMENT_ENVIRONMENT": detect_deployment_environment(), # it can be 'docker' or 'kubernetes'
     "COMETA_MOBILE_TOTAL_EMULATOR_VERSIONS": 3, 
     "COMETA_KUBERNETES_NAMESPACE": "cometa", 
     "COMETA_KUBERNETES_DATA_PVC": "cometa-data-volume-claim", 
@@ -83,12 +93,20 @@ default_cometa_configurations = {
     "COMETA_FEATURE_MOBILE_TEST_ENABLED": False,
     "COMETA_TELEGRAM_BOT_TOKEN": "",
     "COMETA_TELEGRAM_ENABLED": False,
+    "COMETA_TELEGRAM_WEBHOOK_SECRET": "",
+    "COMETA_TELEGRAM_OAUTH_MODE": "standard",  # 'standard' or 'state_parameter'
     # Add host hostAliases to test environments 
     # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
     "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",
+    "CONTAINER_ENVS": "{}", # this is used to set environment variables in the containers, i.e proxy settings
     "USE_COMETA_BROWSER_IMAGES": True,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",
+    # Set the maximum number of standby browsers, this is used too many number of the browser keep running in the background
+    "COMETA_TEST_CONTAINER_MAXIMUM_STANDBY": 2,
+    # This is used to limit the number of browsers running in the background
+    # Set the maximum number of browsers running in the background, set the maximum number that deployment server can handle
+    "COMETA_TEST_CONTAINER_MAXIMUM_RUNNING": 10, 
     # having password hardcoded does not create a security issue, because this communication is internal
     # this can be always changed to a more secure password
     "COMETA_BROWSER_VNC_PASSWORD":"secret",
@@ -97,7 +115,8 @@ default_cometa_configurations = {
     "OLLAMA_AI_HOST":"ollama.ai",
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
-    "OLLAMA_AI_SECRET_KEY":""
+    "OLLAMA_AI_SECRET_KEY":"",
+    "COMETA_BROWSER_MAX_VERSIONS": 3
 }
 
 public_configuraion_values = [
@@ -251,8 +270,8 @@ class ConfigurationManager:
             default_value = ""
 
             # Define the values to be inserted
-            created_on = datetime.datetime.utcnow()
-            updated_on = datetime.datetime.utcnow()
+            created_on = timezone.now()
+            updated_on = timezone.now()
 
             default_value = ""
             created_by = 1
@@ -266,8 +285,8 @@ class ConfigurationManager:
             self.__db_connection.commit()
 
             # Define the values to be inserted
-        created_on = datetime.datetime.utcnow()
-        updated_on = datetime.datetime.utcnow()
+        created_on = timezone.now()
+        updated_on = timezone.now()
         string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, configuration_type, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True','backend', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
         # Generate the SQL query
         query = sql.SQL(string_query)
@@ -277,7 +296,7 @@ class ConfigurationManager:
 
     # Load configuration from db to memory which is later used in the entire cometa_backend
     def load_configuration_from_db(self):
-        logger.info("Loading configurations from the database to memory")
+        # logger.info("Loading configurations from the database to memory")
         
         # Define the SQL query to load all configurations
         query = """
@@ -341,17 +360,9 @@ class ConfigurationManager:
 def load_configurations():
 
     if len(sys.argv) > 1:
-        # try:
-        #     # Load secret_variables as a module
-        #     global secret_variables
-        #     secret_variables = load_module_from_file(
-        #         "secret_variables", "/code/secret_variables.py"
-        #     )
-        # except Exception as exception:
-        #     logger.info(
-        #         "Did not find secret_variables.py, Not to worry this is only required for old Cometa setups"
-        #     )
-
+     
+        
+     
         # Load secret_variables as a module
         conf = ConfigurationManager()
         conf.create_db_connection()
@@ -404,7 +415,7 @@ CONFIGURATION_UPDATE_WATCHED_FILE = os.path.join(CONFIGURATION_UPDATE_WATCHED_DI
 
 def update_config_tracker():
     with open(CONFIGURATION_UPDATE_WATCHED_FILE, "w") as f:
-        time = datetime.datetime.utcnow().isoformat()
+        time = timezone.now().isoformat()
         logger.debug(f"Updating configuration tracker at {time}")
         f.write(time)
 

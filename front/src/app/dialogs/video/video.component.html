@@ -9,7 +9,7 @@
 <ng-template #loading>
   <mat-spinner diameter="50" color="primary"></mat-spinner>
 </ng-template>
-<div *ngIf="showHeader$ | async" class="header">
+<div *ngIf="(showHeader$ | async) && result" class="header">
   <div class="left">
     <button
       [matTooltip]="'whats_new.close' | translate | titlecase"
@@ -17,12 +17,24 @@
       mat-icon-button>
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <div class="browser">
-      <i [style.backgroundImage]="result.browser | browserIcon"></i>
-      {{ result.browser | browserComboText }}
+    <div>
+      <ng-container class="browser"*ngIf="data.type === 'browser'; else mobile">
+        <i [style.backgroundImage]="result.browser | browserIcon"></i>
+        {{ result.browser | browserComboText }}
+      </ng-container>
+      <ng-template #mobile>
+        <div class="mobile-info">
+          <i class="android-icon"></i>
+          <ng-container *ngFor="let mobile of result.mobile">
+            <ng-container *ngIf="mobile.video_recording === this.data.video_url">
+              {{ mobile.mobile_configuration.capabilities.platformName + ' ' + mobile.mobile_configuration.capabilities['appium:platformVersion'] }}
+            </ng-container>
+          </ng-container>
+        </div>
+      </ng-template>
     </div>
   </div>
   <div class="right">
-    <div class="feature-name">{{ result.feature_name }}</div>
+    <div class="feature-name" *ngIf="result.feature_name">{{ result.feature_name }}</div>
   </div>
 </div>

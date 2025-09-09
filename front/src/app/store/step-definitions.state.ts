@@ -49,6 +49,23 @@ export class StepDefinitionsState {
     );
   }
 
+  @Action(StepDefinitions.GetExecutionStepsForFeature)
+  getFeatureExecutionSteps(
+    { setState }: StateContext<IStepDefinitionsState>,
+    { featureId }: StepDefinitions.GetExecutionStepsForFeature 
+  ) {
+    return this._api.getFeatureExecutionSteps(featureId).pipe(
+      tap(steps => {
+        setState(
+          produce((ctx: IStepDefinitionsState) => {
+            ctx[featureId] = steps;
+            console.log('State updated with execution steps:', steps);
+          })
+        );
+      })
+    );
+  }
+
   @Action(StepDefinitions.ClearNewFeature)
   clearNewFeature({ setState }: StateContext<IStepDefinitionsState>) {
     setState(

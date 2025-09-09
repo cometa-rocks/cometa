@@ -259,6 +259,11 @@ body::-webkit-scrollbar-corner {
   color: $secondary-color !important;
 }
 
+// snackbar with golden button styling
+.mat-mdc-snack-bar-container.cometa-snackbar .mdc-button {
+  color: $secondary-color !important;
+}
+
 .mat-menu-panel.feature-options {
   background: darken(white, 0.5) !important;
   .mat-icon {
@@ -481,12 +486,12 @@ h3 {
 .my-icons {
   display: inline-block;
   vertical-align: top;
-  height: 16px;
-  width: 16px;
+  height: 14px;
+  width: 14px;
   background-repeat: no-repeat;
   background-size: contain;
   &:not(:last-child) {
-    margin-right: 8px;
+    margin-right: 5px;
   }
   &.chrome {
     background-image: url(^assets/chrome.svg);
@@ -809,6 +814,10 @@ h3 {
     background-color: $blue;
     border-bottom: 4px solid darken($blue, 10);
   }
+  &.queued {
+    background-color: $orange;
+    border-bottom: 4px solid darken($orange, 10);
+  }
 }
 
 .menu-header {
@@ -1094,17 +1103,11 @@ input[type='number'] {
   margin-bottom: 40px;
 }
 
-.schedule-container{
-  flex-direction: row;
-  margin-top: 10px;
-  margin-left: 1px;
-}
-
 .schedule-data {
   width: 250px;
   letter-spacing: 0.5px;
   span:first-of-type{
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 100;
   }
   span{
@@ -1124,8 +1127,8 @@ input[type='number'] {
 }
 
 .schedule-image {
-  height: 18px;
-  margin-right: 5px;
+  height: 15px;
+  margin-right: 8px;
   font-size: 16px;
   vertical-align: middle;
   filter: invert(47%) sepia(11%) saturate(267%) hue-rotate(177deg) brightness(91%) contrast(86%);

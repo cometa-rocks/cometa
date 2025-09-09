@@ -1,0 +1,169 @@
+<!-- feature-history.component.html -->
+
+<div class="feature-history-container">
+  <div class="header">
+    <h2>
+      <mat-icon>history</mat-icon>
+      Feature History
+    </h2>
+    <p class="subtitle">Track changes and modifications to this feature</p>
+  </div>
+
+  <div class="content">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <mat-icon class="loading-icon">hourglass_empty</mat-icon>
+      <p>Loading feature history...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <mat-icon class="error-icon">error</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-button (click)="loadFeatureHistory()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+
+    <!-- History List -->
+    <div *ngIf="!loading && !error" class="history-timeline">
+      <div *ngFor="let entry of history; let i = index" class="history-entry">
+        <!-- Entry Content -->
+        <div class="entry-content" [ngClass]="{'current-version': isCurrentVersion(entry.backup_id)}">
+          <div class="entry-header">
+            <div class="user-info">
+              <mat-icon class="user-avatar">account_circle</mat-icon>
+              <span class="user-name">{{ entry.user_name }}</span>
+              <!-- Current version badge -->
+              <span *ngIf="isCurrentVersion(entry.backup_id)" class="current-version-badge">
+                <mat-icon>star</mat-icon>
+                Current
+              </span>
+            </div>
+            <div class="entry-meta">
+              <span class="timestamp">{{ formatDate(entry.timestamp) }}</span>
+              <span class="relative-time">{{ getRelativeTime(entry.timestamp) }}</span>
+            </div>
+          </div>
+          
+          <div class="entry-details">
+            <h3 class="feature-name">{{ entry.feature_name }}</h3>
+            <p *ngIf="entry.description" class="description">{{ entry.description }}</p>
+            
+            <div class="entry-stats">
+              <button class="stat-chip" (click)="showSteps(entry.backup_id)" [class.selected]="isStepsExpanded(entry.backup_id)">
+                <mat-icon>list</mat-icon>
+                {{ entry.steps_count }} steps
+              </button>
+              
+              <!-- Show changes button only for non-current versions -->
+              <button 
+                *ngIf="!isCurrentVersion(entry.backup_id)"
+                class="stat-chip difference-chip" 
+                (click)="showChanges(entry.backup_id)" 
+                [class.selected]="isChangesExpanded(entry.backup_id)">
+                <mat-icon>compare_arrows</mat-icon>
+                Changes
+              </button>
+              
+              <!-- Show current version indicator for the topmost backup -->
+              <div *ngIf="isCurrentVersion(entry.backup_id)" class="stat-chip current-version-chip">
+                <mat-icon>check_circle</mat-icon>
+                Current Version
+              </div>
+            </div>
+            
+            <!-- Steps Display Section -->
+            <div *ngIf="isStepsExpanded(entry.backup_id) && entry.steps && entry.steps.length > 0" class="steps-section">
+              <div class="steps-header">
+                <h4>Steps for this backup:</h4>
+                <button mat-button (click)="showSteps(entry.backup_id)" class="close-steps">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="steps-list">
+                <div *ngFor="let step of entry.steps; let stepIndex = index" class="step-item">
+
+                  <div class="step-content">
+                    <div class="step-text">{{ formatStep(step) }}</div>
+                    
+                    <div class="step-flags" *ngIf="getStepFlags(step).length > 0">
+                      <div 
+                        *ngFor="let flag of getStepFlags(step)" 
+                        class="flag-chip"
+                        [ngClass]="'flag-' + flag.color">
+                        <mat-icon>{{ getFlagIcon(flag.label) }}</mat-icon>
+                        {{ flag.label }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Changes Display Section -->
+            <div *ngIf="isChangesExpanded(entry.backup_id)" class="changes-section">
+              <div class="changes-header">
+                <h4>Changes compared to current version:</h4>
+                <button mat-button (click)="showChanges(entry.backup_id)" class="close-changes">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              
+              <div class="changes-content">
+                <!-- Loading state -->
+                <div *ngIf="loadingChanges" class="loading-changes">
+                  <mat-icon class="loading-icon">hourglass_empty</mat-icon>
+                  <p>Loading current feature data...</p>
+                </div>
+                
+                <!-- Changes comparison -->
+                <div *ngIf="!loadingChanges && getChangesForBackup(entry.backup_id)" class="changes-comparison">
+                  <!-- Error state -->
+                  <div *ngIf="getChangesForBackup(entry.backup_id).error" class="comparison-error">
+                    <mat-icon>error</mat-icon>
+                    <p>{{ getChangesForBackup(entry.backup_id).error }}</p>
+                  </div>
+                  
+                  <!-- No changes state -->
+                  <div *ngIf="!getChangesForBackup(entry.backup_id).error && !getChangesForBackup(entry.backup_id).hasChanges" class="no-changes">
+                    <mat-icon>check_circle</mat-icon>
+                    <p>No changes detected between this backup and the current version.</p>
+                  </div>
+                  
+                  <!-- Changes list -->
+                  <div *ngIf="!getChangesForBackup(entry.backup_id).error && getChangesForBackup(entry.backup_id).hasChanges" class="changes-list">
+                    <h5>Detected Changes:</h5>
+                    <div class="change-item" *ngFor="let change of getChangesForBackup(entry.backup_id).changes | keyvalue">
+                      <div *ngIf="change.value" class="change-field">
+                        <span class="change-label">{{ getChangeLabel(change.key) }}:</span>
+                        <div class="change-values">
+                          <div class="change-old">
+                            <strong>Backup:</strong> 
+                            <span class="old-value">{{ getChangeValue(getChangesForBackup(entry.backup_id).backup, change.key) }}</span>
+                          </div>
+                          <div class="change-new">
+                            <strong>Current:</strong> 
+                            <span class="new-value">{{ getChangeValue(getChangesForBackup(entry.backup_id).current, change.key) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && history.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <p>No history found for this feature</p>
+      <p class="empty-subtitle">Changes will appear here once the feature is modified</p>
+    </div>
+  </div>
+</div>

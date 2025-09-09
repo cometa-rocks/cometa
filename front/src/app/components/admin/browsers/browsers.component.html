@@ -1,14 +1,23 @@
-<h2>Manage browsers</h2>
-<browser
-  [browser]="browser"
-  *ngFor="let browser of browsers$ | async; trackBy: trackByFn"
-  (browserAdded)="addStandByBrowser($event)"
-  ></browser>
-  <br>
-  <br>
-  <br>
+ <h2>Manage browsers</h2>
 
-<stand-by-browser
-[stand_by_browsers]="stand_by_browsers" 
-(browserRemoved)="removeStandByBrowser($event)"
-></stand-by-browser>
+<browser
+  *ngFor="let browser of browsers$ | async; trackBy: trackByFn"
+  [browser]="browser"
+  (browserAdded)="addStandByBrowser($event)">
+</browser>
+
+<br>
+<br>
+<br>
+  
+<ng-container *ngIf="runningBrowsers.length > 0">
+  <stand-by-browser
+    [stand_by_browsers]="runningBrowsers" 
+    (browserRemoved)="removeStandByBrowser($event)"
+  ></stand-by-browser> 
+</ng-container>
+
+
+
+
+  

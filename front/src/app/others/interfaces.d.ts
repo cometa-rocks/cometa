@@ -132,6 +132,21 @@ interface StepRequirements {
   page_size?: number;
 }
 
+interface HealeniumData {
+  score: number;
+  timestamp: number;
+  step_index: number;
+  original_selector: {
+    type: string;
+    value: string;
+  };
+  healed_selector: {
+    type: string;
+    value: string;
+  };
+  healing_duration_ms: number;
+}
+
 interface StepResult {
   belongs_to?: BelongsTo;
   step_result_id: number;
@@ -155,6 +170,7 @@ interface StepResult {
   screenshot_template: string;
   error: null | string;
   rest_api: number;
+  healing_data?: HealeniumData;
 }
 
 interface BelongsTo {
@@ -309,7 +325,7 @@ interface BrowserResult {
 interface Department {
   department_id: number;
   department_name: string;
-  files?: [];
+  files?: UploadedFile[];
   slug?: string;
   settings?: any;
   users?: IAccount[];
@@ -399,7 +415,8 @@ interface FeatureStep {
   step_type?: StepType;
   continue_on_failure?: boolean;
   timeout?: number;
-  step_action: Action["action_name"]; // Value should be Action.action_name
+  step_action: Action["action_name"]; // Value should be Action.action_name .. is used for documentation
+  selected?: boolean; // Used for copying steps
 }
 
 declare type StepType = 'normal' | 'subfeature' | 'substep' | 'loop';
@@ -566,6 +583,7 @@ interface Config {
   copyright: string;
   license: string;
   featuresView: FeatureViewItems;
+  mobileView: FeatureViewItems;
   disableAnimations: boolean;
   translations: 'en' | 'de' | any;
   changelog: ChangelogItem[];
@@ -657,7 +675,8 @@ interface UploadedFile {
     | 'Encrypting'
     | 'DataDriven'
     | 'Done'
-    | 'Error';
+    | 'Error'
+    | 'Uploading';
 }
 
 interface Uploader {
@@ -965,6 +984,7 @@ interface StepStatus {
   screenshots: any;
   vulnerable_headers_count: number;
   mobiles_info?: any[];
+  healing_data?: HealeniumData;
 }
 
 interface IRunsState {
@@ -1166,6 +1186,7 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+  checked?: boolean;
 }
 
 interface ContainerServiceResponse {
@@ -1187,4 +1208,34 @@ interface FeatureData {
   help?: boolean;
   depends_on_others?: boolean;
   schedule?: string;
+}
+
+interface MobileValidationErrorData {
+  title?: string;
+  message?: string;
+  errors: Array<{stepIndex: number, stepContent: string, error: string, quoteStart?: number, quoteEnd?: number}>;
+}
+
+type MobileValidationAction = 'ignore' | 'correct';
+
+interface FeatureHistoryEntry {
+  backup_id: string;
+  timestamp: string;
+  user_name: string;
+  user_id: number;
+  feature_name: string;
+  description: string;
+  steps_count: number;
+  steps: FeatureHistoryStep[];
+}
+
+interface FeatureHistoryStep {
+  step_file: string;
+  step_content: any;
+}
+
+interface FeatureHistoryResponse {
+  success: boolean;
+  history: FeatureHistoryEntry[];
+  error?: string;
 }

@@ -61,12 +61,19 @@
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
+  &.odd-row {
+    background-color: white;
+  }
+  &.even-row {
+    background-color: #f3f7fc;
+  }
 }
 
 .first-block {
   display: flex;
   flex-direction: row;
-  flex: 0 0 auto;
+  flex: 1;
+  width: 100%;
 }
 
 .second-block {
@@ -82,20 +89,18 @@
   position: relative;
   min-height: 45px;
   // height: 50px; /* setting height to have correct size in FF browser - RRO  */
-  // flex-direction: column; //  Removed RRO because multi-line
+  flex-direction: column;
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
-  @include for-tablet-portrait-up {
-    flex-direction: row;
-  }
   &.disabled {
     opacity: 0.5;
   }
   .step-extras {
     display: flex;
+    flex: 0 0 auto;
     @include for-tablet-portrait-up {
-      flex: 0 360px;
+      flex: 0 0 420px;
     }
   }
   ::ng-deep mat-checkbox {
@@ -104,7 +109,10 @@
     }
     flex: 0 0 35px;
     text-align: center;
-    padding: 0 15px;
+    @media (max-width: 768px) {
+      padding: 0 8px;
+    }
+    padding: 10px 15px 0;
     position: relative;
     padding-top: 10px;
     &.enable, &.more-vert {
@@ -117,29 +125,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
-    // Firefox
-    @-moz-document url-prefix() {
-      margin-left: 120px;
-      margin-right: 40px;
-    }
-
-    // Safari
-    @media not all and (min-resolution: 0.001dpcm) {
-      @supports (-webkit-appearance:none) {
-        .your-element {
-          margin-left: 135px;
-          margin-right: 40px;
-        }
-      }
-    }
-    
-
-    // Edge
-    @supports (-ms-ime-align:auto) {
-      margin-left: 135px;
-      margin-right: 40px;
-    }
+    flex-shrink: 0;
+    margin-left: 2px;
 
     &::ng-deep {
       .mat-select {
@@ -178,12 +165,6 @@
     &:hover {
       opacity: 0.9;
     }
-  }
-  &.odd-row {
-    background-color: white;
-  }
-  &.even-row {
-    background-color: #f3f7fc;
   }
   .index {
     @include for-tablet-portrait-up {
@@ -264,6 +245,117 @@
         &:hover {
           background: rgba(0, 0, 0, 0.04);
         }
+      }
+    }
+
+    // Mobile dropdown styling to match autocomplete
+    .mobile-inline-dropdown {
+      background-color: white;
+      cursor: pointer;
+      z-index: 9999 !important;
+
+
+      option {
+        // padding: 12px 16px;
+        // cursor: pointer;
+        // border: none;
+        // background: transparent;
+        // color: rgba(0, 0, 0, 0.87);
+        // transition: all 0.2s ease;
+        // font-size: 14px;
+        // line-height: 1.4;
+        // min-height: 36px;
+        // display: flex;
+        // align-items: center;
+        // margin: 2px 8px;
+        // border-radius: 4px;
+        // position: relative;
+
+        // // Add subtle separator between options
+        // &:not(:last-child)::after {
+        //   content: '';
+        //   position: absolute;
+        //   bottom: -1px;
+        //   left: 8px;
+        //   right: 8px;
+        //   height: 1px;
+        //   background-color: rgba(0, 0, 0, 0.06);
+        // }
+
+        // &:hover {
+        //   background-color: rgba(0, 0, 0, 0.04);
+        //   color: rgba(0, 0, 0, 0.95);
+        //   transform: translateX(2px);
+        // }
+
+        // &:disabled {
+        //   color: rgba(0, 0, 0, 0.38);
+        //   font-style: italic;
+        //   background-color: transparent;
+        //   cursor: default;
+        //   font-weight: 500;
+        //   margin: 4px 8px;
+        //   padding: 8px 16px;
+        //   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+          
+        //   &::after {
+        //     display: none;
+        //   }
+        // }
+
+      //   &:selected {
+      //     background-color: rgba(33, 150, 243, 0.08);
+      //     color: rgba(33, 150, 243, 0.87);
+      //     font-weight: 500;
+      //     border-left: 3px solid rgba(33, 150, 243, 0.6);
+      //     padding-left: 13px; // Compensate for border
+      //   }
+
+      //   &:checked {
+      //     background-color: rgba(33, 150, 243, 0.12);
+      //     color: rgba(33, 150, 243, 0.95);
+      //     font-weight: 500;
+      //     border-left: 3px solid rgba(33, 150, 243, 0.8);
+      //     padding-left: 13px; // Compensate for border
+      //   }
+
+      //   // Add subtle icon for selected items
+      //   &:checked::before {
+      //     content: '✓';
+      //     position: absolute;
+      //     right: 12px;
+      //     color: rgba(33, 150, 243, 0.8);
+      //     font-weight: bold;
+      //     font-size: 12px;
+      //   }
+      // }
+
+      // &:focus {
+      //   outline: none;
+      //   box-shadow:
+      //     0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+      //     0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+      //     0px 1px 10px 0px rgba(0, 0, 0, 0.12),
+      //     0 0 0 2px rgba(33, 150, 243, 0.2);
+      // }
+
+      // // Scrollbar styling
+      // &::-webkit-scrollbar {
+      //   width: 8px;
+      // }
+
+      // &::-webkit-scrollbar-track {
+      //   background: rgba(0, 0, 0, 0.04);
+      //   border-radius: 4px;
+      // }
+
+      // &::-webkit-scrollbar-thumb {
+      //   background: rgba(0, 0, 0, 0.2);
+      //   border-radius: 4px;
+        
+      //   &:hover {
+      //     background: rgba(0, 0, 0, 0.3);
+      //   }
       }
     }
 
@@ -367,35 +459,30 @@
     @include for-tablet-portrait-up {
       flex: 0 0 40px;
     }
-    flex: 0 0 20px;
+    // flex: 0 0 20px;
     text-align: center;
     font-weight: bold;
     display: flex;
     flex-direction: column;
     align-items: center;
-
-
-    // .all-text, .select-text {
-    //   color: $blue;
-    //   font-size: 14px;
-    // }
-
   }
   .move-row, .more-vert-step{
     @include for-tablet-portrait-up {
       flex: 0 0 30px;
     }
-    flex: 0 0 30px;
+    // flex: 0 0 30px;
   }
   .more-vert,
   .enable,
   .screenshot,
   .compare,
-  .warnings {
+  .warnings,
+  .select-step,
+  .actions {
     @include for-tablet-portrait-up {
       flex: 0 0 80px;
     }
-    flex: 0 0 75px;
+    // flex: 0 0 75px;
     text-align: center;
     font-weight: bold;
   }
@@ -403,7 +490,7 @@
     @include for-tablet-portrait-up {
       flex: 0 0 40px;
     }
-    flex: 0 0 50px;
+    // flex: 0 0 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -414,16 +501,12 @@
       align-items: center;
       justify-content: center;
     }
-
-    // .select-text {
-    //   margin-top: 32px;
-    // }
   }
   .enable {
     @include for-tablet-portrait-up {
       flex: 0 0 60px;
     }
-    flex: 0 0 50px;
+    // flex: 0 0 50px;
   }
   .step {
     flex: 1;
@@ -440,15 +523,37 @@
       flex: 0 0 100px;
       text-align: center;
     }
-    flex: 0 0 75px;
+    // flex: 0 0 75px;
     text-align: center;
     font-weight: bold;
   }
-  .options {
-    flex: 0 0 40px;
+  .actions {
+    @include for-tablet-portrait-up {
+      flex: 0 0 80px;
+      text-align: center;
+    }
+    // flex: 0 0 75px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .documentation-icon {
+      cursor: pointer;
+      color: $blue;
+      font-size: 16px;
+    }
   }
 
-  .enable, .screenshot, .compare {
+  .options {
+    @include for-tablet-portrait-up {
+      flex: 0 0 40px;
+    }
+    // flex: 0 0 40px;
+  }
+
+  .enable, .screenshot, .compare, .select-all, .toggle-all-documentation {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -484,10 +589,10 @@
   border-top: 1px $blue solid;
   border-bottom: 1px $blue solid;
   border-radius: 4px;
-  padding: 15px;
+  padding: 15px 0;
   margin-top: 10px;
   margin-bottom: 10px;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity .3s ease-in-out;
 }
 
 .stepContainerDocumentation.ng-transition {
@@ -501,21 +606,34 @@
   width: 100%;
 }
 
+// Documentation row fake columns: match header widths
+.fake-drop {
+  @include for-tablet-portrait-up {
+    flex: 0 0 30px;
+  }
+  flex: 0 0 30px;
+}
+.fake-dots {
+  @include for-tablet-portrait-up {
+    flex: 0 0 30px;
+  }
+  flex: 0 0 30px;
+}
+.fake-enable,
+.fake-screenshot,
+.fake-compare,
+.fake-hash,
+.fake-actions {
+  @include for-tablet-portrait-up {
+    flex: 0 0 71.5px;
+  }
+  flex: 0 0 71.5px;
+  text-align: center;
+  font-weight: bold;
+}
+
 .stepDescriptionExample{
-  flex: 3;
-  margin-left: 325px;
-}
-
-.stepDocumentationIcons {
   flex: 1;
-}
-
-.columnOfIcons {
-  flex: 0.2;
-}
-
-.columnOfIcons {
-  flex: 0.2;
 }
 
 .columnOfIcons {
@@ -523,6 +641,8 @@
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  align-items: center;
+  flex: 0 0 80px;
 }
 
 .stepDescription {
@@ -539,23 +659,6 @@
   color: $blue;
   font-weight: bold;
 }
-
-// .cdk-overlay-container {
-//   position: relative;
-// }
-
-// ::ng-deep .mat-autocomplete-panel {
-//   position: absolute !important;
-//   bottom: 100% !important;
-//   top: auto !important;
-//   transform: translateY(-40px);
-//   z-index: 1000;
-// }
-
-// .autocomplete-container {
-//   display: flex;
-//   align-items: center;
-// }
 
 .autocomplete-container {
   position: relative;
@@ -750,7 +853,7 @@ textarea {
     height: 24px;
     margin: 0 4px;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 0.9;
     transition: opacity 0.2s ease;
     position: relative;
     font-size: 16px;
@@ -794,8 +897,31 @@ textarea {
 
 }
 
+.actions-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  position: relative;
+  flex: 0 0 80px;
+  min-height: 64px;
+
+  .documentation-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 4px;
+    cursor: pointer;
+    position: relative;
+    font-size: 16px;
+    color: $blue;
+  }
+}
+
 .disabled-menu-item {
-  color: #999;               
+  color: $text-secundary;               
   cursor: default;           
   pointer-events: none;      
   display: flex;             
@@ -803,7 +929,7 @@ textarea {
   opacity: 0.6;              
 }
 .disabled-menu-item mat-icon {
-  color: #999;               
+  color: $text-secundary;               
 }
 
 .api-testing-dialog {
@@ -829,7 +955,151 @@ textarea {
   overflow-y: auto;
 
   .collapsed-body {
-    color: #666;
+    color: $star-feature-icon-color;
     font-style: italic;
   }
+}
+
+
+// Custom badge styles for context menu
+::ng-deep .step-contect-menu {
+  .mat-badge-medium.mat-badge-overlap.mat-badge-after .mat-badge-content {
+    right: -20px;
+    top: -5px;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    line-height: 16px;
+    color: $pure-white;
+  }
+}
+
+.custom-file-autocomplete-panel {
+  position: absolute;
+  background: $pure-white;
+  border: 1px solid $black-border-top-matautocomplete;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
+              0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
+              0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  min-width: 200px;
+  
+  &.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  
+  &.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.custom-autocomplete-header {
+  padding: 8px 16px;
+  background-color: $grey-bg-matautocomplete;
+  height: 40px;
+  
+  .custom-autocomplete-title {
+    color: $blue;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 40px;
+    letter-spacing: 0.03125em;
+  }
+}
+
+.custom-autocomplete-options {
+  overflow-y: auto;
+  height: 140px;
+  .custom-autocomplete-option {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover { 
+      background-color: $grey-bg-matautocomplete;
+    }
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid $black-border-bottom-matautocomplete;
+    }
+  }
+}
+
+.custom-file-autocomplete-panel {
+  position: fixed; // Use fixed instead of absolute for better positioning
+  left: calc(var(--textarea-left) + 170px);
+  top: calc(var(--textarea-top) - 150px); // 200px panel height + 20px gap
+  z-index: 1000;
+  width: 600px;
+  max-height: 200px;
+  
+  // Ensure panel doesn't go off-screen
+  @media (max-width: 768px) {
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+  
+  // If panel would go above viewport, position below
+  &.below {
+    top: calc(var(--textarea-top) + var(--textarea-height) + 20px);
+  }
+}  
+
+// Tootip custom. Material Design
+/*
+This custom tooltip has been created as a lightweight replacement for Angular Material’s matTooltip.
+It allows you to display a styled tooltip on hover without relying on Angular Material.
+
+Usage:
+1. Add the class .amv_custom-tooltip to any element that should display a tooltip.
+2. Set the tooltip text via the data-tooltip attribute.
+2.1 Use [attr.data-tooltip] instead of data-tooltip if you want to use a translation.
+
+*/
+.amv_custom-tooltip {
+  position: relative; 
+}
+
+.amv_custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translate(-50%, 8px);
+
+  display: block;                    
+  text-align: center;                
+  
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+
+  background: $grey;
+  color: white;
+  padding: 6px 10px; 
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  z-index: 1000;
+
+  max-width: 220px;
+  min-width: 120px;
+  white-space: normal;               
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none; 
+}
+
+.amv_custom-tooltip:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }

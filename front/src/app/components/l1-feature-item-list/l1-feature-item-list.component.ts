@@ -43,8 +43,10 @@ import {
   NgSwitchCase,
   AsyncPipe,
   LowerCasePipe,
+  NgFor
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -74,6 +76,8 @@ import { StarredService } from '@services/starred.service';
     FeatureRunningPipe,
     AsyncPipe,
     LowerCasePipe,
+    NgFor,
+    BrowserIconPipe,
   ],
 })
 export class L1FeatureItemListComponent implements OnInit {
@@ -120,6 +124,8 @@ export class L1FeatureItemListComponent implements OnInit {
   // NgOnInit
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
+
+    this.log.msg('1', 'Object item list ngOnInit: ', 'l1-feature-item-list', this.item);
 
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
@@ -447,6 +453,140 @@ export class L1FeatureItemListComponent implements OnInit {
         { duration: 2000 }
       );
     });
+  }
+
+  /**
+   * Get email notification tooltip text
+   */
+  getEmailTooltip(): string {
+    let tooltip = 'Email notifications enabled. Recipients: ';
+    
+    if (this.item.reference?.email_address && this.item.reference.email_address.length > 0) {
+      tooltip += this.item.reference.email_address.join(', ');
+    }
+    
+    if (this.item.reference?.email_cc_address && this.item.reference.email_cc_address.length > 0) {
+      tooltip += ` (CC: ${this.item.reference.email_cc_address.join(', ')})`;
+    }
+    
+    if (this.item.reference?.email_bcc_address && this.item.reference.email_bcc_address.length > 0) {
+      tooltip += ` (BCC: ${this.item.reference.email_bcc_address.join(', ')})`;
+    }
+    
+    return tooltip;
+  }
+
+  /**
+   * Get Telegram notification tooltip text
+   */
+  getTelegramTooltip(): string {
+    let tooltip = 'Telegram notifications enabled';
+    
+    if (this.item.reference?.telegram_options?.override_chat_ids) {
+      tooltip += `. Custom chat IDs: ${this.item.reference.telegram_options.override_chat_ids}`;
+    } else {
+      tooltip += '. Using department settings';
+    }
+    
+    return tooltip;
+  }
+
+  /**
+   * Track browser type changes for ngFor optimization
+   */
+  trackBrowserType(index: number, browserType: string): string {
+    // logger don't work here 
+    // this.log.msg('1', 'Browser type: ', 'l1-feature-item-list', browserType);
+    return browserType;
+  }
+
+  /**
+  * Get unique browsers (remove duplicates by browser type)
+  */
+  getUniqueBrowsers(): string[] {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return [];
+    }
+    
+    const uniqueBrowsers = new Set<string>();
+    this.item.browsers.forEach(browser => {
+      if (browser && browser.browser) {
+        uniqueBrowsers.add(browser.browser);
+      }
+    });
+
+    // logger
+    this.log.msg('1', 'Unique browsers: ', 'l1-feature-item-list', Array.from(uniqueBrowsers));
+  
+    return Array.from(uniqueBrowsers).sort();
+  }
+
+  /**
+  * Get tooltip text showing all browsers with versions
+  */
+  getBrowsersTooltip(): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return '';
+    }
+
+    // Group browsers by type and get version details
+    const browserGroups = new Map<string, any[]>();
+    this.item.browsers.forEach(browser => {
+      if (browser && browser.browser) {
+        if (!browserGroups.has(browser.browser)) {
+          browserGroups.set(browser.browser, []);
+        }
+        browserGroups.get(browser.browser)!.push(browser);
+      }
+    });
+
+    // Once we have grouped the browsers
+    // Create sorted summary with specific versions
+    const sortedBrowsers = Array.from(browserGroups.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([browserType, browsers]) => {
+      if (browsers.length === 1) {
+        // Single version - show browser name and specific version
+        const version = browsers[0].browser_version || 'latest';
+        return `${browserType} (${version})`;
+      } else {
+        // logger
+        this.log.msg('1', 'Browsers: ', 'l1-feature-item-list', browsers.map(b => b.browser_version));
+        // Multiple versions - show browser name and all versions
+        const versions = browsers.map(b => b.browser_version || 'latest').join(', ');
+        return `${browserType} (${versions})`;
+      }
+    });
+    
+    const totalCount = this.item.browsers.length;
+    const summary = sortedBrowsers.join('\n');
+    
+    return `${summary}\n\nTotal: ${totalCount} browsers`;
+  }
+  
+  /**
+   * Get tooltip text for a specific browser type
+   */
+  getBrowserTooltip(browserType: string): string {
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      return '';
+    }
+
+    // Get all browsers of this type
+    const browsersOfType = this.item.browsers.filter(browser => 
+      browser && browser.browser === browserType
+    );
+
+    if (browsersOfType.length === 1) {
+      // Single version - show browser name and version
+      const browser = browsersOfType[0];
+      const version = browser.browser_version || 'latest';
+      return `${browserType} (${version})`;
+    } else {
+      // Multiple versions - show browser name, "latest" and specific version
+      const versions = browsersOfType.map(b => b.browser_version || 'latest').join(', ');
+      return `${browserType} (${versions})`;
+    }
   }
 
 }

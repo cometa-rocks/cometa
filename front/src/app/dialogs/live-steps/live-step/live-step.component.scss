@@ -85,6 +85,7 @@
         background-image: url(^assets/Google-loader.svg);
       }
     }
+    
     .screenshot {
       flex: 0 75px !important;
       text-align: center;
@@ -104,10 +105,35 @@
       width: 100%;
       cursor: pointer;
     }
+
+    .healing-icon {
+      color: #ffa726;
+      cursor: pointer;
+    }
   }
+
   .error-row {
     color: #d32f2f;
     font-weight: bold;
-    text-rendering: optimizeLegibility;
+    background-color: #ffebee;
+    border: 1px solid #f44336;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 4px 0;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    
+    .error-header {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    
+    .error-message {
+      font-size: 12px;
+      line-height: 1.4;
+    }
   }
 }
+

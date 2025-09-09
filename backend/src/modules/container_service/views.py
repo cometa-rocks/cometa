@@ -11,18 +11,22 @@ from backend.ee.modules.mobile.models import Mobile
 
 # Django Imports
 from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import ValidationError
 from .models import ContainerService
 from .serializers import ContainerServiceSerializer
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
+from backend.utility.config_handler import get_cometa_socket_url, get_cometa_backend_url
 import os, requests, traceback
 import time
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 import threading
 from threading import Thread
-
+import json
+from backend.utility.configurations import ConfigurationManager
+import requests
 
 logger = getLogger()
 
@@ -80,11 +84,84 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
             }
             if not superuser:
                 filters["department_id__in"] = [x['department_id'] for x in request.session["user"]["departments"]]
-                filters['created_by'] = request.session["user"]["user_id"]
-            
-            container_service = ContainerService.objects.get(**filters)
+                # Allow updates if user is the creator OR if the container is shared within the same department
+                container_service = ContainerService.objects.filter(**filters).first()
+                if not container_service:
+                    # Try to find the container without the created_by filter to check if it's shared
+                    shared_filters = {
+                        "id": int(kwargs["pk"]),
+                        "department_id__in": [x['department_id'] for x in request.session["user"]["departments"]],
+                        "shared": True
+                    } 
+                    container_service = ContainerService.objects.filter(**shared_filters).first()
+                
+                if not container_service:
+                    return self.response_manager.can_not_be_updated_response(kwargs["pk"])
+            else:
+                container_service = ContainerService.objects.get(**filters)
             container_service.save(**(request.data))
-            return self.response_manager.updated_response(self.serializer_class(container_service).data)
+            updated_data = self.serializer_class(container_service).data
+            
+            # Send WebSocket notification for container update
+            try:
+                # Determine the type of update based on request data
+                if 'shared' in request.data:
+                    # Shared status update
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        'type': '[MobileWebSockets] Container Shared Update',
+                        'container_id': container_service.id,
+                        'shared': request.data['shared']
+                    })
+                elif 'apk_file' in request.data:
+                    # APK file update
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        'type': '[MobileWebSockets] Container APK Update',
+                        'container_id': container_service.id,
+                        'apk_file': request.data['apk_file']
+                    })
+                elif 'apk_file_remove' in request.data:
+                    # APK file removal
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        'type': '[MobileWebSockets] Container APK Update',
+                        'container_id': container_service.id,
+                        'apk_file': request.data['apk_file']
+                    })
+                elif 'action' in request.data:
+                    # Container action (start, stop, restart)
+                    action = request.data['action']
+                    if action == 'stop':
+                        requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                            'type': '[MobileWebSockets] Container Stopped',
+                            'container_id': container_service.id
+                        })
+                    elif action == 'restart':
+                        requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                            'type': '[MobileWebSockets] Container Started',
+                            'container_id': container_service.id,
+                            'hostname': updated_data.get('hostname')
+                        })
+                else:
+                    # General status update
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        'type': '[MobileWebSockets] Container Status Update',
+                        'containerUpdate': {
+                            'container_id': container_service.id,
+                            'service_status': updated_data['service_status'],
+                            'shared': updated_data['shared'],
+                            'hostname': updated_data.get('hostname'),
+                            'apk_file': updated_data.get('apk_file', []),
+                            'created_by': updated_data['created_by'],
+                            'department_id': updated_data['department_id']
+                        }
+                    })
+            except Exception as e:
+                logger.error(f"Failed to send WebSocket notification for container update: {str(e)}")
+            
+            return self.response_manager.updated_response(updated_data)
+        except ValidationError as e:
+            # Return the specific validation error message
+            error_message = str(e.messages[0]) if hasattr(e, 'messages') and e.messages else str(e)
+            return JsonResponse({"success": False, "message": error_message}, status=200)
         except Exception as e:
             traceback.print_exc()
             return self.response_manager.can_not_be_updated_response(kwargs["pk"])
@@ -92,7 +169,59 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     # @require_permissions("manage_house_keeping_logs")
     def create(self, request, *args, **kwargs):
         request.data["created_by"] = request.session["user"]["user_id"]        
-        return super().create(request, args, kwargs)
+        
+        # check for container which are in use for more than 3hrs
+        in_use_containers = ContainerService.objects.filter(in_use=True, service_type="Browser", since_in_use__lt=datetime.now()-timedelta(hours=3))
+        for container in in_use_containers:
+            container.delete()
+            logger.info(f"Deleted in use container {container.id} to make space for new container")
+        
+        standby_containers = ContainerService.objects.filter(in_use=False, service_type="Browser").order_by('created_on')
+        maximum_standby_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_STANDBY", "2"))
+        # Check if the maximum number of containers is reached
+        if len(standby_containers) >= maximum_standby_containers:
+            for i in range(len(standby_containers)+1-maximum_standby_containers):
+                standby_container = standby_containers[i]
+                standby_container.delete()
+                logger.info(f"Deleted standby container {standby_container.id} to make space for new container")
+
+        total_running_containers = ContainerService.objects.filter(in_use=False, service_type="Browser").count()
+        maximum_running_containers = int(ConfigurationManager.get_configuration("COMETA_TEST_CONTAINER_MAXIMUM_RUNNING", "10"))
+        # Check if the maximum number of containers is reached
+        if total_running_containers > maximum_running_containers:
+            return self.response_manager.response(dict_data={"success": False, "message": "Maximum number of containers reached, please wait for some resources to be freed up"})
+
+        response = super().create(request, args, kwargs)
+        # Above create method takes some time to create the container, so we need to check again if the maximum number of containers is reached
+        # Check again if in between the creation of the container the maximum number of containers is reached by some other thread
+        total_running_containers = ContainerService.objects.filter(in_use=False, service_type="Browser").count()
+        if total_running_containers > maximum_running_containers:
+            logger.error(f"Maximum number of containers reached, deleting container {response.data['id']}")
+            container_service = ContainerService.objects.filter(id=response.data['id']).first()
+            container_service.delete()
+            return self.response_manager.response(dict_data={"success": False, "message": "Maximum number of containers reached, please wait for some resources to be freed up"})
+
+        logger.debug("Container created, Updating socket")
+
+        # Send WebSocket notification for container creation
+        try:
+            container_data = response.data
+            requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                'type': '[MobileWebSockets] Container Status Update',
+                'containerUpdate': {
+                    'container_id': container_data['id'],
+                    'service_status': container_data['service_status'],
+                    'shared': container_data['shared'],
+                    'hostname': container_data.get('hostname'),
+                    'apk_file': container_data.get('apk_file', []),
+                    'created_by': container_data['created_by'],
+                    'department_id': container_data['department_id']
+                }
+            })
+        except Exception as e:
+            logger.error(f"Failed to send WebSocket notification for container creation: {str(e)}")
+        
+        return response
 
     def destroy(self, request, *args, **kwargs):
         logger.debug("Container Delete request received")
@@ -103,11 +232,22 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                 container = ContainerService.objects.get(id=int(kwargs['pk']))
             except Exception:
                 container = ContainerService.objects.get(service_id=kwargs['pk'])
+            # Send WebSocket notification for container termination
+            try:
+                requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                    'type': '[MobileWebSockets] Container Terminated',
+                    'container_id': container.id
+                })
+            except Exception as e:
+                logger.error(f"Failed to send WebSocket notification for container termination: {str(e)}")
+            
             # Start deletion in background thread
             def delete_container():
                 try:
+                    container.service_status = "Deleting"
+                    container.save()
                     container.delete()
-                    logger.debug("Container Deleted by thread")
+                    logger.debug("Container Deleting by thread")
 
                 except Exception as e:
                     traceback.print_exc()
@@ -152,7 +292,8 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
 # - Any other unexpected errors will result in a 500 "Internal Server Error" response.
 # #########
 @csrf_exempt
-def emulator_proxy_view(request, emulator_id, remaining_path):
+@require_permissions("manage_mobiles")
+def emulator_proxy_view(request, emulator_id, remaining_path,*args, **kwargs):
     try:
         user_info = request.session["user"]
         filter_values = {
@@ -251,43 +392,63 @@ import json
 # #########
 @csrf_exempt
 def get_running_browser(request):
-        response_manager = ResponseManager("ContainerService")
-        data = json.loads(request.body)
-        
-        image_name=data['image_name']
-        image_version=data['image_version']
-        filters = {'service_type':'Browser', 'image_name': image_name, 'image_version': image_version, 'in_use':False}
-        container_service = ContainerService.objects.filter(**filters).first()
-        
-        if container_service:
-                        
-            def create_container_service(data):
-                # Remove labels as this container will be used by some other test excution
-                new_data = data.copy()
-                new_data['labels'] = {}
-                ContainerService.objects.create(**new_data)
-                logger.debug("Standby container created")
+        try:
+            response_manager = ResponseManager("ContainerService")
+            data = json.loads(request.body)
+            
+            image_name=data['image_name']
+            image_version=data['image_version']
+            filters = {'service_type':'Browser', 'image_name': image_name, 'image_version': image_version, 'in_use':False}
+            container_service = ContainerService.objects.filter(**filters).first()
+            
+            # This function is used to centralize the validation create the container service
+            def call_create_container_service(data):
+                return requests.post(f'{get_cometa_backend_url()}/api/container_service/', json=data)
+            
+            new_data = data.copy()
+            new_data['shared'] = False
+
+            if container_service:
+                            
+                def create_container_service(data):
+                    # Remove labels as this container will be used by some other test excution
+                    new_data['labels'] = {}
+                    response = call_create_container_service(new_data)
+                    if response.status_code == 201:
+                        logger.debug("Standby container created")
+                    else:
+                        logger.error(f"Failed to create standby container: {response.text}")
+                    logger.debug("Standby container created")
+                    
+                logger.debug("Starting a thread to start the standby container")
+                # Create a new thread and start it
+                thread = Thread(target=create_container_service, args=(data,))
+                thread.daemon = True
+                thread.start()    
+            
+                logger.debug("Updating container state to in_use=True")
+                container_service.in_use = True
+                # Update labels to already running tests
+                container_service.labels = data.get("labels",{})
+                container_service.save()
+                serializer = ContainerServiceSerializer(container_service, many=False)
+                return response_manager.get_response(serializer.data)
+            
+            else:            
+                logger.debug("Requested container configuration did not find will use recent one")
+                # Start a container with requested configuration
+                new_data['in_use'] = True
+                response = call_create_container_service(new_data)
+                if response.status_code == 201:
+                    logger.debug("Standby container created")
+                    return response_manager.response(dict_data={"success": True, 
+                                                                "message": "Standby container created", 
+                                                                'containerservice': response.json()})
+                else:
+                    logger.error(f"Failed to create standby container: {response.json()}")
+                    return response_manager.response(dict_data=response.json())
                 
-            logger.debug("Starting a thread to start the standby container")
-            # Create a new thread and start it
-            thread = Thread(target=create_container_service, args=(data,))
-            thread.daemon = True
-            thread.start()    
-         
-            logger.debug("Updating container state to in_use=True")
-            container_service.in_use = True
-            # Update labels to already running tests
-            container_service.labels = data.get("labels",{})
-            container_service.save()
-            serializer = ContainerServiceSerializer(container_service, many=False)
-            return response_manager.get_response(serializer.data)
-        
-        else:            
-            logger.debug("Requested container configuration did not find will use recent one")
-            # Start a container with requested configuration
-            container_service = ContainerService.objects.create(**data)
-            logger.debug("Updating container state to in_use=True")
-            container_service.in_use = True
-            container_service.save()
-            serializer = ContainerServiceSerializer(container_service, many=False)
-            return response_manager.created_response(serializer.data)    
+        except Exception as e:
+            logger.error(f"Error in get_running_browser: {str(e)}")
+            return response_manager.response(dict_data={"success": False, 
+                                                        "message": "Error while starting browser, Please contact administrator"})

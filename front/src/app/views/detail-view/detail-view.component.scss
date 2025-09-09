@@ -1,4 +1,5 @@
 @import 'breakpoints';
+@import 'color';
 
 :host {
   display: block;
@@ -125,11 +126,11 @@ hr {
   justify-content: space-between;
   align-items: center;
   padding: 0 50px;
-  margin-bottom: 50px;
+  margin: 0px auto 0px;
   box-sizing: border-box;
   @include for-tablet-portrait-up {
     max-width: 800px;
-    margin: 0 auto 50px;
+    margin: 0 auto 0px;
     padding: 0 20px;
     flex-wrap: nowrap;
   }
@@ -177,7 +178,7 @@ hr {
       font-size: 45pt;
       display: inline-block;
       font-weight: bold;
-      color: #d4145a;
+      color: $text-pink;
       text-transform: uppercase;
     }
     .total_pixel_diff {
@@ -344,7 +345,6 @@ hr {
   flex-direction: column;
   justify-content: flex-start;
   margin: 15px 20px 0;
-  height: 85px;
   @include for-tablet-portrait-up-plus30 {
     flex-direction: row;
   }
@@ -373,4 +373,71 @@ hr {
     background-size: contain;
     background-position: center center;
   }
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.step-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0px auto 0 auto;
+  max-width: 600px;
+  background: $low-white;
+  border: 1.5px solid $bad;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px 32px 20px 32px;
+  position: relative;
+  gap: 8px;
+}
+
+.error-label {
+  display: flex;
+  align-items: center;
+  color: $bad;
+  font-weight: 700;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  gap: 8px;
+}
+
+.error-label::before {
+  content: '⚠️';
+  font-size: 1.2em;
+  margin-right: 6px;
+}
+
+.error-content {
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: x-small;
+  color: $primary-color;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin: 0;
+  width: 99%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid $low-white;
+}
+
+/* Surrounds the stats-diff-box - top most box in the detail view */
+.section-box {
+  background: $pure-white;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 32px 40px 24px 40px;
+  margin: 32px auto 0 auto;
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
 }

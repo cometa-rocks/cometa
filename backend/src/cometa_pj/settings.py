@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(BASE_DIR, "migrations"))
 
 SCREENSHOTS_ROOT = '/data/screenshots/'
-
+BACKUP_FOLDER = '/data/backups/features/'
 
 SENTRY_DJANGO = ConfigurationManager.get_configuration('COMETA_SENTRY_DJANGO', False) 
 
@@ -51,8 +51,8 @@ if SENTRY_DJANGO and not IS_DEV:
 SECRET_KEY = ConfigurationManager.get_configuration('COMETA_DJANGO_SECRETKEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-COMETA_DEBUG = ConfigurationManager.get_configuration('COMETA_DEBUG', False)
-DEBUG = COMETA_DEBUG == 'True' or COMETA_DEBUG == True
+DEBUG = os.getenv('ENVIRONMENT', False)=="dev"
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -145,7 +145,10 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(os.path.dirname(__file__), '../templates/pdf')],
+        'DIRS': [
+            os.path.join(os.path.dirname(__file__), '../templates/pdf'),
+            os.path.join(os.path.dirname(__file__), '../templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -232,6 +235,8 @@ if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "T
     if COMETA_EMAIL_PASSWORD != '':
         EMAIL_HOST_PASSWORD = COMETA_EMAIL_PASSWORD
     EMAIL_USE_TLS = ConfigurationManager.get_configuration('COMETA_EMAIL_TLS', 'False') == "True"
+    # Default sender email address
+    DEFAULT_FROM_EMAIL = ConfigurationManager.get_configuration('COMETA_DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
     
 # Static files (CSS, JavaScript, Images)

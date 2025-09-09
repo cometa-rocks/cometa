@@ -169,7 +169,7 @@
   .red {
     flex: 0 33.33333%;
     font-size: 40pt;
-    color: #d4145a;
+    color: $bad;
     text-transform: uppercase;
     @include for-tablet-portrait-up {
       flex: initial;
@@ -235,17 +235,20 @@
   background-size: contain;
 }
 
-:host::ng-deep network-paginated-list {
-  .header {
-    flex: 1 100%;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    background-color: #474747;
-    color: white;
-    text-transform: uppercase;
-    padding: 12px 0;
-    box-sizing: border-box;
+.network-paginated-list-step-view {
+  ::ng-deep .header-step-view {
+    flex: 1 100% ;
+    display: flex ;
+    align-items: center ;
+    text-align: center ;
+    background-color: $darker-step ;
+    color: $white-text ;
+    text-transform: uppercase ;
+    padding: 16px 0 ; // Increased padding for better spacing
+    box-sizing: border-box ;
+    border-radius: 8px 8px 0 0 ; // Rounded top corners for card effect
+    box-shadow: 0 2px 8px $transparent-bg ; // Subtle shadow for depth
+    margin-bottom: 2px ; // Small gap between header and content
 
     .name {
       flex: 0 40%;
@@ -279,42 +282,85 @@
     }
   }
 
-  .step-row {
+  .feature-reference {
+    display: inline-block;
+    width: fit-content;
+    white-space: nowrap;
+    padding-left: 0.67em; // Add margin between rows for separation
+    padding: 0.67em;
+    font-weight: bold;
+    font-size: 1.8em;
+    transition: all 0.2s ease-in-out; 
+    cursor: pointer; // Smooth transitions
+    &:hover {
+      transform: translateY(-1px); // Slight lift effect on hover
+      
+      .feature-reference-text {
+        color: $blue;
+      }
+    }
+  }
+  
+  .step-row-step-view {
     display: flex;
     align-items: center;
-    min-height: 53px;
+    min-height: 65px; // Increased from 53px for better spacing
     box-sizing: border-box;
     font-weight: bold;
     cursor: pointer;
-    padding-right: 10px;
+    padding: 15px 20px; // Increased padding for better breathing room
+    margin: 5px 0; // Add margin between rows for separation
+    border-radius: 6px; // Rounded corners for card effect
+    transition: all 0.2s ease-in-out; // Smooth transitions
+    position: relative; // For shadow positioning
+
     @include for-tablet-portrait-up {
-      padding-right: 0;
+      padding: 16px 24px; // Even more padding on larger screens
     }
+
     &:nth-child(odd) {
       background-color: $white-grey-cell-bg;
-      border-bottom: 2px solid rgba(black, 0.05);
+      border: 1px solid $transparent-bg; // Subtle border instead of thick bottom border
+      box-shadow: 0 1px 3px $transparent-bg; // Subtle shadow for depth
     }
+
     &:nth-child(even) {
       background-color: $white-cell-bg;
-      border-bottom: 2px solid rgba(black, 0.1);
+      border: 1px solid $transparent-bg; // Subtle border
+      box-shadow: 0 1px 3px $transparent-bg; // Subtle shadow
     }
-    &:hover .name {
-      color: $blue;
+
+    &:hover {
+      transform: translateY(-1px); // Slight lift effect on hover
+      box-shadow: 0 4px 12px $transparent-bg; // Enhanced shadow on hover
+      border-color: $transparent-bg-hover; // Slightly darker border on hover
+      
+      .name {
+        color: $blue;
+      }
     }
 
     .status-bar {
       flex: 0 5px;
       max-width: 5px;
       height: 100%;
+      border-radius: 3px 0 0 3px; // Rounded left corners
+      
       &.success, &.Success {
         background-color: $good;
+        box-shadow: 0 0 8px rgba(0, 169, 157, 0.3); // Subtle glow effect
       }
+      
       &.failed, &.Failed {
         background-color: $bad;
+        box-shadow: 0 0 8px rgba(212, 20, 90, 0.3); // Subtle glow effect
       }
+      
       &.skipped, &.Skipped {
         background-color: rgb(204, 204, 129);
+        box-shadow: 0 0 8px rgba(204, 204, 129, 0.3); // Subtle glow effect
       }
+      
       @include for-tablet-portrait-up {
         display: none;
       }
@@ -323,52 +369,96 @@
     .name {
       flex: 0 40%;
       max-width: 40%;
-      padding-left: 20px;
+      padding-left: 20px; // Increased from 20px
       box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: flex-start;
       font-size: 0.9rem;
+      
       @include for-tablet-portrait-up {
         font-size: 1rem;
+        padding-left: 24px; // Increased padding on larger screens
       }
+      
       .step-index {
-        margin-right: 15px;
+        margin-right: 0; // Remove the margin since we're using gap
         color: $blue;
         min-width: 30px;
         text-align: center;
         display: none;
+        flex-shrink: 0; // Prevent the index from shrinking
+        
         @include for-tablet-portrait-up {
-          display: initial;
+          display: block; // Change from 'initial' to 'block' for better control
         }
       }
+      
       .step-content {
         max-width: 100%;
-        .feature-reference,
-        .step-error {
-          font-size: 0.8rem;
-          margin-bottom: 3px;
-          display: inline-flex;
-          position: relative;
-          transform: translate3d(0, 0, 0);
-          transition: transform 0.15s ease-in-out;
+        display: flex; // Add this to make children align horizontally
+        align-items: center; // Add this to vertically center the children
+        gap: 20px; // Add consistent spacing between step-index and step-name
+        
+        .step-name {
+          word-break: break-all;
+          margin-left: 0; // Remove the left margin since we're using gap
+          padding-left: 0; // Remove the left padding since we're using gap
+          border-left: none; // Remove the border since we're using gap for separation
+          line-height: 1.4;
+          flex: 1; // Allow the step name to take remaining space
         }
 
-        .feature-reference {
-          color: rgba(black, 0.55);
-          &:hover {
-            transform: translate3d(10px, 0, 0);
-          }
-        }
-
-        .step-name,
         .step-error {
           word-break: break-all;
-        }
+          margin-left: 0px;
+          padding-left: 10px;
+          border-left: 3px solid $transparent-bg;
+          display: block;
+          width: 100%;
+          min-width: 300px;
+          max-width: 700px;
+          box-sizing: border-box;
+          margin-top: 12px; // Increased from 8px
+          padding: 16px 20px; // Increased padding
+          border-radius: 6px; // Rounded corners
+          border-left: 3px solid $bad;
+          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          font-size: 0.95em;
+          line-height: 1.5;
+          margin-bottom: 16px; // Increased from 12px
+          color: inherit;
+          background: $error-background; // Subtle error background
+          box-shadow: 0 2px 6px $error-box-shadow; // Subtle error shadow
+          border: 1px solid $error-border; // Subtle error border
 
-        .step-error {
-          max-width: 100%;
-          color: $bad;
+          .error-label {
+            display: block;
+            color: $bad;
+            font-weight: 700;
+            margin-bottom: 10px; // Increased from 8px
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .error-content {
+            margin: 0;
+            padding: 0;
+            color: inherit;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: inherit;
+            font-size: x-small;
+            line-height: inherit;
+            background: transparent;
+            border: none;
+            width: 100%;
+            overflow-x: auto;
+          }
         }
       }
     }
@@ -378,12 +468,15 @@
       max-width: 12%;
       text-align: center;
       display: none;
+      
       @include for-tablet-portrait-up {
         display: initial;
       }
+      
       &.ok {
         color: $good;
       }
+      
       &.nok {
         color: $medium;
       }
@@ -394,6 +487,7 @@
       max-width: 12%;
       text-align: center;
       color: $bad;
+      font-weight: 500; // Added font weight for better readability
     }
 
     .difference {
@@ -411,23 +505,37 @@
       align-items: center;
       justify-content: flex-start;
       flex-wrap: nowrap;
+      
       .option {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        margin-right: 8px;
+        width: 36px; // Increased from 32px
+        height: 36px; // Increased from 32px
+        margin-right: 10px; // Increased from 8px
+        
         &:last-child {
           margin-right: 0;
         }
+        &:hover {
+          background: $transparent-bg; // Subtle hover background
+          transform: scale(1.05); // Slight scale effect on hover
+        }
       }
+      
       button, a {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        width: 36px; // Increased from 32px
+        height: 36px; // Increased from 32px
+        border-radius: 4px; // Rounded corners for buttons
+        transition: all 0.2s ease-in-out; // Smooth transitions
+        &:hover {
+          background: $transparent-bg; // Subtle hover background
+          transform: scale(1.05); // Slight scale effect on hover
+        }
+        
       }
     }
   }
@@ -440,7 +548,7 @@
   background-color: $bad;
 }
 .skipped {
-  background-color: rgb(182, 182, 101);
+  background-color: $skipped;
 }
 
 .error-border {
@@ -454,7 +562,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  border: 1px solid red;
   border-radius: inherit; 
   pointer-events: none;
   animation: fade-border 3s ease-out forwards;

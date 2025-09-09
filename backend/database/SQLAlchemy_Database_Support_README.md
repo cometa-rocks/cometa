@@ -78,7 +78,8 @@ engine = create_engine("sqlite:///mydatabase.db")
 
 ### **4️⃣ Microsoft SQL Server (MSSQL)**
 ```python
-engine = create_engine("mssql+pyodbc://testuser:testpassword@localhost/testdb?driver=SQL+Server")
+engine = create_engine("mssql+pyodbc://sa:StrongPassword123!@mssql:1433/master?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no")
+
 ```
 ✅ **MSSQL supports SQL-92 and extensions like `TOP` (instead of `LIMIT`).**
 

@@ -1,4 +1,4 @@
-import logging, subprocess, sys, requests, datetime
+import logging, subprocess, sys, requests, datetime, json, os
 from django.conf import settings
 from django_rq import job
 from rq.timeouts import JobTimeoutException
@@ -27,21 +27,69 @@ streamLogger.setFormatter(formatter)
 logger.addHandler(streamLogger)
 
 @job
-def run_browser(json_path, env, **kwargs):
+def run_browser(env, **kwargs):
     tempfile = NamedTemporaryFile(suffix="_feature_execution.pickle", delete=False)
     # save variables from environment variables to a file using pickle
     variables = env.pop('VARIABLES')
     env['execution_data'] = tempfile.name
 
+
     with open(tempfile.name, 'wb') as file:
-        pickle.dump({
+        pickle.dump({ 
             'VARIABLES': variables
         }, file)
-
+    # This is required to make sure feature file is generated before running the feature with result id added to it
+    # While doing parallel execution and housekeeping it should not conflict with other threads
+    # File name should be unique for each test execution i.e 1174_458556_Simple-Smoke-test
+    response = requests.post(f'{get_cometa_backend_url()}/generateFeatureFile/', json={
+        'feature_id': kwargs.get('feature_id'),
+        'feature_result_id': env.get('feature_result_id')
+    })
+    if not response.json().get('success'):
+        requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % int(kwargs.get('feature_id')), data={
+            "user_id": kwargs.get('user_data', {}).get('user_id', None),
+            "browser_info": json.dumps(kwargs.get('BROWSER_INFO', None)),
+            "feature_result_id": env.get('feature_result_id'),
+            "run_id": int(kwargs.get('feature_run')),
+            "feature_result_info": json.dumps(response.json()),
+            "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        })
+                # call update task to delete a task with pid.
+        task = {
+            "action": "delete",
+            "browser": json.dumps(kwargs.get('BROWSER_INFO', None)),
+            "feature_result_id": env.get('feature_result_id'),
+            "feature_id": kwargs.get('feature_id'),
+            "pid": str(os.getpid()),
+        }
+        requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
+                                data=json.dumps(task))
+        raise Exception(response.json())
+    response_json = response.json() 
+    logger.debug(f"Feature file generated successfully")
+    logger.debug(f"Response: {json.dumps(response.json(), indent=4)}")
     # Combine environment value related to cometa and feature data 
     # this is required because in new bash session env information will be lost related to cometa servers
     all_env = {**get_all_cometa_environments(), **env}
-    # logger.debug(f"Setting all envs : {all_env}") 
+    
+    json_path = response_json.get('meta_file_path')
+    all_env['FEATURE_FILE'] = response_json.get('feature_file_path') 
+    all_env['JSON_FILE'] = response_json.get('meta_file_path') 
+    all_env['FEATURE_JSON_FILE'] = response_json.get('json_file_path') 
+    all_env['FEATURE_NAME'] = response_json.get('feature_name')
+    all_env['FOLDERPATH'] = response_json.get('feature_folder_path')
+    all_env['COMETA_FEATURE_ID'] = kwargs.get('feature_id')
+    
+    # Check if required environment variables are set
+    if not all_env['FEATURE_FILE']:
+        raise Exception(f"Feature file path is not set in response: {response_json}")
+    if not all_env['FOLDERPATH']:
+        raise Exception(f"Feature folder path is not set in response: {response_json}")
+    
+    # Check if the script file exists
+    if not os.path.exists(settings.RUNTEST_COMMAND_PATH):
+        raise Exception(f"Script file does not exist: {settings.RUNTEST_COMMAND_PATH}")
+    
     # Start running feature with current browser
     with subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=all_env, stdout=subprocess.PIPE) as process:
         try:

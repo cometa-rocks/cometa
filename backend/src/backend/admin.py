@@ -169,6 +169,9 @@ class AdminPermissions(admin.ModelAdmin):
         ('Browsers', {
             'fields': (('create_browser', 'edit_browser', 'delete_browser'),)
         }),
+        ('Mobiles', {
+            'fields': (('manage_mobiles',),)
+        }),
         ('Folders', {
             'fields': (
                 ('create_folder', 'delete_folder'),
@@ -295,10 +298,13 @@ class AdminFile(admin.ModelAdmin):
     
     fileExistsOnFS.short_description = "Does file exist on FS?"
 
+class AdminFileData(admin.ModelAdmin):
+    model = FileData
+
 class AdminDepartment(admin.ModelAdmin):
     model = Department
-    search_fields = ['department_name']
-    list_display = ("department_name", "created_on")
+    search_fields = ["department_id",'department_name']
+    list_display = ("department_id","department_name", 'slug',"created_on")
     list_filter = ('created_on',)
 
 class ActionAdmin(admin.ModelAdmin):
@@ -337,6 +343,7 @@ admin.site.register(Environment)
 admin.site.register(Department, AdminDepartment)
 admin.site.register(Browser)
 admin.site.register(File, AdminFile)
+admin.site.register(FileData, AdminFileData)
 admin.site.register(Action, ActionAdmin)
 admin.site.register(Permissions, AdminPermissions)
 admin.site.register(Cloud, AdminCloud)

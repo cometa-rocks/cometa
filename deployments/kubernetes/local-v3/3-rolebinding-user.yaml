@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: "2025-06-26T21:04:02Z"
+  name: developer-role
+  namespace: cometa
+  resourceVersion: "179276"
+  uid: 1c413088-6aae-4490-bee3-6ef69886d059
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: developer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: cometa

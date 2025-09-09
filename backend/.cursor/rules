@@ -1,0 +1,300 @@
+# Backend Cursor Rules - Cometa Python/Django Application
+
+## Project Overview
+This is the Python/Django backend for the Cometa automated testing and monitoring platform. The application handles test automation, monitoring, scheduling, and provides REST APIs for the frontend.
+
+## Python Standards
+
+### Code Style
+- Follow PEP 8 style guidelines strictly
+- Use 4 spaces for indentation
+- Maximum line length of 79 characters
+- Use snake_case for variables and functions
+- Use PascalCase for classes
+- Use UPPER_SNAKE_CASE for constants
+
+### Type Hints
+- Use type hints for all function parameters
+- Include return type annotations
+- Use Optional[] for nullable values
+- Import types from typing module
+- Use Union types for multiple possible types
+- Implement proper generic types
+
+### Documentation
+- Write docstrings for all public functions
+- Use Google or NumPy docstring format
+- Include parameter descriptions
+- Document return values and exceptions
+- Add type information in docstrings
+- Document complex algorithms and business logic
+
+### Error Handling
+- Use specific exception types
+- Implement proper logging with appropriate levels
+- Provide meaningful error messages
+- Use context managers for resource management
+- Implement custom exception classes when needed
+- Handle edge cases gracefully
+
+## Django Specific Rules
+
+### Model Guidelines
+- Use descriptive field names
+- Implement proper model validation
+- Use model methods for business logic
+- Override save() method when needed
+- Use model managers for complex queries
+- Implement proper model relationships
+- Use database constraints and indexes
+- Implement soft delete when appropriate
+
+### View Patterns
+- Use class-based views when possible
+- Implement proper permission checks
+- Use serializers for data validation
+- Handle form submissions properly
+- Return appropriate HTTP status codes
+- Implement proper pagination
+- Use mixins for reusable functionality
+- Handle file uploads securely
+
+### Database Operations
+- Use Django ORM for all database operations
+- Implement database migrations properly
+- Use select_related() and prefetch_related()
+- Avoid N+1 query problems
+- Use database transactions when needed
+- Implement proper database indexing
+- Use database functions when appropriate
+- Monitor query performance
+
+### Security Practices
+- Validate all user inputs
+- Use Django forms for data input
+- Implement proper authentication
+- Use CSRF protection
+- Sanitize user data
+- Implement rate limiting
+- Use secure headers
+- Validate file uploads
+
+### Testing Requirements
+- Write unit tests for all models
+- Test view logic thoroughly
+- Use factories for test data
+- Mock external services
+- Test edge cases and error conditions
+- Implement integration tests
+- Use proper test isolation
+- Maintain good test coverage
+
+### API Development
+- Use Django REST Framework
+- Implement proper serialization
+- Use pagination for large datasets
+- Include proper error responses
+- Document API endpoints
+- Implement API versioning
+- Use proper HTTP status codes
+- Implement request/response logging
+
+### Performance Guidelines
+- Use database indexing
+- Implement caching strategies
+- Optimize database queries
+- Use async operations when appropriate
+- Monitor performance metrics
+- Implement connection pooling
+- Use background tasks for heavy operations
+- Optimize serialization
+
+### Environment Management
+- Use environment variables for configuration
+- Never commit sensitive data
+- Use different settings for environments
+- Implement proper logging configuration
+- Use configuration management tools
+- Implement secrets management
+- Use proper environment separation
+
+## Cometa-Specific Guidelines
+
+### Test Automation
+- Implement proper test scheduling
+- Handle test execution states
+- Implement test result storage
+- Handle test failures gracefully
+- Implement retry mechanisms
+- Monitor test execution performance
+- Handle concurrent test execution
+
+### Monitoring & Logging
+- Implement comprehensive logging
+- Use structured logging format
+- Monitor application health
+- Implement metrics collection
+- Handle log rotation
+- Implement alerting systems
+- Monitor resource usage
+
+### WebSocket Support
+- Implement proper WebSocket handling
+- Handle connection management
+- Implement message queuing
+- Handle reconnection logic
+- Implement proper error handling
+- Monitor WebSocket performance
+
+### Background Tasks
+- Use Celery for task management
+- Implement proper task queuing
+- Handle task failures
+- Implement task monitoring
+- Use proper task priorities
+- Handle long-running tasks
+
+### File Management
+- Implement secure file handling
+- Use proper file storage backends
+- Implement file validation
+- Handle file cleanup
+- Implement file versioning
+- Use proper file permissions
+
+### External Integrations
+- Implement proper API clients
+- Handle rate limiting
+- Implement retry logic
+- Handle authentication properly
+- Monitor external API performance
+- Implement proper error handling
+
+## Code Organization
+
+### Project Structure
+- Organize code by functionality
+- Use proper package structure
+- Implement proper separation of concerns
+- Use consistent naming conventions
+- Implement proper module organization
+
+### Import Organization
+- Group imports logically
+- Use absolute imports when possible
+- Avoid circular imports
+- Use proper import aliases
+- Organize imports by standard library, third-party, local
+
+### Configuration Management
+- Use environment-based configuration
+- Implement configuration validation
+- Use configuration classes
+- Implement configuration inheritance
+- Handle configuration errors gracefully
+
+## Error Handling & Logging
+
+### Logging Strategy
+- Use appropriate log levels
+- Implement structured logging
+- Include context in log messages
+- Implement log correlation
+- Use proper log formatting
+- Implement log aggregation
+
+### Exception Handling
+- Catch specific exceptions
+- Implement proper error responses
+- Log errors with context
+- Implement error reporting
+- Handle unexpected errors gracefully
+- Provide user-friendly error messages
+
+## Performance & Scalability
+
+### Caching Strategy
+- Implement proper cache keys
+- Use appropriate cache backends
+- Implement cache invalidation
+- Monitor cache performance
+- Use cache warming strategies
+- Implement distributed caching
+
+### Database Optimization
+- Use proper database indexes
+- Implement query optimization
+- Use database connection pooling
+- Monitor database performance
+- Implement read replicas when needed
+- Use proper database partitioning
+
+### Async Operations
+- Use async/await properly
+- Implement proper async error handling
+- Use async database operations
+- Implement proper async testing
+- Handle async resource cleanup
+- Monitor async performance
+
+## Security & Compliance
+
+### Authentication & Authorization
+- Implement proper user authentication
+- Use secure password hashing
+- Implement role-based access control
+- Use proper session management
+- Implement multi-factor authentication
+- Handle authentication errors securely
+
+### Data Protection
+- Implement data encryption
+- Use secure communication protocols
+- Implement proper data validation
+- Handle sensitive data properly
+- Implement audit logging
+- Follow data protection regulations
+
+### API Security
+- Implement proper API authentication
+- Use rate limiting
+- Implement request validation
+- Use secure headers
+- Monitor for suspicious activity
+- Implement proper error handling
+
+## Testing & Quality Assurance
+
+### Test Strategy
+- Implement unit tests for all functions
+- Write integration tests for APIs
+- Implement end-to-end tests
+- Use proper test data management
+- Implement test automation
+- Maintain test coverage reports
+
+### Code Quality
+- Use linting tools
+- Implement code formatting
+- Use type checking
+- Implement code review process
+- Use static analysis tools
+- Monitor code quality metrics
+
+## Deployment & Operations
+
+### Environment Management
+- Use proper environment separation
+- Implement configuration management
+- Use containerization when appropriate
+- Implement proper deployment strategies
+- Use infrastructure as code
+- Implement proper monitoring
+
+### Monitoring & Alerting
+- Monitor application health
+- Implement proper alerting
+- Monitor performance metrics
+- Implement log aggregation
+- Monitor external dependencies
+- Implement proper error tracking

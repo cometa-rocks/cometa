@@ -23,6 +23,20 @@ h4 {
   }
 }
 
+.copyClipboardIcon {
+  transform: scale(0.7);
+  width: 15px;
+  margin-left: 72px;
+  cursor: pointer;
+  align-items: right !important;
+  margin-top: 6px;
+  margin-right: 6px;
+
+  &.active {
+    animation: changeColor 3s forwards;
+  }
+}
+
 .selected-browser {
   height: 25px;
   line-height: 25px;

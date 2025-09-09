@@ -25,6 +25,15 @@ export namespace StepDefinitions {
   }
 
   /**
+   * @description Makes a request to get steps for specific feature
+   * @param {number} featureId Feature ID
+   */
+  export class GetExecutionStepsForFeature {
+    static readonly type = '[Steps Definition] Get Execution Steps';
+    constructor(public readonly featureId: number) {}
+  }
+
+  /**
    * @description Clear steps for new feature
    */
   export class ClearNewFeature {
