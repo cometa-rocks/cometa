@@ -65,6 +65,7 @@ export class L1FeatureStarredListComponent implements OnInit {
     // If data$ is not provided, use an empty observable
     const inputData$ = this.data$ || of({ rows: [], featureCount: 0, folderCount: 0, last_update: '' });
 
+
     // Get departments from user state
     this.store.select<Department[]>(UserState.RetrieveUserDepartments).subscribe(departments => {
       this.departments = ['All Departments', ...departments.map(dept => dept.department_name)];
@@ -74,6 +75,7 @@ export class L1FeatureStarredListComponent implements OnInit {
       this.selectedDepartment$.next(savedDepartment);
     });
 
+    // Combine the starred features, the input data and the selected department
     this.starredFeatures$ = combineLatest([
       this.starredService.starredFeatures$,
       inputData$,
@@ -90,6 +92,10 @@ export class L1FeatureStarredListComponent implements OnInit {
         return filtered;
       })
     );
+
+    this.starredFeatures$.subscribe(features => {
+      console.log('Starred features:', features);
+    });
 
     // Initialize groupedFeatures$ after starredFeatures$ is set up
     this.groupedFeatures$ = this.starredFeatures$.pipe(
