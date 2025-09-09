@@ -59,17 +59,17 @@ export class FeatureMetricsUsageComponent implements OnInit {
     this.loading = true;
     this.error = null;
     
-    console.log('[FeatureMetricsUsageComponent] Calling /cometausage/ endpoint...');
+    this.log.msg('feature-metrics-usage.component.ts','Calling /cometausage/ endpoint...','','');
     
     this._api.getUsageStatistics().subscribe({
       next: (data) => {
-        console.log('[FeatureMetricsUsageComponent] Received data from API:', data);
+        this.log.msg('feature-metrics-usage.component.ts','Received data from API','',JSON.stringify(data));
         this.statistics = data;
         this.loading = false;
         this.changeDetectorRef.detectChanges();
       },
       error: (err) => {
-        console.error('[FeatureMetricsUsageComponent] Error calling API:', err);
+        this.log.msg('feature-metrics-usage.component.ts','Error calling API','',JSON.stringify(err));
         this.error = err.message || 'Error loading usage statistics';
         this.loading = false;
       }
@@ -80,18 +80,18 @@ export class FeatureMetricsUsageComponent implements OnInit {
    * Formats a large number with commas
    */
   formatNumber(value: string | number): string {
-    console.log('[formatNumber] Input value:', value, 'Type:', typeof value);
+    this.log.msg('formatNumber','Input value','',`${value} (${typeof value})`);
     
     if (!value) {
-      console.log('[formatNumber] Value is falsy, returning 0');
+      this.log.msg('formatNumber','Value is falsy, returning 0','','');
       return '0';
     }
     
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    console.log('[formatNumber] Parsed number:', num, 'isNaN:', isNaN(num));
+    this.log.msg('formatNumber','Parsed number','',`${num} (isNaN: ${isNaN(num)})`);
     
     const result = isNaN(num) ? '0' : num.toLocaleString();
-    console.log('[formatNumber] Final result:', result);
+    this.log.msg('formatNumber','Final result','',result);
     
     return result;
   }
