@@ -3,6 +3,14 @@
 
 //################# Loading and Error States ###############
 
+.container {
+  padding: 20px 20px 0 20px;
+}
+
+h2 {
+    font-size: 20px;
+}
+
 // Loading and Error States
 .loading-container,
 .error-container {
@@ -61,13 +69,14 @@
   padding: 16px;
   background-color: $body-bg-color;
   min-height: 80vh;
+  margin-bottom: 100px;
 
   @include for-tablet-portrait-up {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     padding: 20px;
     min-height: 50vh;
-    width: 50%;
+    width: 55vw;
   }
 
   @include for-desktop-up {
@@ -137,6 +146,7 @@
     border-radius: 8px;
     padding: 12px;
     transition: all 0.3s ease;
+    align-items: center;
 
     &:nth-child(1) {
         background: rgba($usage-accent-blue, 0.1);
@@ -149,28 +159,47 @@
     }
 
     .metric-value-large {
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 700;
       color: $usage-text-primary;
+
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+      }
     }
 
     .metric-value-small {
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 600;
       color: $usage-text-primary;
+
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+      }
     }
 
     .metric-unit {
-      font-size: 16px;
+      font-size: 14px;
       color: $usage-text-secondary;
       font-weight: 500;
+
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+      }
     }
 
     .metric-icon {
-      font-size: 16px;
+      font-size: 20px;
       width: 24px;
       height: 24px;
-      color: $usage-accent-blue;
+      color: $blue;
+      align-content: center;
+
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+        width: 24px;
+        height: 24px;
+      }
     }
   }
 }
@@ -217,7 +246,7 @@
       color: $usage-text-primary;
 
       @include for-tablet-portrait-up {
-        font-size: 24px;
+        font-size: 16px;
       }
     }
   }
@@ -230,11 +259,21 @@
   .metric-content-single {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     position: relative;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+
+    &:nth-child(1) {
+      background: rgba($usage-accent-blue, 0.1);
+      transform: translateY(-1px);
+    }
 
     .metric-value-large {
-      font-size: 32px;
+      font-size: 20px;
       font-weight: 700;
       color: $usage-text-primary;
 
@@ -244,10 +283,11 @@
     }
 
     .metric-icon-large {
-      font-size: 32px;
+      font-size: 28px;
       width: 32px;
       height: 32px;
-      color: $usage-accent-blue;
+      color: $blue;
+      align-content: center;
 
       @include for-tablet-portrait-up {
         font-size: 24px;
@@ -265,11 +305,21 @@
   .metric-content-single {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     position: relative;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+
+    &:nth-child(1) {
+      background: rgba($usage-accent-green, 0.1);
+      transform: translateY(-1px);
+    }
 
     .metric-value-large {
-      font-size: 32px;
+      font-size: 20px;
       font-weight: 700;
       color: $usage-text-primary;
 
@@ -279,10 +329,11 @@
     }
 
     .metric-icon-large {
-      font-size: 32px;
+      font-size: 28px;
       width: 32px;
       height: 32px;
       color: $usage-accent-green;
+      align-content: center;
 
       @include for-tablet-portrait-up {
         font-size: 24px;
