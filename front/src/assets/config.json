@@ -1,6 +1,6 @@
 {
-  "version": "3.0.97",
-  "stable_version": "3.0.97",
+  "version": "3.0.98",
+  "stable_version": "3.0.98",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.98",
+      "date": "2025-09-09",
+      "features": [
+        {
+          "title": "Feature Metrics Usage - #6802",
+          "description": "Added a new feature metrics usage page to the application."
+        }
+      ]
+    }
     {
       "version": "3.0.97",
       "date": "2025-09-05",
