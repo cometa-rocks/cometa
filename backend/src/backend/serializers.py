@@ -273,7 +273,15 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
     def get_ok(self, instance):
         return sumField(instance.feature_results.all(), 'ok')
     def get_status(self, instance):
-        return 'Failed' if getFieldsWithSpecificValue(instance.feature_results.all(), 'success', False) > 0 else 'Success'
+        # Check if success is False
+        if getFieldsWithSpecificValue(instance.feature_results.all(), 'success', False) > 0:
+            # If success is False, check if it's due to cancellation or actual failure
+            if getFieldsWithSpecificValue(instance.feature_results.all(), 'status', 'Canceled') > 0:
+                return 'Canceled'
+            else:
+                return 'Failed'
+        else:
+            return 'Success'
     def get_success(self, instance):
         return False if getFieldsWithSpecificValue(instance.feature_results.all(), 'success', False) > 0 else True
 
