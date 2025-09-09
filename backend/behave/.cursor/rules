@@ -2,7 +2,6 @@
 description: RPC Service boilerplate
 globs:
 alwaysApply: false
-language: english
 ---
 
 - Use our internal RPC pattern when defining services

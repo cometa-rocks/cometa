@@ -47,14 +47,8 @@ Author: dph000
   <mat-icon>star_border</mat-icon>
   Starred
 </div>
-<!-- Feature Metrics Usage list button -->
-<div (click)="toggleList('metrics')" [class.selected]="(activeList$ | async) === 'metrics'" [matTooltip]="'sidenav_page.metrics' | translate" matTooltipPosition="right">
-  <mat-icon>bar_chart</mat-icon>
-  Metrics
-</div>
 <!-- Trash bin list button -->
 <div (click)="toggleList('trashbin')" [class.selected]="(activeList$ | async) === 'trashbin'" [matTooltip]="'sidenav_page.trash_bin' | translate" matTooltipPosition="right">
   <mat-icon>delete</mat-icon>
   Trash bin
 </div>
-
