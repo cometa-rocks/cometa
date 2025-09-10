@@ -237,9 +237,18 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   // Add backward compatibility property
   public feature_id: number;
 
+  // Store reference to the keydown listener for cleanup
+  private keydownListener: (event: KeyboardEvent) => void;
+
   // Cleanup old or unused runs info on close
   ngOnDestroy() {
     this.cleanupSubscriptions();
+    
+    // Remove the keydown listener to prevent it from staying active after dialog closes
+    if (this.keydownListener) {
+      document.removeEventListener('keydown', this.keydownListener);
+    }
+    
     if (this.feature_id) {
       this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
     }
@@ -287,11 +296,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     }
 
     // register Host Key "S" to stop the execution
-    document.addEventListener('keydown', (event) => {
+    this.keydownListener = (event: KeyboardEvent) => {
       if (event.key === 's') {
-        this.stopTest();
+        // Only allow stop if feature has actually started (same restriction as the stop button)
+        if (this.canStop) {
+          this.stopTest();
+        }
       }
-    });
+    };
+    document.addEventListener('keydown', this.keydownListener);
   }
 
   private loadConfigurations() {
