@@ -94,8 +94,8 @@ def step_impl(context,url):
     send_step_details(context, 'Loading page')
     context.browser.get(url)
 
-# Browse to an URL
-# Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new"
+# Browse to an URL with javascript
+# Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new" with javascript
 @step(u'StartBrowser and call URL "{url}" with javascript')
 @done(u'StartBrowser and call URL "{url}" with javascript')
 def step_impl(context,url):
@@ -193,8 +193,8 @@ def step_impl(context,selector):
         logger.exception(err)
         raise err
 
-# Moves the mouse to the css selector and double clicks
-# Example: I move mouse to "//div[contains(@class, 'showFolders')]" and double click
+# Moves the mouse from coordinates to coordinates on an element
+# Example: I move mouse from coordinates "100,100" to "200,200" on element "//div[contains(@class, 'showFolders')]"
 @step(u'I move mouse from coordinates "{start_x},{start_y}" to "{end_x},{end_y}" on element "{element}"')  
 @done(u'I move mouse from coordinates "{start_x},{start_y}" to "{end_x},{end_y}" on element "{element}"')
 def step_impl(context,start_x,start_y,end_x,end_y,element):
@@ -948,7 +948,8 @@ def step_iml(context, keys):
     else:
         elem.send_keys(keys)
 
-
+# Clear value on element
+# Example: Clear value on "//input[@id='username']"
 @step(u'Clear value on "{selector}"')
 @done(u'Clear value on "{selector}"')
 def step_clear_textbox(context, selector):
