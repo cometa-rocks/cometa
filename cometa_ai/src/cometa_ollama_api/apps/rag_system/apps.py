@@ -3,6 +3,10 @@ Django app configuration for RAG system.
 """
 from django.apps import AppConfig
 import os
+import logging
+import ollama
+
+logger = logging.getLogger(__name__)
 
 class RagSystemConfig(AppConfig):
     """
@@ -24,8 +28,35 @@ class RagSystemConfig(AppConfig):
         rag_data_dir = os.path.join(settings.BASE_DIR, 'data', 'chromadb')
         os.makedirs(rag_data_dir, exist_ok=True)
 
-        # Import signals to register them
+        # Ensure required models are available  
+        self._ensure_ollama_models()
+        
+        # Register signals after everything is ready
         try:
-            import apps.rag_system.signals
+            from . import signals
         except ImportError:
-            pass 
+            pass
+    
+    def _ensure_ollama_models(self):
+        """Ensure required Ollama models are available."""
+        from .config import RAG_MODEL, CHATBOT_MODEL_NAME
+        
+        ollama_host = os.environ.get('OLLAMA_HOST', 'http://localhost:8083')
+        if not ollama_host.startswith(('http://', 'https://')):
+            ollama_host = f'http://{ollama_host}'
+            
+        required_models = list(dict.fromkeys([RAG_MODEL, CHATBOT_MODEL_NAME]))
+        client = ollama.Client(host=ollama_host)
+        
+        try:
+            # Get existing models
+            models_response = client.list()
+            existing = {m.get('name', '') for m in models_response.get('models', [])}
+            
+            # Pull missing models
+            for model in set(required_models) - existing:
+                logger.info(f"Pulling missing model: {model}")
+                client.pull(model)
+                
+        except Exception as e:
+            logger.warning(f"Model validation skipped: {e}") 

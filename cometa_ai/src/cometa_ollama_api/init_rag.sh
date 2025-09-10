@@ -43,10 +43,7 @@ while retries < max_retries:
 
 # Create and apply migrations
 echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:45](main) -\033[0m Creating migrations..."
-mkdir -p staticfiles
-mkdir -p apps/rag_system/migrations
-touch apps/rag_system/migrations/__init__.py
-python manage.py makemigrations --noinput
+python manage.py makemigrations rag_system --noinput
 echo "\033[96m[$(date '+%Y-%m-%d %H:%M:%S')][MainThread][INFO][init_rag.sh:50](main) -\033[0m Applying migrations..."
 python manage.py migrate
 

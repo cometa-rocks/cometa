@@ -38,4 +38,3 @@ chromadb==0.6.3
 python-dotenv==1.1.0
 uvicorn[standard]==0.34.0
 gunicorn==23.0.0
-whitenoise==6.9.0
