@@ -1,11 +1,10 @@
+# Backend Cursor Rules - Cometa Python/Django/Behave/Selenium Application
+# Language: English
+# Communication: Always respond in English
+
 ---
-description: RPC Service boilerplate
+@description: Cometa Python/Django/Behave/Selenium Application
 globs:
 alwaysApply: false
 language: english
 ---
-
-- Use our internal RPC pattern when defining services
-- Always use snake_case for service names.
-
-@service-template.ts
