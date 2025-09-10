@@ -1158,7 +1158,7 @@ def step_impl(context, selector):
 
 
 # Switches to an iframe tag inside the document within the specified ID
-# Example: I can switch to iFrame with id '__privateStripeMetricsController8240'
+# Example: I can switch to iFrame with name '__privateStripeMetricsController8240'
 @step(u'I can switch to iFrame with name "{iframe_name}"')
 @done(u'I can switch to iFrame with name "{iframe_name}"')
 def step_impl(context,iframe_name):
@@ -1184,7 +1184,7 @@ def step_impl(context, button_name):
     get_element_using_common_selector_and_click(context, selector_value=locator, selector_type="xpath")
 
 # Checks if can click in a button with the specified title attribute text
-# Example: I can click on button "//button[@title='Add_button']"
+# Example: I can click on button with title "//button[@title='Add_button']"
 @step(u'I can click on button with title "{button_title}"')
 @done(u'I can click on button with title "{button_title}"')
 def step_impl(context, button_title):
@@ -1375,7 +1375,7 @@ def step_impl(context, sleeptime):
     cometa_sleep(sleeptime)
 
 # Sleeps for X seconds
-# Example: I sleep "60" seconds
+# Example: I can sleep "60" seconds
 @step(u'I can sleep "{sleeptime}" seconds')
 @done(u'I can sleep "{sleeptime}" seconds')
 def step_impl(context,sleeptime):
@@ -1421,7 +1421,7 @@ def step_impl(context, x, y):
             raise err
 
 # Resizes the browser window to X and Y, also checks the window size
-# Example: I resize the browser to "1920" x "1080"
+# Example: I can resize the browser to "1920" x "1080"
 @step(u'I can resize the browser to "{x}" x "{y}"')
 @done(u'I can resize the browser to "{x}" x "{y}"')
 def step_impl(context, x, y):
@@ -1720,9 +1720,7 @@ def step_impl(context, xpath):
     
 
 # Use this step when a message or popup disappears so quickly 
-# Examples: 
-#   1. click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "appeared"
-#   1. click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "present"
+# Example: Click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "appeared"
 @step(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
 @done(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
 def step_impl(context, click_element, wait_element, appeared_or_present):
@@ -1935,7 +1933,7 @@ def step_impl(context, filter_name):
     time.sleep(5)
 
 # Add a filter name with a value to a QueryStudio table
-# Example: I can add a filter to column "Sales Region" with "North America" to QueryStudio table
+# Example: I can add an filter to column "Sales Region" with "North America" to QueryStudio table
 @step(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
 @done(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
 def step_impl(context, column_name, filter_value):
@@ -2147,7 +2145,7 @@ def step_impl(context,comment):
     logger.info("Comment: %s" % comment)
 
 # Insert custom comments in testplans
-# Example: #Here the comment
+# Example: # Here the comment
 @step(u'#{comment}')
 @done(u'#{comment}')
 def step_impl(context,comment):
@@ -2260,7 +2258,7 @@ def step_imp(context, filename):
     send_step_details(context, 'Attached file to to feature result')
 
 # Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath
-# Example: Download a file by clicking on the "Download Report"
+# Example: Download a file by clicking on "Download Report"
 @step(u'Download a file by clicking on "{linktext}"')
 @done(u'Download a file by clicking on "{linktext}"')
 def step_imp(context, linktext):
@@ -2397,7 +2395,7 @@ def step_imp(context, pattern):
         send_step_details(context, f'{count} files deleted')
         raise exception
 
-# Schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;) and crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically
+# Schedule a job with parameters and crontab pattern
 # Example: Schedule Job "DataProcessingFeature" using parameters "start_date:<today>; end_date:<tomorrow>; region:US" and crontab pattern "0 6 * * *"
 @step(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
 @done(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
@@ -2644,7 +2642,7 @@ def ExcelToCSV(context, filePath, newPath):
     return newPath
 
 # Assert values inside the excel file, generates a CSV file with the result
-# Example: Open "cometa_data.xlsx" and test that cells "A1;B2;C3" contain "100;200;300" options "match exact"
+# Example: Open Excel from "cometa_data.xlsx" and test that cells "A1;B2;C3" contain "100;200;300" options "match exact"
 @step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 @done(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 def excel_step_implementation(context, file, excel_range, values, match_type):
@@ -2823,7 +2821,7 @@ def imp(context, css_selector, variable_name):
     addVariable(context, variable_name, elements_list, save_to_step_report=True)
 
 # Make a request to Open Weather Map and get Weather information about specific City, using units specified at https://openweathermap.org/current and your API Key
-# Example: Weather temperature from Open Weather Map for "London" with "metric" using "your_api_key" and save to variable "weather_temp"
+# Example: Get Weather temperature from Open Weather Map for "London" with "metric" using "your_api_key" and save to variable "weather_temp"
 @step(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
 @done(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
 def step_imp(context, city, units, apikey, variable_name):
@@ -3252,6 +3250,7 @@ def step_endLoop(context):
     # reset executedStepsInLoop
     context.executedStepsInLoop = 0
     
+# Break the loop execution
 # Example: Break the loop execution
 @step(u'Break Loop')
 @done(u'Break Loop')
@@ -3268,7 +3267,7 @@ def step_break_loop(context):
     else:
         raise CustomError("Flows is not inside loop, invalid use of step")
     
-    
+# Continue the loop execution
 # Example: Break the loop execution
 @step(u'Continue Loop')
 @done(u'Continue Loop')
@@ -3479,6 +3478,7 @@ def drag_n_drop(context, element_selector, destination_selector):
     ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
 
 # This step simulates selecting a checkbox if it's not already selected.
+# Example: Enable checkbox "//input[@type='checkbox']"
 @step(u'Enable checkbox "{selector}"')
 @done(u'Enable checkbox "{selector}"')
 def select_checkbox(context, selector):
@@ -3492,7 +3492,8 @@ def select_checkbox(context, selector):
     if not checkbox.is_selected():
         checkbox.click()
 
-
+# Disable checkbox if currently selected
+# Example: Disable checkbox "//input[@type='checkbox']"
 @step(u'Disable checkbox "{selector}"')
 @done(u'Disable checkbox "{selector}"')
 def unselect_checkbox(context, selector):
@@ -3504,6 +3505,8 @@ def unselect_checkbox(context, selector):
     if checkbox.is_selected():
         checkbox.click()        
 
+# Disable checkbox if currently selected
+# Example: Disable checkbox "//input[@type='checkbox']"
 @step(u'Validate if checkbox "{selector}" is enabled save result in "{variable}"')
 @done(u'Validate if checkbox "{selector}" is enabled save result in "{variable}"')
 def unselect_checkbox(context, selector, variable):
@@ -3528,6 +3531,7 @@ def fetch_page_source(context):
 
 # This step scrolls to a specific element in a lazy-loaded table (such as one in AG Grid)
 # Scroll to element in lazy-loaded table, specially useful when working with AG Grid
+# Example: Scroll to element with ".ag-row" in AG Grid table "//div[@class='ag-body-viewport']"
 @step(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
 @done(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
 def find_element_in_lazy_loaded_element(context, selector, scrollable_element_selector):
@@ -3578,8 +3582,7 @@ def find_element_in_lazy_loaded_element(context, selector, scrollable_element_se
 
 
 # Read tag value from given selector and store in a variable
-# Example 1: Get value from "//a[@href="/home"]" and store in "home_link_text" with ""
-# Example 2: Get value from "//a[@href="/home"]" and store in "home_link_text" with "trim the spaces"
+# Example: Get value from "//a[@href="/home"]" and store in the "home_link_text" with "trim the spaces"
 @step(u'Get value from "{selector}" and store in the "{variable_name}" with "{option}"')
 @done(u'Get value from "{selector}" and store in the "{variable_name}" with "{option}"')
 def step_impl(context, selector, variable_name, option):
@@ -3611,8 +3614,7 @@ def step_impl(context, selector, variable_name, option):
 
 
 # Read tag's attribute value from given selector and store in a variable
-# Example 1: Get "href" value of "//a[@href="/home"]" and store in "href_value" with ""
-# Example 2: Get "class" value of "//a[@href="/home"]" and store in "class_value" with "trim the spaces"
+# Example: Get "class" value of "//a[@href="/home"]" and store in "class_value" with "trim the spaces"
 @step(u'Get "{attribute}" value of "{selector}" and store in the "{variable_name}" with "{option}"')
 @done(u'Get "{attribute}" value of "{selector}" and store in the "{variable_name}" with "{option}"')
 def step_impl(context, attribute, selector, variable_name, option):
@@ -3648,7 +3650,6 @@ def step_impl(context, attribute, selector, variable_name, option):
 
 
 
-# This step waits for the selector to appear within the given timeout (in seconds) and then wait the step timeout to disappear. The options provided are 'do not fail if not visible' or 'fail if never visible'
 # If the selector does not appear within the specified timeout:
 # 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait to disappear.
 # 2. If the selected option is 'fail if never visible', the step will fail.
@@ -3656,6 +3657,8 @@ def step_impl(context, attribute, selector, variable_name, option):
 # 4. If the selected option is 'reload page while waiting to disappear', then the page is reloaded every minute while waiting to disappear. 
 # Options can be chained like:  'reload page after appearing;do not fail if not visible' 
 # For Option 4: the step timeout must be bigger then 1 minute, as the waiting time after reloading is set to 1 minute.
+# This step waits for the selector to appear within the given timeout (in seconds) and then wait the step timeout to disappear. The options provided are 'do not fail if not visible' or 'fail if never visible'
+# Example: Wait "10" seconds for ".loading-spinner" to appear and disappear using option "fail if never visible; reload page after appearing"
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
@@ -3763,6 +3766,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
 
 # This step scrolls through a lazy-loaded table (or page) to reach the last visible position of a specified element, identified by its XPath
 # Scroll to the end of the page/table depending on the xpath with maximum scrolls and time of life.
+# Example: Scroll to the last position of the desired element identified by "//div[@class='item']" with maximum number of scrolls "50" and maximum time of "30"
 @step(u'Scroll to the last position of the desired element identified by "{xpath}" with maximum number of scrolls "{MaxScrolls}" and maximum time of  "{MaxTimeOfLife}"')
 @done(u'Scroll to the last position of the desired element identified by "{xpath}" with maximum number of scrolls "{MaxScrolls}" and maximum time of  "{MaxTimeOfLife}"')
 def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
@@ -3811,6 +3815,7 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
 
 # This step reads the html source code of the current page, and looks for aria label attributes, it counts the number of occurrences of each aria label attribute, and displays the value in the options section of the step report.
 # Count the number of aria labels in the current page
+# Example: Count the number of aria labels in the current page
 @step(u'Count the number of aria labels in the current page')
 @done(u'Count the number of aria labels in the current page')
 def count_aria_labels(context):
@@ -3829,7 +3834,8 @@ def count_aria_labels(context):
     }
 
 
-
+# Enable browser network logging
+# Example: Enable browser network logging
 @step(u'Enable browser network logging')
 @done(u'Enable browser network logging')
 def fetch_all_network_requests(context):
@@ -3842,6 +3848,9 @@ def fetch_all_network_requests(context):
         }
     )
 
+
+# Disable browser network logging
+# Example: Disable browser network logging
 @step(u'Disable browser network logging')
 @done(u'Disable browser network logging')
 def fetch_all_network_requests(context):
@@ -3855,6 +3864,8 @@ def fetch_all_network_requests(context):
     )
     
 
+# Get all browser network requests and save in variable
+# Example: Get all browser network requests and save in variable "all_requests"
 @step(u'Get all browser network requests and save in variable "{variable}"')
 @done(u'Get all browser network requests and save in variable "{variable}"')
 def fetch_all_network_requests(context, variable):
@@ -3927,7 +3938,8 @@ def fetch_all_network_requests(context, variable):
     addTestRuntimeVariable(context, variable, all_requests_data, save_to_step_report=True)
 
 
-
+# Get browser network requests filter by url and save in variable
+# Example: Get browser network requests filter by "https://.cometa.rocks" and save in the variable "all_requests"
 @step(u'Get browser network requests filter by "{url}" and save in the variable "{variable}"')
 @done(u'Get browser network requests filter by "{url}" and save in the variable "{variable}"')
 def fetch_network_requests_by_url(context, url,  variable):
