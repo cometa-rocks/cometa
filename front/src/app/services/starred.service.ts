@@ -45,15 +45,12 @@ export class StarredService {
     // Get user ID from store
     this.userId = this.store.selectSnapshot(UserState.GetUserId);
     // log de userId
-    console.log('userId', this.userId);
     this.log.msg('4', 'userId', 'starred.service', this.userId);
     // log de starredfeaturesubject
-    console.log('starredfeaturesubject', this.starredFeaturesSubject);
     this.log.msg('4', 'starredfeaturesubject', 'starred.service', this.starredFeaturesSubject);   
     // Load saved favorites when service initializes
     this.loadFromLocalStorage();
     // log of the localstorage
-    console.log('localstorage', localStorage.getItem(this.storageKey));
     this.log.msg('4', 'localstorage', 'starred.service', localStorage.getItem(this.storageKey));
   }
 
@@ -73,13 +70,11 @@ export class StarredService {
   private loadFromLocalStorage(): void {
     const stored = localStorage.getItem(this.storageKey);
     // log of the stored
-    console.log('Stored -->', stored);
     this.log.msg('4', 'stored', 'starred.service', stored);
     if (stored) {
       try {
         const parsedData = JSON.parse(stored);
         // log of the parsedData
-        console.log('ParsedData -->', parsedData);
         this.log.msg('4', 'parsedData', 'starred.service', parsedData);
         if (Array.isArray(parsedData)) {
           // Filter to ensure only numbers are included
@@ -102,16 +97,10 @@ export class StarredService {
    */
   private saveToLocalStorage(features: Set<number>): void {
     // log storagekey
-    console.log('Storagekey -->', this.storageKey);
     this.log.msg('4', 'storagekey', 'starred.service', this.storageKey);
 
     localStorage.setItem(this.storageKey, JSON.stringify(Array.from(features)));
     // log of the localstorage
-    console.log('Localstorage -->', localStorage.getItem(this.storageKey));
-    this.log.msg('4', 'localstorage', 'starred.service', localStorage.getItem(this.storageKey));
-
-    // Its given by the parameter
-    console.log('Features -->', JSON.stringify(Array.from(features)));
     this.log.msg('4', 'localstorage', 'starred.service', localStorage.getItem(this.storageKey));
   }
 
@@ -123,17 +112,14 @@ export class StarredService {
 
     const current = this.starredFeaturesSubject.value;
     // log of the current
-    console.log('current', current);
     this.log.msg('4', 'current', 'starred.service', current);
 
     const updated = new Set(current);
     // log of the updated
-    console.log('updated', updated);
     this.log.msg('4', 'updated', 'starred.service', updated);
 
     const action = updated.has(featureId) ? 'remove' : 'add';
     // log of the action
-    console.log('action', action);
     this.log.msg('4', 'action', 'starred.service', action);
 
     if (action === 'remove') {
@@ -145,7 +131,6 @@ export class StarredService {
     // Update state and save to localStorage
     this.starredFeaturesSubject.next(updated);
     // log starredfeaturesubject
-    console.log('starredfeaturesubject', this.starredFeaturesSubject);
     this.log.msg('4', 'starredfeaturesubject', 'starred.service', this.starredFeaturesSubject);
 
     this.saveToLocalStorage(updated); // save to localstorage

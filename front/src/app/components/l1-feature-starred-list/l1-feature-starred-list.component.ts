@@ -22,7 +22,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-
+import { LogService } from '@services/log.service';
 interface TableData {
   rows: FeatureData[];
   featureCount: number;
@@ -49,16 +49,20 @@ export class L1FeatureStarredListComponent implements OnInit {
   @Input() data$?: Observable<TableData>;
   starredFeatures$: Observable<FeatureData[]> = of([]);
   groupedFeatures$!: Observable<Map<string, FeatureData[]>>;
+  
   selectedDepartment: string = '';
   departments: string[] = [];
   private selectedDepartment$ = new BehaviorSubject<string>('');
+
+
   @ViewChild('readmeButton') readmeButton!: ElementRef;
   showReadme: boolean = false;
   popupPosition = { x: 0, y: 0 };
 
   constructor(
     private starredService: StarredService,
-    private store: Store
+    private store: Store,
+    private log: LogService
   ) {}
 
   ngOnInit() {
@@ -94,7 +98,7 @@ export class L1FeatureStarredListComponent implements OnInit {
     );
 
     this.starredFeatures$.subscribe(features => {
-      console.log('Starred features:', features);
+      this.log.msg('4', 'starredfeatures', 'l1-feature-starred-list.component', features);
     });
 
     // Initialize groupedFeatures$ after starredFeatures$ is set up
