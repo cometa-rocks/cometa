@@ -921,6 +921,5 @@ app.post('/sendUsageUpdate', (req, res) => {
     totalSent++;
   });
   
-  console.log(`[WebSocket] Usage statistics sent to ${totalSent} clients`);
   res.status(200).json({ success: true, sentCount: totalSent });
 });
