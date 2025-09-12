@@ -119,10 +119,10 @@ def connect_to_sql_database(context, connection_string, variable_name):
     
 # - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
 # - (?: with "(?P<options>.*?)")?: This part is optional.
-# Example:
-# - Get list of visible objects in the current screen and store in "myObjects"
-# - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
+
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
+# Example:
+# - Execute the NoSQL query '{"name": "John"}' on the "users" collection and store the result in "user_data"
 @step(u'Execute the NoSQL query "{query}" on the "{collection}" collection and store the result in "{variable_name}"')
 @done(u'Execute the NoSQL query "{query}" on the "{collection}" collection and store the result in "{variable_name}"')
 def execute_nosql_query_get_answer_in_json(context, query, collection, variable_name):
@@ -134,7 +134,11 @@ def execute_nosql_query_get_answer_in_json(context, query, collection, variable_
     addTestRuntimeVariable(context, variable_name, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result
 
-
+# This step switches the current active database connection to a previously stored connection.
+# Parameters:
+# - variable_name: The name of the database connection variable to switch to.
+# Example:
+# - Switch current database to "myDatabaseConnection"
 @step('Switch current database to "{variable_name}"')
 @done('Switch current database to "{variable_name}"')
 def switch_mobile(context, variable_name):

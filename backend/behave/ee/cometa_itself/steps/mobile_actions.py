@@ -321,7 +321,7 @@ def tap_on_element(context, selector):
 
 
 # Performs a long press on an element for a specified duration
-# Example: Long press element "//*[@id='button']"
+# Example: On mobile long press "//*[@id='button']" for "2" seconds
 @step('On mobile long press "{selector}" for "{time}" seconds')
 @done('On mobile long press "{selector}" for "{time}" seconds')
 def long_press_on_element(context, selector, time=2):
@@ -348,7 +348,7 @@ def long_press_on_element(context, selector, time=2):
     )
 
 # Performs a double tap on an element
-# Example: Double tap on element "//*[@id='button']"
+# Example: On mobile double tap on "//*[@id='button']"
 @step('On mobile double tap on "{selector}"')
 @done('On mobile double tap on "{selector}"')
 def double_tap_on_element(context, selector):
@@ -374,7 +374,7 @@ def double_tap_on_element(context, selector):
     )
 
 # Performs a swipe to the right on an element by specified pixels
-# Example: Swipe right on element "//*[@id='slider']" by "300"
+# Example: On mobile swipe right "//*[@id='slider']" by "300" px
 @step(u'On mobile swipe right "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe right "{selector}" by "{default_200}"px')
 def swipe_right_on_element(context, selector, default_200=200):
@@ -384,7 +384,7 @@ def swipe_right_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe to the left on an element by specified pixels
-# Example: Swipe left on element "//*[@id='slider']" by "300"
+# Example: On mobile swipe left "//*[@id='slider']" by "300" px
 @step(u'On mobile swipe left "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe left "{selector}" by "{default_200}"px')
 def swipe_left_on_element(context, selector, default_200=200):
@@ -394,7 +394,7 @@ def swipe_left_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe up on an element by specified pixels
-# Example: Swipe up on element "//*[@id='list']" by "400"
+# Example: On mobile swipe up "//*[@id='list']" by "400" px
 @step(u'On mobile swipe up "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe up "{selector}" by "{default_200}"px')
 def swipe_up_on_element(context, selector, default_200=200):
@@ -404,7 +404,7 @@ def swipe_up_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe down on an element by specified pixels
-# Example: Swipe down on element "//*[@id='list']" by "400"
+# Example: On mobile swipe down "//*[@id='list']" by "400" px
 @step(u'On mobile swipe down "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe down "{selector}" by "{default_200}"px')
 def swipe_down_on_element(context, selector, default_200=200):
@@ -414,7 +414,7 @@ def swipe_down_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe between two specific coordinates
-# Example: Swipe from coordinate "100,200" to "300,400"
+# Example: On mobile swipe from coordinate "100,200" to "300,400"
 @step(u'On mobile swipe from coordinate "{start_x},{start_y}" to "{end_x},{end_y}"')
 @done(u'On mobile swipe from coordinate "{start_x},{start_y}" to "{end_x},{end_y}"')
 def swipe_using_coordinate(context, start_x,start_y, end_x, end_y):
@@ -438,7 +438,7 @@ def swipe_using_coordinate(context, start_x,start_y, end_x, end_y):
     )
 
 # Sets the value of a mobile input element identified by the provided selector
-# Example: Set value "Hello World" on the mobile element "//*[@id='input']"
+# Example: On mobile set value "Hello World" on "//*[@id='input']"
 @step('On mobile set value "{text}" on "{selector}"')
 @done('On mobile set value "{text}" on "{selector}"')
 def set_value_on_element(context, text, selector):
@@ -462,7 +462,7 @@ def set_value_on_element(context, text, selector):
     )
 
 # Clears the content of a textbox identified by the provided selector
-# Example: Clear textbox "//*[@id='input']"
+# Example: On mobile clear textbox "//*[@id='input']"
 @step('On mobile clear textbox "{selector}"')
 @done('On mobile clear textbox "{selector}"')
 def set_value_on_element(context, text, selector):
@@ -486,7 +486,7 @@ def set_value_on_element(context, text, selector):
     )
 
 # Checks if an element is not visible on the screen
-# Example: Check if element "//*[@id='popup']" is not visible
+# Example: On mobile assert if "//*[@id='popup']" is not visible
 @step('On mobile assert if "{selector}" is not visible')
 @done('On mobile assert if "{selector}" is not visible')
 def check_if_element_not_visible(context, selector):
@@ -514,7 +514,7 @@ def check_if_element_not_visible(context, selector):
         )
 
 # Checks if an element is enabled on the screen
-# Example: Check if element "//*[@id='submit']" is enabled
+# Example: On mobile assert if "//*[@id='submit']" is enabled
 @step('On mobile assert if "{selector}" is enabled')
 @done('On mobile assert if "{selector}" is enabled')
 def check_if_element_enabled(context, selector):
@@ -544,7 +544,7 @@ def check_if_element_enabled(context, selector):
 
 
 # Checks if an element is not enabled on the screen
-# Example: Check if element "//*[@id='submit']" is not enabled
+# Example: On mobile assert if "//*[@id='submit']" is not enabled
 @step('On mobile assert if "{selector}" is not enabled')
 @done('On mobile assert if "{selector}" is not enabled')
 def check_if_element_not_enabled(context, selector):
@@ -574,7 +574,7 @@ def check_if_element_not_enabled(context, selector):
 
 
 # Checks if an element contains the specified text
-# Example: Check if element "//*[@id='message']" contains text "Welcome"
+# Example: On mobile assert if "//*[@id='message']" contains text "Welcome"
 @step('On mobile assert if "{selector}" contains text "{text}"')
 @done('On mobile assert if "{selector}" contains text "{text}"')
 def check_if_element_contains_text(context, selector, text):
@@ -606,7 +606,7 @@ def check_if_element_contains_text(context, selector, text):
 
 
 # Checks if an element does not contain the specified text
-# Example: Check if element "//*[@id='message']" does not contain text "Error"
+# Example: On mobile assert if "//*[@id='message']" does not contain text "Error"
 @step('On mobile assert if "{selector}" does not contain text "{text}"')
 @done('On mobile assert if "{selector}" does not contain text "{text}"')
 def check_if_element_not_contains_text(context, selector, text):
@@ -637,7 +637,7 @@ def check_if_element_not_contains_text(context, selector, text):
 
 
 # Validates if the current screen contains the specified object (text or element)
-# Example: Validate if current screen contains "Welcome"
+# Example: On mobile assert if screen contains "Welcome"
 @step('On mobile assert if screen contains "{object_name}"') 
 @done('On mobile assert if screen contains "{object_name}"')
 def validate_if_screen_contains_object(context, object_name):
@@ -652,7 +652,7 @@ def validate_if_screen_contains_object(context, object_name):
 
 
 # Switches to the specified frame using its ID
-# Example: Switch to frame with id "frame1"
+# Example: On mobile switch to frame with id "frame1"
 @step('On mobile switch to frame with id "{frame_id}"')
 @done('On mobile switch to frame with id "{frame_id}"')
 def switch_to_frame_by_id(context, frame_id):
@@ -670,7 +670,7 @@ def switch_to_frame_by_id(context, frame_id):
 
 
 # Starts the specified mobile app using its package and activity name
-# Example: Start the mobile app "com.example.app" "com.example.app.MainActivity"
+# Example: On mobile start app "myapp.apk" "com.example.app.MainActivity"
 @step('On mobile start app "{app_package}" "{app_activity}"')
 @done('On mobile start app "{app_package}" "{app_activity}"')
 def start_mobile_app(context, app_package, app_activity):
@@ -693,7 +693,7 @@ def start_mobile_app(context, app_package, app_activity):
     
 
 # Closes the mobile app using its package name
-# Example: Close the mobile app "com.example.apk"
+# Example: On mobile close app "myapp.apk"
 @step('On mobile close app "{app_package}"')
 @done('On mobile close app "{app_package}"')
 def close_mobile_application(context, app_package):
@@ -713,7 +713,7 @@ def close_mobile_application(context, app_package):
     
 
 # Uninstalls the specified app from the device
-# Example: Uninstall app "com.example.apk" with "Do not fail"
+# Example: On mobile uninstall app "myapp.apk" with "Do not fail"
 @step('On mobile uninstall app "{app_package}" with "{option}"')
 @done('On mobile uninstall app "{app_package}" with "{option}"')
 def uninstall_app_from_device(context, app_package, option):
@@ -735,7 +735,7 @@ def uninstall_app_from_device(context, app_package, option):
             )
 
 # Taps on the given screen coordinates (x, y)
-# Example: Tap on coordinates "100, 200"
+# Example: On mobile tap on coordinates "100, 200"
 @step(u'On mobile tap on coordinates "{x}, {y}"')
 @done(u'On mobile tap on coordinates "{x}, {y}"')
 def tap_on_coordinates(context, x, y):
@@ -753,7 +753,7 @@ def tap_on_coordinates(context, x, y):
         raise CustomError(f"Could not tap on coordinates {x}, {y}: {str(e)}")
 
 # Pinches to zoom in on the element identified by the given selector
-# Example: Pinch to zoom in on element with "//*[@id='zoomable-element']"
+# Example: On mobile pinch to zoom in with "//*[@id='zoomable-element']"
 @step(u'On mobile pinch to zoom in with "{selector}"')
 @done(u'On mobile pinch to zoom in with "{selector}"')
 def pinch_to_zoom_in(context, selector):
@@ -786,7 +786,7 @@ def pinch_to_zoom_in(context, selector):
         raise CustomError(f"Could not zoom in on element with selector {selector}: {str(e)}")
 
 # Pinches to zoom out on the element identified by the given selector
-# Example: Pinch to zoom out on element with "//*[@id='zoomable-element']"
+# Example: On mobile pinch to zoom out with "//*[@id='zoomable-element']"
 @step(u'On mobile pinch to zoom out with "{selector}"')
 @done(u'On mobile pinch to zoom out with "{selector}"')
 def pinch_to_zoom_out(context, selector):
@@ -819,7 +819,7 @@ def pinch_to_zoom_out(context, selector):
         raise CustomError(f"Could not zoom out on element with selector {selector}: {str(e)}")
 
 # Rotates the mobile device screen to landscape mode
-# Example: Rotate screen to landscape mode
+# Example: On mobile rotate screen to landscape mode
 @step('On mobile rotate screen to landscape mode')
 @done('On mobile rotate screen to landscape mode')
 def rotate_screen_to_landscape(context):
@@ -833,7 +833,7 @@ def rotate_screen_to_landscape(context):
         raise CustomError(f"Could not rotate screen to landscape mode: {str(e)}")
 
 # Rotates the mobile device screen to portrait mode
-# Example: Rotate screen to portrait mode
+# Example: On mobile rotate screen to portrait mode
 @step('On mobile rotate screen to portrait mode')
 @done('On mobile rotate screen to portrait mode')
 def rotate_screen_to_portrait(context):
@@ -847,7 +847,7 @@ def rotate_screen_to_portrait(context):
         raise CustomError(f"Could not rotate screen to portrait mode: {str(e)}")
 
 # Checks if the specified app is installed on the given device
-# Example: Check if app "com.example.apk" is installed on device "device_1"
+# Example: On mobile check if app "myapp.apk" is installed on device "device_1"
 @step('On mobile check if app "{app_package}" is installed on device "{device_name}"')
 @done('On mobile check if app "{app_package}" is installed on device "{device_name}"')
 def check_if_app_installed(context, app_package, device_name):
@@ -908,7 +908,7 @@ def capture_logs_from_mobile_device(context, variable):
         raise CustomError(f"Could not capture logs from mobile device: {str(e)}")
 
 # Get the current device orientation and store it in a specified variable
-# Example: Get current device orientation and store in the "orientation_variable"
+# Example: On mobile get device orientation and store in the "orientation_variable"
 @step('On mobile get device orientation and store in the "{variable}"')
 @done('On mobile get device orientation and store in the "{variable}"')
 def get_current_device_orientation(context, variable):
@@ -924,7 +924,7 @@ def get_current_device_orientation(context, variable):
         raise CustomError(f"Could not get current device orientation: {str(e)}")
   
 # Change the device orientation to the specified orientation (e.g., PORTRAIT or LANDSCAPE)
-# Example: Change device orientation to "LANDSCAPE"
+# Example: On mobile change device orientation to "LANDSCAPE"
 @step('On mobile change device orientation to "{orientation}"')
 @done('On mobile change device orientation to "{orientation}"')
 def change_device_orientation(context, orientation):
@@ -941,7 +941,7 @@ def change_device_orientation(context, orientation):
 
   
 # Lock the mobile device screen
-# Example: Lock the screen
+# Example: On mobile lock the screen
 @step('On mobile lock the screen')
 @done('On mobile lock the screen')
 def lock_screen(context):
@@ -956,7 +956,7 @@ def lock_screen(context):
 
 
 # Unlock the mobile device screen
-# Example: Unlock the screen
+# Example: On mobile unlock the screen
 @step('On mobile unlock the screen')
 @done('On mobile unlock the screen')
 def unlock_screen(context):
@@ -986,7 +986,7 @@ def unlock_screen(context):
 
 
 # Switch the context to a specified mobile app context
-# Example: Switch to mobile app context "WEBVIEW_com.example.apk"
+# Example: On mobile switch to app context "WEBVIEW_myapp.apk"
 @step('On mobile switch to app context "{context}"')
 @done('On mobile switch to app context "{context}"')
 def switch_to_mobile_app_context(context, app_context):
@@ -1005,7 +1005,7 @@ def switch_to_mobile_app_context(context, app_context):
 
 
 # Simulate pressing the back button on the mobile device
-# Example: Go back
+# Example: On mobile go back
 @step('On mobile go back')
 @done('On mobile go back')
 def go_back(context):
@@ -1021,7 +1021,7 @@ def go_back(context):
 
  
 # Go to the home screen of the mobile device
-# Example: Go to Home
+# Example: On mobile go to home
 @step('On mobile go to home')
 @done('On mobile go to home')
 def go_to_home(context):
@@ -1036,7 +1036,7 @@ def go_to_home(context):
         )
 
 # Open the recent apps screen on the mobile device
-# Example: Open recent apps
+# Example: On mobile open recent apps
 @step('On mobile open recent apps')
 @done('On mobile open recent apps')
 def go_to_home(context):
@@ -1052,7 +1052,7 @@ def go_to_home(context):
 
  
 # Perform a drag and drop action from a specified start element to an end element
-# Example: Perform drag and drop from "source_element_id" to "target_element_id"
+# Example: On mobile perform drag and drop from "source_element_id" to "target_element_id"
 @step('On mobile perform drag and drop from "{start_element}" to "{end_element}"')
 @done('On mobile perform drag and drop from "{start_element}" to "{end_element}"')
 def perform_drag_and_drop(context, start_element, end_element):
@@ -1154,6 +1154,9 @@ def wait_for_element_to_disappear(context, selector):
             f"Element with {selector} did not disappear: {str(e)}"
         )
 
+
+# Validate if a specific text appears on the mobile screen
+# Example: On mobile assert if "Welcome" appeared on screen
 @step('On mobile assert if "{text}" appeared on screen')
 @done('On mobile assert if "{text}" appeared on screen')
 def validate_text_on_mobile_screen(context, text):
@@ -1194,9 +1197,9 @@ def validate_text_on_mobile_screen(context, text):
 #     except Exception as e:
 #         raise CustomError(f"Could not capture device performance metrics: {str(e)}")
 
-# Set the device geolocation to specific latitude and longitude coordinates
-# Example: Set geolocation to "37.7749, -122.4194"
 # @step('On mobile set geolocation to "(?P<latitude>.+?), (?P<longitude>.+?)"')
+# Set the device geolocation to specific latitude and longitude coordinates
+# Example: On mobile set geolocation to "37.7749, -122.4194"
 @step('On mobile set geolocation to "{latitude}, {longitude}"')
 @done('On mobile set geolocation to "{latitude}, {longitude}"')
 def set_geolocation(context, latitude, longitude):
@@ -1213,9 +1216,9 @@ def set_geolocation(context, latitude, longitude):
             f"Could not set geolocation to {latitude}, {longitude}: {str(e)}"
         )
 
-# Set the mobile device timezone to a specific value
-# Example: Set mobile timezone to "Europe/Berlin"
 # @step('On mobile set timezone to "(?P<timezone>.+?)"')
+# Set the mobile device timezone to a specific value
+# Example: On mobile set timezone to "Europe/Berlin"
 @step('On mobile set timezone to "{timezone}"')
 @done('On mobile set timezone to "{timezone}"')
 def set_mobile_timezone(context, timezone):
@@ -1257,10 +1260,8 @@ def assert_if_element_visible(context, selector):
     )
 
 
-
-
 # Check if a specific element is present on the screen
-# Example: On mobile assert "//android.widget.Button[@text='Submit']" is visible
+# Example: On mobile assert "//android.widget.Button[@text='Submit']" is present
 @step('On mobile assert "{selector}" is present')
 @done('On mobile assert "{selector}" is present')
 def assert_if_element_present(context, selector):
@@ -1286,7 +1287,7 @@ def assert_if_element_present(context, selector):
 use_step_matcher("parse")
 
 # Check if a specific element is present on the screen and save the result to a variable
-# Example: Check if element "//android.widget.Button[@text='Submit']" is visible
+# Example: On mobile validate if "//android.widget.Button[@text='Submit']" is present and save result in "is_present"
 @step('On mobile validate if "{selector}" is present and save result in "{variable}"')
 @done('On mobile validate if "{selector}" is present and save result in "{variable}"')
 def check_if_element_present(context, selector, variable):
@@ -1311,9 +1312,9 @@ def check_if_element_present(context, selector, variable):
     
 
 
-# Check if a specific element is visible on the screen and save the result to a variable
-# Example: On mobile assert if "//android.widget.Button[@text='Submit']" is visible and save result in "is_visible"
 # @step('On mobile validate if "(?P<selector>.+?)" is visible and save result in "{variable}"')
+# Check if a specific element is visible on the screen and save the result to a variable
+# Example: On mobile validate if "//android.widget.Button[@text='Submit']" is visible and save result in "is_visible"
 @step('On mobile validate if "{selector}" is visible and save result in "{variable}"')
 @done('On mobile validate if "{selector}" is visible and save result in "{variable}"')
 def check_if_element_visible(context, selector, variable):
