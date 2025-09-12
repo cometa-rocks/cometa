@@ -23,6 +23,7 @@ import {
 } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'json-viewer',
@@ -44,7 +45,8 @@ export class JsonViewerComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<JsonViewerComponent>,
     private _api: ApiService,
-    private _sanitizer: DomSanitizer
+    private _sanitizer: DomSanitizer,
+    private log: LogService
   ) {}
 
   ngOnInit(): void {
@@ -71,18 +73,49 @@ export class JsonViewerComponent implements OnInit {
     }
 
     // If the content is a step variable, show it accordingly in the dialog
-    this.isStepVariableContent = this.data.responses.variable_name !== undefined;
+    this.isStepVariableContent = this.data.responses?.variable_name !== undefined;
+
+    this.log.msg('4', 'isStepVariableContent', 'json-view', this.isStepVariableContent);
       
     // If it's a step variable, use the variable value as a data
     if (this.isStepVariableContent) {
       this.dataToProcess = this.data.responses.variable_value;
     }
+    else if (this.data.result?.call) {  
+      // Handle nested structure where call is under result
+      this.dataToProcess = this.data.result.call;
+    }
     else if (this.data.call) {  
+      // Handle direct call structure
       this.dataToProcess = this.data.call;
     }
-    else {
-      this.dataToProcess = this.data.responses || {};
+    else if (this.data.result) {
+      // If there's a result object, use it
+      this.dataToProcess = this.data.result;
     }
+    else {
+      // Data to process is the responses or the data itself
+      this.dataToProcess = this.data.responses || this.data || {};
+    }
+
+    // Old Code which was not handling the nested result.call structure for API data display
+    
+    // If the content is a step variable, show it accordingly in the dialog
+    // this.isStepVariableContent = this.data.responses.variable_name !== undefined;
+  
+    // If it's a step variable, use the variable value as a data
+    // if (this.isStepVariableContent) {
+    //   this.dataToProcess = this.data.responses.variable_value;
+    // }
+
+    // else if (this.data.call) {  
+    //   this.dataToProcess = this.data.call;
+    // }
+
+    // else {
+    //   this.dataToProcess = this.data.responses || {};
+    // }
+   
 
     this.jq_filter$
       .pipe(

@@ -1,5 +1,12 @@
-<h3 aria-label="API Call" class="title" *ngIf="data.call && !isHtmlContent">
+<!-- <h3 aria-label="API Call" class="title" *ngIf="data.call && !isHtmlContent">
   API Call - <b>{{ data.call.request.method }} {{ data.call.request.url }}</b>
+</h3> -->
+<h3 aria-label="API Call" class="title" *ngIf="(data.call || data.result?.call) && !isHtmlContent">
+  <!-- It could be data.call or data.result?.call. 
+    If data.result?.call is present, use it, otherwise use data.call.
+    Handle both direct call structure and nested result.call structure for API data display
+    -->
+  API Call - <b>{{ (data.result?.call || data.call).request.method }} {{ (data.result?.call || data.call).request.url }}</b>
 </h3>
 <h3 aria-label="Step Network Responses" class="title" *ngIf="data.stepName != undefined && !isHtmlContent">
   Step Network Responses - <b>{{ data.stepName }}</b>
