@@ -4,6 +4,8 @@
 #   HLM_LOG_LEVEL=info|warn|debug (default: info)
 #   KEY_SELECTOR_URL=true|false (default: false)
 
+name: cometa-healenium
+
 services:
   # Healenium PostgreSQL Database
   hlm-db:

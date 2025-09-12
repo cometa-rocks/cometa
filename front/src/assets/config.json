@@ -1,6 +1,6 @@
 {
-  "version": "3.0.98",
-  "stable_version": "3.0.97",
+  "version": "3.0.99",
+  "stable_version": "3.0.99",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,12 +242,26 @@
   ],
   "changelog": [
     {
+      "version": "3.0.99",
+      "date": "2025-09-10",
+      "features": [
+        {
+          "title": "Starred features - #6820",
+          "description": "Fixed issue with starred, now it shows starred features in the starred view."
+        }
+      ]
+    },
+    {
       "version": "3.0.98",
       "date": "2025-09-09",
       "features": [
         {
           "title": "Fixed issue during initialization - #6799",
           "description": "Configuration state was not being properly initialized."
+        },
+        {
+          "title": "Feature Metrics Usage - #6802",
+          "description": "Added a new feature metrics usage page to the application."
         }
       ]
     },
