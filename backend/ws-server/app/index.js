@@ -884,3 +884,42 @@ io.on('connection', function(socket){
 server.listen(3001, function(){
   console.log('WS Server listening on *:3001')
 })
+
+// WebSocket endpoint for usage statistics updates
+app.post('/sendUsageUpdate', (req, res) => {
+  let totalSent = 0;
+  
+  // Get usage statistics from the request body
+  const usageData = req.body;
+  
+  // Log the received data for debugging
+  console.log('[WebSocket] Received usage statistics update:', JSON.stringify(usageData, null, 2));
+  
+  // Create WebSocket message for usage statistics update
+  const message = {
+    type: '[WebSockets] UsageStatisticsUpdate',
+    timestamp: new Date().toISOString(),
+    data: {
+      average_execution_time_ms: usageData.average_execution_time_ms,
+      average_execution_time_s: usageData.average_execution_time_s,
+      total_execution_time_ms: usageData.total_execution_time_ms,
+      total_execution_time_s: usageData.total_execution_time_s,
+      total_execution_time_m: usageData.total_execution_time_m,
+      total_execution_time_h: usageData.total_execution_time_h,
+      total_tests_executed: usageData.total_tests_executed,
+      total_number_features: usageData.total_number_features
+    }
+  };
+  
+  // Log the message being sent
+  console.log('[WebSocket] Sending message to clients:', JSON.stringify(message, null, 2));
+  
+  // Send to all connected clients
+  const toSend = Object.keys(clients);
+  toSend.forEach(clientId => {
+    io.to(clientId).emit('message', message);
+    totalSent++;
+  });
+  
+  res.status(200).json({ success: true, sentCount: totalSent });
+});
