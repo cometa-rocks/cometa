@@ -223,6 +223,16 @@ $low-transparent-white: rgba(
 ); // Used in help element on feature list items
 $pure-white: rgba(255, 255, 255, 1);
 
+// Usage Statistics Colors
+$usage-card-blue: #e0f2f7;
+$usage-card-blue-dark: #cceef5;
+$usage-card-green: #e6f7e6;
+$usage-card-green-dark: #d0edd0;
+$usage-text-primary: #2c3e50;
+$usage-text-secondary: #7f8c8d;
+$usage-accent-blue: #3498db;
+$usage-accent-green: #27ae60;
+
 .primary-color {
   &.as-text {
     color: $primary-color;

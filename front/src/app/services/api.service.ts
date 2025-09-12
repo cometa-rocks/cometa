@@ -1103,4 +1103,8 @@ export class ApiService {
     return this._http.get<FeatureHistoryResponse>(`${this.base}feature/${departmentId}/${featureId}/history/`);
   }
 
+  getUsageStatistics() {
+    return this._http.get<any>(`${this.base}cometausage/`);
+  }
+
 }
