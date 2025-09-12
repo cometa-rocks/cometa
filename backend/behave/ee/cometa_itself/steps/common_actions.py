@@ -187,7 +187,7 @@ def show_variable_value(context, variable, seconds):
                 container.style.marginLeft = '24%%';
                 container.style.width = '50%%';
                 container.style.minHeight = '200px';
-                container.style.border = '10px solid';
+                container.style.border = '2px solid';
                 container.style.borderRadius = '6px';
                 container.style.padding = '1%%';
                 container.style.fontFamily = 'system-ui';

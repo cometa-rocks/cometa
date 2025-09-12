@@ -8,7 +8,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-
+import { LogService } from '@services/log.service';
 /**
  * Interface that defines the structure of events when a feature is starred/unstarred
  */
@@ -21,13 +21,14 @@ export interface StarredFeatureEvent {
   providedIn: 'root'  // Makes the service a singleton available throughout the app
 })
 export class StarredService {
+
   // Prefix for localStorage key, following project convention (co_)
   private readonly STORAGE_KEY_PREFIX = 'co_starred_features_user_';
 
   // BehaviorSubject maintains the current state of favorites (Set of IDs)
   // Set ensures there are no duplicate IDs
   private starredFeaturesSubject = new BehaviorSubject<Set<number>>(new Set());
-  
+
   // Public Observable that other components can subscribe to receive updates
   public starredFeatures$ = this.starredFeaturesSubject.asObservable();
 
@@ -40,17 +41,25 @@ export class StarredService {
   // Public Observable for other components to react to changes in favorites
   public starredChanges$ = this.starredChangesSubject.asObservable();
 
-  constructor(private store: Store) {
+  constructor(private store: Store, private log: LogService) {
     // Get user ID from store
     this.userId = this.store.selectSnapshot(UserState.GetUserId);
+    // log de userId
+    this.log.msg('4', 'userId', 'starred.service', this.userId);
+    // log de starredfeaturesubject
+    this.log.msg('4', 'starredfeaturesubject', 'starred.service', this.starredFeaturesSubject);   
     // Load saved favorites when service initializes
     this.loadFromLocalStorage();
+    // log of the localstorage
+    this.log.msg('4', 'localstorage', 'starred.service', localStorage.getItem(this.storageKey));
   }
 
   /**
    * Generates unique localStorage key by combining prefix and user ID
    */
   private get storageKey(): string {
+    // log of the storageKey
+    this.log.msg('4', 'storageKey', 'starred.service', `${this.STORAGE_KEY_PREFIX}${this.userId}`);
     return `${this.STORAGE_KEY_PREFIX}${this.userId}`;
   }
 
@@ -60,9 +69,13 @@ export class StarredService {
    */
   private loadFromLocalStorage(): void {
     const stored = localStorage.getItem(this.storageKey);
+    // log of the stored
+    this.log.msg('4', 'stored', 'starred.service', stored);
     if (stored) {
       try {
         const parsedData = JSON.parse(stored);
+        // log of the parsedData
+        this.log.msg('4', 'parsedData', 'starred.service', parsedData);
         if (Array.isArray(parsedData)) {
           // Filter to ensure only numbers are included
           const numberArray = parsedData.filter(item => typeof item === 'number');
@@ -83,7 +96,12 @@ export class StarredService {
    * Converts Set to array before saving as JSON
    */
   private saveToLocalStorage(features: Set<number>): void {
+    // log storagekey
+    this.log.msg('4', 'storagekey', 'starred.service', this.storageKey);
+
     localStorage.setItem(this.storageKey, JSON.stringify(Array.from(features)));
+    // log of the localstorage
+    this.log.msg('4', 'localstorage', 'starred.service', localStorage.getItem(this.storageKey));
   }
 
   /**
@@ -91,10 +109,19 @@ export class StarredService {
    * Updates state, saves to localStorage and emits change event
    */
   toggleStarred(featureId: number): void {
+
     const current = this.starredFeaturesSubject.value;
+    // log of the current
+    this.log.msg('4', 'current', 'starred.service', current);
+
     const updated = new Set(current);
+    // log of the updated
+    this.log.msg('4', 'updated', 'starred.service', updated);
+
     const action = updated.has(featureId) ? 'remove' : 'add';
-    
+    // log of the action
+    this.log.msg('4', 'action', 'starred.service', action);
+
     if (action === 'remove') {
       updated.delete(featureId);  // Remove ID from Set
     } else {
@@ -103,7 +130,10 @@ export class StarredService {
 
     // Update state and save to localStorage
     this.starredFeaturesSubject.next(updated);
-    this.saveToLocalStorage(updated);
+    // log starredfeaturesubject
+    this.log.msg('4', 'starredfeaturesubject', 'starred.service', this.starredFeaturesSubject);
+
+    this.saveToLocalStorage(updated); // save to localstorage
     
     // Emit change event
     this.starredChangesSubject.next({ featureId, action });
@@ -112,44 +142,15 @@ export class StarredService {
   /**
    * Checks if a feature is marked as favorite
    * @returns Observable<boolean> that emits true if the feature is starred
+   * It's called from l1-feature-starred-list.component.ts
+   * It's called from l1-feature-list.component.ts
+   * Its called from l1-featur-recent-list.component.ts
    */
   isStarred(featureId: number): Observable<boolean> {
+    // Return True or false 
+    // to send this to other components to show or hide the icon (starred)
     return this.starredFeatures$.pipe(
       map(features => features.has(featureId))
     );
-  }
-
-  /**
-   * Gets Observable with all favorite IDs
-   * @returns Observable<Set<number>> with the set of IDs marked as favorites
-   */
-  getStarredFeatures(): Observable<Set<number>> {
-    return this.starredFeatures$;
-  }
-
-  /**
-   * Gets total number of favorites
-   * @returns Observable<number> with the count of starred features
-   */
-  getStarredCount(): Observable<number> {
-    return this.starredFeatures$.pipe(
-      map(features => features.size)
-    );
-  }
-
-  /**
-   * Removes all favorites
-   * Emits removal events for each feature and clears state
-   */
-  clearAllStarred(): void {
-    const currentFeatures = this.starredFeaturesSubject.value;
-    // Emit removal events for each feature
-    currentFeatures.forEach(featureId => {
-      this.starredChangesSubject.next({ featureId, action: 'remove' });
-    });
-    
-    // Clear state and localStorage
-    this.starredFeaturesSubject.next(new Set());
-    this.saveToLocalStorage(new Set());
   }
 } 
