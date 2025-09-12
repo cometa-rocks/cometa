@@ -81,12 +81,15 @@ export class JsonViewerComponent implements OnInit {
     if (this.isStepVariableContent) {
       this.dataToProcess = this.data.responses.variable_value;
     }
+    // Handle nested result.call structure for API data display
+    // The API returns: {success: true, result: {call: {...}}}
+    // But component expected: {call: {...}} directly
     else if (this.data.result?.call) {  
       // Handle nested structure where call is under result
       this.dataToProcess = this.data.result.call;
     }
     else if (this.data.call) {  
-      // Handle direct call structure
+      // Handle direct call structure (backward compatibility)
       this.dataToProcess = this.data.call;
     }
     else if (this.data.result) {
@@ -98,7 +101,10 @@ export class JsonViewerComponent implements OnInit {
       this.dataToProcess = this.data.responses || this.data || {};
     }
 
-    // Old Code which was not handling the nested result.call structure for API data display
+    
+    // REMOVED: Old code that caused "undefined: undefined" error
+    // Problem: Only handled direct call structure, not nested result.call
+    // This caused the component to fail when API returned nested structure
     
     // If the content is a step variable, show it accordingly in the dialog
     // this.isStepVariableContent = this.data.responses.variable_name !== undefined;
