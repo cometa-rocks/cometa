@@ -256,6 +256,10 @@
       "date": "2025-09-09",
       "features": [
         {
+          "title": "Fixed issue during initialization - #6799",
+          "description": "Configuration state was not being properly initialized."
+        },
+        {
           "title": "Feature Metrics Usage - #6802",
           "description": "Added a new feature metrics usage page to the application."
         }
