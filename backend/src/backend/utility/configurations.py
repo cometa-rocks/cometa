@@ -116,7 +116,10 @@ default_cometa_configurations = {
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
     "OLLAMA_AI_SECRET_KEY":"",
-    "COMETA_BROWSER_MAX_VERSIONS": 3
+    "COMETA_BROWSER_MAX_VERSIONS": 3,
+    "COMETA_BROWSER_USE_MODE": "openai",  # Options: 'openai' or 'ollama'
+    "COMETA_BROWSER_USE_MODEL": "gpt-5-mini",
+    "OLLAMA_BROWSER_USE_MODEL": "llama3.1:8b"
 }
 
 public_configuraion_values = [
