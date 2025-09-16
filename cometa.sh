@@ -5,6 +5,7 @@
 # ##################################################
 #
 # Changelog:
+# 2025-09-15 RRO Added debug mode to the script
 # 2025-08-29 RRO Added check for Rosetta on Apple Silicon Macs, better logging, and show logs for all containers if no container specified
 # 2024-02-16 RRO Added option to restart recreate selenoid
 # 2023-08-12 RRO Added check on docker hub is reachable by downloading image "Hello-World"
@@ -12,10 +13,12 @@
 # 2022-10-03 ASO changing data mount point based on the parameter.
 # 2022-09-08 RRO first version
 #
-VERSION="2023-12-08"
+VERSION="2025-09-15"
 
 DOCKER_COMPOSE_COMMAND="docker-compose"
 CURRENT_PATH=$PWD
+
+
 
 #
 # source our nice logger
@@ -24,9 +27,24 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
+info "------------------------------------------------------------------------"
+info "This is $0 version ${VERSION} running for your convinience"
+info "------------------------------------------------------------------------"
+
+# 
+# use docker-compose.yml or docker-compose-dev.yml depending on branch name we are on
+#
+DOCKER_COMPOSE_FILE="docker-compose.yml"
+# evaluate the branch using git branch
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" != "master" ]]; then
+    DOCKER_COMPOSE_FILE="docker-compose-dev.yml"
+fi
+info "Using $DOCKER_COMPOSE_FILE file on branch $BRANCH"
+
 function SHOW_HELP() {
     cat <<EOF
-Cometa Setup Script (version ${VERSION})
+
 Usage: $0 [OPTIONS]
 
 Options:
@@ -60,10 +78,6 @@ Examples:
 For more information, see the documentation or contact support.
 EOF
 }
-
-info "------------------------------------------------------------------------"
-info "This is $0 version ${VERSION} running for your convinience"
-info "------------------------------------------------------------------------"
 
 ########################################
 #
@@ -194,10 +208,10 @@ function switchDataMountPoint() {
     # check if first parameter contains root
     if [[ "$1" == "root" ]]; then
         # change ./data => /data
-        sed -i_template "s#- \./data#- /data#g" docker-compose-dev.yml
+        sed -i_template "s#- \./data#- /data#g" ${DOCKER_COMPOSE_FILE}
     else
         # change /data => ./data
-        sed -i_template "s#- /data#- \./data#g" docker-compose-dev.yml
+        sed -i_template "s#- /data#- \./data#g" ${DOCKER_COMPOSE_FILE}
     fi
 }
 
@@ -361,12 +375,12 @@ function get_cometa_up_and_running() {
     #
     # Replace <server> in docker-compose-dev.yml with "local"
     #
-    sed -i_template "s|<server>|local|g" docker-compose-dev.yml && info "Replaced <server> in docker-compose-dev.yml with local"
+    sed -i_template "s|<server>|local|g" ${DOCKER_COMPOSE_FILE} && info "Replaced <server> in ${DOCKER_COMPOSE_FILE} with local"
 
     #
     # Replace <outside_port> in docker-compose-dev.yml with "80"
     #
-    sed -i_template "s|<outside_port>|80|g" docker-compose-dev.yml && info "Replaced <outside_port> in docker-compose-dev.yml with 80"
+    sed -i_template "s|<outside_port>|80|g" ${DOCKER_COMPOSE_FILE} && info "Replaced <outside_port> in ${DOCKER_COMPOSE_FILE} with 80"
 
     #
     # Check if data/front/apache2/metadata/accounts.google.com.client or data/front/apache2/metadata/git.amvara.de.client exists
@@ -409,7 +423,7 @@ function get_cometa_up_and_running() {
     #
     info "Starting containers"
     info "using ${DOCKER_COMPOSE_COMMAND} command"
-    $DOCKER_COMPOSE_COMMAND -f docker-compose-dev.yml up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
+    $DOCKER_COMPOSE_COMMAND -f ${DOCKER_COMPOSE_FILE} up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
 
     #
     # How to wait for System ready?
@@ -442,7 +456,7 @@ function get_cometa_up_and_running() {
     info "Waiting for containers to become healthy (timeout: ${TOTAL_TIMEOUT} seconds)..."
 
     # check if docker-compose contains django start command
-    if ! grep -qE '^\s*command:\s*bash start\.sh' docker-compose-dev.yml; then
+    if ! grep -qE '^\s*command:\s*bash start\.sh' ${DOCKER_COMPOSE_FILE}; then
         info "Django service command is NOT 'bash start.sh -dev'"
         # your logic here
     fi
@@ -473,26 +487,26 @@ function show_logfiles() {
     if [[ -z "$container_name" ]]; then
         # No container specified, show all running containers and their logs
         info "No container specified. Showing all running containers:"
-        docker-compose -f docker-compose-dev.yml ps
+        ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} ps
         
         info "Showing logs from all containers (last 10 lines):"
-        docker-compose -f docker-compose-dev.yml logs -f --tail=10
+        ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} logs -f --tail=10
     else
         case $container_name in
             selenoid)
                 docker logs -f --tail=100 cometa_selenoid
                 ;;
             all)
-                docker-compose -f docker-compose-dev.yml logs -f --tail=100
+                ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} logs -f --tail=100
                 ;;
             *)
                 # Try to show logs for the specified container
-                if docker-compose ps | grep -q "$container_name"; then
-                    docker-compose -f docker-compose-dev.yml logs -f --tail=100 "$container_name"
+                if ${DOCKER_COMPOSE_COMMAND} ps | grep -q "$container_name"; then
+                    ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} logs -f --tail=100 "$container_name"
                 else
                     error "Container '$container_name' not found or not running"
                     info "Available containers:"
-                    docker-compose -f docker-compose-dev.yml ps
+                    ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} ps
                     exit 1
                 fi
                 ;;
@@ -531,8 +545,14 @@ do
             ;;
         -r | --restart)
             container_name=$2
-            info "Recreating $container_name"
-            docker-compose -f docker-compose-dev.yml up -d --force-recreate $container_name && info [ok] || warn "Restarting failed. look at the logs"
+            info "Recreating '$container_name'"
+            # Get service name from container name automatically
+            service_name=$(docker ps --format "table {{.Names}}\t{{.Labels}}" | grep "$container_name" | grep -o 'com.docker.compose.service=[^,]*' | cut -d= -f2)
+            if [ -z "$service_name" ]; then
+                # Fallback: try to find service by container name in compose file
+                service_name=$(grep -B5 -A5 "container_name: $container_name" ${DOCKER_COMPOSE_FILE} | grep -E '^[[:space:]]*[a-zA-Z0-9_-]+:' | head -1 | cut -d: -f1 | tr -d ' ')
+            fi
+            ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} up -d --force-recreate $service_name && info [ok] || warn "Restarting failed. look at the logs"
             exit 0
             ;;
         --root-mount-point)
@@ -543,7 +563,7 @@ do
             info "Backup data directory"
             tar -czvf ../cometa_data.tgz data/
             info "Stopping Cometa"
-            docker-compose -f docker-compose-dev.yml down
+            ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} down
             info "Removing Cometa Redis volume"
             docker volume rm cometa_redis_data
             info "Cometa has been removed. You are save to delete this directory and start with a fresh clone."
