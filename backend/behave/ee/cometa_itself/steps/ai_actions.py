@@ -20,6 +20,7 @@ from utility.configurations import ConfigurationManager
 from tools.exceptions import *
 from tools.common import send_step_details
 from tools.common_functions import *
+import datetime
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
@@ -48,6 +49,21 @@ def ai_feature_cannot_be_used_error():
     )
 
 use_step_matcher("re")
+
+
+def send_browser_use_log(context, message, level='info'):
+    """Send browser-use log to dedicated WebSocket channel"""
+    # Get the actual step index from context
+    step_index = getattr(context, 'step_index', 0)
+
+    requests.post(f'{get_cometa_socket_url()}/feature/{context.feature_id}/browserUseLogs', data={
+        "user_id": context.PROXY_USER['user_id'],
+        "feature_result_id": os.environ['feature_result_id'],
+        "log_level": level,
+        "message": message,
+        "step_index": step_index,  # Send actual step index instead of counter
+        "timestamp": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    })
 
 
 # This step validates whether the current screen contains a specific object, with an optional set of conditions (options).
@@ -404,31 +420,8 @@ async def execute_browser_use_action(context, prompt, browser_context=None):
             force_setup=True  # Force reconfiguration for debugging
         )
         
-        # Get the current Cometa logger handler to bridge browser-use logs
-        cometa_handlers = logger.handlers
-        
-        # Configure browser-use loggers to use Cometa's handlers
-        browser_use_loggers = [
-            'browser_use',
-            'browser_use.agent', 
-            'browser_use.agent.service',
-            'browser_use.browser',
-            'browser_use.dom',
-            'browser_use.actions'
-        ]
-        
         # Set the appropriate logging level based on our configuration
         logging_level = browser_use_logging.INFO if BROWSER_USE_LOG_LEVEL == 'info' else browser_use_logging.DEBUG
-        
-        for logger_name in browser_use_loggers:
-            bu_logger = browser_use_logging.getLogger(logger_name)
-            bu_logger.setLevel(logging_level)  # Use configured level instead of always DEBUG
-            # Add Cometa's handlers to browser-use loggers so they appear in same log stream
-            for handler in cometa_handlers:
-                if handler not in bu_logger.handlers:
-                    bu_logger.addHandler(handler)
-            # Prevent duplicate logs by not propagating to parent
-            bu_logger.propagate = False
         
         logger.info(f"🤖 Starting browser-use agent with CDP: {browser_context['cdp_endpoint']}")
         
@@ -453,46 +446,59 @@ async def execute_browser_use_action(context, prompt, browser_context=None):
         step_timeout = getattr(context.step_data, 'timeout', 900) if hasattr(context, 'step_data') else 900
         logger.info(f"▶️  Starting agent execution (max {BROWSER_USE_MAX_STEPS} steps, timeout: {step_timeout}s)...")
         
-        # Create a custom logging handler to capture browser-use logs in real-time
-        class BrowserUseLogCapture(browser_use_logging.Handler):
+        # Add minimal logging handler to filter authentication messages
+        class BrowserUseLogHandler(browser_use_logging.Handler):
+            """Filters and forwards browser-use logs to WebSocket"""
+
+            AUTH_FILTERS = re.compile(r'(🔐.*Browser Use Cloud|authenticate with:|browser-use auth|python -m browser_use\.cli auth|^─+$|^👉)')
+            ANSI_ESCAPE = re.compile(r'(?:\x1b|\033)\[[0-9;]*m|\\x1b\[[0-9;]*m|\\u[0-9a-fA-F]{4}')
+
+            def __init__(self, context):
+                super().__init__()
+                self.context = context
+
             def emit(self, record):
-                # Format the log message and send it to Cometa logger
-                log_msg = self.format(record)
-                if record.levelno >= browser_use_logging.ERROR:
-                    logger.error(f"[browser-use] {log_msg}")
-                elif record.levelno >= browser_use_logging.WARNING:
-                    logger.warning(f"[browser-use] {log_msg}")
-                elif record.levelno >= browser_use_logging.INFO:
-                    logger.info(f"[browser-use] {log_msg}")
+                msg = self.format(record).replace('[browser-use] ', '')
+                msg = self.ANSI_ESCAPE.sub('', msg).strip()
+
+                if msg and not self.AUTH_FILTERS.search(msg):
+                    level = 'critical' if any(x in msg for x in ['❌', '💥', 'failed', 'error']) else \
+                            'progress' if '📍 Step' in msg else 'info'
+                    send_browser_use_log(self.context, msg, level)
+
+        # Add handler to browser-use logger (remove existing to avoid duplicates)
+        browser_logger = browser_use_logging.getLogger('browser_use')
+        # Remove any existing BrowserUseLogHandler to prevent duplicates
+        browser_logger.handlers = [h for h in browser_logger.handlers if not isinstance(h, BrowserUseLogHandler)]
+        handler = BrowserUseLogHandler(context)
+        handler.setLevel(logging_level)
+        browser_logger.addHandler(handler)
+
+        try:
+            result = await agent.run(max_steps=BROWSER_USE_MAX_STEPS)
+            logger.info(f"✅ Agent execution completed")
+
+            # Process result - browser-use returns a history object
+            if result and hasattr(result, 'is_done') and result.is_done():
+                final_result = result.final_result() if hasattr(result, 'final_result') else "Task completed successfully"
+                logger.info(f"🎯 Task completed successfully: {final_result}")
+                return {"success": True, "result": final_result or "Task completed"}
+            elif result:
+                # Task completed but check for errors
+                errors = result.errors() if hasattr(result, 'errors') else None
+                if errors:
+                    logger.error(f"❌ Task failed with errors: {errors}")
+                    return {"success": False, "error": f"Task failed: {errors}"}
                 else:
-                    logger.debug(f"[browser-use] {log_msg}")
-        
-        # Add our custom handler to capture browser-use logs at the configured level
-        capture_handler = BrowserUseLogCapture()
-        capture_handler.setLevel(logging_level)  # Use configured level instead of always DEBUG
-        browser_use_logging.getLogger('browser_use').addHandler(capture_handler)
-        
-        result = await agent.run(max_steps=BROWSER_USE_MAX_STEPS)
-        logger.info(f"✅ Agent execution completed")
-        
-        # Process result - browser-use returns a history object
-        if result and hasattr(result, 'is_done') and result.is_done():
-            final_result = result.final_result() if hasattr(result, 'final_result') else "Task completed successfully"
-            logger.info(f"🎯 Task completed successfully: {final_result}")
-            return {"success": True, "result": final_result or "Task completed"}
-        elif result:
-            # Task completed but check for errors
-            errors = result.errors() if hasattr(result, 'errors') else None
-            if errors:
-                logger.error(f"❌ Task failed with errors: {errors}")
-                return {"success": False, "error": f"Task failed: {errors}"}
+                    logger.info(f"✅ Task completed without explicit result")
+                    return {"success": True, "result": "Task completed successfully"}
             else:
-                logger.info(f"✅ Task completed without explicit result")
-                return {"success": True, "result": "Task completed successfully"}
-        else:
-            logger.error(f"❌ No result returned from agent")
-            return {"success": False, "error": "No result returned from agent"}
-        
+                logger.error(f"❌ No result returned from agent")
+                return {"success": False, "error": "No result returned from agent"}
+        finally:
+            # Always remove the handler to prevent duplicates in subsequent runs
+            browser_logger.removeHandler(handler)
+
     except Exception as e:
         logger.exception(f"💥 Browser-use action failed with exception: {e}")
         return {"success": False, "error": str(e)}
