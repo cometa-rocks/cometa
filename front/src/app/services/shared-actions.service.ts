@@ -641,21 +641,34 @@ export class SharedActionsService {
   }
 
   openFeatureHistory(featureId: number) {
-    // Get current department context from the store
-    const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    // Get the feature information to extract department_id directly
+    const feature = this._store.selectSnapshot<Feature>(
+      CustomSelectors.GetFeatureInfo(featureId)
+    );
+    
     let departmentId: number | null = null;
     
-    // Extract department ID from current route context
-    if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
-      departmentId = currentRoute[0].folder_id;
+    // Get department_id directly from the feature
+    if (feature && feature.department_id) {
+      departmentId = feature.department_id;
     }
     
-    // If no department context, try to get from user preferences or first available department
+    // Fallback: if feature doesn't have department_id, try to get from current route
     if (!departmentId) {
-      const departments = this._store.selectSnapshot(CustomSelectors.GetDepartmentFolders);
-      if (departments && departments.length > 0) {
-        departmentId = departments[0].folder_id;
+      const currentRoute = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+      if (currentRoute.length > 0 && currentRoute[0].type === 'department') {
+        departmentId = currentRoute[0].folder_id;
       }
+    }
+    
+    // If no department_id can be determined, show error and return
+    if (!departmentId) {
+      this._snackBar.open(
+        'Unable to determine department for this feature. Please try again.',
+        'OK',
+        { duration: 5000 }
+      );
+      return;
     }
     
     //open dialog that occupies 90% of the screen
@@ -668,6 +681,5 @@ export class SharedActionsService {
       height: '90%',
       panelClass: 'full-screen-dialog', 
     });
-  }
-  
+  }  
 }

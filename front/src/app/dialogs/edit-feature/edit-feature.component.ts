@@ -116,6 +116,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Departments } from '@store/actions/departments.actions';
 import { TelegramNotificationHelp } from './telegram-notification-help/telegram-notification-help.component';
 import { User } from '@store/actions/user.actions';
+import { SharedActionsService } from '@services/shared-actions.service';
 
 
 @Component({
@@ -450,6 +451,7 @@ export class EditFeature implements OnInit, OnDestroy {
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
     private logger: LogService,
+    private _sharedActions: SharedActionsService,
   ) {
 
 
@@ -3387,5 +3389,9 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     
     return result || 'ignore';
+  }
+
+  openFeatureHistory() {
+    this._sharedActions.openFeatureHistory(this.featureId)
   }
 }
