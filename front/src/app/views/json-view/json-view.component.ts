@@ -73,54 +73,23 @@ export class JsonViewerComponent implements OnInit {
     }
 
     // If the content is a step variable, show it accordingly in the dialog
-    this.isStepVariableContent = this.data.responses?.variable_name !== undefined;
-
-    this.log.msg('4', 'isStepVariableContent', 'json-view', this.isStepVariableContent);
+    this.isStepVariableContent = this.data?.responses?.variable_name !== undefined;
       
     // If it's a step variable, use the variable value as a data
     if (this.isStepVariableContent) {
       this.dataToProcess = this.data.responses.variable_value;
-    }
-    // Handle nested result.call structure for API data display
-    // The API returns: {success: true, result: {call: {...}}}
-    // But component expected: {call: {...}} directly
-    else if (this.data.result?.call) {  
-      // Handle nested structure where call is under result
-      this.dataToProcess = this.data.result.call;
+      this.log.msg('4', '=== dataToProcess() === If --> Data to process: ', 'json-view', this.dataToProcess);
     }
     else if (this.data.call) {  
-      // Handle direct call structure (backward compatibility)
       this.dataToProcess = this.data.call;
-    }
-    else if (this.data.result) {
-      // If there's a result object, use it
-      this.dataToProcess = this.data.result;
+      this.log.msg('4', '=== dataToProcess() === Else if -->Data to process: ', 'json-view', this.dataToProcess);
     }
     else {
-      // Data to process is the responses or the data itself
-      this.dataToProcess = this.data.responses || this.data || {};
+      this.dataToProcess = this.data?.responses || {};
+      this.log.msg('4', '=== dataToProcess() === Else --> Data to process: ', 'json-view', this.dataToProcess);
     }
 
-    
-    // REMOVED: Old code that caused "undefined: undefined" error
-    // Problem: Only handled direct call structure, not nested result.call
-    // This caused the component to fail when API returned nested structure
-    
-    // If the content is a step variable, show it accordingly in the dialog
-    // this.isStepVariableContent = this.data.responses.variable_name !== undefined;
-  
-    // If it's a step variable, use the variable value as a data
-    // if (this.isStepVariableContent) {
-    //   this.dataToProcess = this.data.responses.variable_value;
-    // }
-
-    // else if (this.data.call) {  
-    //   this.dataToProcess = this.data.call;
-    // }
-
-    // else {
-    //   this.dataToProcess = this.data.responses || {};
-    // }
+    this.log.msg('4', '=== dataToProcess() === Final Data to process: ', 'json-view', this.dataToProcess);
    
 
     this.jq_filter$
