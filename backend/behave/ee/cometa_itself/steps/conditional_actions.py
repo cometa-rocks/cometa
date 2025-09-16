@@ -44,10 +44,7 @@ use_step_matcher("re")
 # This step initiates a conditional "If" block to evaluate a comparison between two values. 
 # The step supports multiple comparison operators such as equals, not equals, contains, >=, <=, etc.
 # Based on the comparison result, it activates the conditional logic (e.g., proceeding to an 'Else' or 'End If').
-# Example:
-# 1. If "5" ">=" "3"             -> True, condition is activated.
-# 2. If "Hello World" "contains" "World" -> True, condition is activated.
-# 3. If "10" "not equals" "20"   -> True, condition is activated.
+# Example: If "5" ">=" "3"
 @step(u'If "(?P<value1>.+?)" "(?P<condition>.+?)" "(?P<value2>.+?)"')
 @done(u'If "{value1}" "{condition}" "{value2}"')
 def start_if(context, value1, condition, value2):
@@ -119,10 +116,7 @@ def end_if(context):
     
 
 # This step performs a basic arithmetic calculation and stores the result in a variable.
-# Example:
-# 1. If "5" ">=" "3"             -> True, condition is activated.
-# 2. If "Hello World" "contains" "World" -> True, condition is activated.
-# 3. If "10" "not equals" "20"   -> True, condition is activated.
+# Example: Calculate "5" "+" "3" and store in the "result"
 @step(u'Calculate "(?P<value1>.+?)" "(?P<operation>.+?)" "(?P<value2>.+?)" and store in the "(?P<variable>.+?)"')
 @done(u'Calculate "{value1}" "{operation}" "{value2}" and store in the "{variable}"')
 def arthmatic_calculations(context, value1, operation, value2, variable):

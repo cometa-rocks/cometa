@@ -84,7 +84,7 @@ def validate_element_visibility(context, selector, time, variable):
     send_step_details(context, f"Visibility validation result for '{selector}' saved to variable '{variable}': {result}")
 
 # Validates if a selector is present in the browser within a given time and saves the result to a variable.
-# Example: Validate if "div#content" present in the browser in "5" seconds and save result in "$is_present"
+# Example: Assert if "div#content" present in the browser in "5" seconds
 @step(u'Assert if "{selector}" present in the browser in "{time}" seconds')
 @done(u'Assert if "{selector}" present in the browser in "{time}" seconds')
 def assert_element_presence(context, selector, time):
@@ -103,7 +103,7 @@ def assert_element_presence(context, selector, time):
 
 
 # Validates if a selector is visible in the browser within a given time and saves the result to a variable.
-# Example: Validate if "button.submit" appeared in the browser in "10" seconds and save result in "$is_visible"
+# Example: Assert if "button.submit" appeared in the browser in "10" seconds
 @step(u'Assert if "{selector}" appeared in the browser in "{time}" seconds')
 @done(u'Assert if "{selector}" appeared in the browser in "{time}" seconds')
 def assert_element_visibility(context, selector, time):

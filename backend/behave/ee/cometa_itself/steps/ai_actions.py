@@ -58,8 +58,8 @@ use_step_matcher("re")
 # This step validates whether the current screen contains a specific object, with an optional set of conditions (options).
 # In the second case, the additional option "fullscreen" will be captured and used in the step logic.
 # Example:
-# - Validate current screen to contain "Car"
-# - Validate current screen to contain "Car" with "color:red"
+# Validate current screen to contain "Car"
+# Validate current screen to contain "Car" with "color:red"
 @step(u'Validate current screen to contain \"(?P<object_name>.*?)\"(?: with \"(?P<options>.*?)\")?')
 @done(u'Validate current screen to contain "{object_name}" with "{options}"')
 def validate_screen_using_ai(context, object_name, options):
@@ -111,8 +111,8 @@ def validate_screen_using_ai(context, object_name, options):
 # with an optional set of conditions (options) that can alter the behavior of the retrieval.
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
 # Example:
-# - Get list of visible objects in the current screen and store in "myObjects"
-# - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
+# Get list of visible objects in the current screen and store in "myObjects"
+# Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 @step(u'Get list of visible objects in the current screen and store in "(?P<variable>.*?)"(?: with "(?P<options>.*?)")?')
 @done(u'Get list of visible objects in the current screen and store in "{variable}" with "{options}"')
 def get_list_of_visible_objects_in_the_screen(context, variable, options):

@@ -63,6 +63,7 @@ def launch_playwright_browser(context):
 
 # When browser is connected to playwright CDP connection, after that if you are facing any issue with selenium steps, 
 # Use this fucntion to release the CDP connection from browser
+# Example: Switch back to selenium browser
 @step(u'Switch back to selenium browser')
 @done(u'Switch back to selenium browser')
 def switch_back_to_selenium(context):

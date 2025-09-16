@@ -528,11 +528,11 @@ def get_faker_public_methods():
 #     str: The generated fake data value#
 #
 # Generates fake data using the Faker library and stores it in a runtime variable
+# Available Information types:
+# first_name, last_name, name, email, phone_number, address, city, state, country, postalcode, day_of_week, day_of_month, timezone, uid, etc
 # Example:
 #     Generate fake "email" and store in "user_email"
 #     Generate fake "name" and store in "full_name"
-# Available Information types:
-# first_name, last_name, name, email, phone_number, address, city, state, country, postalcode, day_of_week, day_of_month, timezone, uid, etc
 @step(u'Generate random "{information}" and store in "{variable}"')
 @done(u'Generate random "{information}" and store in "{variable}"')
 def generate_fake_data_store_in_variable(context, information, variable):
