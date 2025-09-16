@@ -159,9 +159,10 @@ def api_call(context, method, endpoint, parameters, headers, body):
     context.api_call = api_call
 
 
-# Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
 # Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
+#
+# Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Example:
 # - Make an API call with "POST" to "https://api.example.com/users" with "headers:Content-Type=application/json" and "body:{\"name\":\"John\",\"email\":\"john@example.com\"}"
 @step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<json_body>.*?)|raw-body:(?P<row_body>.*?))\")*')
@@ -275,7 +276,7 @@ def api_call(context, method, endpoint, parameters, headers, json_body, row_body
 
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
-# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions.
 # Example:
 # - Assert last API Call property ".status_code" to "match" "200"
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')

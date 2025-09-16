@@ -26,6 +26,8 @@ from tools.common import *
 
 use_step_matcher("re")
 
+# This step launches a browser using Playwright and connects to it using CDP.
+# Example: PLW launch browser
 @step(u'PLW launch browser')
 @done(u'PLW launch browser')
 def launch_playwright_browser(context):

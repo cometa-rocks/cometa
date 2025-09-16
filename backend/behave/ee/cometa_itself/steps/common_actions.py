@@ -257,6 +257,7 @@ def step_impl(context, value, variable_name):
 
 # Reads data from an Excel file for a given sheet and row number, 
 # then stores the row's data as a dictionary in a runtime variable.  
+# Example: Read data from Excel file "uploads/data.xlsx" sheet "Sheet1" row "1" and store in "data"
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
 def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
@@ -295,6 +296,7 @@ def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
 
 # Reads data from an Excel file for a given sheet and row number,
 # then stores the row's data as individual runtime variables.
+# Example: Read data from Excel file "uploads/data.xlsx" sheet "Sheet1" row "1" and store in runtime variables
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in runtime variables')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in runtime variables')
 def read_excel_step(context, file_path, sheet_name, row_number):
@@ -333,6 +335,8 @@ def read_excel_step(context, file_path, sheet_name, row_number):
         logger.error("Error reading Excel file", exc_info=True)
         raise CustomError(f"Error reading Excel file: {err}")
 
+# Reads all rows from an Excel file for a given sheet and stores the data as a list of dictionaries in a runtime variable.
+# Example: Read all rows from Excel file "uploads/data.xlsx" sheet "Sheet1" and store in "data"
 @step(u'Read all rows from Excel file "{file_path}" sheet "{sheet_name}" and store in "{variable_name}"')
 @done(u'Read all rows from Excel file "{file_path}" sheet "{sheet_name}" and store in "{variable_name}"')
 def read_all_excel_rows_step(context, file_path, sheet_name, variable_name):
@@ -362,7 +366,9 @@ def read_all_excel_rows_step(context, file_path, sheet_name, variable_name):
         logger.error("Error reading Excel file", exc_info=True)
         raise CustomError(f"Error reading Excel file: {err}")
 
-
+# Reads data from an Excel file for a given sheet and row number,
+# then stores the row's data as individual runtime variables.
+# Example: Read data from Excel file "uploads/data.xlsx" sheet "Sheet1" considering header row "1" value row "2" and store in runtime variables
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
 def read_excel_row_to_environment(context, file_path, sheet_name, header_row_number=None, value_row_number=None):
@@ -429,7 +435,8 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
     
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
-# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions.
+# Example: Fetch value using ".status" from "response_data" and store in "status" with extraction type "text"
 @step(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}" with extraction type "{extraction_type}"')
 @done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}" with extraction type "{extraction_type}"')
 def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name, extraction_type="text"):
@@ -468,7 +475,8 @@ def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name,
 
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
-# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions.
+# Example: Fetch value using ".status" from "response_data" and store in "status"
 @step(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
 @done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
 def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name):
@@ -495,9 +503,6 @@ def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name)
         raise CustomError(f"Invalid JQ pattern : {str(err)}")
 
 
-
-    
-
 def get_faker_public_methods():
     fake = Faker()
     methods = []
@@ -515,13 +520,14 @@ def get_faker_public_methods():
     return methods
 
 
-# Generates fake data using the Faker library and stores it in a runtime variable
 # Args:
 #     context: The behave context object containing test execution data
 #     information: The type of fake data to generate (e.g., 'name', 'email', 'address')
 #     variable: The name of the runtime variable to store the generated data
 # Returns:
 #     str: The generated fake data value#
+#
+# Generates fake data using the Faker library and stores it in a runtime variable
 # Example:
 #     Generate fake "email" and store in "user_email"
 #     Generate fake "name" and store in "full_name"
@@ -543,7 +549,8 @@ def generate_fake_data_store_in_variable(context, information, variable):
         raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
 
 
-
+# Generates a random string based on a given regex pattern and stores it in a runtime variable
+# Example: Generate random string based on "[A-Za-z0-9]{10}" and store in "random_string"
 @step(u'Generate random string based on "{regex_pattern}" and store in "{variable}"')
 @done(u'Generate random string based on "{regex_pattern}" and store in "{variable}"')
 def generate_random_string(context, regex_pattern, variable):
@@ -570,6 +577,7 @@ def generate_random_string(context, regex_pattern, variable):
         raise CustomError(f"'Exception while processing regex, {str(e)}")
     
 # Step to normalize a variable and store the result in a new variable
+# Example: Normalize variable name "user_name" and store in "normalized_user_name"
 @step(u'Normalize variable name "{variable_name}" and store in "{variable}"')
 @done(u'Normalize variable name "{variable_name}" and store in "{variable}"')
 def normalize_variable_step(context, variable_name, variable):

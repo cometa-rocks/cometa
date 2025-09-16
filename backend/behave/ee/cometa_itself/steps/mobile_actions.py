@@ -890,7 +890,7 @@ def check_if_app_installed(context, app_package, device_name):
 #         raise CustomError(
 #             f"Could not check if app {app_package} is running on device {device_name}: {str(e)}"
 #         )
-
+#
 # Captures logs from the mobile device and stores them in a specified variable
 # Example: Capture logs from mobile device and store in the "mobile_logs"
 @step('Capture logs from mobile device and store in the "{variable}"')
@@ -983,8 +983,7 @@ def unlock_screen(context):
 #         return network_status
 #     except Exception as e:
 #         raise CustomError(f"Could not check network status of mobile device: {str(e)}")
-
-
+#
 # Switch the context to a specified mobile app context
 # Example: On mobile switch to app context "WEBVIEW_myapp.apk"
 @step('On mobile switch to app context "{context}"')
@@ -1103,7 +1102,7 @@ def perform_drag_and_drop(context, start_element, end_element):
 #         raise CustomError(
 #             f"Could not perform multi-touch on element with id '{element_id}': {str(e)}"
 #         )
- 
+#
 # Wait for a specified element to appear on the mobile screen
 # Example: On mobile wait for "//android.widget.TextView[@text='Welcome']" to appear
 @step('On mobile wait for "{selector}" to appear')
@@ -1193,11 +1192,10 @@ def validate_text_on_mobile_screen(context, text):
 #         )
 #         addTestRuntimeVariable(context, variable, performance_metrics)
 #         return performance_metrics
-    
 #     except Exception as e:
 #         raise CustomError(f"Could not capture device performance metrics: {str(e)}")
-
 # @step('On mobile set geolocation to "(?P<latitude>.+?), (?P<longitude>.+?)"')
+#
 # Set the device geolocation to specific latitude and longitude coordinates
 # Example: On mobile set geolocation to "37.7749, -122.4194"
 @step('On mobile set geolocation to "{latitude}, {longitude}"')
@@ -1217,6 +1215,7 @@ def set_geolocation(context, latitude, longitude):
         )
 
 # @step('On mobile set timezone to "(?P<timezone>.+?)"')
+#
 # Set the mobile device timezone to a specific value
 # Example: On mobile set timezone to "Europe/Berlin"
 @step('On mobile set timezone to "{timezone}"')
@@ -1313,6 +1312,7 @@ def check_if_element_present(context, selector, variable):
 
 
 # @step('On mobile validate if "(?P<selector>.+?)" is visible and save result in "{variable}"')
+#
 # Check if a specific element is visible on the screen and save the result to a variable
 # Example: On mobile validate if "//android.widget.Button[@text='Submit']" is visible and save result in "is_visible"
 @step('On mobile validate if "{selector}" is visible and save result in "{variable}"')

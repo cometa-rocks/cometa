@@ -26,10 +26,8 @@ from tools.models import Condition
 
 use_step_matcher("re")
 
-# This step initiates a conditional "If" block to evaluate a comparison between two values. 
-# The step supports multiple comparison operators such as equals, not equals, contains, >=, <=, etc.
-# Based on the comparison result, it activates the conditional logic (e.g., proceeding to an 'Else' or 'End If').
-#
+
+
 # Parameters:
 # - value1: (String|Number) The first value to be compared.
 # - condition: (String) The operator for comparison. Supported conditions are:
@@ -42,7 +40,10 @@ use_step_matcher("re")
 #     - "=="           -> Checks if value1 is equal to value2 (numeric comparison).
 #     - "!="           -> Checks if value1 is not equal to value2 (numeric comparison).
 # - value2: (String|Number) The second value for comparison.
-# 
+#
+# This step initiates a conditional "If" block to evaluate a comparison between two values. 
+# The step supports multiple comparison operators such as equals, not equals, contains, >=, <=, etc.
+# Based on the comparison result, it activates the conditional logic (e.g., proceeding to an 'Else' or 'End If').
 # Example:
 # 1. If "5" ">=" "3"             -> True, condition is activated.
 # 2. If "Hello World" "contains" "World" -> True, condition is activated.
@@ -82,7 +83,6 @@ def start_if(context, value1, condition, value2):
 
 # This step defines the 'Else' block within an If condition flow. 
 # It allows for alternative execution when the "If" condition fails.
-#
 # Example:
 # If "5" "==" "10"
 #     <perform actions if true>
@@ -100,7 +100,6 @@ def start_else(context):
 
 # This step marks the end of an "If-Else" conditional block. 
 # It finalizes the condition and removes it from the active condition list.
-#
 # Example:
 # If "5" ">=" "3"
 #     <perform actions if true>
@@ -119,7 +118,7 @@ def end_if(context):
     last_condition.close_condition()
     
 
-
+# This step performs a basic arithmetic calculation and stores the result in a variable.
 # Example:
 # 1. If "5" ">=" "3"             -> True, condition is activated.
 # 2. If "Hello World" "contains" "World" -> True, condition is activated.

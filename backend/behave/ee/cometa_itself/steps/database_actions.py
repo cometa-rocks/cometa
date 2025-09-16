@@ -55,10 +55,11 @@ def check_for_restricted_host_names(connection_string):
         raise CustomError(f"Invalid connection string {connection_string} ")
 
 
-# This step connects to an SQL database using the provided connection string and stores the connection in the specified variable.
 # Parameters:
 # - connection_string: The connection string used to connect to the SQL database.
 # - variable: The name of the variable in which to store the database connection.
+#
+# This step connects to an SQL database using the provided connection string and stores the connection in the specified variable.
 # Example:
 # - Connect to SQL database using "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" and store connection in "myDatabaseConnection"
 @step(u'Connect to SQL database using "{connection_string}" and store connection in "{variable_name}"')
@@ -76,10 +77,11 @@ def connect_to_sql_database(context, connection_string, variable_name):
     
     
 
-# This step executes an SQL query and stores the result in a specified variable.
 # Parameters:
 # - query: The SQL query to be executed.
 # - variable_name: The name of the variable in which to store the result.
+#
+# This step executes an SQL query and stores the result in a specified variable.
 # Example:
 # - Execute SQL query "SELECT * FROM users" and store result in "user_data"    
 @step(u'Execute SQL query "{query}" and store result in "{variable_name}"')
@@ -96,10 +98,11 @@ def execute_sql_query_get_answer_in_json(context, query, variable_name):
 
 
 
-# This step connects to an SQL database using the provided connection string and stores the connection in the specified variable.
 # Parameters:
 # - connection_string: The connection string used to connect to the SQL database.
 # - variable: The name of the variable in which to store the database connection.
+#
+# This step connects to an SQL database using the provided connection string and stores the connection in the specified variable.
 # Example:
 # - Connect to SQL database using "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" and store connection in "myDatabaseConnection"
 @step(u'Connect to NoSQL database using "{connection_string}" and store connection in "{variable_name}"')
@@ -119,7 +122,7 @@ def connect_to_sql_database(context, connection_string, variable_name):
     
 # - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
 # - (?: with "(?P<options>.*?)")?: This part is optional.
-
+#
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
 # Example:
 # - Execute the NoSQL query '{"name": "John"}' on the "users" collection and store the result in "user_data"
@@ -134,9 +137,10 @@ def execute_nosql_query_get_answer_in_json(context, query, collection, variable_
     addTestRuntimeVariable(context, variable_name, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result
 
-# This step switches the current active database connection to a previously stored connection.
 # Parameters:
 # - variable_name: The name of the database connection variable to switch to.
+#
+# This step switches the current active database connection to a previously stored connection.
 # Example:
 # - Switch current database to "myDatabaseConnection"
 @step('Switch current database to "{variable_name}"')
