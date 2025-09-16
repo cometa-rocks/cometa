@@ -401,7 +401,7 @@ async def execute_browser_use_action(context, prompt, browser_context=None):
     from browser_use.logging_config import setup_logging
     
     # Constants for browser-use execution
-    BROWSER_USE_MAX_STEPS = 25
+    BROWSER_USE_MAX_STEPS = 50
     BROWSER_USE_LOG_LEVEL = 'info'
     
     logger.info(f"Executing browser-use action: {prompt[:100]}...")
