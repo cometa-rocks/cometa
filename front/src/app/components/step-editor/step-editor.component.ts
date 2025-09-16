@@ -2355,28 +2355,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
   }
 
+
+  // This is a function to check if the step is an API call step
+  // It is used to show the collapsed API call in the step editor
   stepStates: { [key: number]: StepState } = {};
   isApiCallStep(index: number): boolean {
+    // If uncommented, it will log the index infite times (Ng if of textarea doing this)
+    // this.logger.msg('4', '=== isApiCallStep() === Index: ', 'step-editor', index);
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
     return content?.includes('Make an API call');
   }
 
+  // This is a function to check if the step is being edited
+  // It is used to show the API call dialog when the user clicks on the API call step
   isEditingApiCall(index: number): boolean {
+    this.logger.msg('4', '=== isEditingApiCall() === Index: ', 'step-editor', index);
     return this.editingApiCallIndex === index;
   }
 
+  // This is a function to expand the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   expandApiCall(index: number): void {
+    this.logger.msg('4', '=== expandApiCall() === Index: ', 'step-editor', index);
     this.editingApiCallIndex = index;
     this._cdr.detectChanges();
   }
 
+  // This is a function to get the collapsed API call content
+  // It is used to show the API call dialog when the user clicks on the API call step
   getCollapsedApiCall(index: number): string {
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    this.logger.msg('4', `=== getCollapsedApiCall(${index}) === Content: "${content}"`, 'step-editor');
     if (!content) return '';
     return content;
   }
 
+  // This is a function to edit the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   editApiCall(item: any) {
+    this.logger.msg('4', '=== editApiCall() === Item: ', 'step-editor', item);
     if (!this.isApiCallStep(item)) {
       return;
     }
