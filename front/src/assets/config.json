@@ -1,6 +1,6 @@
 {
-  "version": "3.0.99",
-  "stable_version": "3.0.99",
+  "version": "3.0.101",
+  "stable_version": "3.0.101",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.101",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Fixed issue with API data display - #6832",
+          "description": "Fixed issue with API data display, now it shows the API data in the JSON view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.100",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Add and enhance Step descriptions and examples in step actions - #6777",
+          "description": "Enhance step descriptions and examples for database and mobile actions and api"
+        }
+      ]
+    },
     {
       "version": "3.0.99",
       "date": "2025-09-10",
