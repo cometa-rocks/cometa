@@ -117,10 +117,10 @@ default_cometa_configurations = {
     "OLLAMA_AI_SECRET_ID":"",
     "OLLAMA_AI_SECRET_KEY":"",
     "COMETA_BROWSER_MAX_VERSIONS": 3, 
-    "DEFAILT_VALUES_LOADED": False
+    "DEFAULT_VALUES_LOADED": False
 }
 
-public_configuraion_values = [
+public_configuration_values = [
     "COMETA_FEATURE_AI_ENABLED", 
     "COMETA_FEATURE_DATABASE_ENABLED", 
     "COMETA_FEATURE_MOBILE_TEST_ENABLED",
@@ -252,7 +252,7 @@ class ConfigurationManager:
             # Filter out built-in attributes
             configuration_type = "backend"
             
-            if configuration_name in public_configuraion_values:
+            if configuration_name in public_configuration_values:
                 configuration_type = "all"
 
             query = f"""

@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # instead directly check if default values are loaded from database
     from backend.utility.configurations import ConfigurationManager
     if len(sys.argv) >= 2 and sys.argv[1] == 'is_default_values_loaded':
-        default_values_loaded = ConfigurationManager.get_configuration("DEFAILT_VALUES_LOADED", "True") == "True"
+        default_values_loaded = ConfigurationManager.get_configuration("DEFAULT_VALUES_LOADED", "True") == "True"
         if not default_values_loaded:
             print("False")
         else:
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     
     # Update database to set default values loaded to True
     if len(sys.argv) >= 2 and sys.argv[1] == 'set_default_values_loaded':
-        ConfigurationManager.update_configuration_in_db("DEFAILT_VALUES_LOADED", "True", False)
+        ConfigurationManager.update_configuration_in_db("DEFAULT_VALUES_LOADED", "True", False)
         # Break the flow since request was to set default values loaded to True
         sys.exit(0)
 
