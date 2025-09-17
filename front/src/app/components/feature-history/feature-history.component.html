@@ -1,5 +1,5 @@
 <!-- feature-history.component.html -->
-
+<draggable-window></draggable-window>
 <div class="feature-history-container">
   <div class="header">
     <h2>
@@ -72,6 +72,18 @@
                 <mat-icon>check_circle</mat-icon>
                 Current Version
               </div>
+            </div>
+            
+            <!-- Restore button - only for non-current versions when dialog is opened through edit-feature component-->
+            <div *ngIf="!isCurrentVersion(entry.backup_id) && data.ableToRestore" class="restore-button-container">
+              <button 
+                mat-icon-button 
+                class="restore-button"
+                (click)="restoreBackup(entry.backup_id)"
+                matTooltip="Restore this backup"
+                matTooltipPosition="above">
+                <mat-icon>history</mat-icon>
+              </button>
             </div>
             
             <!-- Steps Display Section -->
@@ -167,3 +179,7 @@
     </div>
   </div>
 </div>
+<!-- Close button -->
+<mat-dialog-actions *ngIf="data?.departmentId" align="end">
+  <button mat-stroked-button color="warn" (click)="close()" class="close-button">Close</button>
+</mat-dialog-actions>

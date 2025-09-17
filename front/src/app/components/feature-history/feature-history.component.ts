@@ -9,15 +9,17 @@
  *
  * @author: Nico
  */
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ChangeDetectionStrategy} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { LogService } from '@services/log.service';
-
+import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import { DraggableWindowModule } from '@modules/draggable-window.module';
+import { MatDialogModule } from '@angular/material/dialog';
 @Component({
   selector: 'cometa-feature-history',
   templateUrl: './feature-history.component.html',
@@ -26,9 +28,11 @@ import { LogService } from '@services/log.service';
   imports: [
     CommonModule,
     MatIconModule,
-    MatButtonModule,
+    MatLegacyButtonModule,
     MatChipsModule,
     TitleCasePipe,
+    DraggableWindowModule,
+    MatDialogModule
   ],
 })
 export class FeatureHistoryComponent implements OnInit {
@@ -46,9 +50,10 @@ export class FeatureHistoryComponent implements OnInit {
 
   constructor(
     private _api: ApiService,
-    @Inject(MAT_DIALOG_DATA) public data: { featureId: number, departmentId: number },
+    @Inject(MAT_DIALOG_DATA) public data: { featureId: number, departmentId: number, ableToRestore?: boolean },
     private dialogRef: MatDialogRef<FeatureHistoryComponent>,
     private log: LogService,
+    private _dialog: MatDialog,
     
   ) {
     this.featureId = data.featureId;
@@ -105,6 +110,100 @@ export class FeatureHistoryComponent implements OnInit {
       this.cachedChanges.delete(backupId); // Clear cache when switching to new backup
       this.loadCurrentFeature();
     }
+  }
+
+  restoreBackup(backupId: string): void {
+    // Find the backup entry
+    const backupEntry = this.history.find(entry => entry.backup_id === backupId);
+    if (!backupEntry) {
+      this.log.msg('3', `Backup entry not found for ID: ${backupId}`, 'feature-history');
+      return;
+    }
+
+    // Open confirmation dialog
+    const dialogRef = this._dialog.open(AreYouSureDialog, {
+      data: {
+        title: 'Restore Feature Backup',
+        description: `Are you sure you want to restore the feature "${backupEntry.feature_name}" from ${this.formatDate(backupEntry.timestamp)}? This will replace the current feature data with the backup data.`,
+      } as AreYouSureData,
+      autoFocus: true,
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.log.msg('1', `Restoring backup ${backupId} for feature ${this.featureId}`, 'feature-history');
+        
+        // Close the feature history dialog and return the backup data
+        this.dialogRef.close({
+          action: 'restore',
+          backupData: {
+            feature: this.convertBackupToFeature(backupEntry),
+            steps: this.convertBackupToSteps(backupEntry)
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Convert backup entry to feature format for edit-feature component
+   */
+  private convertBackupToFeature(backupEntry: FeatureHistoryEntry): any {
+    return {
+      // Basic feature information
+      feature_name: backupEntry.feature_name,
+      description: backupEntry.description,
+      
+      // Browser selection
+      browsers: backupEntry.browsers || [],
+      
+      // Schedule
+      schedule: backupEntry.schedule || '',
+      
+      // Email options
+      send_mail: backupEntry.send_mail || false,
+      send_mail_on_error: backupEntry.send_mail_on_error || false,
+      
+      // Recording options
+      network_logging: backupEntry.network_logging || false,
+      generate_dataset: backupEntry.generate_dataset || false,
+      
+      // Advanced options
+      continue_on_failure: backupEntry.continue_on_failure || false,
+      
+      // Notifications
+      send_telegram_notification: backupEntry.send_telegram_notification || false,
+      
+      // Copy any other properties that might exist in the backup
+      ...Object.keys(backupEntry).reduce((acc, key) => {
+        // Skip properties we've already handled explicitly
+        const handledKeys = [
+          'backup_id', 'timestamp', 'user_name', 'user_id', 'feature_name', 
+          'description', 'steps_count', 'steps', 'browsers', 'schedule',
+          'send_mail', 'send_mail_on_error', 'network_logging', 'generate_dataset',
+          'continue_on_failure', 'send_telegram_notification'
+        ];
+        
+        if (!handledKeys.includes(key)) {
+          acc[key] = backupEntry[key];
+        }
+        return acc;
+      }, {} as any)
+    };
+  }
+
+  /**
+   * Convert backup steps to steps format for edit-feature component
+   */
+  private convertBackupToSteps(backupEntry: FeatureHistoryEntry): any[] {
+    if (!backupEntry.steps || !Array.isArray(backupEntry.steps)) {
+      return [];
+    }
+
+    return backupEntry.steps.map(step => ({
+      step_file: step.step_file,
+      step_content: step.step_content,
+    }));
   }
 
   loadCurrentFeature(): void {
@@ -734,5 +833,9 @@ export class FeatureHistoryComponent implements OnInit {
         error: 'Error comparing versions'
       };
     }
+  }
+
+  close(): void {
+    this.dialogRef.close();
   }
 }

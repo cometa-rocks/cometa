@@ -640,7 +640,7 @@ export class SharedActionsService {
     });
   }
 
-  openFeatureHistory(featureId: number) {
+  openFeatureHistory(featureId: number, ableToRestore: boolean = false) {
     // Get the feature information to extract department_id directly
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
@@ -672,8 +672,9 @@ export class SharedActionsService {
     }
     
     //open dialog that occupies 90% of the screen
-    this._dialog.open(FeatureHistoryComponent, {
-      data: { 
+    return this._dialog.open(FeatureHistoryComponent, {
+      data: {
+        ableToRestore: ableToRestore,
         featureId: featureId, 
         departmentId: departmentId 
       },

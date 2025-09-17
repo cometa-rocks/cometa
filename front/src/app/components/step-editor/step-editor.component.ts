@@ -1971,6 +1971,32 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }, 100); // Increased delay to ensure DOM is fully updated
   }
 
+  /**
+   * Add a step from backup data
+   */
+  addStepFromBackup(stepData: any, index: number = -1): void {
+    const template = this._fb.group({
+      enabled: [stepData.enabled !== undefined ? stepData.enabled : true],
+      screenshot: [stepData.screenshot || false],
+      step_keyword: [stepData.step_keyword || 'Given'],
+      compare: [stepData.compare || false],
+      step_content: [stepData.step_content || '', [Validators.required]],
+      step_action: [stepData.step_action || ''],
+      step_type: [stepData.step_type || ''],
+      continue_on_failure: [stepData.continue_on_failure || false],
+      timeout: [stepData.timeout || this.department?.settings?.step_timeout || 60],
+      selected: [false]
+    });
+
+    if (index >= 0) {
+      this.stepsForm.insert(index, template);
+    } else {
+      this.stepsForm.push(template);
+    }
+
+    this._cdr.detectChanges();
+  }
+
   copyItem(index: number, position: string) {
     // Close assistive panels before duplicating
     this.closeAssistPanels();
