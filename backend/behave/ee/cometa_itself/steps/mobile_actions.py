@@ -374,7 +374,7 @@ def double_tap_on_element(context, selector):
     )
 
 # Performs a swipe to the right on an element by specified pixels
-# Example: On mobile swipe right "//*[@id='slider']" by "300" px
+# Example: On mobile swipe right "//*[@id='slider']" by "300"px
 @step(u'On mobile swipe right "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe right "{selector}" by "{default_200}"px')
 def swipe_right_on_element(context, selector, default_200=200):
@@ -384,7 +384,7 @@ def swipe_right_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe to the left on an element by specified pixels
-# Example: On mobile swipe left "//*[@id='slider']" by "300" px
+# Example: On mobile swipe left "//*[@id='slider']" by "300"px
 @step(u'On mobile swipe left "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe left "{selector}" by "{default_200}"px')
 def swipe_left_on_element(context, selector, default_200=200):
@@ -394,7 +394,7 @@ def swipe_left_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe up on an element by specified pixels
-# Example: On mobile swipe up "//*[@id='list']" by "400" px
+# Example: On mobile swipe up "//*[@id='list']" by "400"px
 @step(u'On mobile swipe up "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe up "{selector}" by "{default_200}"px')
 def swipe_up_on_element(context, selector, default_200=200):
@@ -404,7 +404,7 @@ def swipe_up_on_element(context, selector, default_200=200):
 
 
 # Performs a swipe down on an element by specified pixels
-# Example: On mobile swipe down "//*[@id='list']" by "400" px
+# Example: On mobile swipe down "//*[@id='list']" by "400"px
 @step(u'On mobile swipe down "{selector}" by "{default_200}"px')
 @done(u'On mobile swipe down "{selector}" by "{default_200}"px')
 def swipe_down_on_element(context, selector, default_200=200):
