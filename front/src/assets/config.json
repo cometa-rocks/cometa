@@ -1,6 +1,6 @@
 {
-  "version": "3.0.102",
-  "stable_version": "3.0.102",
+  "version": "3.0.103",
+  "stable_version": "3.0.103",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.103",
+      "date": "2025-09-17",
+      "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Implement dynamic version display - #6847",
+          "description": "Implement dynamic version display in header and footer."
+        }
+      ]
+    },
     {
       "version": "3.0.102",
       "date": "2025-09-16",
