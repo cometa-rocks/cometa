@@ -577,7 +577,11 @@ def generate_random_string(context, regex_pattern, variable):
         raise CustomError(f"'Exception while processing regex, {str(e)}")
     
 # Step to normalize a variable and store the result in a new variable
+# When a variable contains extra whitespace, newline characters (\n, \t) or mixed casing, 
+# and we need to normalize it before comparing or validating it.
 # Example: Normalize variable name "user_name" and store in "normalized_user_name"
+# Original variable = " Hello\nWorld\t "
+# Normalized variable = "Hello World"
 @step(u'Normalize variable name "{variable_name}" and store in "{variable}"')
 @done(u'Normalize variable name "{variable_name}" and store in "{variable}"')
 def normalize_variable_step(context, variable_name, variable):
