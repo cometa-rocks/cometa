@@ -240,9 +240,7 @@
   <div class="custom_toolbar">
     <button
       class="failedFeatures"
-      [disabled]="buttonDisabled" 
-      [matTooltip]="showingFiltered ? ('mainView.allResults' | translate) : ('mainView.failureResults' | translate)"
-      matTooltipPosition="above"
+      [disabled]="buttonDisabled"
       mat-stroked-button 
       (click)="filteredByFailuresResults()">
      {{ showingFiltered ? "Show all results" : "Show Failed" }}
