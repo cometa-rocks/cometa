@@ -50,6 +50,7 @@ Usage: $0 [OPTIONS]
 
 Options:
   -h, --help                Show this help message and exit
+  -v, --version             Show version information for all Cometa components
   -i, -install              Install and setup Cometa (default behavior)
   -d, --debug               Enable debug mode (set -x)
   -l, --logs [container]    Show logs for a container (selenoid|all) or all containers if none specified
@@ -78,6 +79,8 @@ Description:
 
 Examples:
   $0 --help
+  $0 --version             # Show version information
+  $0 -v                    # Show version information (short form)
   $0 -install              # Install Cometa
   $0 -i                    # Install Cometa (short form)
   $0 --logs selenoid
@@ -88,6 +91,50 @@ Examples:
 
 For more information, see the documentation or contact support.
 EOF
+}
+
+function SHOW_VERSION() {
+    info "=== Cometa Version Information ==="
+    info "Script Version: $VERSION"
+    
+    # Frontend version
+    if [[ -f "front/src/assets/config.json" ]]; then
+        frontend_version=$(jq -r '.version' front/src/assets/config.json 2>/dev/null)
+        info "Frontend: ${frontend_version:-N/A}"
+    else
+        info "Frontend: N/A (config file not found)"
+    fi
+    
+    # Backend versions
+    if [[ -f "backend/src/version.json" ]]; then
+        backend_version=$(jq -r '.version' backend/src/version.json 2>/dev/null)
+        info "Backend API: ${backend_version:-N/A}"
+    else
+        info "Backend API: N/A (version file not found)"
+    fi
+    
+    if [[ -f "backend/behave/version.json" ]]; then
+        behave_version=$(jq -r '.version' backend/behave/version.json 2>/dev/null)
+        info "Behave: ${behave_version:-N/A}"
+    else
+        info "Behave: N/A (version file not found)"
+    fi
+    
+    if [[ -f "backend/scheduler/version.json" ]]; then
+        scheduler_version=$(jq -r '.version' backend/scheduler/version.json 2>/dev/null)
+        info "Scheduler: ${scheduler_version:-N/A}"
+    else
+        info "Scheduler: N/A (version file not found)"
+    fi
+    
+    if [[ -f "backend/ws-server/version.json" ]]; then
+        websocket_version=$(jq -r '.version' backend/ws-server/version.json 2>/dev/null)
+        info "WebSocket: ${websocket_version:-N/A}"
+    else
+        info "WebSocket: N/A (version file not found)"
+    fi
+    
+    info "================================"
 }
 
 ########################################
@@ -825,6 +872,10 @@ do
             ;;
         -h | --help)
             SHOW_HELP
+            exit 0
+            ;;
+        -v | --version)
+            SHOW_VERSION
             exit 0
             ;;
         -l|--logs)
