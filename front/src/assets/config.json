@@ -1,6 +1,6 @@
 {
-  "version": "3.0.101",
-  "stable_version": "3.0.101",
+  "version": "3.0.103",
+  "stable_version": "3.0.103",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.103",
+      "date": "2025-09-17",
+      "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        }
+      ]
+    },
+    {
+      "version": "3.0.102",
+      "date": "2025-09-16",
+      "features": [
+        {
+          "title": "Fixed issue with Step Make an api call - #6824",
+          "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        }
+      ]
+    },
     {
       "version": "3.0.101",
       "date": "2025-09-12",
