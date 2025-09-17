@@ -91,7 +91,7 @@ def start_else(context):
     if len(context.test_conditions_list)==0:
         raise CustomError("Flow is not with in the If Condition")
     # Activate the last if condition else section
-    # This done this way becase in future we want to have nested if conditions block, preparing list is a good idea for it
+    # This done this way because in future we want to have nested if conditions block, preparing list is a good idea for it
     context.test_conditions_list[-1].activate_else_section()    
 
 
@@ -119,7 +119,7 @@ def end_if(context):
 # Example: Calculate "5" "+" "3" and store in the "result"
 @step(u'Calculate "(?P<value1>.+?)" "(?P<operation>.+?)" "(?P<value2>.+?)" and store in the "(?P<variable>.+?)"')
 @done(u'Calculate "{value1}" "{operation}" "{value2}" and store in the "{variable}"')
-def arthmatic_calculations(context, value1, operation, value2, variable):
+def arithmetic_calculations(context, value1, operation, value2, variable):
     except_operations =  ["+","-","*","/","//","**", "%"]
     operation = operation.strip()
     
@@ -371,8 +371,8 @@ def arthmatic_calculations(context, value1, operation, value2, variable):
 # @done(u'Break For Loop')
 # def break_loop(context):
 #     context.current_loop.break_loop()
-#     send_step_details(context, "For loop breaked")
-#     logger.debug("For loop breaked")
+#     send_step_details(context, "For loop break")
+#     logger.debug("For loop break")
 
 
 # @step(u'End For Loop')

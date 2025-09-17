@@ -72,8 +72,8 @@ def validate_screen_using_ai(context, object_name, options):
     if not image_decoded_data:
         raise CustomError(f"Could not take screenshot")
 
-    # Define the two dictnary in the data
-    # first one should containe the image data to get information from the image
+    # Define the two dictionary in the data
+    # first one should contains the image data to get information from the image
     # and based on second content it will provide the answer in json for the validation
     data = [
         {
@@ -125,8 +125,8 @@ def get_list_of_visible_objects_in_the_screen(context, variable, options):
     if not image_decoded_data:
         raise CustomError(f"Could not take screenshot")
 
-    # Define the two dictnary in the data
-    # first one should containe the image data to get information from the image
+    # Define the two dictionary in the data
+    # first one should contains the image data to get information from the image
     # and based on second content it will provide the answer in json for the validation
     data = [
         {
@@ -190,7 +190,7 @@ def assert_imp(context, variable_name, jq_pattern, condition, value):
         assert value in parsed_value, assert_failed_error
 
 
-# Assert variable value by providing 'variable_name', 'condition(match|contain)' and exepected 'value'
+# Assert variable value by providing 'variable_name', 'condition(match|contain)' and expected 'value'
 # Example: Assert variable "status_code" to "match" "200"
 @step(u'Assert variable \"(?P<variable_name>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" to "{condition}" "{value}"')
@@ -297,8 +297,8 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
     if not image_decoded_data:
         raise CustomError(f"Could not take screenshot")
 
-    # Define the two dictnary in the data
-    # first one should containe the image data to get information from the image
+    # Define the two dictionary in the data
+    # first one should contains the image data to get information from the image
     # and based on second content it will provide the answer in json for the validation
     data = [
         {

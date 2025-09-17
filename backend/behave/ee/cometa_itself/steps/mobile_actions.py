@@ -92,13 +92,13 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
         user_provided_capabilities: dict = json.loads(capabilities)
     except Exception as e:
         raise CustomError(f"Error while loading capabilities, {str(e)}")
-    # Checking user provided capbilities are not overriding with capabilities provided by cometa
+    # Checking user provided capabilities are not overriding with capabilities provided by cometa
     common_keys = (
         user_provided_capabilities.keys() & mobile_configuration["capabilities"].keys()
     )
     if common_keys:
         # If there are any common keys, raise an error
-        raise CustomeError(
+        raise CustomError(
             f"The following keys are already in set : {common_keys}, you do not need to pass them"
         )
 
@@ -136,7 +136,7 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
         "mobile_configuration": mobile_configuration,
     }
     if context.record_video:
-        logger.info("Video recordig enabled")
+        logger.info("Video recording enabled")
         mobile_info['session_id'] = new_mobile.session_id[0].replace('-','')
         
     # Save in the list of mobile
@@ -198,7 +198,7 @@ def connect_mobile_and_application(context, mobile_code, capabilities={}, variab
     )
     if common_keys:
         # If there are any common keys, raise an error
-        raise CustomeError(
+        raise CustomError(
             f"The following keys are already in set : {common_keys}, you do not need to pass them"
         )
 
@@ -309,7 +309,7 @@ def tap_on_element(context, selector):
     elements = waitSelector(
         context=context, selector_type="xpath", selector=selector
     )    
-    # waitSelector method might also return the list of webelement
+    # waitSelector method might also return the list of web elements
     if not isinstance(elements, WebElement):
         elements = elements[0]
         
@@ -363,7 +363,7 @@ def double_tap_on_element(context, selector):
     elements = waitSelector(
         context=context, selector_type="xpath", selector=selector
     )
-    # waitSelector method might also return the list of webelement
+    # waitSelector method might also return the list of web elements
     if not isinstance(elements, WebElement):
         elements = elements[0]
         
@@ -753,7 +753,7 @@ def tap_on_coordinates(context, x, y):
         raise CustomError(f"Could not tap on coordinates {x}, {y}: {str(e)}")
 
 # Pinches to zoom in on the element identified by the given selector
-# Example: On mobile pinch to zoom in with "//*[@id='zoomable-element']"
+# Example: On mobile pinch to zoom in with "//*[@id='zoom']"
 @step(u'On mobile pinch to zoom in with "{selector}"')
 @done(u'On mobile pinch to zoom in with "{selector}"')
 def pinch_to_zoom_in(context, selector):
@@ -786,7 +786,7 @@ def pinch_to_zoom_in(context, selector):
         raise CustomError(f"Could not zoom in on element with selector {selector}: {str(e)}")
 
 # Pinches to zoom out on the element identified by the given selector
-# Example: On mobile pinch to zoom out with "//*[@id='zoomable-element']"
+# Example: On mobile pinch to zoom out with "//*[@id='zoom']"
 @step(u'On mobile pinch to zoom out with "{selector}"')
 @done(u'On mobile pinch to zoom out with "{selector}"')
 def pinch_to_zoom_out(context, selector):
