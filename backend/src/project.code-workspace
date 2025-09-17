@@ -3,5 +3,11 @@
 		{
 			"path": "cometa_pj"
 		}
-	]
+	],
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-python.debugpy",
+		]
+	}
 }
