@@ -1,5 +1,5 @@
 {
-  "version": "3.0.99",
+  "version": "3.0.100",
   "stable_version": "3.0.99",
   "language": "en",
   "appTitle": "co.meta",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.100",
+      "date": "2025-09-17",
+      "features": [
+        {
+          "title": "Display AI Agent actions in UI - #6833",
+          "description": "AI Agent logs can now be viewed in real-time during execution on live-step viewer dialog."
+        }
+      ]
+    },
     {
       "version": "3.0.99",
       "date": "2025-09-10",
