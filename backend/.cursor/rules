@@ -1,7 +1,9 @@
 # Backend Cursor Rules - Cometa Python/Django Application
-
+# Language: English
+# Communication: Always respond in English
 ## Project Overview
 This is the Python/Django backend for the Cometa automated testing and monitoring platform. The application handles test automation, monitoring, scheduling, and provides REST APIs for the frontend.
+
 
 ## Python Standards
 

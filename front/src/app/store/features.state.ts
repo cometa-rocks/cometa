@@ -51,7 +51,7 @@ export class FeaturesState {
   constructor(
     public _api: ApiService,
     public _store: Store,
-    private log: LogService
+    public log: LogService
   ) {}
   /*
   * Global static Varables
@@ -826,8 +826,28 @@ export class FeaturesState {
         }
         break;
       case 'recent':
-            //Process resulting in a list of recently modified Features (Displaying by user or by department)
-            folders = this.getRecentFeatures(state, user_id, activeSortList, this.selectedDepartmentId, department);
+        //Process resulting in a list of recently modified Features (Displaying by user or by department)
+        folders = this.getRecentFeatures(state, user_id, activeSortList, this.selectedDepartmentId, department);
+        break;
+      case 'starred':
+        // For starred features, return all features so the starred component can filter them
+        // We need to create a FoldersResponse structure with all features
+        // In l1-landing.component.html
+        // <cometa-l1-feature-starred-list [data$]="data$"></cometa-l1-feature-starred-list>
+        // data$ is the input data for the starred component
+        // data$ is defined in l1-landing.component.ts
+        // data$ is a BehaviorSubject<TableData>
+        // TableData is defined in l1-feature-starred-list.component.ts
+        // TableData is an interface with the following properties:
+        // rows: FeatureData[]
+        const allFeatures = this.GetFeaturesAsArray(state);
+        folders = {
+          folders: [], // No folders for starred view
+          features: allFeatures.map(feature => feature.feature_id) // All feature IDs
+        };
+        const logService = new LogService();
+        logService.msg('4', 'starred', 'features.state', folders);
+        break;
       default:
         break;
     }

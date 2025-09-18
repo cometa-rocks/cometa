@@ -5,6 +5,8 @@
 # ##################################################
 #
 # Changelog:
+# 2025-09-17 RRO Added support for docker-compose-dev.yml file & cleanup of cometa containers, images, volumes, networks
+# 2025-09-15 RRO Added debug mode to the script
 # 2025-08-29 RRO Added check for Rosetta on Apple Silicon Macs, better logging, and show logs for all containers if no container specified
 # 2024-02-16 RRO Added option to restart recreate selenoid
 # 2023-08-12 RRO Added check on docker hub is reachable by downloading image "Hello-World"
@@ -12,10 +14,12 @@
 # 2022-10-03 ASO changing data mount point based on the parameter.
 # 2022-09-08 RRO first version
 #
-VERSION="2023-12-08"
+VERSION="2025-09-17"
 
 DOCKER_COMPOSE_COMMAND="docker-compose"
 CURRENT_PATH=$PWD
+
+
 
 #
 # source our nice logger
@@ -24,19 +28,42 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
+info "------------------------------------------------------------------------"
+info "This is $0 version ${VERSION} running for your convinience"
+info "------------------------------------------------------------------------"
+
+# 
+# use docker-compose.yml or docker-compose-dev.yml depending on branch name we are on
+#
+DOCKER_COMPOSE_FILE="docker-compose.yml"
+# evaluate the branch using git branch
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" != "master" ]]; then
+    DOCKER_COMPOSE_FILE="docker-compose-dev.yml"
+fi
+info "Using $DOCKER_COMPOSE_FILE file on branch $BRANCH"
+
 function SHOW_HELP() {
     cat <<EOF
-Cometa Setup Script (version ${VERSION})
+
 Usage: $0 [OPTIONS]
 
 Options:
   -h, --help                Show this help message and exit
+  -v, --version             Show version information for all Cometa components
   -i, -install              Install and setup Cometa (default behavior)
   -d, --debug               Enable debug mode (set -x)
   -l, --logs [container]    Show logs for a container (selenoid|all) or all containers if none specified
   -r, --restart [container] Restart and recreate a container (e.g. selenoid)
   --root-mount-point        Use /data as the mount point instead of ./data
+  --stop-cometa             Stop all Cometa-related containers
   --remove-cometa           Backup data, stop and remove Cometa and Redis volume
+  --cleanup-cometa          Clean up only Cometa-related Docker resources (containers, images, volumes, networks)
+  --cleanup-images          Clean up only Docker images
+  --cleanup-containers      Clean up only Docker containers
+  --cleanup-volumes         Clean up only Docker volumes
+  --cleanup-networks        Clean up only Docker networks
+  --cleanup-all             Clean up all Docker resources
   --update-docker           (WIP) Update Docker and related components
   --check-docker            Check if Docker is installed and running
   --check-docker-compose    Check if Docker Compose is available
@@ -52,18 +79,63 @@ Description:
 
 Examples:
   $0 --help
+  $0 --version             # Show version information
+  $0 -v                    # Show version information (short form)
   $0 -install              # Install Cometa
   $0 -i                    # Install Cometa (short form)
   $0 --logs selenoid
   $0 --restart front
+  $0 --stop-cometa         # Stop all Cometa containers
+  $0 --cleanup-cometa      # Clean up only Cometa-related Docker resources
+  $0 --cleanup-images      # Clean up only Docker images
 
 For more information, see the documentation or contact support.
 EOF
 }
 
-info "------------------------------------------------------------------------"
-info "This is $0 version ${VERSION} running for your convinience"
-info "------------------------------------------------------------------------"
+function SHOW_VERSION() {
+    info "=== Cometa Version Information ==="
+    info "Script Version: $VERSION"
+    
+    # Frontend version
+    if [[ -f "front/src/assets/config.json" ]]; then
+        frontend_version=$(jq -r '.version' front/src/assets/config.json 2>/dev/null)
+        info "Frontend: ${frontend_version:-N/A}"
+    else
+        info "Frontend: N/A (config file not found)"
+    fi
+    
+    # Backend versions
+    if [[ -f "backend/src/version.json" ]]; then
+        backend_version=$(jq -r '.version' backend/src/version.json 2>/dev/null)
+        info "Backend API: ${backend_version:-N/A}"
+    else
+        info "Backend API: N/A (version file not found)"
+    fi
+    
+    if [[ -f "backend/behave/version.json" ]]; then
+        behave_version=$(jq -r '.version' backend/behave/version.json 2>/dev/null)
+        info "Behave: ${behave_version:-N/A}"
+    else
+        info "Behave: N/A (version file not found)"
+    fi
+    
+    if [[ -f "backend/scheduler/version.json" ]]; then
+        scheduler_version=$(jq -r '.version' backend/scheduler/version.json 2>/dev/null)
+        info "Scheduler: ${scheduler_version:-N/A}"
+    else
+        info "Scheduler: N/A (version file not found)"
+    fi
+    
+    if [[ -f "backend/ws-server/version.json" ]]; then
+        websocket_version=$(jq -r '.version' backend/ws-server/version.json 2>/dev/null)
+        info "WebSocket: ${websocket_version:-N/A}"
+    else
+        info "WebSocket: N/A (version file not found)"
+    fi
+    
+    info "================================"
+}
 
 ########################################
 #
@@ -194,10 +266,10 @@ function switchDataMountPoint() {
     # check if first parameter contains root
     if [[ "$1" == "root" ]]; then
         # change ./data => /data
-        sed -i_template "s#- \./data#- /data#g" docker-compose.yml
+        sed -i_template "s#- \./data#- /data#g" ${DOCKER_COMPOSE_FILE}
     else
         # change /data => ./data
-        sed -i_template "s#- /data#- \./data#g" docker-compose.yml
+        sed -i_template "s#- /data#- \./data#g" ${DOCKER_COMPOSE_FILE}
     fi
 }
 
@@ -319,7 +391,294 @@ function initiate_config_dirs(){
     fi
 }
 
+# Function to get Cometa-related container names from docker-compose files
+get_cometa_containers() {
+    local containers=()
+    
+    # Check both docker-compose files for container names
+    for compose_file in "docker-compose.yml" "docker-compose-dev.yml"; do
+        if [[ -f "$compose_file" ]]; then
+            # Extract container names from docker-compose files
+            while IFS= read -r line; do
+                if [[ "$line" =~ container_name:[[:space:]]*(.+) ]]; then
+                    containers+=("${BASH_REMATCH[1]}")
+                fi
+            done < "$compose_file"
+        fi
+    done
+    
+    # Add common Cometa container patterns
+    containers+=("cometa_"*)
+    
+    printf '%s\n' "${containers[@]}" | sort -u
+}
 
+# Function to get Cometa-related image names
+get_cometa_images() {
+    local images=()
+    
+    # Check both docker-compose files for image names
+    for compose_file in "docker-compose.yml" "docker-compose-dev.yml"; do
+        if [[ -f "$compose_file" ]]; then
+            # Extract image names from docker-compose files
+            while IFS= read -r line; do
+                if [[ "$line" =~ image:[[:space:]]*(.+) ]]; then
+                    images+=("${BASH_REMATCH[1]}")
+                fi
+            done < "$compose_file"
+        fi
+    done
+    
+    # Add common Cometa image patterns
+    images+=("cometa/"*)
+    
+    printf '%s\n' "${images[@]}" | sort -u
+}
+
+# Function to get Cometa-related volumes
+get_cometa_volumes() {
+    local volumes=()
+    
+    # Check both docker-compose files for volume names
+    for compose_file in "docker-compose.yml" "docker-compose-dev.yml"; do
+        if [[ -f "$compose_file" ]]; then
+            # Extract volume names from docker-compose files
+            while IFS= read -r line; do
+                if [[ "$line" =~ ^[[:space:]]*[a-zA-Z0-9_-]+:[[:space:]]*$ ]]; then
+                    # This is a named volume definition
+                    volume_name=$(echo "$line" | sed 's/^[[:space:]]*\([a-zA-Z0-9_-]*\):[[:space:]]*$/\1/')
+                    if [[ -n "$volume_name" ]]; then
+                        volumes+=("$volume_name")
+                    fi
+                fi
+            done < "$compose_file"
+        fi
+    done
+    
+    # Add common Cometa volume patterns
+    volumes+=("cometa_"*)
+    volumes+=("redis_data")
+    
+    printf '%s\n' "${volumes[@]}" | sort -u
+}
+
+# Function to stop Cometa containers
+stop_cometa_containers() {
+    info "Stopping Cometa-related containers..."
+    
+    local stopped_count=0
+    
+    # Get all running containers and filter by image name containing "cometa"
+    local cometa_containers=($(docker ps --format "{{.Names}}" | while read name; do
+        local image=$(docker inspect --format='{{.Config.Image}}' "$name" 2>/dev/null)
+        if [[ "$image" == *"cometa"* ]]; then
+            echo "$name"
+        fi
+    done))
+    
+    # Also get containers by name patterns from docker-compose
+    local compose_containers=($(get_cometa_containers))
+    
+    # Combine both lists
+    local all_containers=("${cometa_containers[@]}" "${compose_containers[@]}")
+    
+    # Remove duplicates
+    local unique_containers=($(printf '%s\n' "${all_containers[@]}" | sort -u))
+    
+    # Debug: show what containers we found
+    if [[ ${#unique_containers[@]} -gt 0 ]]; then
+        info "Found Cometa containers: ${unique_containers[*]}"
+    else
+        info "No Cometa containers found"
+    fi
+    
+    for container in "${unique_containers[@]}"; do
+        if docker ps -q --filter "name=$container" | grep -q .; then
+            info "Stopping container: $container"
+            if docker stop "$container" 2>/dev/null; then
+                ((stopped_count++))
+            else
+                warning "Failed to stop container: $container"
+            fi
+        fi
+    done
+    
+    info "Stopped $stopped_count Cometa containers"
+}
+
+# Function to remove Cometa containers
+remove_cometa_containers() {
+    info "Removing Cometa-related containers..."
+    
+    local containers=($(get_cometa_containers))
+    local removed_count=0
+    
+    for container in "${containers[@]}"; do
+        if docker ps -a -q --filter "name=$container" | grep -q .; then
+            info "Removing container: $container"
+            if docker rm "$container" 2>/dev/null; then
+                ((removed_count++))
+            else
+                warning "Failed to remove container: $container"
+            fi
+        fi
+    done
+    
+    info "Removed $removed_count Cometa containers"
+}
+
+# Function to remove Cometa images
+remove_cometa_images() {
+    info "Removing Cometa-related images..."
+    
+    local images=($(get_cometa_images))
+    local removed_count=0
+    
+    for image in "${images[@]}"; do
+        if docker images -q "$image" | grep -q .; then
+            info "Removing image: $image"
+            if docker rmi "$image" 2>/dev/null; then
+                ((removed_count++))
+            else
+                warning "Failed to remove image: $image"
+            fi
+        fi
+    done
+    
+    info "Removed $removed_count Cometa images"
+}
+
+# Function to remove Cometa volumes
+remove_cometa_volumes() {
+    info "Removing Cometa-related volumes..."
+    
+    local volumes=($(get_cometa_volumes))
+    local removed_count=0
+    
+    for volume in "${volumes[@]}"; do
+        if docker volume ls -q --filter "name=$volume" | grep -q .; then
+            info "Removing volume: $volume"
+            if docker volume rm "$volume" 2>/dev/null; then
+                ((removed_count++))
+            else
+                warning "Failed to remove volume: $volume"
+            fi
+        fi
+    done
+    
+    info "Removed $removed_count Cometa volumes"
+}
+
+# Function to prune Cometa networks
+prune_cometa_networks() {
+    info "Pruning Cometa-related networks..."
+    
+    # Get Cometa networks
+    local networks=($(docker network ls --format "{{.Name}}" | grep -E "(cometa|testing)"))
+    local pruned_count=0
+    
+    for network in "${networks[@]}"; do
+        if [[ "$network" != "bridge" && "$network" != "host" && "$network" != "none" ]]; then
+            info "Removing network: $network"
+            if docker network rm "$network" 2>/dev/null; then
+                ((pruned_count++))
+            else
+                warning "Failed to remove network: $network"
+            fi
+        fi
+    done
+    
+    info "Pruned $pruned_count Cometa networks"
+}
+
+# Main cleanup function for Cometa-specific resources
+cleanup_cometa() {
+    info "Starting Cometa-specific cleanup..."
+    
+    # Stop Cometa containers first
+    stop_cometa_containers
+    
+    # Remove Cometa containers
+    remove_cometa_containers
+    
+    # Remove Cometa images
+    remove_cometa_images
+    
+    # Remove Cometa volumes
+    remove_cometa_volumes
+    
+    # Prune Cometa networks
+    prune_cometa_networks
+    
+    info "Cometa cleanup completed successfully!"
+    
+    # Show remaining Docker resources
+    info "Remaining Docker resources:"
+    info "Containers:"
+    docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" 2>/dev/null || true
+    
+    info "Images:"
+    docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" 2>/dev/null || true
+    
+    info "Volumes:"
+    docker volume ls --format "table {{.Name}}\t{{.Driver}}" 2>/dev/null || true
+    
+    info "Networks:"
+    docker network ls --format "table {{.Name}}\t{{.Driver}}" 2>/dev/null || true
+}
+
+# Function to remove all containers
+remove_all_containers() {
+    info "Stopping all running containers..."
+    docker stop $(docker ps -q) 2>/dev/null || true
+    
+    info "Removing all containers..."
+    docker rm $(docker ps -a -q) 2>/dev/null || true
+}
+
+# Function to remove all images
+remove_all_images() {
+    info "Removing all images..."
+    docker rmi $(docker images -q) 2>/dev/null || true
+}
+
+# Function to remove all volumes
+remove_all_volumes() {
+    info "Removing all volumes..."
+    docker volume rm $(docker volume ls -q) 2>/dev/null || true
+}
+
+# Function to prune all networks
+prune_all_networks() {
+    info "Pruning unused networks..."
+    docker network prune -f 2>/dev/null || true
+}
+
+# Main cleanup function for all Docker resources
+cleanup_all() {
+    info "Starting complete Docker cleanup..."
+    
+    remove_all_containers
+    remove_all_images
+    remove_all_volumes
+    prune_all_networks
+    
+    info "Complete cleanup finished!"
+    
+    # Show remaining Docker resources
+    info "Remaining Docker resources:"
+    info "Containers:"
+    docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" 2>/dev/null || true
+    
+    info "Images:"
+    docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" 2>/dev/null || true
+    
+    info "Volumes:"
+    docker volume ls --format "table {{.Name}}\t{{.Driver}}" 2>/dev/null || true
+    
+    info "Networks:"
+    docker network ls --format "table {{.Name}}\t{{.Driver}}" 2>/dev/null || true
+}
 
 function get_cometa_up_and_running() {
 
@@ -359,14 +718,14 @@ function get_cometa_up_and_running() {
 
 
     #
-    # Replace <server> in docker-compose.yml with "local"
+    # Replace <server> in docker-compose-dev.yml with "local"
     #
-    sed -i_template "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
+    sed -i_template "s|<server>|local|g" ${DOCKER_COMPOSE_FILE} && info "Replaced <server> in ${DOCKER_COMPOSE_FILE} with local"
 
     #
-    # Replace <outside_port> in docker-compose.yml with "80"
+    # Replace <outside_port> in docker-compose-dev.yml with "80"
     #
-    sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
+    sed -i_template "s|<outside_port>|80|g" ${DOCKER_COMPOSE_FILE} && info "Replaced <outside_port> in ${DOCKER_COMPOSE_FILE} with 80"
 
     #
     # Check if data/front/apache2/metadata/accounts.google.com.client or data/front/apache2/metadata/git.amvara.de.client exists
@@ -408,7 +767,8 @@ function get_cometa_up_and_running() {
     # Bring up the system
     #
     info "Starting containers"
-    $DOCKER_COMPOSE_COMMAND up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
+    info "using ${DOCKER_COMPOSE_COMMAND} command"
+    $DOCKER_COMPOSE_COMMAND -f ${DOCKER_COMPOSE_FILE} up -d && info "Started docker ... now waiting for container to come alive " || warning "docker compose command finished with error"
 
     #
     # How to wait for System ready?
@@ -441,7 +801,7 @@ function get_cometa_up_and_running() {
     info "Waiting for containers to become healthy (timeout: ${TOTAL_TIMEOUT} seconds)..."
 
     # check if docker-compose contains django start command
-    if ! grep -qE '^\s*command:\s*bash start\.sh' docker-compose.yml; then
+    if ! grep -qE '^\s*command:\s*bash start\.sh' ${DOCKER_COMPOSE_FILE}; then
         info "Django service command is NOT 'bash start.sh -dev'"
         # your logic here
     fi
@@ -449,7 +809,7 @@ function get_cometa_up_and_running() {
 
     # Check inside django container if gunicorn is running
     log_wfr "Waiting for gunicorn to start "
-    docker exec -it cometa_django ps aux | grep gunicorn | grep -v grep > /dev/null 2>&1 && log_res "[done]" || { log_res "[failed]"; info "Starting cometa_django container"; docker exec cometa_django ./start.sh > /dev/null 2>&1 & }
+    docker exec -it cometa_django ps aux | grep gunicorn | grep -v grep > /dev/null 2>&1 && log_res "[done]" || { log_res "[failed]"; info "Re-Starting cometa_django container"; docker exec cometa_django ./start.sh > /dev/null 2>&1 & }
 
     # Wait for django to become healthy
     log_wfr "Waiting for parseBrowsers "
@@ -472,26 +832,26 @@ function show_logfiles() {
     if [[ -z "$container_name" ]]; then
         # No container specified, show all running containers and their logs
         info "No container specified. Showing all running containers:"
-        docker-compose ps
+        ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} ps
         
         info "Showing logs from all containers (last 10 lines):"
-        docker-compose -f docker-compose-dev.yml logs -f --tail=10
+        ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} logs -f --tail=10
     else
         case $container_name in
             selenoid)
                 docker logs -f --tail=100 cometa_selenoid
                 ;;
             all)
-                docker-compose logs -f --tail=100
+                ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} logs -f --tail=100
                 ;;
             *)
                 # Try to show logs for the specified container
-                if docker-compose ps | grep -q "$container_name"; then
-                    docker-compose logs -f --tail=100 "$container_name"
+                if ${DOCKER_COMPOSE_COMMAND} ps | grep -q "$container_name"; then
+                    ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} logs -f --tail=100 "$container_name"
                 else
                     error "Container '$container_name' not found or not running"
                     info "Available containers:"
-                    docker-compose ps
+                    ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} ps
                     exit 1
                 fi
                 ;;
@@ -514,6 +874,10 @@ do
             SHOW_HELP
             exit 0
             ;;
+        -v | --version)
+            SHOW_VERSION
+            exit 0
+            ;;
         -l|--logs)
             container_name=$2
             if [[ -n "$container_name" ]]; then
@@ -530,22 +894,64 @@ do
             ;;
         -r | --restart)
             container_name=$2
-            info "Recreating $container_name"
-            docker-compose up -d --force-recreate $container_name && info [ok] || warn "Restarting failed. look at the logs"
+            info "Recreating '$container_name'"
+            # Get service name from container name automatically
+            service_name=$(docker ps --format "table {{.Names}}\t{{.Labels}}" | grep "$container_name" | grep -o 'com.docker.compose.service=[^,]*' | cut -d= -f2)
+            if [ -z "$service_name" ]; then
+                # Fallback: try to find service by container name in compose file
+                service_name=$(grep -B5 -A5 "container_name: $container_name" ${DOCKER_COMPOSE_FILE} | grep -E '^[[:space:]]*[a-zA-Z0-9_-]+:' | head -1 | cut -d: -f1 | tr -d ' ')
+            fi
+            ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} up -d --force-recreate $service_name && info [ok] || warn "Restarting failed. look at the logs"
             exit 0
             ;;
         --root-mount-point)
             MOUNTPOINT="root"
             shift
             ;;
+        --stop-cometa)
+            stop_cometa_containers
+            exit 0
+            ;;
         --remove-cometa)
             info "Backup data directory"
             tar -czvf ../cometa_data.tgz data/
             info "Stopping Cometa"
-            docker-compose down
+            ${DOCKER_COMPOSE_COMMAND} -f ${DOCKER_COMPOSE_FILE} down
             info "Removing Cometa Redis volume"
             docker volume rm cometa_redis_data
             info "Cometa has been removed. You are save to delete this directory and start with a fresh clone."
+            exit 0
+            ;;
+        --cleanup-cometa)
+            cleanup_cometa
+            exit 0
+            ;;
+        --cleanup-images)
+            info "Cleaning up only Docker images..."
+            remove_all_images
+            info "Image cleanup completed!"
+            exit 0
+            ;;
+        --cleanup-containers)
+            info "Cleaning up only Docker containers..."
+            remove_all_containers
+            info "Container cleanup completed!"
+            exit 0
+            ;;
+        --cleanup-volumes)
+            info "Cleaning up only Docker volumes..."
+            remove_all_volumes
+            info "Volume cleanup completed!"
+            exit 0
+            ;;
+        --cleanup-networks)
+            info "Cleaning up only Docker networks..."
+            prune_all_networks
+            info "Network cleanup completed!"
+            exit 0
+            ;;
+        --cleanup-all)
+            cleanup_all
             exit 0
             ;;
         --check-docker)
@@ -578,7 +984,8 @@ do
             ;;
         -i | -install)
             # This will fall through to the default installation behavior
-            shift
+	    install=1
+	    shift
             ;;
         *)
             SHOW_HELP
@@ -588,7 +995,7 @@ do
 done
 
 # Only proceed with installation if -i or -install was specified
-if [[ "$1" == "-i" || "$1" == "-install" ]]; then
+if [[ "$install" == "1" || "$1" == "-install" ]]; then
     checkRequirements
     initiate_config_dirs
     get_cometa_up_and_running

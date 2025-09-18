@@ -1,6 +1,6 @@
 {
-  "version": "3.0.97",
-  "stable_version": "3.0.97",
+  "version": "3.0.102",
+  "stable_version": "3.0.102",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,60 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.102",
+      "date": "2025-09-16",
+      "features": [
+        {
+          "title": "Fixed issue with Step Make an api call - #6824",
+          "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        }
+      ]
+    },
+    {
+      "version": "3.0.101",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Fixed issue with API data display - #6832",
+          "description": "Fixed issue with API data display, now it shows the API data in the JSON view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.100",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Add and enhance Step descriptions and examples in step actions - #6777",
+          "description": "Enhance step descriptions and examples for database and mobile actions and api"
+        }
+      ]
+    },
+    {
+      "version": "3.0.99",
+      "date": "2025-09-10",
+      "features": [
+        {
+          "title": "Starred features - #6820",
+          "description": "Fixed issue with starred, now it shows starred features in the starred view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.98",
+      "date": "2025-09-09",
+      "features": [
+        {
+          "title": "Fixed issue during initialization - #6799",
+          "description": "Configuration state was not being properly initialized."
+        },
+        {
+          "title": "Feature Metrics Usage - #6802",
+          "description": "Added a new feature metrics usage page to the application."
+        }
+      ]
+    },
     {
       "version": "3.0.97",
       "date": "2025-09-05",

@@ -125,6 +125,9 @@ export class ConfigState {
     return this._api.getServerInfo().pipe(
       tap(server => {
         configFile.serverInfo = server;
+        // @ts-ignore
+        setState(configFile);
+        log('Config', configFile);
       }),
       tap(() => {
         // Load backend configurations to determine if payments are enabled
@@ -138,10 +141,7 @@ export class ConfigState {
             script.src = 'https://js.stripe.com/v3/';
             document.head.appendChild(script);
           }
-          
-          // @ts-ignore
-          setState(configFile);
-          log('Config', configFile);
+
         });
       })
     );
