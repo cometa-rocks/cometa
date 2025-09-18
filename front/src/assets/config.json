@@ -1,6 +1,6 @@
 {
-  "version": "3.0.102",
-  "stable_version": "3.0.102",
+  "version": "3.0.103",
+  "stable_version": "3.0.103",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.103",
+      "date": "2025-09-18",
+      "features": [
+        {
+          "title": "Enhance dialog of variables - #6850",
+          "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
+        }
+      ]
+    },
     {
       "version": "3.0.102",
       "date": "2025-09-16",
