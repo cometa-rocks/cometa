@@ -317,6 +317,16 @@
                   </ng-template>
                 </ng-container>
               </div>
+              <!-- Healing Badge -->
+              <div class="option healing-badge" *ngIf="getHealingDataForStep(item) as healingData">
+                <button
+                  stopPropagation
+                  [matTooltip]="getHealingTooltip(healingData)"
+                  matTooltipPosition="above"
+                  mat-icon-button>
+                  <mat-icon class="healing-icon">healing</mat-icon>
+                </button>
+              </div>
             </div>
           </div>
         </ng-container>

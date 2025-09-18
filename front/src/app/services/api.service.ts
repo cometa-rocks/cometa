@@ -1099,8 +1099,12 @@ export class ApiService {
         map(res => ({ description: res.description, example: res.example }))
       );
   }
-  getFeatureHistory(featureId: number): Observable<FeatureHistoryResponse> {
-    return this._http.get<FeatureHistoryResponse>(`${this.base}feature/${featureId}/history/`);
+  getFeatureHistory(featureId: number, departmentId: number): Observable<FeatureHistoryResponse> {
+    return this._http.get<FeatureHistoryResponse>(`${this.base}feature/${departmentId}/${featureId}/history/`);
+  }
+
+  getUsageStatistics() {
+    return this._http.get<any>(`${this.base}cometausage/`);
   }
 
 }

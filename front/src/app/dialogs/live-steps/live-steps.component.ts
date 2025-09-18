@@ -237,9 +237,18 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   // Add backward compatibility property
   public feature_id: number;
 
+  // Store reference to the keydown listener for cleanup
+  private keydownListener: (event: KeyboardEvent) => void;
+
   // Cleanup old or unused runs info on close
   ngOnDestroy() {
     this.cleanupSubscriptions();
+    
+    // Remove the keydown listener to prevent it from staying active after dialog closes
+    if (this.keydownListener) {
+      document.removeEventListener('keydown', this.keydownListener);
+    }
+    
     if (this.feature_id) {
       this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
     }
@@ -287,11 +296,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     }
 
     // register Host Key "S" to stop the execution
-    document.addEventListener('keydown', (event) => {
+    this.keydownListener = (event: KeyboardEvent) => {
       if (event.key === 's') {
-        this.stopTest();
+        // Only allow stop if feature has actually started (same restriction as the stop button)
+        if (this.canStop) {
+          this.stopTest();
+        }
       }
-    });
+    };
+    document.addEventListener('keydown', this.keydownListener);
   }
 
   private loadConfigurations() {
@@ -366,13 +379,22 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         untilDestroyed(this), // Stop emitting events after LiveSteps is closed
         // Filter only by NGXS actions which trigger step index changing
         ofActionCompleted(WebSockets.StepStarted, WebSockets.StepFinished),
-        map(event => event.action),
-        // Enhanced filtering for both single feature and DDT modes
-        filter(action => action.feature_id === this.currentFeatureId),
+        map((event) => event.action),
+        filter((action) => action.feature_id === this.feature_id),
+        tap(action => {
+          // Use a type guard to check if the action is StepFinished
+          if ('step_result_info' in action) {
+            if (action.healing_data) {
+              this.logger.msg('4', 'Healing data received in live-steps:', 'live-steps', {
+                step_index: action.step_index,
+                healing_data: action.healing_data
+              });
+            }
+          }
+        }),
         distinctUntilKeyChanged('step_index'),
         // Switch current observable to scroll option value
-        filter(_ => !!this.autoScroll)
-        // Then filter stream by truthy values
+        filter((_) => !!this.autoScroll)
       )
       .subscribe(action => {
         this.handleAutoScroll(action);
@@ -746,6 +768,53 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     */
   trackMobileFn(index: number, mobile: any): any {
     return mobile.id || mobile.hostname || index;
+  }
+
+  getHealingSummary(runId: number) {
+    const results = this._store.selectSnapshot(CustomSelectors.GetFeatureResults(this.feature_id));
+    if (!results || !results.results || !results.results[runId]) {
+      return null;
+    }
+
+    const healedSteps: any[] = [];
+    let totalConfidence = 0;
+    let totalHealingTime = 0;
+
+    // Iterate through all browser results for this run
+    Object.entries(results.results[runId]).forEach(([browserKey, browserResult]: [string, any]) => {
+      const steps = browserResult.steps || [];
+      
+      steps.forEach((step: StepStatus, index: number) => {
+        if (step.healing_data) {
+          const confidence = Math.round(step.healing_data.score * 100);
+          
+          healedSteps.push({
+            stepIndex: index,
+            stepName: step.name,
+            browser: browserResult.browser_info,
+            originalSelector: `By.${step.healing_data.original_selector.type}(${step.healing_data.original_selector.value})`,
+            healedSelector: `By.${step.healing_data.healed_selector.type}(${step.healing_data.healed_selector.value})`,
+            confidence: confidence,
+            healingTime: step.healing_data.healing_duration_ms,
+            method: 'Score-based Tree Comparison'
+          });
+          totalConfidence += confidence;
+          totalHealingTime += step.healing_data.healing_duration_ms;
+        }
+      });
+    });
+
+    // Only return summary if there are actually healed steps
+    if (healedSteps.length === 0) {
+      return null;
+    }
+
+    return {
+      totalHealed: healedSteps.length,
+      averageConfidence: healedSteps.length > 0 ? Math.round(totalConfidence / healedSteps.length) : 0,
+      totalHealingTime: totalHealingTime,
+      healedSteps: healedSteps
+    };
   }
 
 }

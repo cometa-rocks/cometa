@@ -9,7 +9,6 @@
       rel="shortcut icon"
       href="assets/favicons/@@BRANCH@@/favicon.ico?v=2" />
     <link rel="manifest" href="manifest.json" />
-    <script src="https://js.stripe.com/v3/"></script>
     <link
       rel="preload"
       href="assets/iconfont/MaterialIcons-Regular.woff2"
@@ -155,12 +154,22 @@
           <div style="position: relative">
             <div class="confidential">may contain confidential data</div>
           </div>
-          <div class="version">Version 2.0.1</div>
+          <div class="version" id="version-display"></div>
         </footer>
       </div>
     </cometa>
     <noscript
       >Please enable JavaScript to continue using this application.</noscript
     >
+    <script>
+      // Auto-detect environment and load config
+      const configPath = window.location.pathname.includes('/debug/') ? '/debug/assets/config.json' : '/assets/config.json';
+      
+      // We are using fetch because custom selectors are not available in the index.html file.
+      fetch(configPath)
+        .then(response => response.json())
+        .then(config => document.getElementById('version-display').textContent = 'Version ' + (config?.version || 'Unknown'))
+        .catch(() => document.getElementById('version-display').textContent = 'Version Loading...');
+    </script>
   </body>
 </html>

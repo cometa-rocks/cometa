@@ -1,6 +1,6 @@
 {
-  "version": "3.0.94",
-  "stable_version": "3.0.92",
+  "version": "3.0.103",
+  "stable_version": "3.0.103",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -18,6 +18,7 @@
   "sorting": "execution",
   "reverse": false,
   "useNewDashboard": true,
+  "payment_enabled": false,
   "co_active_list": "recent",
   "co_features_pagination": 10,
   "co_first_time_cometa": true,
@@ -240,6 +241,112 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.103",
+      "date": "2025-09-17",
+      "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Implement dynamic version display - #6847",
+          "description": "Implement dynamic version display in header and footer."
+        },
+        {
+          "title": "Enhance dialog of variables - #6850",
+          "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
+        }
+      ]
+    },
+    {
+      "version": "3.0.102",
+      "date": "2025-09-16",
+      "features": [
+        {
+          "title": "Fixed issue with Step Make an api call - #6824",
+          "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        }
+      ]
+    },
+    {
+      "version": "3.0.101",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Fixed issue with API data display - #6832",
+          "description": "Fixed issue with API data display, now it shows the API data in the JSON view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.100",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Add and enhance Step descriptions and examples in step actions - #6777",
+          "description": "Enhance step descriptions and examples for database and mobile actions and api"
+        }
+      ]
+    },
+    {
+      "version": "3.0.99",
+      "date": "2025-09-10",
+      "features": [
+        {
+          "title": "Starred features - #6820",
+          "description": "Fixed issue with starred, now it shows starred features in the starred view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.98",
+      "date": "2025-09-09",
+      "features": [
+        {
+          "title": "Fixed issue during initialization - #6799",
+          "description": "Configuration state was not being properly initialized."
+        },
+        {
+          "title": "Feature Metrics Usage - #6802",
+          "description": "Added a new feature metrics usage page to the application."
+        }
+      ]
+    },
+    {
+      "version": "3.0.97",
+      "date": "2025-09-05",
+      "features": [
+        {
+          "title": "Whats new dialog improvements - #6809",
+          "description": "Added a harmonious size to the whats new dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.96",
+      "date": "2025-09-05",
+      "features": [
+        {
+          "title": "Time in Highcharts graph and results table - #6796",
+          "description": "Fixed issue where the execution time displayed in the Highcharts graph did not match with the execution time in the results table. Now both display the same hour consistently."
+        }
+      ]
+    },
+    {
+      "version": "3.0.95",
+      "date": "2025-08-28",
+      "features": [
+        {
+          "title": "Conditionally load stripe library - #6754",
+          "description": "Stripe library now will only be loaded if payments are enabled in Co.Meta."
+        },
+        {
+          "title": "Fix clicking behaviour on browser tab element on live steps component - #6775",
+          "description": "Fixed issue that after clicking on the browser tab was opening up the noVNC window tab."
+        }
+      ]
+    },
     {
       "version": "3.0.94",
       "date": "2025-08-25",

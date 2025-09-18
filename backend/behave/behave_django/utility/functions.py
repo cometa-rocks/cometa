@@ -92,6 +92,7 @@ def toWebP_from_data(image_data, file_output_path):
         im = im.convert("RGB")
         im.save(compressed_image_path, format="WEBP", optimize=True, quality=70)
     except Exception as err:
+        traceback.print_exc()
         logger.error("Failed to convert screenshot to WebP")
         logger.debug("Error: %s" % str(err))
         return None

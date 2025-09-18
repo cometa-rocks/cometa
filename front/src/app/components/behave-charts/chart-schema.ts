@@ -1,6 +1,10 @@
 import { Options } from 'highcharts/highstock';
 
 export const MAIN_VIEW_CHART_SCHEMA: Options = {
+  // Add global timezone configuration
+  time: {
+    useUTC: false,
+  },
   navigator: {
     xAxis: {},
   },

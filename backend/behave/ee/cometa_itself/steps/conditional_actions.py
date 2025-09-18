@@ -26,10 +26,8 @@ from tools.models import Condition
 
 use_step_matcher("re")
 
-# This step initiates a conditional "If" block to evaluate a comparison between two values. 
-# The step supports multiple comparison operators such as equals, not equals, contains, >=, <=, etc.
-# Based on the comparison result, it activates the conditional logic (e.g., proceeding to an 'Else' or 'End If').
-#
+
+
 # Parameters:
 # - value1: (String|Number) The first value to be compared.
 # - condition: (String) The operator for comparison. Supported conditions are:
@@ -42,11 +40,11 @@ use_step_matcher("re")
 #     - "=="           -> Checks if value1 is equal to value2 (numeric comparison).
 #     - "!="           -> Checks if value1 is not equal to value2 (numeric comparison).
 # - value2: (String|Number) The second value for comparison.
-# 
-# Example:
-# 1. If "5" ">=" "3"             -> True, condition is activated.
-# 2. If "Hello World" "contains" "World" -> True, condition is activated.
-# 3. If "10" "not equals" "20"   -> True, condition is activated.
+#
+# This step initiates a conditional "If" block to evaluate a comparison between two values. 
+# The step supports multiple comparison operators such as equals, not equals, contains, >=, <=, etc.
+# Based on the comparison result, it activates the conditional logic (e.g., proceeding to an 'Else' or 'End If').
+# Example: If "5" ">=" "3"
 @step(u'If "(?P<value1>.+?)" "(?P<condition>.+?)" "(?P<value2>.+?)"')
 @done(u'If "{value1}" "{condition}" "{value2}"')
 def start_if(context, value1, condition, value2):
@@ -82,7 +80,6 @@ def start_if(context, value1, condition, value2):
 
 # This step defines the 'Else' block within an If condition flow. 
 # It allows for alternative execution when the "If" condition fails.
-#
 # Example:
 # If "5" "==" "10"
 #     <perform actions if true>
@@ -94,13 +91,12 @@ def start_else(context):
     if len(context.test_conditions_list)==0:
         raise CustomError("Flow is not with in the If Condition")
     # Activate the last if condition else section
-    # This done this way becase in future we want to have nested if conditions block, preparing list is a good idea for it
+    # This done this way because in future we want to have nested if conditions block, preparing list is a good idea for it
     context.test_conditions_list[-1].activate_else_section()    
 
 
 # This step marks the end of an "If-Else" conditional block. 
 # It finalizes the condition and removes it from the active condition list.
-#
 # Example:
 # If "5" ">=" "3"
 #     <perform actions if true>
@@ -119,14 +115,11 @@ def end_if(context):
     last_condition.close_condition()
     
 
-
-# Example:
-# 1. If "5" ">=" "3"             -> True, condition is activated.
-# 2. If "Hello World" "contains" "World" -> True, condition is activated.
-# 3. If "10" "not equals" "20"   -> True, condition is activated.
+# This step performs a basic arithmetic calculation and stores the result in a variable.
+# Example: Calculate "5" "+" "3" and store in the "result"
 @step(u'Calculate "(?P<value1>.+?)" "(?P<operation>.+?)" "(?P<value2>.+?)" and store in the "(?P<variable>.+?)"')
 @done(u'Calculate "{value1}" "{operation}" "{value2}" and store in the "{variable}"')
-def arthmatic_calculations(context, value1, operation, value2, variable):
+def arithmetic_calculations(context, value1, operation, value2, variable):
     except_operations =  ["+","-","*","/","//","**", "%"]
     operation = operation.strip()
     
@@ -378,8 +371,8 @@ def arthmatic_calculations(context, value1, operation, value2, variable):
 # @done(u'Break For Loop')
 # def break_loop(context):
 #     context.current_loop.break_loop()
-#     send_step_details(context, "For loop breaked")
-#     logger.debug("For loop breaked")
+#     send_step_details(context, "For loop break")
+#     logger.debug("For loop break")
 
 
 # @step(u'End For Loop')

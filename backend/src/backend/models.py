@@ -63,6 +63,7 @@ def get_feature_path(feature, feature_result_id=""):
     """
     Returns the store path for the given feature meta and steps files
     """
+    # FIXME need to check on this if making this query is really required
     feature = get_model(feature, Feature)
     path = '/data/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
     # Make sure path exists
@@ -91,58 +92,62 @@ def get_feature_path(feature, feature_result_id=""):
         "fullPath": fullpath
     }
 
-def backup_feature_steps(feature):
+
+def get_feature_backup_file_path(feature, feature_file_name):
     """
-    Automatically creates a backup of the given feature steps
+    Returns the store path for the given feature meta and steps files
     """
-    # Create backup file
-    feature = get_model(feature, Feature)
-    # Retrieve feature path
-    feature_dir = get_feature_path(feature.feature_id)
-    file = feature_dir['featureFileName']
-    path = feature_dir['path'] + 'features/'
-    time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # Make sure backups folder exists
-    backupsFolder = '/data/backups/features/'
-    Path(backupsFolder).mkdir(parents=True, exist_ok=True)
-    orig_file = path + file + '.json'
-    dest_file = backupsFolder + file + '_' + time + '_steps.json'
-    if os.path.exists(orig_file):
-        shutil.copyfile(orig_file, dest_file)
-        logger.debug('Created feature backup in %s' % dest_file)
-    else:
-        logger.debug('Feature file %s not found.' % orig_file)
+    # folder path
+    backup_folder_path = f'{settings.BACKUP_FOLDER}department_{feature.department_id}/feature_{feature.feature_id}'
+    # Make sure path exists
+    try:
+        logger.debug("Creating feature backup file path")
+        Path(backup_folder_path).mkdir(parents=True, exist_ok=True)
+    except Exception as exe:
+        logger.debug("backup file path creation failed")
+        raise exe
+    # return a file path with file name 
+    return f"{backup_folder_path}/{feature_file_name}"
+
 
 def backup_feature_info(feature):
     """
     Automatically creates a backup of the given feature
     """
-    # Create backup file
-    feature = get_model(feature, Feature)
-    # Retrieve feature path
+    logger.debug(f"Backing up feature info for feature {feature.feature_id}")
+    logger.debug(f"Getting steps for feature {feature.feature_id}")
+    steps = Step.objects.filter(feature_id=feature.feature_id, step_type__in=["normal", "subfeature"]).order_by("id")
+    logger.debug(f"Steps: {len(steps)}")
+    feature_info = Feature.objects.get(feature_id=feature.feature_id)
+    logger.debug(f"Feature info found for feature {feature.feature_id}: {feature_info.feature_name}")
+    from backend.serializers import FeatureSerializer, StepSerializer
+
+    # Get feature and steps data model and convert to list of dictnary using serializer
+    feature_info = FeatureSerializer(feature_info, many=False).data
+    steps_info = StepSerializer(steps, many=True).data
+    
     feature_dir = get_feature_path(feature.feature_id)
-    file = feature_dir['featureFileName']
-    path = feature_dir['path'] + 'features/'
+    # Construct the file name
+    file_name = feature_dir['featureFileName']
     time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # Make sure backups folder exists
-    backupsFolder = '/data/backups/features/'
-    Path(backupsFolder).mkdir(parents=True, exist_ok=True)
-    orig_file = path + file + '_meta.json'
-    dest_file = backupsFolder + file + '_' + time + '_meta.json'
-    # creating backup of meta file of feature
-    if os.path.exists(orig_file):
-        shutil.copyfile(orig_file, dest_file)
-        logger.debug('Created meta file feature backup in %s' % dest_file)
-    else:
-        logger.debug('Feature meta file %s not found.' % orig_file)
-    # backup the JSON file with the step content
-    orig_file = path + file + '.json'
-    dest_file = backupsFolder + file + '_' + time + '.json'
-    if os.path.exists(orig_file):
-        shutil.copyfile(orig_file, dest_file)
-        logger.debug('Created json feature backup containing steps in %s' % dest_file)
-    else:
-        logger.debug('Feature json file %s not found.' % orig_file)
+    backup_feature_file_name = file_name + '_' + time + '_backup.json'
+    
+    # Create backup folder and get full backup file path
+    backup_feature_file_path = get_feature_backup_file_path(feature, backup_feature_file_name)
+    
+    # Construct the feature backup data
+    feature_backup_info = {
+        "feature_info": feature_info,
+        "steps": steps_info,
+        "time": time
+    }
+
+    # save to the file i.e /data/backups/features/department_123/feature_123/Test+%Y-%m-%d_%H-%M-%S_backup.json
+    with open(backup_feature_file_path, 'w') as f:
+        json.dump(feature_backup_info, f)
+    logger.debug('Created backup file for feature and steps backup in %s' % backup_feature_file_path)
+
+    
 
 def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department_id=None, recursive_step_level=0):
     # logger.debug(f"Analyzed feature length  {len(analyzed_features)} feature Trace > {feature_trace}")
@@ -709,6 +714,9 @@ class Permissions(models.Model):
     delete_variable = models.BooleanField(default=False)
     manage_house_keeping_logs = models.BooleanField(default=False)
     manage_configurations = models.BooleanField(default=False)
+
+    #mobile related
+    manage_mobiles = models.BooleanField(default=False)
     
     def __str__( self ):
         return u"%s" % self.permission_name
@@ -1141,6 +1149,7 @@ class Step_result(models.Model):
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
+    healing_data = models.JSONField(default=dict, null=True, blank=True)
     database_query_result = models.JSONField(default=list, null=True)
     current_step_variables_value = models.JSONField(default=dict, null=True)
     error = models.TextField(null=True, blank=True)
