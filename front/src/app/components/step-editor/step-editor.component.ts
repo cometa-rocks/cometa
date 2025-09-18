@@ -3416,4 +3416,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
     }
   }
+
+  // Method to close variable dropdown
+  closeVariableDropdown(): void {
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this._cdr.detectChanges();
+  }
+
+  // To do: When variable dropdown is in last step, it should be reversed
+  // [class.reverse]="shouldReverseDropdown(stepVariableData.currentStepIndex)"
+  
 }
