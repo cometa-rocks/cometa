@@ -155,7 +155,7 @@ def assert_contains(context, value_one, value_two):
 @step(u'Show me variable "{variable}" value for "{seconds}" seconds')
 @done(u'Show me variable "{variable}" value for "{seconds}" seconds')
 def show_variable_value(context, variable, seconds):
-    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+    context.STEP_TYPE = "BROWSER"
     # Assuming getVariable is a function that retrieves the variable value
     variable_value = None
     try:
