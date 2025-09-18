@@ -15,6 +15,7 @@ import { delay, filter, map, tap } from 'rxjs/operators';
 import { SeriesSplineOptions } from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { NgIf, AsyncPipe } from '@angular/common';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'behave-chart-desktop-steps',
@@ -39,7 +40,7 @@ export class BehaveChartTestComponent
     this.afterViewInitFired$.next(true);
   }
 
-  constructor(private _amParse: AmParsePipe) {}
+  constructor(private _amParse: AmParsePipe, private log: LogService) {}
 
   ngOnInit() {
     // Wait for ngOnChanges and ngAfterViewInit to process chart data
@@ -115,6 +116,8 @@ export class BehaveChartTestComponent
         this._amParse.transform(run.result_date).getTime(),
         run.fails,
       ]);
+
+      this.log.msg('1', 'timeArray', 'behave-chart', JSON.stringify(timeArray, null, 2));
     }
     return {
       ok: okArray,

@@ -169,6 +169,9 @@ class AdminPermissions(admin.ModelAdmin):
         ('Browsers', {
             'fields': (('create_browser', 'edit_browser', 'delete_browser'),)
         }),
+        ('Mobiles', {
+            'fields': (('manage_mobiles',),)
+        }),
         ('Folders', {
             'fields': (
                 ('create_folder', 'delete_folder'),

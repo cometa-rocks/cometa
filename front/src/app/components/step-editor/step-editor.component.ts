@@ -154,11 +154,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @Output() textareaFocusToParent = new EventEmitter<{isFocused: boolean, event: any}>();
 
+  //Added to send event (editVariables button) to parent component
+  @Output() editVariablesRequested = new EventEmitter<void>();
+  editVariables() {
+    this.logger.msg("4","editVariables button clicked","step-editor.component.ts");
+    this.editVariablesRequested.emit();
+  }
+
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
   @Input() variables: VariablePair[];
   @Input() department: Department;
+
+  //  {file_path} area variables. Add property for file path autocomplete
+  filePathAutocompleteOptions: { value: string; label: string; path: string }[] = [];
+  showFilePathAutocomplete: boolean = false;
+  lastSelectedFilePaths: Map<number, string> = new Map();
+  currentFilePathStepIndex: number | null = null;
+
+  // Add this line - reference to the filePathAutocompletePanel template
+  @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
   
   // Track which step is currently focused for the shared autocomplete
   currentFocusedStepIndex: number | null = null;
@@ -177,7 +193,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   touchStartX: number = 0;
   isDragging: boolean = false;
 
-  @ViewChildren(MatListItem, { read: ElementRef })
+  @ViewChildren('customAutocompleteOption', { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
   @ViewChild('variable_name', { read: ElementRef, static: false })
@@ -307,9 +323,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
-    this.textareaFocusToParent.emit({isFocused, event});
-
-
+    this.logger.msg("4","sendTextareaFocusToParent","step-editor", isFocused)
+    this.inputFocusService.setInputFocus(isFocused)
 
     if (index === undefined) {
       return;
@@ -565,8 +580,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * Placeholders allowed: {mobile_name}, {mobile_code}, {app_package}, {app_activity}, or any running mobile image_name.
    */
   onStepTextareaClick(event: MouseEvent, index: number) {
+    this.logger.msg('4', '=== onStepTextareaClick() === Onsteptextareaclick', 'step-editor');
     const textarea = event.target as HTMLTextAreaElement;
     const value = textarea.value;
+
+    this.logger.msg('4', '=== onStepTextareaClick() ===  this.lastSelectedFilePaths', 'step-editor', this.lastSelectedFilePaths);
+    // Check if this step contains {file_path} OR has a previously selected file path
+    if (this.lastSelectedFilePaths.has(index)) {
+      // Call the existing function that handles file path autocomplete
+      this.onTextareaFocusFilePath(event as any, index);
+    }
+
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = value.split('"')[0].trim().toLowerCase();
     const activatedAction = this.actions.find(action => {
@@ -855,6 +879,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param {number} index Index of step
    */
   fixStep(event: any, index: number) {
+    this.logger.msg('4', '=== fixStep() === Mat Autocomplete Fix Step', 'step-editor');
     const actionsToValidate = ['StartBrowser and call URL', 'Goto URL'];
     // Get value from textarea input
     let stepValue: string = event.target.value;
@@ -961,7 +986,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     
     // Inform parent of focus (without showing documentation)
-    this.sendTextareaFocusToParent(true, index, false);
+    // Commented function to prevent the focus from being sent twice to the parent since it already called in the html)
+    // this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
@@ -1308,8 +1334,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
       // when flyout of variables opens up, by default the selected element will be the first one
       setTimeout(() => {
-        const firstVariableRef = this.varlistItems.toArray()[0].nativeElement;
-        this.renderer.addClass(firstVariableRef, 'selected');
+        const varlistItemsArray = this.varlistItems.toArray();
+        if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
+          const firstVariableRef = varlistItemsArray[0].nativeElement;
+          this.renderer.addClass(firstVariableRef, 'selected');
+        }
       }, 0);
     }
   }
@@ -1371,6 +1400,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
+
+    // department files
+    this.logger.msg('4', '=== onStepChange() === Department Files', 'step-editor', this.department.files);
+
+    // event
+    this.logger.msg('4', '=== onStepChange() === Event', 'step-editor', event);
+
+    // index
+    this.logger.msg('4', '=== onStepChange() === Index', 'step-editor', index);
+
     // Use the most reliable index - prioritize currentFocusedStepIndex but validate it
     let targetIndex = this.currentFocusedStepIndex ?? index;
     
@@ -1545,17 +1584,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
-  @HostListener('document:keydown', ['$event'])
-  handleGlobalKeyDown(event: KeyboardEvent): void {
+  @HostListener('keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
     const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
     if (!isEscape) {
       return;
+    }
+
+    this.closeVariableDropdown();
+
+    // Close filePathAutocompletePanel
+    if (this.showFilePathAutocomplete) {
+      this.showFilePathAutocomplete = false;
     }
 
     // Attempt to close autocomplete panels
     let panelClosed = false;
     this.autocompleteTriggers?.forEach(trigger => {
       if (trigger.panelOpen) {
+        this.logger.msg('4', '=== handleGlobalKeyDown() === Close Panel', 'step-editor', trigger);
         trigger.closePanel();
         panelClosed = true;
       }
@@ -1563,6 +1610,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // Close variable fly-out (step list) if it is open
     if (this.displayedVariables.length > 0) {
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Variable Fly-out', 'step-editor');
       this.displayedVariables = [];
       this.stepVariableData.currentStepIndex = null;
       panelClosed = true;
@@ -1571,6 +1619,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (panelClosed) {
       event.stopImmediatePropagation();
       event.preventDefault();
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Autocomplete', 'step-editor');
       this.isAutocompleteOpened = false;
       this.displayedVariables = [];
       this.stepVariableData.currentStepIndex = null;
@@ -1589,12 +1638,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
+    this.logger.msg('4', '=== closeAutocomplete() === Close Mat Autocomplete Step Index:', 'step-editor', index);
     const actualIndex = index ?? this.currentFocusedStepIndex;
     
     if (actualIndex !== null) {
       const stepFormGroup = this.stepsForm.at(actualIndex) as FormGroup;
       const stepContent = stepFormGroup?.get('step_content')?.value;
       
+      // If the step content is empty, set the documentation to empty
       if (stepContent == '') {
         this.stepsDocumentation[actualIndex] = {
           description: '',
@@ -1604,7 +1655,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       
       this.stepVisible[actualIndex] = false;
     }
-    
+
     this.isAutocompleteOpened = false;
     this._cdr.detectChanges();
 
@@ -1631,6 +1682,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   isAutocompleteSelectionInProgress: boolean = false;
 
   onAutocompleteOpened(index?: number) {
+    this.logger.msg('4', '=== onAutocompleteOpened() === On Mat Autocomplete Opened Step Index:', 'step-editor', index);
     const actualIndex = index ?? this.currentFocusedStepIndex;
     if (actualIndex !== null) {
       // Don't automatically show documentation when autocomplete opens
@@ -2308,28 +2360,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
   }
 
+
+  // This is a function to check if the step is an API call step
+  // It is used to show the collapsed API call in the step editor
   stepStates: { [key: number]: StepState } = {};
   isApiCallStep(index: number): boolean {
+    // If uncommented, it will log the index infite times (Ng if of textarea doing this)
+    // this.logger.msg('4', '=== isApiCallStep() === Index: ', 'step-editor', index);
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
     return content?.includes('Make an API call');
   }
 
+  // This is a function to check if the step is being edited
+  // It is used to show the API call dialog when the user clicks on the API call step
   isEditingApiCall(index: number): boolean {
+    this.logger.msg('4', '=== isEditingApiCall() === Index: ', 'step-editor', index);
     return this.editingApiCallIndex === index;
   }
 
+  // This is a function to expand the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   expandApiCall(index: number): void {
+    this.logger.msg('4', '=== expandApiCall() === Index: ', 'step-editor', index);
     this.editingApiCallIndex = index;
     this._cdr.detectChanges();
   }
 
+  // This is a function to get the collapsed API call content
+  // It is used to show the API call dialog when the user clicks on the API call step
   getCollapsedApiCall(index: number): string {
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    this.logger.msg('4', `=== getCollapsedApiCall(${index}) === Content: "${content}"`, 'step-editor');
     if (!content) return '';
     return content;
   }
 
+  // This is a function to edit the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   editApiCall(item: any) {
+    this.logger.msg('4', '=== editApiCall() === Item: ', 'step-editor', item);
     if (!this.isApiCallStep(item)) {
       return;
     }
@@ -3180,4 +3249,187 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     this._cdr.detectChanges();
   }
+
+  activeOptionIndex: number = 0
+
+  // Highlight the active option in the autocomplete panel
+  setActiveOption(index: number) {
+    this.logger.msg('4', '=== setActiveOption() === Set Active Option - Path', 'step-editor', index);
+    this.activeOptionIndex = index;
+  }
+
+
+  /*
+  * getStepContentAtIndex() - Get the step content at a specific index 
+  * (generic function used by Shift+Alt+F and onFilePathSelect())
+  *
+  * @param index number
+  * @returns string
+  */
+  getStepContentAtIndex(index: number) {
+    this.logger.msg('4', '=== getStepContentAtIndex() === Get Step Content At Index: ', 'step-editor', index);
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const returnValue =  stepFormGroup.get('step_content')?.value;
+    this.logger.msg('4', '=== getStepContentAtIndex() === Return Value: ', 'step-editor', returnValue);
+    return returnValue;
+  }
+
+  /*
+  * Creates a DIV like a mat autocomplete for the files name to be selected
+  * Used for the file path autocomplete - trigger by <textarea (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)">
+  * Shift+Alt+F
+  * 
+  * @param $event KeyboardEvent
+  * @param index number
+  */
+  createFilePathAutocomplete($event: KeyboardEvent, index: number) {
+
+    // Store the index of the step that have the {file_path} - save because if (function onFilePathSelect) its called will be have any index
+    this.currentFilePathStepIndex = index;
+
+    this.logger.msg('4', '=== createFilePathAutocomplete() currentFilePathStepIndex ===', 'step-editor', this.currentFilePathStepIndex);
+
+    // Hide the autocomplete panel
+    const autocompletePanel = document.querySelector('.mat-optgroup');
+    if (autocompletePanel) {
+      (autocompletePanel as HTMLElement).style.display = 'none';
+    }
+
+
+    // Get the step content
+    const stepContent = this.getStepContentAtIndex(index);
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Current Value: ', 'step-editor', stepContent);
+
+
+    // get the Files for the Pop to be shown
+    let files = [];
+    if (stepContent.includes('on mobile')) { 
+      // If step contains "on mobile", filter for APK files only
+      files = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
+    } else {
+      // Otherwise, filter for non-APK files
+      files = this.department.files.filter(file => !file.name.endsWith('.apk') && !file.is_removed);
+    }
+
+    // Create the options for the file Path Autocomplete
+    const fileOptions = files.map(file => ({
+      value: file.uploadPath, //complete path to be used in the step
+      label: file.name, //friendly name to show to the user
+      path: file.uploadPath //already have the full path
+    }));
+
+    // Show the file path autocomplete
+    this.showFilePathAutocomplete = true;
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
+
+    // Update the autocomplete options (files)
+    this.filePathAutocompleteOptions = fileOptions;
+    this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
+
+    // Position the panel near the textarea
+    const textarea = $event.target as HTMLTextAreaElement;
+    const rect = textarea.getBoundingClientRect();
+    const panel = this.filePathAutocompletePanel?.nativeElement;
+    
+    if (panel) {
+      // Set CSS custom properties for positioning
+      panel.style.setProperty('--textarea-left', rect.left + 'px');
+      panel.style.setProperty('--textarea-top', rect.top + 'px');
+      panel.style.setProperty('--textarea-height', rect.height + 'px');
+    }
+  }
+
+  // Handle file selection from autocomplete
+  // Replaces the apk file to apk path
+  onFilePathSelect(event: any, index: number) {
+    this.logger.msg('4', '=== onFilePathSelect() === Selected File Path: ', 'step-editor', event.option.value);
+
+    // Get the selected file path
+    const selectedFilePath = event.option.value; 
+
+    this.logger.msg('4', '=== onFilePathSelect() === Index from onFilePathSelect: ', 'step-editor', index);
+    
+    // Replace {file_path} with the selected file path
+    const currentValue = this.getStepContentAtIndex(index);
+    this.logger.msg('4', '=== onFilePathSelect() === Current Value: ', 'step-editor', currentValue);
+    
+    let newValue: string;
+
+    // Replace the path in steps with the word "file" 
+    // ... if nothing is found, anyhow the newvalue will contain the current value of the steps for further processing
+    const filePathRegex = /file\s*("[^"]*") sheet/g;
+    newValue = currentValue.replace(filePathRegex, `file "${selectedFilePath}" sheet`);
+
+    // Replace the path in steps with the word "app"
+    const appRegex = /app\s*("[^"]*") on mobile/g;
+    newValue = newValue.replace(appRegex, `app "${selectedFilePath}" on mobile`);
+
+    this.logger.msg('4', '=== onFilePathSelect() === New Value after regex replacements: ', 'step-editor', newValue);
+
+    // Set the new value to the textarea (newValue)
+    if (newValue !== undefined) {
+      this.stepsForm.at(index).get('step_content')?.setValue(newValue);
+    }
+  
+    // Close the autocomplete panel
+    this.showFilePathAutocomplete = false;
+    // Clear the stored index
+    this.currentFilePathStepIndex = null;
+
+    // Store the selected file path for this step to enable future div (autocomplte) triggers
+    // This allows users to modify previously selected files in the same step
+    // See in th elogs who is working put this in the filter 'onStepTextareaClick()'
+    this.lastSelectedFilePaths.set(index, selectedFilePath);
+  }
+
+  // Show the autocomplete if cursor focus in the {file_path} area
+  onTextareaFocusFilePath(event: FocusEvent, index: number) {
+    const textarea = event.target as HTMLTextAreaElement;
+    const cursorPos = textarea.selectionStart;
+    const content = textarea.value;
+
+    const beforeCursor = content.substring(0, cursorPos);
+    const afterCursor = content.substring(cursorPos);
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === Before Cursor: ', 'step-editor', beforeCursor);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === After Cursor: ', 'step-editor', afterCursor);
+    
+    // file match (browser)
+    const filePattern = /file\s*"([^"]*)$/;
+
+    // app match (mobile)
+    const appPattern = /app\s*"([^"]*)$/;
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === File Pattern: ', 'step-editor', filePattern);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === App Pattern: ', 'step-editor', appPattern);     
+    
+    // file match (browser)
+    const fileMatch = beforeCursor.match(filePattern);
+
+    // app match (mobile)
+    const appMatch = beforeCursor.match(appPattern);
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === File Match: ', 'step-editor', fileMatch);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === App Match: ', 'step-editor', appMatch);
+    
+    if (fileMatch || appMatch) {
+      // Check if there's a closing quote after cursor
+      const hasClosingQuote = afterCursor.includes('"'); //Example:  Read text excelfile "text... -->(")
+      this.logger.msg('4', '=== onTextareaFocusFilePath() === Has Closing Quote: ', 'step-editor', hasClosingQuote);
+      if (hasClosingQuote) { //if closed, show the autocomplete
+        this.createFilePathAutocomplete(event as any, index);
+      }
+    }
+  }
+
+  // Method to close variable dropdown
+  closeVariableDropdown(): void {
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this._cdr.detectChanges();
+  }
+
+  // To do: When variable dropdown is in last step, it should be reversed
+  // [class.reverse]="shouldReverseDropdown(stepVariableData.currentStepIndex)"
+  
 }

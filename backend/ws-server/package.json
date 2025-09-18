@@ -16,8 +16,8 @@
   },
   "scripts": {
     "server-start": "pm2 start --no-daemon app/index.js",
-    "start": "npm install && pm2 start --no-daemon app/index.js",
-    "test": "npm install && pm2 start --no-daemon app/index.js --watch --ignore-watch=\"node_modules\""
+    "start": "npm install && npm install -g pm2 && pm2 start --no-daemon app/index.js",
+    "test": "npm install && npm install -g pm2 && pm2 start --no-daemon app/index.js --watch --ignore-watch=\"node_modules\""
   },
   "author": "",
   "license": "ISC"

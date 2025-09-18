@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 # Generate embeddings and add to vector store
                 texts = [chunk.content for chunk in chunks]
 
-                self.stdout.write("Adding documents to vector store...")
+                logger.info("Adding documents to vector store...")
                 
                 # Create metadata
                 metadata = [{
@@ -97,18 +97,18 @@ class Command(BaseCommand):
                 document.chunk_count = len(chunks)
                 document.save()
                 
-                self.stdout.write(self.style.SUCCESS(f"Successfully processed document: {document.title}"))
-                self.stdout.write(self.style.SUCCESS(f"Created {len(chunks)} chunks"))
+                logger.info(f"Successfully processed document: {document.title}")
+                logger.info(f"Created {len(chunks)} chunks")
                 
             else:
                 document.status = Document.STATUS_FAILED
                 document.error_message = "No chunks were created"
                 document.save()
-                self.stdout.write(self.style.ERROR(f"Failed to process document: {document.title}"))
+                logger.error(f"Failed to process document: {document.title}")
                 
         except Exception as e:
             document.status = Document.STATUS_FAILED
             document.error_message = str(e)
             document.save()
-            self.stdout.write(self.style.ERROR(f"Error processing document: {e}"))
+            logger.error(f"Error processing document: {e}")
             raise CommandError(f"Error processing document: {e}") 

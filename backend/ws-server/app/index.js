@@ -21,6 +21,10 @@ const dataDrivenRunStatus = {};
 // Save client information for each SocketID
 const clients = {};
 
+// Cache for healing data deduplication
+const healingCache = new Map();
+const HEALING_CACHE_TTL = 300000; // 5 minutes
+
 /**
  * Automatically constructs the messages structure for a given feature and run id
  * @param featureId Feature ID
@@ -274,6 +278,27 @@ app.post('/feature/:feature_id/stepFinished', (req, res) => {
     screenshots: req.body.screenshots ? JSON.parse(req.body.screenshots) : {},
     vulnerable_headers_count:req.body.vulnerable_headers_count,
     mobiles_info: req.body.mobiles_info? req.body.mobiles_info : [],
+    healing_data: (() => {
+      const raw = req.body.healing_data;
+
+      if (!raw) return null;
+      return typeof raw === 'string' ? JSON.parse(raw) : raw;
+    })()
+  }
+
+  // Deduplicate healing data to reduce bandwidth
+  if (payload.healing_data) {
+    const cacheKey = `${payload.feature_id}:${payload.run_id}:${payload.browser_info.browser}:${payload.step_index}`;
+    const cachedData = healingCache.get(cacheKey);
+    
+    if (cachedData && JSON.stringify(cachedData) === JSON.stringify(payload.healing_data)) {
+      // Skip sending duplicate healing data, but still send the step update
+      payload.healing_data = { ...payload.healing_data, cached: true };
+    } else {
+      // Cache new healing data with TTL
+      healingCache.set(cacheKey, payload.healing_data);
+      setTimeout(() => healingCache.delete(cacheKey), HEALING_CACHE_TTL);
+    }
   }
 
   io.emit('message', payload)
@@ -859,3 +884,42 @@ io.on('connection', function(socket){
 server.listen(3001, function(){
   console.log('WS Server listening on *:3001')
 })
+
+// WebSocket endpoint for usage statistics updates
+app.post('/sendUsageUpdate', (req, res) => {
+  let totalSent = 0;
+  
+  // Get usage statistics from the request body
+  const usageData = req.body;
+  
+  // Log the received data for debugging
+  console.log('[WebSocket] Received usage statistics update:', JSON.stringify(usageData, null, 2));
+  
+  // Create WebSocket message for usage statistics update
+  const message = {
+    type: '[WebSockets] UsageStatisticsUpdate',
+    timestamp: new Date().toISOString(),
+    data: {
+      average_execution_time_ms: usageData.average_execution_time_ms,
+      average_execution_time_s: usageData.average_execution_time_s,
+      total_execution_time_ms: usageData.total_execution_time_ms,
+      total_execution_time_s: usageData.total_execution_time_s,
+      total_execution_time_m: usageData.total_execution_time_m,
+      total_execution_time_h: usageData.total_execution_time_h,
+      total_tests_executed: usageData.total_tests_executed,
+      total_number_features: usageData.total_number_features
+    }
+  };
+  
+  // Log the message being sent
+  console.log('[WebSocket] Sending message to clients:', JSON.stringify(message, null, 2));
+  
+  // Send to all connected clients
+  const toSend = Object.keys(clients);
+  toSend.forEach(clientId => {
+    io.to(clientId).emit('message', message);
+    totalSent++;
+  });
+  
+  res.status(200).json({ success: true, sentCount: totalSent });
+});

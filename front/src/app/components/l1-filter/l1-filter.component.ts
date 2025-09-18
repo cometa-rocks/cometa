@@ -373,7 +373,10 @@ export class L1FilterComponent implements OnInit {
     // Check if add-folder dialog is open
     const addFolder = document.querySelector('add-folder') as HTMLElement;
 
-    if(editFeature || addFolder) {
+    // Check if live-steps dialog is open
+    const liveSteps = document.querySelector('live-steps') as HTMLElement;
+
+    if(editFeature || addFolder || liveSteps) {
       return;
     }
 
