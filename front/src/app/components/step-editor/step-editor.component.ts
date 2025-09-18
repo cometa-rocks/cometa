@@ -193,7 +193,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   touchStartX: number = 0;
   isDragging: boolean = false;
 
-  @ViewChildren(MatListItem, { read: ElementRef })
+  @ViewChildren('customAutocompleteOption', { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
   @ViewChild('variable_name', { read: ElementRef, static: false })
@@ -1334,8 +1334,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
       // when flyout of variables opens up, by default the selected element will be the first one
       setTimeout(() => {
-        const firstVariableRef = this.varlistItems.toArray()[0].nativeElement;
-        this.renderer.addClass(firstVariableRef, 'selected');
+        const varlistItemsArray = this.varlistItems.toArray();
+        if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
+          const firstVariableRef = varlistItemsArray[0].nativeElement;
+          this.renderer.addClass(firstVariableRef, 'selected');
+        }
       }, 0);
     }
   }
@@ -1581,12 +1584,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
-  @HostListener('document:keydown', ['$event'])
-  handleGlobalKeyDown(event: KeyboardEvent): void {
+  @HostListener('keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
     const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
     if (!isEscape) {
       return;
     }
+
+    this.closeVariableDropdown();
 
     // Close filePathAutocompletePanel
     if (this.showFilePathAutocomplete) {
