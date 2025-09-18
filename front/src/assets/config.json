@@ -246,6 +246,10 @@
       "date": "2025-09-17",
       "features": [
         {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
           "title": "Display AI Agent actions in UI - #6833",
           "description": "AI Agent logs can now be viewed in real-time during execution on live-step viewer dialog."
         },
