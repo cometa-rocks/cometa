@@ -252,6 +252,10 @@
         {
           "title": "Implement dynamic version display - #6847",
           "description": "Implement dynamic version display in header and footer."
+        },
+        {
+          "title": "Enhance dialog of variables - #6850",
+          "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
         }
       ]
     },
