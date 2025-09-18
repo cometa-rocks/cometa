@@ -26,6 +26,8 @@ from tools.common import *
 
 use_step_matcher("re")
 
+# This step launches a browser using Playwright and connects to it using CDP.
+# Example: PLW launch browser
 @step(u'PLW launch browser')
 @done(u'PLW launch browser')
 def launch_playwright_browser(context):
@@ -60,12 +62,13 @@ def launch_playwright_browser(context):
         
 
 # When browser is connected to playwright CDP connection, after that if you are facing any issue with selenium steps, 
-# Use this fucntion to release the CDP connection from browser
+# Use this function to release the CDP connection from browser
+# Example: Switch back to selenium browser
 @step(u'Switch back to selenium browser')
 @done(u'Switch back to selenium browser')
 def switch_back_to_selenium(context):
     # Once done with browser-use, release it:
-    send_step_details(context, "Swithcing back to selenium")
+    send_step_details(context, "Switching back to selenium")
     logger.debug("Release the playwright page")
     context.page.context.close()
     context.page.close()

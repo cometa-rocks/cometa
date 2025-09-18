@@ -1,6 +1,6 @@
 {
   "version": "3.0.103",
-  "stable_version": "3.0.102",
+  "stable_version": "3.0.103",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -248,6 +248,18 @@
         {
           "title": "Display AI Agent actions in UI - #6833",
           "description": "AI Agent logs can now be viewed in real-time during execution on live-step viewer dialog."
+        },
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Implement dynamic version display - #6847",
+          "description": "Implement dynamic version display in header and footer."
+        },
+        {
+          "title": "Enhance dialog of variables - #6850",
+          "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
         }
       ]
     },

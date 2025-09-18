@@ -51,11 +51,13 @@ use_step_matcher("re")
 # This step validates whether the current screen contains a specific object, with an optional set of conditions (options).
 # Parameters:
 # - object_name: The name of the object that should be present on the screen.
-# - options: (Optional) Additional options or conditions that can refine the validation. This part is optional, meaning it can be omitted in the Gherkin step.   
-# Example:
-# - Validate current screen to contain "Car"
-# - Validate current screen to contain "Car" with "color:red"
+# - options: (Optional) Additional options or conditions that can refine the validation. This part is optional, meaning it can be omitted in the Gherkin step. 
+#  
+# This step validates whether the current screen contains a specific object, with an optional set of conditions (options).
 # In the second case, the additional option "fullscreen" will be captured and used in the step logic.
+# Example:
+# Validate current screen to contain "Car"
+# Validate current screen to contain "Car" with "color:red"
 @step(u'Validate current screen to contain \"(?P<object_name>.*?)\"(?: with \"(?P<options>.*?)\")?')
 @done(u'Validate current screen to contain "{object_name}" with "{options}"')
 def validate_screen_using_ai(context, object_name, options):
@@ -68,8 +70,8 @@ def validate_screen_using_ai(context, object_name, options):
     if not image_decoded_data:
         raise CustomError(f"Could not take screenshot")
 
-    # Define the two dictnary in the data
-    # first one should containe the image data to get information from the image
+    # Define the two dictionary in the data
+    # first one should contains the image data to get information from the image
     # and based on second content it will provide the answer in json for the validation
     data = [
         {
@@ -96,18 +98,19 @@ def validate_screen_using_ai(context, object_name, options):
 
 
 
-# This step retrieves the list of visible objects on the current screen and stores it in the specified variable, 
-# with an optional set of conditions (options) that can alter the behavior of the retrieval.
 # Parameters:
 # - variable: The name of the variable in which to store the list of visible objects.
 # - options: (Optional) Additional options or filters that may refine the list of objects to be retrieved. This is optional in the Gherkin step.
 # Regular Expression Breakdown:
 # - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
 # - (?: with "(?P<options>.*?)")?: This part is optional.
-# Example:
-# - Get list of visible objects in the current screen and store in "myObjects"
-# - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
+#
+# This step retrieves the list of visible objects on the current screen and stores it in the specified variable, 
+# with an optional set of conditions (options) that can alter the behavior of the retrieval.
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
+# Example:
+# Get list of visible objects in the current screen and store in "myObjects"
+# Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 @step(u'Get list of visible objects in the current screen and store in "(?P<variable>.*?)"(?: with "(?P<options>.*?)")?')
 @done(u'Get list of visible objects in the current screen and store in "{variable}" with "{options}"')
 def get_list_of_visible_objects_in_the_screen(context, variable, options):
@@ -120,8 +123,8 @@ def get_list_of_visible_objects_in_the_screen(context, variable, options):
     if not image_decoded_data:
         raise CustomError(f"Could not take screenshot")
 
-    # Define the two dictnary in the data
-    # first one should containe the image data to get information from the image
+    # Define the two dictionary in the data
+    # first one should contains the image data to get information from the image
     # and based on second content it will provide the answer in json for the validation
     data = [
         {
@@ -185,7 +188,7 @@ def assert_imp(context, variable_name, jq_pattern, condition, value):
         assert value in parsed_value, assert_failed_error
 
 
-# Assert variable value by providing 'variable_name', 'condition(match|contain)' and exepected 'value'
+# Assert variable value by providing 'variable_name', 'condition(match|contain)' and expected 'value'
 # Example: Assert variable "status_code" to "match" "200"
 @step(u'Assert variable \"(?P<variable_name>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" to "{condition}" "{value}"')
@@ -204,8 +207,6 @@ def assert_imp(context, variable_name, condition, value):
 
 
 
-# This step retrieves information based on the specified context and stores it in a variable. 
-# An optional set of options can be provided to modify the output format (e.g., JSON conversion).
 # Parameters:
 # - user_message_to_ai: (String) A JSON-like list that serves as input for the AI model, guiding what analysis to perform.
 #     Example structure of the input JSON list:
@@ -223,6 +224,9 @@ def assert_imp(context, variable_name, condition, value):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - options: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #     the result will be converted to a JSON format before being stored.
+#
+# This step retrieves information based on the specified context and stores it in a variable. 
+# An optional set of options can be provided to modify the output format (e.g., JSON conversion).
 # Example: Get information based on the input message and store it in a variable.
 # Get information based on "
 # [
@@ -269,17 +273,16 @@ def ai_analyze(context, user_message_to_ai, variable, option):
     addTestRuntimeVariable(context, variable, response)
 
 
-# This step retrieves information from current screen based on the given prompt and stores it in a variable. 
-# An optional set of option can be provided to modify the output format (e.g., JSON conversion).
 # Parameters:
 # - prompt: (String) Explain everything that you see in the image.
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - option: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #            if option "Output JSON" is provided the result will be converted to a JSON format before it is stored in the variable.
+#
+# This step retrieves information from current screen based on the given prompt and stores it in a variable. 
+# An optional set of option can be provided to modify the output format (e.g., JSON conversion).
 # Example: Get information from the screen and store it in a variable.
-# Get information based on "
-# Explain everything that you see in the image.
-# " from current screen and store in the "screen_analysis"
+# Get information based on " Explain everything that you see in the image. " from current screen and store in the "screen_analysis"
 @step(u'Get information based on "(?P<prompt>[\s\S]*?)" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
 @done(u'Get information based on "{prompt}" from current screen and store in the "{variable}" with "{option}"')
 def get_information_from_current_screen_based_on_prompt(context, prompt, variable, option):
@@ -292,8 +295,8 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
     if not image_decoded_data:
         raise CustomError(f"Could not take screenshot")
 
-    # Define the two dictnary in the data
-    # first one should containe the image data to get information from the image
+    # Define the two dictionary in the data
+    # first one should contains the image data to get information from the image
     # and based on second content it will provide the answer in json for the validation
     data = [
         {
@@ -322,10 +325,11 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
 
 
 
-# This step executes the browser-use action based on the given prompt.
 # Parameters:
 # - prompt: (String) The prompt that specifies the action
-# Example Usage:
+#
+# This step executes the browser-use action based on the given prompt.
+# Example:
 # Execute AI agent action "Navigate to https://www.google.com and search for 'Cometa Rocks'"
 @step(u'Execute AI agent action "(?P<prompt>[\s\S]*?)"')
 @done(u'Execute AI agent action "{prompt}"')
