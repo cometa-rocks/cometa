@@ -150,33 +150,31 @@
   }
 }
 
-// Browser-Use Logs - Styled like error-row with AI-themed colors
+// Browser-Use Logs - Following error-row pattern with AI theme
 .browser-use-logs-row {
-  margin: 5px 0;
-  background-color: rgba($blue, 0.05); // Subtle blue background for AI
-  border: 1px solid rgba($blue, 0.2);
+  margin: 4px 0;
+  background-color: $info-background-feature-item;
+  border: 1px solid rgba($mobile-information-color, 0.3);
   border-radius: 4px;
   overflow: hidden;
 
   .logs-header {
     display: flex;
     align-items: center;
-    padding: 5px 8px;
-    background-color: rgba($blue, 0.08);
+    padding: 8px;
+    background-color: rgba($mobile-information-color, 0.1);
     cursor: pointer;
     user-select: none;
     transition: background-color 0.2s;
 
     &:hover {
-      background-color: rgba($blue, 0.12);
+      background-color: rgba($mobile-information-color, 0.15);
     }
 
     .expand-icon {
       margin-right: 4px;
-      margin-left: -2px;
       transition: transform 0.2s;
-      color: $blue;
-      font-size: 16px;
+      color: $mobile-information-color;
 
       &.expanded {
         transform: rotate(180deg);
@@ -185,50 +183,71 @@
 
     .ai-icon {
       margin-right: 4px;
-      color: $blue;
-      font-size: 16px;
+      color: $mobile-information-color;
     }
 
     .logs-title {
-      font-weight: 500;
-      font-size: 12px;
-      color: $darker-step;
+      font-weight: bold;
+      color: $mobile-text-color;
+      font-size: 0.9rem; // Slightly smaller than default
     }
   }
 
   .logs-container {
     max-height: 200px;
     overflow-y: auto;
-    padding: 5px 10px;
-    font-family: "CorpoS", sans-serif;
-    font-size: 14px;
+    padding: 8px;
+    font-family: 'Courier New', monospace;
     line-height: 1.4;
 
     .log-entry {
-      margin-bottom: 2px;
-      padding: 1px 0;
+      margin-bottom: 4px;
+      white-space: pre-wrap;
+
+      // Add visual separation for browser-use step indicators (📍 Step X:)
+      &[data-is-step-indicator="true"] {
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px dashed rgba($mobile-information-color, 0.3);
+
+        // First step indicator doesn't need margin
+        &:first-child {
+          margin-top: 0;
+          padding-top: 0;
+          border-top: none;
+        }
+      }
 
       &.log-critical {
-        color: $text-pink;
-        font-weight: 500;
+        color: $bad;
+        font-weight: bold;
       }
 
       &.log-progress {
-        color: $blue;
+        color: $mobile-information-color;
+        font-weight: 500;
       }
 
       &.log-detail,
       &.log-info {
-        color: $text-secundary;
+        color: $mobile-text-color;
       }
 
       .log-timestamp {
-        color: $text-secundary;
-        margin-right: 6px;
+        color: $darker-step;
+        margin-right: 8px;
+        font-weight: 500;
       }
 
       .log-message {
         word-wrap: break-word;
+        color: inherit;
+      }
+
+      // Bold formatting for browser-use key patterns (without ::ng-deep)
+      .log-message b {
+        font-weight: 600;
+        color: $mobile-information-color;
       }
     }
   }

@@ -215,4 +215,54 @@ Time: +${healingData.healing_duration_ms}ms`;
   toggleAILogs(): void {
     this.showAILogs = !this.showAILogs;
   }
+
+  // Format browser-use log messages with bold key patterns
+  formatBrowserUseLog(message: string): any {
+    // Only format browser-use specific patterns
+    const patterns = [
+      'Next goal:',
+      'Eval:',
+      'Verdict:',
+      'Task:',
+      'Final Result:',
+      // Action patterns
+      /\[ACTION \d+\/\d+\]/g,
+      // Specific action names
+      'click_element_by_index:',
+      'input_text:',
+      'go_to_url:',
+      'wait:',
+      'done:',
+      'scroll:',
+      'extract_text:',
+      // Action parameters
+      'index:',
+      'text:',
+      'url:',
+      'seconds:',
+      'new_tab:',
+      'clear_existing:',
+      'while_holding_ctrl:',
+      'success:',
+      'files_to_display:'
+    ];
+
+    // First escape any HTML to prevent injection
+    let formattedMessage = message.replace(/&/g, '&amp;')
+                                  .replace(/</g, '&lt;')
+                                  .replace(/>/g, '&gt;');
+
+    // Now apply bold formatting
+    patterns.forEach(pattern => {
+      if (pattern instanceof RegExp) {
+        formattedMessage = formattedMessage.replace(pattern, '<b>$&</b>');
+      } else {
+        // Escape special regex characters in the pattern
+        const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        formattedMessage = formattedMessage.replace(new RegExp(escapedPattern, 'g'), `<b>${pattern}</b>`);
+      }
+    });
+
+    return this._sanitizer.sanitize(1, formattedMessage); // 1 is SecurityContext.HTML
+  }
 }

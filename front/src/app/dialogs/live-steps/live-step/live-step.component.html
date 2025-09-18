@@ -111,10 +111,11 @@
     <div
       class="log-entry"
       [ngClass]="'log-' + log.level"
+      [attr.data-is-step-indicator]="log.message.includes('📍 Step') ? 'true' : null"
       *ngFor="let log of logs"
     >
       <span class="log-timestamp">{{ log.timestamp | date:'HH:mm:ss' }}</span>
-      <span class="log-message">{{ log.message }}</span>
+      <span class="log-message" [innerHTML]="formatBrowserUseLog(log.message)"></span>
     </div>
   </div>
 </div>
