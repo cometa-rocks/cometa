@@ -246,5 +246,8 @@
   "mobile_validation": {
     "ignore_tooltip": "If you ignore, the changes will be saved with the current mobile reference errors",
     "correct_tooltip": "Navigate to the problematic step to fix the mobile reference error"
+  },
+  "changelog": {
+    "close": "To close dialog press: ESC"
   }
 }
