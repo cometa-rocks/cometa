@@ -1,6 +1,6 @@
 {
-  "version": "3.0.100",
-  "stable_version": "3.0.99",
+  "version": "3.0.103",
+  "stable_version": "3.0.102",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,12 +242,42 @@
   ],
   "changelog": [
     {
-      "version": "3.0.100",
+      "version": "3.0.103",
       "date": "2025-09-17",
       "features": [
         {
           "title": "Display AI Agent actions in UI - #6833",
           "description": "AI Agent logs can now be viewed in real-time during execution on live-step viewer dialog."
+        }
+      ]
+    },
+    {
+      "version": "3.0.102",
+      "date": "2025-09-16",
+      "features": [
+        {
+          "title": "Fixed issue with Step Make an api call - #6824",
+          "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        }
+      ]
+    },
+    {
+      "version": "3.0.101",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Fixed issue with API data display - #6832",
+          "description": "Fixed issue with API data display, now it shows the API data in the JSON view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.100",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Add and enhance Step descriptions and examples in step actions - #6777",
+          "description": "Enhance step descriptions and examples for database and mobile actions and api"
         }
       ]
     },

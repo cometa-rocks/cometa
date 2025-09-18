@@ -117,5 +117,5 @@ if [ -d "./front/apache2/metadata" ]; then
     rsync -a --update "./front/apache2/metadata" "$BASE_DIR/front/apache2/"
     info "Copied: ./front/apache2/metadata -> $BASE_DIR/front/apache2/metadata"
 else
-    info "Source file not found - ./front/metadata"
+    info "Source file not found - ./front/apache2/metadata"
 fi
