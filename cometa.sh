@@ -839,7 +839,14 @@ function start_cometa() {
         exit 1
     fi
 
-    # Clean up any orphaned networks first
+    # Clean up any orphaned networks and containers first
+    info "Cleaning up orphaned Docker resources..."
+    
+    # Stop any existing Cometa containers that might be in a bad state
+    info "Stopping any existing Cometa containers..."
+    docker-compose -f ${DOCKER_COMPOSE_FILE} down --remove-orphans > /dev/null 2>&1 || true
+    
+    # Clean up orphaned networks
     info "Cleaning up orphaned Docker networks..."
     docker network prune -f > /dev/null 2>&1 || true
 
