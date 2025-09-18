@@ -375,8 +375,6 @@ app.post('/feature/:feature_id/finished', (req, res) => {
    *  - feature_result_info: FeatureResult --> FeatureResult object stored in the database
    *  - total_time: number --> How many milliseconds did the feature took?
    */
-  // Mark feature as no longer running
-  setRunningStatus(+req.params.feature_id, false);
 
   const payload = {
     type: '[WebSockets] Finished Feature',
