@@ -243,8 +243,16 @@
   "changelog": [
     {
       "version": "3.0.103",
-      "date": "2025-09-18",
+      "date": "2025-09-17",
       "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Implement dynamic version display - #6847",
+          "description": "Implement dynamic version display in header and footer."
+        },
         {
           "title": "Enhance dialog of variables - #6850",
           "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
