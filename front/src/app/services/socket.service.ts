@@ -5,7 +5,7 @@ import { Select, Store } from '@ngxs/store';
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';
 import { UserState } from '@store/user.state';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, Subject } from 'rxjs';
 import { skip } from 'rxjs/operators';
 import { DataDriven } from '@store/actions/datadriven.actions';
 import { MobileWebSockets } from '@store/actions/mobile.actions';
@@ -25,6 +25,9 @@ export class SocketService {
 
   /** Tells to front if the WebSocket Connection is alive or not */
   connectionStatus$ = new BehaviorSubject<boolean>(false);
+
+  /** Browser-use logs subject for external services */
+  browserUseLog$ = new Subject<any>();
 
   /** Holds the WebSocket connection */
   socket: Socket;
@@ -48,6 +51,7 @@ export class SocketService {
     this.socket.on('connect', this.onConnection.bind(this));
     this.socket.on('disconnect', this.onDisconnection.bind(this));
     this.socket.on('message', this.onMessageReceived.bind(this));
+    this.socket.on('browser_use_log', this.onBrowserUseLogReceived.bind(this));
   }
 
   /**
@@ -56,11 +60,20 @@ export class SocketService {
    */
   onMessageReceived(data: any) {
     if (this.logWebsockets) console.log('[WEBSOCKET] Raw message received:', data);
-    
+
     // Handle specific WebSocket message types that need conversion to NGXS actions
     const action = this.convertWebSocketMessageToAction(data);
-    
+
     this._store.dispatch(action);
+  }
+
+  /**
+   * Executed whenever the WebSocket server emits browser-use log events
+   * @param {any} data
+   */
+  onBrowserUseLogReceived(data: any) {
+    if (this.logWebsockets) console.log('[WEBSOCKET] Browser-use log received:', data);
+    this.browserUseLog$.next(data);
   }
 
   /**
@@ -69,6 +82,12 @@ export class SocketService {
    * @returns Action object for NGXS store
    */
   private convertWebSocketMessageToAction(data: any): any {
+    // Validate data exists and has a type property
+    if (!data || !data.type) {
+      // Return the original data as-is for backward compatibility
+      return data;
+    }
+
     // Handle DataDriven StatusUpdate messages
     if (data.type === '[WebSockets] DataDrivenStatusUpdate') {
       return new DataDriven.StatusUpdate(
