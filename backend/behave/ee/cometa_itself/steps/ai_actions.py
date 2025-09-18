@@ -1,12 +1,8 @@
 import base64
 import json
-import sys, requests, re, html
+import sys, re, html
 import jq
 import os, logging
-import asyncio
-import nest_asyncio
-
-# LLM imports are done at function level to avoid conflicts
 
 
 from behave import step, use_step_matcher
@@ -20,7 +16,9 @@ from utility.configurations import ConfigurationManager
 from tools.exceptions import *
 from tools.common import send_step_details
 from tools.common_functions import *
-import datetime
+
+# Browser-use utilities
+from utils.browser_use_utils import execute_browser_use_action
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
@@ -49,22 +47,6 @@ def ai_feature_cannot_be_used_error():
     )
 
 use_step_matcher("re")
-
-
-def send_browser_use_log(context, message, level='info'):
-    """Send browser-use log to dedicated WebSocket channel"""
-    # Get the actual step index from context
-    step_index = getattr(context, 'step_index', 0)
-
-    requests.post(f'{get_cometa_socket_url()}/feature/{context.feature_id}/browserUseLogs', data={
-        "user_id": context.PROXY_USER['user_id'],
-        "feature_result_id": os.environ['feature_result_id'],
-        "log_level": level,
-        "message": message,
-        "step_index": step_index,  # Send actual step index instead of counter
-        "timestamp": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    })
-
 
 # This step validates whether the current screen contains a specific object, with an optional set of conditions (options).
 # Parameters:
@@ -337,210 +319,6 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
     addTestRuntimeVariable(context, variable, response)
 
 
-class BrowserUseAgentFactory:
-    """Factory class for creating LLM instances based on configuration."""
-    
-    @staticmethod
-    def create_llm(context):
-        """Create and return appropriate LLM instance based on configuration."""
-        browser_use_mode = ConfigurationManager.get_configuration("COMETA_BROWSER_USE_MODE", "").lower()
-
-        if not browser_use_mode:
-            raise ValueError("COMETA_BROWSER_USE_MODE not configured. Please set it to 'openai' or 'ollama' in Django admin Configuration.")
-
-        if browser_use_mode == "openai":
-            return BrowserUseAgentFactory._create_openai_llm()
-        elif browser_use_mode == "ollama":
-            return BrowserUseAgentFactory._create_ollama_llm()
-        else:
-            raise ValueError(f"Invalid COMETA_BROWSER_USE_MODE: '{browser_use_mode}'. Use 'openai' or 'ollama'.")
-    
-    @staticmethod
-    def _create_openai_llm():
-        """Create OpenAI LLM instance."""
-        from browser_use import ChatOpenAI
-
-        api_key = ConfigurationManager.get_configuration("COMETA_OPENAI_API_KEY", "")
-        model = ConfigurationManager.get_configuration("COMETA_BROWSER_USE_MODEL", "gpt-4o-mini")
-
-        if not api_key or not api_key.strip():
-            raise ValueError("OpenAI API key not configured. Please set COMETA_OPENAI_API_KEY in Django admin Configuration.")
-        if not api_key.startswith("sk-"):
-            logger.warning(f"OpenAI API key may be invalid (doesn't start with 'sk-')")
-
-        os.environ["OPENAI_API_KEY"] = api_key
-        return ChatOpenAI(model=model, temperature=0.0, api_key=api_key)
-    
-    @staticmethod
-    def _create_ollama_llm():
-        """Create Ollama LLM instance."""
-        from browser_use import ChatOllama
-        
-        host = ConfigurationManager.get_configuration("OLLAMA_AI_HOST", "localhost")
-        port = ConfigurationManager.get_configuration("OLLAMA_AI_PORT", "11434")
-        model = ConfigurationManager.get_configuration("OLLAMA_BROWSER_USE_MODEL", "llama3.1:8b")
-        tls_enabled = ConfigurationManager.get_configuration("OLLAMA_AI_TLS_SSL_ENABLED", "False").lower() == "true"
-        
-        protocol = "https" if tls_enabled else "http"
-        base_url = f"{protocol}://{host}:{port}"
-        
-        return ChatOllama(base_url=base_url, model=model, temperature=0.1)
-
-
-async def execute_browser_use_action(context, prompt, browser_context=None):
-    """
-    Execute browser-use action with dynamic LLM provider selection.
-    
-    Args:
-        context: Behave context
-        prompt (str): Natural language instruction
-        browser_context (dict): Browser session details
-    
-    Returns:
-        dict: Result with success status and response
-    """
-    import logging as browser_use_logging
-    from browser_use import Agent, Browser
-    from browser_use.logging_config import setup_logging
-    
-    # Constants for browser-use execution
-    BROWSER_USE_MAX_STEPS = 50
-    BROWSER_USE_LOG_LEVEL = 'info'
-    
-    logger.info(f"Executing browser-use action: {prompt[:100]}...")
-    
-    try:
-        if not browser_context or not browser_context.get('cdp_endpoint'):
-            raise ValueError("Invalid browser context or missing CDP endpoint")
-        
-        # Set environment variables for browser-use logging
-        os.environ['BROWSER_USE_LOGGING_LEVEL'] = BROWSER_USE_LOG_LEVEL
-        os.environ['BROWSER_USE_SETUP_LOGGING'] = 'true'
-        
-        # Configure browser-use logging for detailed output
-        setup_logging(
-            log_level=BROWSER_USE_LOG_LEVEL,  # Enable detailed debugging
-            force_setup=True  # Force reconfiguration for debugging
-        )
-        
-        # Set the appropriate logging level based on our configuration
-        logging_level = browser_use_logging.INFO if BROWSER_USE_LOG_LEVEL == 'info' else browser_use_logging.DEBUG
-        
-        logger.info(f"🤖 Starting browser-use agent with CDP: {browser_context['cdp_endpoint']}")
-        
-        # Initialize browser with CDP connection
-        browser = Browser(cdp_url=browser_context['cdp_endpoint'])
-        logger.info(f"🌐 Browser connected to CDP endpoint")
-        
-        # Create LLM based on configuration
-        try:
-            llm = BrowserUseAgentFactory.create_llm(context)
-            logger.info(f"🧠 LLM initialized: {type(llm).__name__}")
-        except Exception as llm_error:
-            logger.error(f"Failed to initialize LLM: {str(llm_error)}")
-            return {
-                "success": False,
-                "error": str(llm_error)
-            }
-        
-        # Create a unified handler that logs to both console and WebSocket
-        class UnifiedBrowserUseHandler(browser_use_logging.Handler):
-            """Logs browser-use messages to both console and WebSocket"""
-
-            AUTH_FILTERS = re.compile(r'(🔐.*Browser Use Cloud|authenticate with:|browser-use auth|python -m browser_use\.cli auth|^─+$|^👉)')
-            ANSI_ESCAPE = re.compile(r'(?:\x1b|\033)\[[0-9;]*m|\\x1b\[[0-9;]*m|\\u[0-9a-fA-F]{4}')
-
-            def __init__(self, context, console_logger):
-                super().__init__()
-                self.context = context
-                self.console = console_logger
-
-            def emit(self, record):
-                msg = self.format(record).replace('[browser-use] ', '')
-                clean_msg = self.ANSI_ESCAPE.sub('', msg).strip()
-
-                if clean_msg and not self.AUTH_FILTERS.search(clean_msg):
-                    # Log to console
-                    self.console.info(f"[browser-use] {clean_msg}")
-                    # Send to WebSocket
-                    level = 'critical' if any(x in clean_msg for x in ['❌', '💥', 'failed', 'error']) else \
-                            'progress' if '📍 Step' in clean_msg else 'info'
-                    send_browser_use_log(self.context, clean_msg, level)
-
-        # Configure browser-use logging
-        browser_logger = browser_use_logging.getLogger('browser_use')
-        browser_logger.handlers = []  # Clear all existing handlers
-        unified_handler = UnifiedBrowserUseHandler(context, logger)
-        unified_handler.setLevel(logging_level)
-        browser_logger.addHandler(unified_handler)
-        browser_logger.setLevel(logging_level)
-
-        agent = Agent(
-            task=prompt,
-            llm=llm,
-            browser=browser,
-            use_vision=False
-        )
-        logger.info(f"🚀 Agent created with task: {prompt}")
-
-        # Execute task with detailed logging
-        step_timeout = getattr(context.step_data, 'timeout', 900) if hasattr(context, 'step_data') else 900
-        logger.info(f"▶️  Starting agent execution (max {BROWSER_USE_MAX_STEPS} steps, timeout: {step_timeout}s)...")
-
-        try:
-            result = await agent.run(max_steps=BROWSER_USE_MAX_STEPS)
-            logger.info(f"✅ Agent execution completed")
-
-            # Process result - browser-use returns a history object
-            if result and hasattr(result, 'is_done') and result.is_done():
-                final_result = result.final_result() if hasattr(result, 'final_result') else "Task completed successfully"
-                logger.info(f"🎯 Task completed successfully: {final_result}")
-                return {"success": True, "result": final_result or "Task completed"}
-            elif result:
-                # Task completed but check for errors
-                errors = result.errors() if hasattr(result, 'errors') else None
-                if errors:
-                    logger.error(f"❌ Task failed with errors: {errors}")
-                    return {"success": False, "error": f"Task failed: {errors}"}
-                else:
-                    logger.info(f"✅ Task completed without explicit result")
-                    return {"success": True, "result": "Task completed successfully"}
-            else:
-                logger.error(f"❌ No result returned from agent")
-                return {"success": False, "error": "No result returned from agent"}
-        finally:
-            # Clean up handler to prevent duplicates
-            if 'unified_handler' in locals():
-                browser_logger.removeHandler(unified_handler)
-
-    except Exception as e:
-        logger.exception(f"💥 Browser-use action failed with exception: {e}")
-        return {"success": False, "error": str(e)}
-
-
-def start_execution_of_browser_use_action(context, prompt):
-    """Simplified browser-use execution wrapper."""
-
-    try:
-        # Prepare browser context
-        browser_context = {
-            'cdp_endpoint': context.websocket_url,
-            'session_id': getattr(context.browser, 'session_id', None),
-            'page_url': getattr(context.page, 'url', None) if hasattr(context, 'page') else None
-        }
-
-        # Execute with asyncio
-        nest_asyncio.apply()
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(
-            execute_browser_use_action(context, prompt, browser_context)
-        )
-
-        return result.get("success", False), result
-
-    except Exception as e:
-        logger.exception(f"Browser-use execution failed: {e}")
-        raise CustomError(f"Browser-use execution error: {str(e)}")
 
 
 
@@ -562,7 +340,7 @@ def execute_ai_action(context, prompt):
         send_step_details(context, f"Executing Browser-Use action")
 
         # Execute the streamlined browser-use action
-        is_success, response = start_execution_of_browser_use_action(context, prompt)
+        is_success, response = execute_browser_use_action(context, prompt)
 
         # Check if this is a configuration error
         if isinstance(response, dict) and response.get("skip"):

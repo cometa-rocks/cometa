@@ -150,7 +150,7 @@
   }
 }
 
-// Browser-Use Logs - Following error-row pattern with AI theme
+// Browser-Use Logs
 .browser-use-logs-row {
   margin: 4px 0;
   background-color: $info-background-feature-item;
@@ -244,7 +244,7 @@
         color: inherit;
       }
 
-      // Bold formatting for browser-use key patterns (without ::ng-deep)
+      // Bold formatting for browser-use key patterns
       .log-message b {
         font-weight: 600;
         color: $mobile-information-color;
