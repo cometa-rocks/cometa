@@ -1,6 +1,6 @@
 {
-  "version": "3.0.99",
-  "stable_version": "3.0.99",
+  "version": "3.0.103",
+  "stable_version": "3.0.103",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,54 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.103",
+      "date": "2025-09-17",
+      "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Implement dynamic version display - #6847",
+          "description": "Implement dynamic version display in header and footer."
+        },
+        {
+          "title": "Enhance dialog of variables - #6850",
+          "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
+        }
+      ]
+    },
+    {
+      "version": "3.0.102",
+      "date": "2025-09-16",
+      "features": [
+        {
+          "title": "Fixed issue with Step Make an api call - #6824",
+          "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        }
+      ]
+    },
+    {
+      "version": "3.0.101",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Fixed issue with API data display - #6832",
+          "description": "Fixed issue with API data display, now it shows the API data in the JSON view."
+        }
+      ]
+    },
+    {
+      "version": "3.0.100",
+      "date": "2025-09-12",
+      "features": [
+        {
+          "title": "Add and enhance Step descriptions and examples in step actions - #6777",
+          "description": "Enhance step descriptions and examples for database and mobile actions and api"
+        }
+      ]
+    },
     {
       "version": "3.0.99",
       "date": "2025-09-10",

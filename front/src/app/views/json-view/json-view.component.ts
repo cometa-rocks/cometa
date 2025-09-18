@@ -23,6 +23,7 @@ import {
 } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'json-viewer',
@@ -44,7 +45,8 @@ export class JsonViewerComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<JsonViewerComponent>,
     private _api: ApiService,
-    private _sanitizer: DomSanitizer
+    private _sanitizer: DomSanitizer,
+    private log: LogService
   ) {}
 
   ngOnInit(): void {
@@ -71,18 +73,24 @@ export class JsonViewerComponent implements OnInit {
     }
 
     // If the content is a step variable, show it accordingly in the dialog
-    this.isStepVariableContent = this.data.responses.variable_name !== undefined;
+    this.isStepVariableContent = this.data?.responses?.variable_name !== undefined;
       
     // If it's a step variable, use the variable value as a data
     if (this.isStepVariableContent) {
       this.dataToProcess = this.data.responses.variable_value;
+      this.log.msg('4', '=== dataToProcess() === If --> Data to process: ', 'json-view', this.dataToProcess);
     }
     else if (this.data.call) {  
       this.dataToProcess = this.data.call;
+      this.log.msg('4', '=== dataToProcess() === Else if -->Data to process: ', 'json-view', this.dataToProcess);
     }
     else {
-      this.dataToProcess = this.data.responses || {};
+      this.dataToProcess = this.data?.responses || {};
+      this.log.msg('4', '=== dataToProcess() === Else --> Data to process: ', 'json-view', this.dataToProcess);
     }
+
+    this.log.msg('4', '=== dataToProcess() === Final Data to process: ', 'json-view', this.dataToProcess);
+   
 
     this.jq_filter$
       .pipe(

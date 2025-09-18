@@ -193,7 +193,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   touchStartX: number = 0;
   isDragging: boolean = false;
 
-  @ViewChildren(MatListItem, { read: ElementRef })
+  @ViewChildren('customAutocompleteOption', { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
   @ViewChild('variable_name', { read: ElementRef, static: false })
@@ -1334,8 +1334,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
       // when flyout of variables opens up, by default the selected element will be the first one
       setTimeout(() => {
-        const firstVariableRef = this.varlistItems.toArray()[0].nativeElement;
-        this.renderer.addClass(firstVariableRef, 'selected');
+        const varlistItemsArray = this.varlistItems.toArray();
+        if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
+          const firstVariableRef = varlistItemsArray[0].nativeElement;
+          this.renderer.addClass(firstVariableRef, 'selected');
+        }
       }, 0);
     }
   }
@@ -1581,12 +1584,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
-  @HostListener('document:keydown', ['$event'])
-  handleGlobalKeyDown(event: KeyboardEvent): void {
+  @HostListener('keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
     const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
     if (!isEscape) {
       return;
     }
+
+    this.closeVariableDropdown();
 
     // Close filePathAutocompletePanel
     if (this.showFilePathAutocomplete) {
@@ -2355,28 +2360,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
   }
 
+
+  // This is a function to check if the step is an API call step
+  // It is used to show the collapsed API call in the step editor
   stepStates: { [key: number]: StepState } = {};
   isApiCallStep(index: number): boolean {
+    // If uncommented, it will log the index infite times (Ng if of textarea doing this)
+    // this.logger.msg('4', '=== isApiCallStep() === Index: ', 'step-editor', index);
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
     return content?.includes('Make an API call');
   }
 
+  // This is a function to check if the step is being edited
+  // It is used to show the API call dialog when the user clicks on the API call step
   isEditingApiCall(index: number): boolean {
+    this.logger.msg('4', '=== isEditingApiCall() === Index: ', 'step-editor', index);
     return this.editingApiCallIndex === index;
   }
 
+  // This is a function to expand the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   expandApiCall(index: number): void {
+    this.logger.msg('4', '=== expandApiCall() === Index: ', 'step-editor', index);
     this.editingApiCallIndex = index;
     this._cdr.detectChanges();
   }
 
+  // This is a function to get the collapsed API call content
+  // It is used to show the API call dialog when the user clicks on the API call step
   getCollapsedApiCall(index: number): string {
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    this.logger.msg('4', `=== getCollapsedApiCall(${index}) === Content: "${content}"`, 'step-editor');
     if (!content) return '';
     return content;
   }
 
+  // This is a function to edit the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   editApiCall(item: any) {
+    this.logger.msg('4', '=== editApiCall() === Item: ', 'step-editor', item);
     if (!this.isApiCallStep(item)) {
       return;
     }
@@ -3399,4 +3421,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
     }
   }
+
+  // Method to close variable dropdown
+  closeVariableDropdown(): void {
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this._cdr.detectChanges();
+  }
+
+  // To do: When variable dropdown is in last step, it should be reversed
+  // [class.reverse]="shouldReverseDropdown(stepVariableData.currentStepIndex)"
+  
 }

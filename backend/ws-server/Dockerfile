@@ -4,6 +4,8 @@ FROM node:22
 # Create cometa user/group (uid/gid 1472) and set working directory
 RUN groupadd -g 1472 cometa \
     && useradd -u 1472 -g cometa -m cometa -s /bin/bash
+    
+RUN npm install -g pm2
 
 # Set the working directory inside the container
 WORKDIR /home/cometa/app
