@@ -25,6 +25,7 @@
         "team_drives": "Upcoming feature",
         "recent": "The last tests you have run",
         "starred": "Upcoming feature",
+        "metrics": "Feature Metrics Usage",
         "trash_bin": "Upcoming feature"
     },
     "data_driven": {
@@ -220,10 +221,6 @@
     "failureSteps": "Show all steps",
     "noFailureSteps": "No failed steps"
   },
-  "mainView": {
-    "allResults": "Show all features",
-    "failureResults": "Show all failed features"
-  },
   "feature": {
     "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
     "not_starred": "Add to favorites"
@@ -249,5 +246,8 @@
   "mobile_validation": {
     "ignore_tooltip": "If you ignore, the changes will be saved with the current mobile reference errors",
     "correct_tooltip": "Navigate to the problematic step to fix the mobile reference error"
+  },
+  "changelog": {
+    "close": "To close dialog press: ESC"
   }
 }

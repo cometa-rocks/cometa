@@ -3,6 +3,7 @@ import {
   AsyncPipe,
   NgClass,
   NgIf,
+  NgFor,
   NgStyle,
   TitleCasePipe,
 } from '@angular/common';
@@ -23,11 +24,13 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
+import { BrowserUseLogService, BrowserUseLogEntry } from '@services/browser-use-log.service';
 import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LetDirective } from '../../../directives/ng-let.directive';
 import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
+import { DatePipe } from '@angular/common';
 
 @UntilDestroy()
 @Component({
@@ -59,25 +62,32 @@ import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
     NgClass,
     MatLegacyTooltipModule,
     NgIf,
+    NgFor,
     MatIconModule,
     NgStyle,
     AsyncPipe,
     TitleCasePipe,
     TruncateApiBodyPipe,
+    DatePipe,
   ],
 })
 export class LiveStepComponent implements OnInit {
   status$ = new BehaviorSubject<string>('waiting');
 
   error$ = new BehaviorSubject<string>('');
-  
+
   healingData$ = new BehaviorSubject<HealeniumData | undefined>(undefined);
+
+  // AI Logs properties
+  aiLogs$: Observable<BrowserUseLogEntry[]>;
+  showAILogs = true;
 
   constructor(
     private _store: Store,
     private _dialog: MatDialog,
     private _sanitizer: DomSanitizer,
-    private _api: ApiService
+    private _api: ApiService,
+    private _browserUseLogService: BrowserUseLogService
   ) {}
 
   @Input() step: FeatureStep;
@@ -98,6 +108,12 @@ export class LiveStepComponent implements OnInit {
   rest_api: number;
 
   ngOnInit() {
+    // Initialize AI logs observable for this step
+    this.aiLogs$ = this._browserUseLogService.getLogsForStep(
+      this.feature_result_id,
+      this.index
+    );
+
     this.details$ = this._store.select(
       CustomSelectors.GetLastFeatureRunDetails(
         this.feature_id,
@@ -188,5 +204,65 @@ Original: By.${healingData.original_selector.type}(${healingData.original_select
 Healed: By.${healingData.healed_selector.type}(${healingData.healed_selector.value})
 Method: Score-based Tree Comparison
 Time: +${healingData.healing_duration_ms}ms`;
+  }
+
+  // Check if this step is an AI Agent action
+  isAIAgentStep(): boolean {
+    return this.step?.step_content?.includes('Execute AI agent action') || false;
+  }
+
+  // Toggle AI logs visibility
+  toggleAILogs(): void {
+    this.showAILogs = !this.showAILogs;
+  }
+
+  // Format browser-use log messages with bold key patterns
+  formatBrowserUseLog(message: string): any {
+    // Only format browser-use specific patterns
+    const patterns = [
+      'Next goal:',
+      'Eval:',
+      'Verdict:',
+      'Task:',
+      'Final Result:',
+      // Action patterns
+      /\[ACTION \d+\/\d+\]/g,
+      // Specific action names
+      'click_element_by_index:',
+      'input_text:',
+      'go_to_url:',
+      'wait:',
+      'done:',
+      'scroll:',
+      'extract_text:',
+      // Action parameters
+      'index:',
+      'text:',
+      'url:',
+      'seconds:',
+      'new_tab:',
+      'clear_existing:',
+      'while_holding_ctrl:',
+      'success:',
+      'files_to_display:'
+    ];
+
+    // First escape any HTML to prevent injection
+    let formattedMessage = message.replace(/&/g, '&amp;')
+                                  .replace(/</g, '&lt;')
+                                  .replace(/>/g, '&gt;');
+
+    // Now apply bold formatting
+    patterns.forEach(pattern => {
+      if (pattern instanceof RegExp) {
+        formattedMessage = formattedMessage.replace(pattern, '<b>$&</b>');
+      } else {
+        // Escape special regex characters in the pattern
+        const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        formattedMessage = formattedMessage.replace(new RegExp(escapedPattern, 'g'), `<b>${pattern}</b>`);
+      }
+    });
+
+    return this._sanitizer.sanitize(1, formattedMessage); // 1 is SecurityContext.HTML
   }
 }

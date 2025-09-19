@@ -1,4 +1,7 @@
 import ollama
+from src.utility.common import get_logger
+
+logger = get_logger()
 
 
 
@@ -61,10 +64,10 @@ llava_res = ollama.chat(
 )
 
 
-print("\n######################################")
-print("Image summary message",end="->")
-print(llava_res["message"]["content"])
-print("######################################\n")
+logger.info("======================================")
+logger.info("Image summary message")
+logger.info(llava_res["message"]["content"])
+logger.info("======================================")
 
 messages = [
     {
@@ -84,7 +87,7 @@ llama3_res = ollama.chat(
     ]
 )
 
-print("\n######################################")
-print("Question summary")
-print(llama3_res["message"]["content"])
-print("######################################\n")
+logger.info("======================================")
+logger.info("Question summary")
+logger.info(llama3_res["message"]["content"])
+logger.info("======================================")

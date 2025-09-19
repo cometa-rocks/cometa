@@ -266,10 +266,10 @@ class DockerServiceManager:
 
                 # Stop the container if it's running or restarting
                 if status in ['running', 'restarting']:
-                    logger.info(f"Stopping container {service_name_or_id} (state: {status})")
-                    container.stop(timeout=10)
+                    logger.info(f"Killing container {service_name_or_id} (state: {status})")
+                    container.stop(timeout=20)
                     # Wait for container to stop
-                    for _ in range(5):
+                    for _ in range(25):
                         container.reload()
                         status = container.attrs.get('State', {}).get('Status', 'unknown')
                         if status == 'exited':
@@ -290,14 +290,14 @@ class DockerServiceManager:
                 return True, f"Container not found: {service_name_or_id}"
             except Exception as e:
                 if "is already in progress" in str(e):
-                    logger.info(f"Container {service_name_or_id} is already in progress. Skipping deletion.")
-                    return True, f"Container {service_name_or_id} is already in progress. Skipping deletion."
+                    logger.info(f"Container {service_name_or_id} is already in progress.")
+                    # return True, f"Container {service_name_or_id} is already in progress. Skipping deletion."
                 logger.error(f"Error deleting container {service_name_or_id} on attempt {attempt}: {str(e)}")
-                traceback.print_exc()
                 if attempt < max_delete_attempts:
                     logger.info(f"Retrying deletion in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                 else:
+                    traceback.print_exc()
                     logger.error(f"Max delete attempts reached for {service_name_or_id}. Giving up.")
                     return False, f"Failed to delete container after {max_delete_attempts} attempts: {str(e)}"
 
@@ -653,7 +653,12 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
+# to initialize the service manager for runserver as by default DockerServiceManager
+service_manager = DockerServiceManager
+    
+if 'runserver' in sys.argv:
+    logger.debug("Loading service manager for runserver")
+    service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
 
 class ServiceManager(service_manager):
     def __init__(self, *args, **kwargs):

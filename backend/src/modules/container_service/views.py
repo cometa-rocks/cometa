@@ -316,7 +316,8 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
 # - Any other unexpected errors will result in a 500 "Internal Server Error" response.
 # #########
 @csrf_exempt
-def emulator_proxy_view(request, emulator_id, remaining_path):
+@require_permissions("manage_mobiles")
+def emulator_proxy_view(request, emulator_id, remaining_path,*args, **kwargs):
     try:
         user_info = request.session["user"]
         filter_values = {

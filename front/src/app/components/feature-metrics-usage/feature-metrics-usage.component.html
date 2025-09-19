@@ -1,0 +1,121 @@
+<!-- Feature metric usage
+
+Component containing metrics usage
+
+Author: Redouan Nati -->
+<div class="container">
+    <!-- Title of the page -->
+    <h2>Feature Metrics Usage</h2>
+    <!-- Newer datatable -->
+    <div class="usage-metrics-container">
+
+        <!-- Loading State -->
+        <div *ngIf="loading" class="loading-container">
+            <div class="loading-content">
+                <mat-spinner diameter="64" color="primary"></mat-spinner>
+                <h3 class="loading-title">Loading Usage Statistics</h3>
+                <p class="loading-subtitle">Fetching the latest execution data...</p>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error && !loading" class="error-container">
+            <div class="error-content">
+                <mat-icon class="error-icon">error_outline</mat-icon>
+                <h3 class="error-title">Oops! Something went wrong</h3>
+                <p class="error-message">{{ error }}</p>
+                <button mat-raised-button color="primary" (click)="loadUsageStatistics()" class="retry-button">
+                    <mat-icon>refresh</mat-icon>
+                    Try Again
+                </button>
+            </div>
+        </div>
+
+        <!-- Average Execution Time Card -->
+        <mat-card  *ngIf="statistics && !loading && !error" class="metric-card average-time-card">
+            <mat-card-header>
+                <mat-card-title>
+                Average Execution Time
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-content">
+                <div class="metric-value-group">
+                    <mat-icon class="metric-icon">timer</mat-icon>
+                    <span class="metric-value-large">{{ formatNumber(statistics.average_execution_time_ms) }}</span>
+                    <span class="metric-unit">ms</span>
+                </div>
+                <div class="metric-value-group">
+                    <mat-icon class="metric-icon">timer</mat-icon>
+                    <span class="metric-value-small">{{ formatNumber(statistics.average_execution_time_s) }}</span>
+                    <span class="metric-unit">seconds</span>
+                </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Total Execution Time Card -->
+        <mat-card  *ngIf="statistics && !loading && !error" class="metric-card total-time-card">
+            <mat-card-header>
+                <mat-card-title>
+                Total Execution Time
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <!-- Show Days & Hours -->
+                        <div class="metric-unit">Days & Hours</div>
+                        <div class="metric-value">{{ formatHoursToDays(statistics.total_execution_time_h) }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <!-- Show Hours & Minutes -->
+                        <div class="metric-unit">Hours & Minutes</div>
+                        <div class="metric-value">{{ formatMinutesToHours(statistics.total_execution_time_m) }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <!-- Show Minutes & Seconds -->
+                        <div class="metric-unit">Minutes & Seconds</div>
+                        <div class="metric-value">{{ formatSecondsToMinutes(statistics.total_execution_time_s) }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <!-- Show Seconds -->
+                        <div class="metric-unit">Seconds</div>
+                        <div class="metric-value">{{ formatMillisecondsToSeconds(statistics.total_execution_time_ms) }}</div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Total Tests Executed Card -->
+        <mat-card  *ngIf="statistics && !loading && !error" class="metric-card tests-executed-card">
+            <mat-card-header>
+                <mat-card-title>
+                Total Tests Executed
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-content-single">
+                    <mat-icon class="metric-icon-large">play_arrow</mat-icon>
+                    <span class="metric-value-large">{{ formatNumber(statistics.total_tests_executed) }}</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Total Number of Features Card -->
+        <mat-card  *ngIf="statistics && !loading && !error" class="metric-card features-card">
+            <mat-card-header>
+                <mat-card-title>
+                Total Features
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metric-content-single">
+                    <mat-icon class="metric-icon-large">functions</mat-icon>
+                    <span class="metric-value-large">{{ formatNumber(statistics.total_number_features) }}</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+    </div>
+</div>

@@ -22,7 +22,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-
+import { LogService } from '@services/log.service';
 interface TableData {
   rows: FeatureData[];
   featureCount: number;
@@ -49,21 +49,26 @@ export class L1FeatureStarredListComponent implements OnInit {
   @Input() data$?: Observable<TableData>;
   starredFeatures$: Observable<FeatureData[]> = of([]);
   groupedFeatures$!: Observable<Map<string, FeatureData[]>>;
+  
   selectedDepartment: string = '';
   departments: string[] = [];
   private selectedDepartment$ = new BehaviorSubject<string>('');
+
+
   @ViewChild('readmeButton') readmeButton!: ElementRef;
   showReadme: boolean = false;
   popupPosition = { x: 0, y: 0 };
 
   constructor(
     private starredService: StarredService,
-    private store: Store
+    private store: Store,
+    private log: LogService
   ) {}
 
   ngOnInit() {
     // If data$ is not provided, use an empty observable
     const inputData$ = this.data$ || of({ rows: [], featureCount: 0, folderCount: 0, last_update: '' });
+
 
     // Get departments from user state
     this.store.select<Department[]>(UserState.RetrieveUserDepartments).subscribe(departments => {
@@ -74,6 +79,7 @@ export class L1FeatureStarredListComponent implements OnInit {
       this.selectedDepartment$.next(savedDepartment);
     });
 
+    // Combine the starred features, the input data and the selected department
     this.starredFeatures$ = combineLatest([
       this.starredService.starredFeatures$,
       inputData$,
@@ -90,6 +96,10 @@ export class L1FeatureStarredListComponent implements OnInit {
         return filtered;
       })
     );
+
+    this.starredFeatures$.subscribe(features => {
+      this.log.msg('4', 'starredfeatures', 'l1-feature-starred-list.component', features);
+    });
 
     // Initialize groupedFeatures$ after starredFeatures$ is set up
     this.groupedFeatures$ = this.starredFeatures$.pipe(

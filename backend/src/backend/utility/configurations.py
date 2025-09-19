@@ -116,10 +116,14 @@ default_cometa_configurations = {
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
     "OLLAMA_AI_SECRET_KEY":"",
-    "COMETA_BROWSER_MAX_VERSIONS": 3
+    "COMETA_BROWSER_MAX_VERSIONS": 3,
+    "COMETA_BROWSER_USE_MODE": "openai",  # Options: 'openai' or 'ollama'
+    "COMETA_BROWSER_USE_MODEL": "o4-mini-2025-04-16",
+    "OLLAMA_BROWSER_USE_MODEL": "llama3.1:8b",
+    "DEFAULT_VALUES_LOADED": False
 }
 
-public_configuraion_values = [
+public_configuration_values = [
     "COMETA_FEATURE_AI_ENABLED", 
     "COMETA_FEATURE_DATABASE_ENABLED", 
     "COMETA_FEATURE_MOBILE_TEST_ENABLED",
@@ -251,7 +255,7 @@ class ConfigurationManager:
             # Filter out built-in attributes
             configuration_type = "backend"
             
-            if configuration_name in public_configuraion_values:
+            if configuration_name in public_configuration_values:
                 configuration_type = "all"
 
             query = f"""
@@ -296,7 +300,7 @@ class ConfigurationManager:
 
     # Load configuration from db to memory which is later used in the entire cometa_backend
     def load_configuration_from_db(self):
-        logger.info("Loading configurations from the database to memory")
+        # logger.info("Loading configurations from the database to memory")
         
         # Define the SQL query to load all configurations
         query = """
@@ -340,6 +344,21 @@ class ConfigurationManager:
                 "default_value": configuration_value,
                 "encrypted": False,
             }
+
+    @classmethod
+    def update_configuration_in_db(self, configuration_name, configuration_value, encrypted=False):
+        
+        conf = ConfigurationManager()
+        conf.create_db_connection()
+        updated_on = timezone.now()
+        string_query = f"Update configuration_configuration set configuration_value = '{configuration_value}', updated_on = '{updated_on}', encrypted = {encrypted} where configuration_name = '{configuration_name}';"
+        # Generate the SQL query
+        query = sql.SQL(string_query)
+        # Execute the query
+        conf.__sql_cursor.execute(query)
+        conf.__db_connection.commit()
+        conf.close_db_connection()
+        logger.info(f"Updated configuration {configuration_name}:{configuration_value} in the database")
 
     @classmethod
     def get_configuration(cls, key: str, default=""):
