@@ -100,3 +100,22 @@
   <div class="error-header">Error Details:</div>
   <div class="error-message">{{ error }}</div>
 </div>
+<!-- Browser-Use AI Agent Logs for this step -->
+<div class="browser-use-logs-row" *ngIf="isAIAgentStep() && (aiLogs$ | async) as logs" [hidden]="!logs || logs.length === 0">
+  <div class="logs-header" (click)="toggleAILogs()">
+    <mat-icon class="expand-icon" [class.expanded]="showAILogs">expand_more</mat-icon>
+    <mat-icon class="ai-icon">smart_toy</mat-icon>
+    <span class="logs-title">AI Agent Logs</span>
+  </div>
+  <div class="logs-container" *ngIf="showAILogs">
+    <div
+      class="log-entry"
+      [ngClass]="'log-' + log.level"
+      [attr.data-is-step-indicator]="log.message.includes('📍 Step') ? 'true' : null"
+      *ngFor="let log of logs"
+    >
+      <span class="log-timestamp">{{ log.timestamp | date:'HH:mm:ss' }}</span>
+      <span class="log-message" [innerHTML]="formatBrowserUseLog(log.message)"></span>
+    </div>
+  </div>
+</div>

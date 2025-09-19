@@ -112,7 +112,7 @@ class HealeniumClient:
                 },
                 network=config["network"],
                 detach=True,
-                remove=False
+                remove=True
             )
             
             self.proxy_container = proxy_container
@@ -476,6 +476,14 @@ class HealeniumClient:
         return enable_healenium
 
 
+    def _check_backend_available(self) -> bool:
+        """Check if Healenium backend services are reachable"""
+        try:
+            response = requests.get(f"{HEALENIUM_CONFIG['backend_url']}/actuator/health", timeout=1)
+            return response.status_code == 200
+        except:
+            return False
+
     def setup_healenium_proxy(self, context, container_info, use_cometa_browser_images=True):
         """
         Setup Healenium proxy if enabled and return appropriate connection URL.
@@ -494,6 +502,12 @@ class HealeniumClient:
             else:
                 logger.info(f"Healenium {'enabled' if context.healenium_enabled else 'disabled'} - using lazy activation for zero startup impact")
                 return f"http://{context.browser_hub_url}:4444/wd/hub"
+        
+        # Verify backend services are available
+        if not self._check_backend_available():
+            logger.warning("Healenium enabled but backend services unreachable - using direct connection")
+            context.healenium_enabled = False  # Disable for this session to prevent further attempts
+            return f"http://{context.browser_hub_url}:4444/wd/hub"
         
         if use_cometa_browser_images:
             logger.info("Healenium enabled - creating proxy synchronously")
@@ -667,10 +681,14 @@ class HealeniumClient:
             try:
                 logger.debug(f"Stopping proxy container: {self.proxy_container.name}")
                 self.proxy_container.stop(timeout=5)
-                self.proxy_container.remove(force=True)
+                # Try to remove, but it might already be gone due to remove=True
+                try:
+                    self.proxy_container.remove(force=True)
+                except docker.errors.NotFound:
+                    pass  # Container already removed, which is fine
                 logger.debug(f"Cleanup completed for: {self.proxy_container.name}")
             except Exception as e:
-                logger.error(f"Error cleaning up proxy: {e}")
+                logger.debug(f"Error during proxy cleanup (may be expected): {e}")
         
         self.proxy_info = None
         self.proxy_container = None
