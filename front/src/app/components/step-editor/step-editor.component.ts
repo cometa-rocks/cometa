@@ -1391,13 +1391,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       );
       
       this.logger.msg('4', '=== onStepChange() === Current field:', 'step-editor', currentField);
-      this.logger.msg('4', '=== onStepChange() === Current field contains $:', 'step-editor', currentField.includes('$'));
       
-      // Only show variables if the current field contains a dollar sign AND has a valid variable pattern
-      const hasValidVariable = currentField.includes('$') && /\$[a-zA-Z_][a-zA-Z0-9_]*/.test(currentField);
-      this.logger.msg('4', '=== onStepChange() === Current field has valid variable:', 'step-editor', hasValidVariable);
+      // Check if cursor is positioned near a $ symbol (within 20 characters)
+      const cursorPos = this.stepVariableData.selectionIndex - this.stepVariableData.quoteIndexes.prev;
+      const textAroundCursor = currentField.substring(Math.max(0, cursorPos - 20), Math.min(currentField.length, cursorPos + 20));
+      const hasDollarNearCursor = textAroundCursor.includes('$');
       
-      if (hasValidVariable) {
+      // Check if there's a valid variable pattern near the cursor
+      const hasValidVariableNearCursor = hasDollarNearCursor && /\$[a-zA-Z_][a-zA-Z0-9_]*/.test(textAroundCursor);
+      
+      // Also show variables if the field is just "$" (for starting a new variable)
+      const isJustDollar = currentField.trim() === '$' || currentField === '"$"' || currentField === '$';
+      
+      const shouldShowDialog = hasValidVariableNearCursor || isJustDollar;
+      this.logger.msg('4', '=== onStepChange() === Text around cursor:', 'step-editor', textAroundCursor);
+      this.logger.msg('4', '=== onStepChange() === Should show dialog:', 'step-editor', shouldShowDialog);
+      
+      if (shouldShowDialog) {
         this.logger.msg('4', '=== onStepChange() === Showing variables dialog', 'step-editor', '');
         // Do not display variables or the dialog if the step is "Run Javascript function"
         if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
@@ -1556,8 +1566,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           return { prev: prevCommaIndex, next: nextCommaIndex };
         }
         
-        // If no comma boundaries found in SQL context, don't use quotes - return undefined
-        return { prev: undefined, next: undefined };
+        // If no comma boundaries found in SQL context, fall back to using quotes
+        return { prev: prevQuoteIndex, next: nextQuoteIndex };
       }
       
       // If not SQL context or no comma boundaries found, use quotes
