@@ -240,8 +240,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Add a new property to track the initial dropdown position
   private initialDropdownPosition: number | null = null;
 
-  private stepDropdownPositions: { [key: number]: number } = {};
-
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -1152,11 +1150,47 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
-    step.setValue(
-      step.value.substr(0, this.stepVariableData.quoteIndexes.prev) +
-        `$${variable_name}` +
-        step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
+    const currentValue = step.value;
+    
+    this.logger.msg('4', '=== onClickVariable() === Original value:', 'step-editor', currentValue);
+    this.logger.msg('4', '=== onClickVariable() === Quote indexes:', 'step-editor', this.stepVariableData.quoteIndexes);
+    
+    // Get the content between quotes (including quotes)
+    const contentBetweenQuotes = currentValue.substring(
+      this.stepVariableData.quoteIndexes.prev,
+      this.stepVariableData.quoteIndexes.next
     );
+    
+    this.logger.msg('4', '=== onClickVariable() === Content between quotes:', 'step-editor', contentBetweenQuotes);
+    
+    // Remove quotes to get the inner content
+    const innerContent = contentBetweenQuotes.replace(/"/g, '');
+    
+    this.logger.msg('4', '=== onClickVariable() === Inner content:', 'step-editor', innerContent);
+    
+    // Replace the $ part with the selected variable, preserving any text after $
+    let newInnerContent;
+    if (innerContent.includes('$')) {
+      // Find the position of $ and replace everything from $ onwards
+      const dollarIndex = innerContent.indexOf('$');
+      newInnerContent = innerContent.substring(0, dollarIndex) + `$${variable_name}`;
+      this.logger.msg('4', '=== onClickVariable() === Dollar found at index:', 'step-editor', dollarIndex);
+    } else {
+      // If no $ found, just add the variable
+      newInnerContent = innerContent + `$${variable_name}`;
+      this.logger.msg('4', '=== onClickVariable() === No dollar found, appending:', 'step-editor', '');
+    }
+    
+    this.logger.msg('4', '=== onClickVariable() === New inner content:', 'step-editor', newInnerContent);
+    
+    // Reconstruct the full text with quotes preserved
+    const newValue = currentValue.substring(0, this.stepVariableData.quoteIndexes.prev) +
+                    `"${newInnerContent}"` +
+                    currentValue.substring(this.stepVariableData.quoteIndexes.next);
+    
+    this.logger.msg('4', '=== onClickVariable() === Final value:', 'step-editor', newValue);
+    
+    step.setValue(newValue);
 
     this.stepVariableData.currentStepIndex = null;
   }
@@ -1190,17 +1224,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   onStepChange(event, index: number) {
     this.displayedVariables = [];
-    // Save the current step index before resetting
-    const previousStepIndex = this.stepVariableData.currentStepIndex;
     this.stepVariableData = {};
-    
+
     // Only reset position when changing steps, not when typing
-    if (previousStepIndex !== index) {
+    if (this.stepVariableData.currentStepIndex !== index) {
       this.initialDropdownPosition = null;
     }
 
     const textarea = event.target as HTMLTextAreaElement;
-    this.updateTextareaResize(index); // Update resize state on input
+    // Update resize state on input but preserve dropdown position
+    this.updateTextareaResize(index);
     const textareaValue = textarea.value.trim();
 
     // Filter actions based on input
@@ -1339,8 +1372,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.logger.msg('4', '=== onStepChange() === Str to replace:', 'step-editor', this.stepVariableData.strToReplace);
     this.logger.msg('4', '=== onStepChange() === Str without quotes:', 'step-editor', this.stepVariableData.strWithoutQuotes);
 
-    // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
-    if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+    // Check if cursor is actually between quotes and if the string contains a dollar sign
+    // Also verify that the cursor position is within the quote range
+    const cursorBetweenQuotes = this.stepVariableData.selectionIndex > this.stepVariableData.quoteIndexes.prev && 
+                                this.stepVariableData.selectionIndex < this.stepVariableData.quoteIndexes.next;
+    
+    this.logger.msg('4', '=== onStepChange() === Cursor between quotes:', 'step-editor', cursorBetweenQuotes);
+    this.logger.msg('4', '=== onStepChange() === Cursor position:', 'step-editor', this.stepVariableData.selectionIndex);
+    this.logger.msg('4', '=== onStepChange() === Quote range:', 'step-editor', `${this.stepVariableData.quoteIndexes.prev} - ${this.stepVariableData.quoteIndexes.next}`);
+    
+    if (this.stepVariableData.strWithoutQuotes.includes('$') && cursorBetweenQuotes) {
       // Do not display variables or the dialog if the step is "Run Javascript function"
       if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
         this.displayedVariables = [];
@@ -1358,23 +1399,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
 
       // Set initial position only when dropdown first appears (when it was not visible before)
-      if (!this.stepDropdownPositions.hasOwnProperty(index)) {
+      if (this.initialDropdownPosition === null) {
+
         const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
         const textarea = textareas[index] as HTMLTextAreaElement;
         const stepContent = textarea.closest('.step_content') as HTMLElement;
         const stepContentHeight = stepContent.offsetHeight + 10;
-  
-        // Calculate initial position based on current filtered variables and position
-        this.stepDropdownPositions[index] = index === 0 
-          ? (filteredVariables.length > 4 ? stepContentHeight : filteredVariables.length * 30 + 40)  
-          : (filteredVariables.length > 4 ? -160 : -filteredVariables.length * 30 - 40);
-      }
-  
-      // Use the stored position for this step
-      this.initialDropdownPosition = this.stepDropdownPositions[index];
+
+        this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
+
+        // Calculate initial position based on step index only to prevent shifts when typing
+        // Use a fixed calculation that doesn't depend on filtered variables count
+        this.initialDropdownPosition = index === 0 
+          ? stepContentHeight  // For first step, position below
+          : -160;              // For other steps, position above with fixed offset
           
         this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
-      
+      }
+      // If position is already set, keep it stable - don't recalculate
 
       this.displayedVariables =
         filteredVariables.length > 0
@@ -1430,20 +1472,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
   getIndexes(str, startIndex): QuoteIndexes {
-    let prevQuoteIndex = getPrev();
-    let nextQuoteIndex = getNext();
+    let prevQuoteIndex = getPrevQuote();
+    let nextQuoteIndex = getNextQuote();
 
     // returns the index of the nearest " that is positioned after received index
-    function getNext(): number {
+    function getNextQuote(): number {
       for (let i = startIndex; i < str.length; i++) {
         if (str[i] === '"') return i + 1;
       }
     }
 
-    // returns the index of the nearest $ that is positioned before received index
-    function getPrev(): number {
+    // returns the index of the nearest " that is positioned before received index
+    function getPrevQuote(): number {
       for (let i = startIndex - 1; i >= 0; i--) {
-        if (str[i] === '$') return i;
+        if (str[i] === '"') return i;
       }
     }
 
