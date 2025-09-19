@@ -240,6 +240,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Add a new property to track the initial dropdown position
   private initialDropdownPosition: number | null = null;
 
+  private stepDropdownPositions: { [key: number]: number } = {};
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -1356,22 +1358,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
 
       // Set initial position only when dropdown first appears (when it was not visible before)
-      if (this.initialDropdownPosition === null) {
-
+      if (!this.stepDropdownPositions.hasOwnProperty(index)) {
         const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
         const textarea = textareas[index] as HTMLTextAreaElement;
         const stepContent = textarea.closest('.step_content') as HTMLElement;
         const stepContentHeight = stepContent.offsetHeight + 10;
-
-        this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
-
+  
         // Calculate initial position based on current filtered variables and position
-        this.initialDropdownPosition = index === 0 
+        this.stepDropdownPositions[index] = index === 0 
           ? (filteredVariables.length > 4 ? stepContentHeight : filteredVariables.length * 30 + 40)  
           : (filteredVariables.length > 4 ? -160 : -filteredVariables.length * 30 - 40);
+      }
+  
+      // Use the stored position for this step
+      this.initialDropdownPosition = this.stepDropdownPositions[index];
           
         this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
-      }
+      
 
       this.displayedVariables =
         filteredVariables.length > 0
