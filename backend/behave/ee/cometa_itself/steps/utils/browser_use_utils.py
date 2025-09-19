@@ -179,6 +179,10 @@ async def execute_browser_action(context, prompt: str, browser_context: Dict[str
 
         finally:
             browser_logger.removeHandler(handler)
+            # Ensure browser is closed to prevent hanging jobs
+            with suppress(Exception):
+                if hasattr(browser, 'close'):
+                    await browser.close()
 
     except Exception as e:
         logger.exception(f"Browser-use failed: {e}")
@@ -201,9 +205,14 @@ def execute_browser_use_action(context, prompt: str) -> Tuple[bool, Dict[str, An
 
         nest_asyncio.apply()
         loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(execute_browser_action(context, prompt, browser_context))
-
-        return result.get("success", False), result
+        try:
+            result = loop.run_until_complete(execute_browser_action(context, prompt, browser_context))
+            return result.get("success", False), result
+        finally:
+            # Cleanup any pending tasks to prevent job hanging
+            pending = asyncio.all_tasks(loop)
+            for task in pending:
+                task.cancel()
 
     except Exception as e:
         logger.exception(f"Execution failed: {e}")
