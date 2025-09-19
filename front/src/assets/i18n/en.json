@@ -221,10 +221,6 @@
     "failureSteps": "Show all steps",
     "noFailureSteps": "No failed steps"
   },
-  "mainView": {
-    "allResults": "Show all features",
-    "failureResults": "Show all failed features"
-  },
   "feature": {
     "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
     "not_starred": "Add to favorites"

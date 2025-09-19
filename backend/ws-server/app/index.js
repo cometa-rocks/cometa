@@ -334,6 +334,34 @@ app.get('/feature/:feature_id/processing', (req, res) => {
   res.status(200).json({ success: true })
 })
 
+/* WS Endpoint: Browser-Use Real-time Logs */
+app.post('/feature/:feature_id/browserUseLogs', (req, res) => {
+  /**
+   * Required POST params:
+   *  - feature_id: ID of the Feature
+   *  - feature_result_id: Feature Result ID
+   *  - log_level: 'critical', 'progress', 'detail'
+   *  - message: Browser-use log message
+   *  - step_index: Step index in the feature
+   *  - timestamp: ISO timestamp
+   *  - user_id: User ID
+   */
+  const payload = {
+    type: '[WebSockets] Browser-Use Log',
+    feature_id: +req.params.feature_id,
+    feature_result_id: +req.body.feature_result_id,
+    log_level: req.body.log_level,
+    message: req.body.message,
+    step_index: +req.body.step_index || 0,  // Use step_index instead of step_counter
+    timestamp: req.body.timestamp,
+    user_id: +req.body.user_id
+  }
+
+  io.emit('browser_use_log', payload)
+  console.log('Browser-use log', +req.params.feature_id, 'Level:', req.body.log_level, 'Message:', req.body.message.substring(0, 50) + '...')
+  res.status(200).json({ success: true })
+})
+
 /* WS Endpoint: Feature has been finished */
 app.post('/feature/:feature_id/finished', (req, res) => {
   /**
@@ -347,6 +375,7 @@ app.post('/feature/:feature_id/finished', (req, res) => {
    *  - feature_result_info: FeatureResult --> FeatureResult object stored in the database
    *  - total_time: number --> How many milliseconds did the feature took?
    */
+
   const payload = {
     type: '[WebSockets] Finished Feature',
     feature_id: +req.params.feature_id,

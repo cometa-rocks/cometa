@@ -264,13 +264,23 @@ def add_step_to_feature_file(step, featureFile):
 
     if not insideLoop and re.search(r'^.*End Loop', step['step_content']):
         featureFile.write('\n\t\t\t"""')
+    
+    step_saved = False
 
     # before saving to the file check if step is javascript function if so save the content as step description
     if "Javascript" in step['step_content']:
         write_multiline_javascript_step(featureFile, step)
+        step_saved = True
     elif "Send keys" in step['step_content']:
         write_multiline_send_keys_step(featureFile, step)
-    else:
+        step_saved = True
+    # elif step['step_content'].strip().starts_with("Save "):
+    elif step['step_content'].strip().startswith("Save "):
+        # There might be case that there are other steps which starts with "Save "
+        # in that case return false and save step in a normal way
+        step_saved = write_multiline_save_value_step(featureFile, step)
+    
+    if not step_saved:
         featureFile.write('%s%s %s' % (startingIndent, step['step_keyword'], step['step_content'].replace('\\xa0', ' ').replace('\n', '')))
     
     if insideLoop and re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content']):
@@ -489,11 +499,37 @@ def write_multiline_send_keys_step(featureFile, step):
         startingIndent = "\t\t\t"
         quotes = "'''"
     # pattern to get all js code inside ""
-    js_function_pattern = re.search(r'Send keys "(.*)"', step['step_content'], re.MULTILINE|re.DOTALL)
+    send_keys_value_groups = re.search(r'Send keys "(.*)"', step['step_content'], re.MULTILINE|re.DOTALL)
     # get the code from the pattern
-    js_function = js_function_pattern.group(1)
+    actual_value = send_keys_value_groups.group(1)
     featureFile.write('\n%s%s %s\n' % (startingIndent, step['step_keyword'], u'Send keys "// text is set in step description!!"'.replace('\\xa0', ' ')))
-    featureFile.write('%s\t%s\n%s\t%s\n%s\t%s' % (startingIndent, quotes, startingIndent, js_function.replace("\n", "\n\t\t\t"), startingIndent, quotes))
+    featureFile.write('%s\t%s\n%s\t%s\n%s\t%s' % (startingIndent, quotes, startingIndent, actual_value.replace("\n", "\n\t\t\t"), startingIndent, quotes))
+
+def write_multiline_save_value_step(featureFile, step):
+    global insideLoop
+
+    startingIndent = "\t\t"
+    quotes = '"""'
+    if insideLoop:
+        startingIndent = "\t\t\t"
+        quotes = "'''"
+    # pattern to get all js code inside ""
+    variable_value_groups = re.search(r'Save "(.*)" to environment variable "(.*)"', step['step_content'], re.MULTILINE|re.DOTALL)
+    if not variable_value_groups:
+        variable_value_groups = re.search(r'Save "(.*)" to runtime variable "(.*)"', step['step_content'], re.MULTILINE|re.DOTALL)
+    
+    # If step does not match to any of those just return False
+    if not variable_value_groups:
+        return False
+
+    # get the code from the pattern
+    variable_value_group = variable_value_groups.group(1)
+    actual_step_value = step['step_content'].replace(variable_value_group, '// text is set in step description!!')
+    # Handle both literal escape sequences and actual Unicode characters
+    # actual_step_data = actual_step_data.decode('unicode_escape').replace('\\xa0', ' ')
+    featureFile.write('\n%s%s %s\n' % (startingIndent, step['step_keyword'], actual_step_value))
+    featureFile.write('%s\t%s\n%s\t%s\n%s\t%s' % (startingIndent, quotes, startingIndent, variable_value_group.replace("\n", "\n\t\t\t"), startingIndent, quotes))
+    return True
 
 # create_json_file
 # Creates the .json file

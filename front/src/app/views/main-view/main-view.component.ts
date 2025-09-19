@@ -340,6 +340,12 @@ export class MainViewComponent implements OnInit {
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
 
+              // Doing this preserve the user action in the button (failed features, show all results)
+              if(this.showingFiltered) {
+                this.log.msg('4', '=== getResults() === Showing filtered results: ', 'main-view', this.showingFiltered);
+                this.results = this.results.filter(result => result.status === 'Failed');
+              }
+
               this.checkIfThereAreFailedSteps();
             },
             error: err => {

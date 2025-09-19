@@ -237,6 +237,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
   dropdownActiveIndex: number = 0;
 
+  // Add a new property to track the initial dropdown position
+  private initialDropdownPosition: number | null = null;
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -610,6 +613,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // Only show dropdown if clicking directly on a placeholder text
     this.checkAndShowMobileDropdown(textarea, index, cursorPos);
+
+    // if the value includes $, show the variable dropdown
+    if (value.includes('$')) {
+      this.onStepChange(event as any, index);
+    }
   }
 
   /**
@@ -908,6 +916,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // maintains focus on text area while firing events on arrow keys to select variables
   onTextareaArrowKey(event: Event, direction: string, step) {
+
+    if (this.displayedVariables.length > 0) {
+      return; // Exit early if variable dropdown is open
+    }
+
     event.preventDefault();
 
     setTimeout(() => {
@@ -1173,10 +1186,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.displayedVariables = [];
   }
 
-
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
+
+    // Reset position when changing steps
+    this.initialDropdownPosition = null;
 
     const textarea = event.target as HTMLTextAreaElement;
     this.updateTextareaResize(index); // Update resize state on input
@@ -1272,10 +1287,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.stepsDocumentation[index].description === 'No documentation found for this step')) {
       this.loadStepDocumentation(index);
     }
-    
-
-
-
 
     this._cdr.detectChanges();
 
@@ -1294,12 +1305,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.stepVariableData.selectionIndex
     );
 
+    this.logger.msg('4', '=== onStepChange() === Quote indexes:', 'step-editor', this.stepVariableData.quoteIndexes);
+    this.logger.msg('4', '=== onStepChange() === Step value:', 'step-editor', this.stepVariableData.stepValue);
+    this.logger.msg('4', '=== onStepChange() === Selection index:', 'step-editor', this.stepVariableData.selectionIndex);
+
     // return if left quote or right quote index is undefined
     if (
       !this.stepVariableData.quoteIndexes.next ||
       !this.stepVariableData.quoteIndexes.prev
-    )
+    ) {
+      this.logger.msg('4', '=== onStepChange() === No quotes found, returning', 'step-editor', '');
       return;
+    }
 
     // gets the string between quotes(including quotes)
     this.stepVariableData.strToReplace =
@@ -1312,6 +1329,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.stepVariableData.strWithoutQuotes = this.stepVariableData.strToReplace
       .replace(/"/g, '')
       .trim();
+
+    this.logger.msg('4', '=== onStepChange() === Str to replace:', 'step-editor', this.stepVariableData.strToReplace);
+    this.logger.msg('4', '=== onStepChange() === Str without quotes:', 'step-editor', this.stepVariableData.strWithoutQuotes);
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
@@ -1327,11 +1347,36 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.stepVariableData.strWithoutQuotes.replace('$', '')
         )
       );
+
+      this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
+      this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
+
+      // Set initial position only when dropdown first appears (when it was not visible before)
+      if (this.initialDropdownPosition === null) {
+
+        const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
+        const textarea = textareas[index] as HTMLTextAreaElement;
+        const stepContent = textarea.closest('.step_content') as HTMLElement;
+        const stepContentHeight = stepContent.offsetHeight + 10;
+
+        this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
+
+        // Calculate initial position based on current filtered variables and position
+        this.initialDropdownPosition = index === 0 
+          ? (filteredVariables.length > 4 ? stepContentHeight : filteredVariables.length * 30 + 40)  
+          : (filteredVariables.length > 4 ? -160 : -filteredVariables.length * 30 - 40);
+          
+        this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+      }
+
       this.displayedVariables =
         filteredVariables.length > 0
           ? filteredVariables
           : ['No variable with this name'];
 
+      this.logger.msg('4', '=== onStepChange() === Displayed variables after assignment:', 'step-editor', this.displayedVariables);
+
+      this._cdr.detectChanges();
       // when flyout of variables opens up, by default the selected element will be the first one
       setTimeout(() => {
         const varlistItemsArray = this.varlistItems.toArray();
@@ -1340,6 +1385,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.renderer.addClass(firstVariableRef, 'selected');
         }
       }, 0);
+    }
+    else {
+      this.initialDropdownPosition = null;
     }
   }
 
