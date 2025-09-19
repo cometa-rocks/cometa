@@ -1353,7 +1353,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       !this.stepVariableData.quoteIndexes.next ||
       !this.stepVariableData.quoteIndexes.prev
     ) {
-      this.logger.msg('4', '=== onStepChange() === No quotes found, returning', 'step-editor', '');
+      this.logger.msg('4', '=== onStepChange() === No boundaries found, returning', 'step-editor', '');
       return;
     }
 
@@ -1372,73 +1372,112 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.logger.msg('4', '=== onStepChange() === Str to replace:', 'step-editor', this.stepVariableData.strToReplace);
     this.logger.msg('4', '=== onStepChange() === Str without quotes:', 'step-editor', this.stepVariableData.strWithoutQuotes);
 
-    // Check if cursor is actually between quotes and if the string contains a dollar sign
-    // Also verify that the cursor position is within the quote range
-    const cursorBetweenQuotes = this.stepVariableData.selectionIndex > this.stepVariableData.quoteIndexes.prev && 
-                                this.stepVariableData.selectionIndex < this.stepVariableData.quoteIndexes.next;
+    // Check if cursor is actually between boundaries (quotes or commas) and if the string contains a dollar sign
+    const cursorBetweenBoundaries = this.stepVariableData.quoteIndexes.prev !== undefined && 
+                                   this.stepVariableData.quoteIndexes.next !== undefined &&
+                                   this.stepVariableData.selectionIndex > this.stepVariableData.quoteIndexes.prev && 
+                                   this.stepVariableData.selectionIndex < this.stepVariableData.quoteIndexes.next;
     
-    this.logger.msg('4', '=== onStepChange() === Cursor between quotes:', 'step-editor', cursorBetweenQuotes);
+    this.logger.msg('4', '=== onStepChange() === Cursor between boundaries:', 'step-editor', cursorBetweenBoundaries);
     this.logger.msg('4', '=== onStepChange() === Cursor position:', 'step-editor', this.stepVariableData.selectionIndex);
-    this.logger.msg('4', '=== onStepChange() === Quote range:', 'step-editor', `${this.stepVariableData.quoteIndexes.prev} - ${this.stepVariableData.quoteIndexes.next}`);
+    this.logger.msg('4', '=== onStepChange() === Boundary range:', 'step-editor', `${this.stepVariableData.quoteIndexes.prev} - ${this.stepVariableData.quoteIndexes.next}`);
     
-    if (this.stepVariableData.strWithoutQuotes.includes('$') && cursorBetweenQuotes) {
-      // Do not display variables or the dialog if the step is "Run Javascript function"
-      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
-        this.displayedVariables = [];
-        this.stepVariableData.currentStepIndex = null;
-        return;
-      }
-
-      const filteredVariables = this.variables.filter(item =>
-        item.variable_name.includes(
-          this.stepVariableData.strWithoutQuotes.replace('$', '')
-        )
+    // Only proceed if cursor is between boundaries AND the current field contains a dollar sign
+    if (cursorBetweenBoundaries) {
+      // Check if the current field (between boundaries) actually contains a variable
+      const currentField = this.stepVariableData.stepValue.substring(
+        this.stepVariableData.quoteIndexes.prev, 
+        this.stepVariableData.quoteIndexes.next
       );
-
-      this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
-      this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
-
-      // Set initial position only when dropdown first appears (when it was not visible before)
-      if (this.initialDropdownPosition === null) {
-
-        const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
-        const textarea = textareas[index] as HTMLTextAreaElement;
-        const stepContent = textarea.closest('.step_content') as HTMLElement;
-        const stepContentHeight = stepContent.offsetHeight + 10;
-
-        this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
-
-        // Calculate initial position based on step index only to prevent shifts when typing
-        // Use a fixed calculation that doesn't depend on filtered variables count
-        this.initialDropdownPosition = index === 0 
-          ? stepContentHeight  // For first step, position below
-          : -160;              // For other steps, position above with fixed offset
-          
-        this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
-      }
-      // If position is already set, keep it stable - don't recalculate
-
-      this.displayedVariables =
-        filteredVariables.length > 0
-          ? filteredVariables
-          : ['No variable with this name'];
-
-      // Set current step index when dropdown opens
-      this.stepVariableData.currentStepIndex = index;
-
-      this.logger.msg('4', '=== onStepChange() === Displayed variables after assignment:', 'step-editor', this.displayedVariables);
-
-      this._cdr.detectChanges();
-      // when flyout of variables opens up, by default the selected element will be the first one
-      setTimeout(() => {
-        const varlistItemsArray = this.varlistItems.toArray();
-        if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
-          const firstVariableRef = varlistItemsArray[0].nativeElement;
-          this.renderer.addClass(firstVariableRef, 'selected');
+      
+      this.logger.msg('4', '=== onStepChange() === Current field:', 'step-editor', currentField);
+      this.logger.msg('4', '=== onStepChange() === Current field contains $:', 'step-editor', currentField.includes('$'));
+      
+      // Only show variables if the current field contains a dollar sign AND has a valid variable pattern
+      const hasValidVariable = currentField.includes('$') && /\$[a-zA-Z_][a-zA-Z0-9_]*/.test(currentField);
+      this.logger.msg('4', '=== onStepChange() === Current field has valid variable:', 'step-editor', hasValidVariable);
+      
+      if (hasValidVariable) {
+        this.logger.msg('4', '=== onStepChange() === Showing variables dialog', 'step-editor', '');
+        // Do not display variables or the dialog if the step is "Run Javascript function"
+        if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+          this.displayedVariables = [];
+          this.stepVariableData.currentStepIndex = null;
+          return;
         }
-      }, 0);
-    }
-    else {
+
+        // Extract variable name from current field
+        const variableMatch = currentField.match(/\$([a-zA-Z_][a-zA-Z0-9_]*)/);
+        const variableSearchTerm = variableMatch ? variableMatch[1] : this.stepVariableData.strWithoutQuotes.replace('$', '');
+        
+        this.logger.msg('4', '=== onStepChange() === Variable search term:', 'step-editor', variableSearchTerm);
+        this.logger.msg('4', '=== onStepChange() === Total variables available:', 'step-editor', this.variables.length);
+        this.logger.msg('4', '=== onStepChange() === All variables:', 'step-editor', this.variables.map(v => v.variable_name));
+        
+        // If search term is empty or too short, show all variables
+        let filteredVariables;
+        if (!variableSearchTerm || variableSearchTerm.length < 2) {
+          filteredVariables = this.variables;
+          this.logger.msg('4', '=== onStepChange() === Showing all variables (search term too short)', 'step-editor', '');
+        } else {
+          filteredVariables = this.variables.filter(item =>
+            item.variable_name.includes(variableSearchTerm)
+          );
+          
+          // If no exact matches found, show all variables for better UX
+          if (filteredVariables.length === 0) {
+            filteredVariables = this.variables;
+            this.logger.msg('4', '=== onStepChange() === No matches found, showing all variables', 'step-editor', '');
+          }
+        }
+
+        this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
+        this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
+
+        // Set initial position only when dropdown first appears (when it was not visible before)
+        if (this.initialDropdownPosition === null) {
+
+          const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
+          const textarea = textareas[index] as HTMLTextAreaElement;
+          const stepContent = textarea.closest('.step_content') as HTMLElement;
+          const stepContentHeight = stepContent.offsetHeight + 10;
+
+          this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
+
+          // Calculate initial position based on step index only to prevent shifts when typing
+          // Use a fixed calculation that doesn't depend on filtered variables count
+          this.initialDropdownPosition = index === 0 
+            ? stepContentHeight  // For first step, position below
+            : -160;              // For other steps, position above with fixed offset
+            
+          this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+        }
+        // If position is already set, keep it stable - don't recalculate
+
+        this.displayedVariables =
+          filteredVariables.length > 0
+            ? filteredVariables
+            : ['No variable with this name'];
+
+        // Set current step index when dropdown opens
+        this.stepVariableData.currentStepIndex = index;
+
+        this.logger.msg('4', '=== onStepChange() === Displayed variables after assignment:', 'step-editor', this.displayedVariables);
+
+        this._cdr.detectChanges();
+        // when flyout of variables opens up, by default the selected element will be the first one
+        setTimeout(() => {
+          const varlistItemsArray = this.varlistItems.toArray();
+          if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
+            const firstVariableRef = varlistItemsArray[0].nativeElement;
+            this.renderer.addClass(firstVariableRef, 'selected');
+          }
+        }, 0);
+      } else {
+        this.logger.msg('4', '=== onStepChange() === No valid variable in current field, not showing dialog', 'step-editor', '');
+      }
+    } else {
+      this.logger.msg('4', '=== onStepChange() === Cursor not between boundaries', 'step-editor', '');
       this.initialDropdownPosition = null;
     }
   }
@@ -1472,24 +1511,109 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
   getIndexes(str, startIndex): QuoteIndexes {
+    // First try to find quotes (for normal cases like "$variable")
     let prevQuoteIndex = getPrevQuote();
     let nextQuoteIndex = getNextQuote();
 
     // returns the index of the nearest " that is positioned after received index
-    function getNextQuote(): number {
+    function getNextQuote(): number | undefined {
       for (let i = startIndex; i < str.length; i++) {
         if (str[i] === '"') return i + 1;
       }
+      return undefined;
     }
 
     // returns the index of the nearest " that is positioned before received index
-    function getPrevQuote(): number {
+    function getPrevQuote(): number | undefined {
       for (let i = startIndex - 1; i >= 0; i--) {
         if (str[i] === '"') return i;
       }
+      return undefined;
     }
 
-    return { prev: prevQuoteIndex, next: nextQuoteIndex };
+    // If we found quotes and cursor is between them, check if we're in SQL context
+    if (prevQuoteIndex !== undefined && nextQuoteIndex !== undefined && 
+        startIndex > prevQuoteIndex && startIndex < nextQuoteIndex) {
+      
+      // Check if we're inside a SQL query by looking for SQL keywords
+      const textBetweenQuotes = str.substring(prevQuoteIndex, nextQuoteIndex - 1);
+      const isSQLContext = /INSERT\s+INTO|UPDATE|DELETE\s+FROM|SELECT/i.test(textBetweenQuotes);
+      
+      if (isSQLContext) {
+        // For SQL context, try to find comma boundaries within the quoted text
+        let prevCommaIndex = getPrevCommaWithinQuotes(prevQuoteIndex, nextQuoteIndex);
+        let nextCommaIndex = getNextCommaWithinQuotes(prevQuoteIndex, nextQuoteIndex);
+        
+        // If we found comma boundaries, use them instead of quotes
+        if (prevCommaIndex !== undefined && nextCommaIndex !== undefined) {
+          // Skip whitespace and trailing characters around comma/parenthesis boundaries
+          while (prevCommaIndex < str.length && /\s/.test(str[prevCommaIndex])) {
+            prevCommaIndex++;
+          }
+          while (nextCommaIndex > 0 && /[\s\)\]\}]/.test(str[nextCommaIndex - 1])) {
+            nextCommaIndex--;
+          }
+          return { prev: prevCommaIndex, next: nextCommaIndex };
+        }
+        
+        // If no comma boundaries found in SQL context, don't use quotes - return undefined
+        return { prev: undefined, next: undefined };
+      }
+      
+      // If not SQL context or no comma boundaries found, use quotes
+      return { prev: prevQuoteIndex, next: nextQuoteIndex };
+    }
+
+    // If no quotes or cursor not between them, try comma boundaries (for SQL context like ,$variable,)
+    let prevCommaIndex = getPrevComma();
+    let nextCommaIndex = getNextComma();
+
+    // returns the index of the nearest , or ( that is positioned before received index within quotes
+    function getPrevCommaWithinQuotes(quoteStart: number, quoteEnd: number): number | undefined {
+      for (let i = startIndex - 1; i >= quoteStart; i--) {
+        if (str[i] === ',' || str[i] === '(') return i + 1; // Skip the comma or parenthesis
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ) that is positioned after received index within quotes
+    function getNextCommaWithinQuotes(quoteStart: number, quoteEnd: number): number | undefined {
+      for (let i = startIndex; i < quoteEnd; i++) {
+        if (str[i] === ',' || str[i] === ')') return i;
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ( that is positioned before received index
+    function getPrevComma(): number | undefined {
+      for (let i = startIndex - 1; i >= 0; i--) {
+        if (str[i] === ',' || str[i] === '(') return i + 1; // Skip the comma or parenthesis
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ) that is positioned after received index
+    function getNextComma(): number | undefined {
+      for (let i = startIndex; i < str.length; i++) {
+        if (str[i] === ',' || str[i] === ')') return i;
+      }
+      return undefined;
+    }
+
+    // Skip whitespace and trailing characters around comma boundaries
+    if (prevCommaIndex !== undefined) {
+      while (prevCommaIndex < str.length && /\s/.test(str[prevCommaIndex])) {
+        prevCommaIndex++;
+      }
+    }
+    if (nextCommaIndex !== undefined) {
+      // Skip whitespace and trailing characters like ), ], }
+      while (nextCommaIndex > 0 && /[\s\)\]\}]/.test(str[nextCommaIndex - 1])) {
+        nextCommaIndex--;
+      }
+    }
+
+    return { prev: prevCommaIndex, next: nextCommaIndex };
   }
 
   stepsDocumentation: { description: string, examples: string }[] = [];
