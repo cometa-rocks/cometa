@@ -916,6 +916,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // maintains focus on text area while firing events on arrow keys to select variables
   onTextareaArrowKey(event: Event, direction: string, step) {
+
+    if (this.displayedVariables.length > 0) {
+      return; // Exit early if variable dropdown is open
+    }
+
     event.preventDefault();
 
     setTimeout(() => {
@@ -1185,6 +1190,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.displayedVariables = [];
     this.stepVariableData = {};
 
+    // Reset position when changing steps
+    this.initialDropdownPosition = null;
+
     const textarea = event.target as HTMLTextAreaElement;
     this.updateTextareaResize(index); // Update resize state on input
     const textareaValue = textarea.value.trim();
@@ -1345,9 +1353,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
       // Set initial position only when dropdown first appears (when it was not visible before)
       if (this.initialDropdownPosition === null) {
-        // Calculate initial position based on current filtered variables
-        this.initialDropdownPosition = filteredVariables.length > 4 ? -118 : -filteredVariables.length * 30 + 2;
-      } 
+
+        const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
+        const textarea = textareas[index] as HTMLTextAreaElement;
+        const stepContent = textarea.closest('.step_content') as HTMLElement;
+        const stepContentHeight = stepContent.offsetHeight + 10;
+
+        this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
+
+        // Calculate initial position based on current filtered variables and position
+        this.initialDropdownPosition = index === 0 
+          ? (filteredVariables.length > 4 ? stepContentHeight : filteredVariables.length * 30 + 40)  
+          : (filteredVariables.length > 4 ? -160 : -filteredVariables.length * 30 - 40);
+          
+        this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+      }
 
       this.displayedVariables =
         filteredVariables.length > 0
