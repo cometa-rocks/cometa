@@ -1348,6 +1348,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.logger.msg('4', '=== onStepChange() === Step value:', 'step-editor', this.stepVariableData.stepValue);
     this.logger.msg('4', '=== onStepChange() === Selection index:', 'step-editor', this.stepVariableData.selectionIndex);
 
+    if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      return;
+    } 
+
     // return if left quote or right quote index is undefined
     if (
       !this.stepVariableData.quoteIndexes.next ||
