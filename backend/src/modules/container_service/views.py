@@ -190,9 +190,9 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                     if dept["department_id"] == existing_container.department_id:
                         department_name = dept["department_name"]
                         break
-                logger.error(f"You already have the {mobile_name} emulator running in the {department_name} department. Please stop it first before starting it in another department.")
-                error_message = f"You already have the {mobile_name} emulator running in the {department_name} department. Please stop it first before starting it in another department."
-                return self.response_manager.response(dict_data={"success": False, "message": error_message})
+                error_msg = f"You already have the {mobile_name} emulator running in {department_name} department. Please stop it first before starting it in another department."
+                logger.error(error_msg)
+                return self.response_manager.response(dict_data={"success": False, "message": error_msg})
         
         # check for container which are in use for more than 3hrs
         in_use_containers = ContainerService.objects.filter(in_use=True, service_type="Browser", since_in_use__lt=datetime.now()-timedelta(hours=3))
