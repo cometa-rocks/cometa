@@ -203,16 +203,22 @@ def execute_browser_use_action(context, prompt: str) -> Tuple[bool, Dict[str, An
             'page_url': getattr(context.page, 'url', None) if hasattr(context, 'page') else None
         }
 
+        # Apply nest_asyncio to allow nested event loops
         nest_asyncio.apply()
-        loop = asyncio.get_event_loop()
+
+        # Create a new event loop for this execution to avoid conflicts
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
         try:
             result = loop.run_until_complete(execute_browser_action(context, prompt, browser_context))
             return result.get("success", False), result
         finally:
-            # Cleanup any pending tasks to prevent job hanging
-            pending = asyncio.all_tasks(loop)
-            for task in pending:
-                task.cancel()
+            # Ensure the loop is properly closed
+            try:
+                loop.close()
+            except Exception as e:
+                logger.warning(f"Error closing event loop: {e}")
 
     except Exception as e:
         logger.exception(f"Execution failed: {e}")
