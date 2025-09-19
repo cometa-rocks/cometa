@@ -289,9 +289,8 @@
               [class.visible]="stepVariableData.currentStepIndex == i && displayedVariables.length > 0"
               [class.hidden]="!(stepVariableData.currentStepIndex == i && displayedVariables.length > 0)"
               [ngStyle]="{
-                'bottom.px': 
-                  initialDropdownPosition || 
-                  (displayedVariables.length > 4 ? -118 : -displayedVariables.length * 30 + 2)
+                'top.px': index !== 0 ? initialDropdownPosition : 'auto',
+                'bottom.px': index === 0 ? initialDropdownPosition : 'auto'
               }">
               
               <div class="custom-autocomplete-header">
