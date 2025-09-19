@@ -1188,10 +1188,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   onStepChange(event, index: number) {
     this.displayedVariables = [];
+    // Save the current step index before resetting
+    const previousStepIndex = this.stepVariableData.currentStepIndex;
     this.stepVariableData = {};
-
-    // Reset position when changing steps
-    this.initialDropdownPosition = null;
+    
+    // Only reset position when changing steps, not when typing
+    if (previousStepIndex !== index) {
+      this.initialDropdownPosition = null;
+    }
 
     const textarea = event.target as HTMLTextAreaElement;
     this.updateTextareaResize(index); // Update resize state on input
@@ -1373,6 +1377,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         filteredVariables.length > 0
           ? filteredVariables
           : ['No variable with this name'];
+
+      // Set current step index when dropdown opens
+      this.stepVariableData.currentStepIndex = index;
 
       this.logger.msg('4', '=== onStepChange() === Displayed variables after assignment:', 'step-editor', this.displayedVariables);
 
