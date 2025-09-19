@@ -82,20 +82,12 @@
   <div class="cell status" *ngLet="row.status == 'Success' as passed">
     <!-- Status box -->
     <div
-      class="status-box passed"
+      class="status-box {{row.status==='Success'?'passed':row.status==='Failed'?'failed':'canceled'}}"
       stopPropagation
       [matMenuTriggerFor]="runStatus"
-      *ngIf="passed; else failed">
-      Passed
+    >
+      {{row.status==='Success'?'Passed':row.status==='Failed'?'Failed':'Canceled'}}
     </div>
-    <ng-template #failed>
-      <div
-        class="status-box failed"
-        stopPropagation
-        [matMenuTriggerFor]="runStatus">
-        Failed
-      </div>
-    </ng-template>
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
       <div class="menu-header">Override run status:</div>
@@ -104,6 +96,9 @@
       </button>
       <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
         <div class="status-option failed">Failed</div>
+      </button>
+      <button (click)="setResultStatus(row, 'Canceled')" mat-menu-item>
+        <div class="status-option canceled">Canceled</div>
       </button>
       <mat-divider></mat-divider>
       <button (click)="setResultStatus(row, '')" mat-menu-item>

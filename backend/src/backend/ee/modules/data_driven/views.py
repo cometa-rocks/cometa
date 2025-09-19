@@ -1276,6 +1276,9 @@ def get_ddt_all_features(request, run_id, usersOwn=False):
                     elif fr.result_date is None:
                         status = 'queued'
                         current_step = None
+                    elif getattr(fr, 'status', '') == 'Canceled':
+                        status = 'canceled'
+                        current_step = None
                     elif fr.success:
                         status = 'completed'
                         current_step = None
