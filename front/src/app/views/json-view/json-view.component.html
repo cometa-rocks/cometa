@@ -26,8 +26,14 @@
         [json]="dataToProcess"
         [expanded]="true"
         [depth]="1"></ngx-json-viewer>
+        <!-- If user wants to see the raw value then show him -->
     </div>
-    <textarea
+    <div class="json_content" *ngIf="showRawValue">
+      <pre>{{ rawValue }}</pre>          
+    </div>
+
+    <textarea 
+      *ngIf="!showRawValue"
       aria-label="Result from the JQ filter will go here..."
       #jqResult
       name="jq-result"
@@ -35,6 +41,7 @@
       placeholder="Result from the JQ filter will go here..."
       disabled="true"></textarea>
   </div>
+  <!-- FIXME for filtered result, raw value view, after one view it looses the actual filtered result  -->
   <textarea
     aria-label="Enter JQ Filter"
     placeholder="JQ Filter Example: .request.cookies[] | {(.name): .value}"
@@ -50,6 +57,10 @@
     </a>
   </div>
   <div class="actions">
+    <button aria-label="Change value view" color="primary" mat-stroked-button (click)="showRawValueButton()">
+      <span *ngIf="!showRawValue">Show Raw Value</span>
+      <span *ngIf="showRawValue">Show JSON Value</span>
+    </button>
     <button *ngIf="isHtmlContent" aria-label="Print Report" color="primary" mat-stroked-button (click)="printReport()">Print Report</button>
     <button aria-label="Close" color="warn" mat-stroked-button (click)="closeDialog()">Close</button>
   </div>

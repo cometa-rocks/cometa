@@ -256,7 +256,8 @@
               (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
              -->
             <textarea
-              *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
+              [style.display]="(isApiCallStep(i) && !isEditingApiCall(i)) ? 'none' : 'unset'"
+              [style.resize]="(isApiCallStep(i)) ? 'vertical' : 'null'"
               #stepTextarea
               (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i); sendTextareaFocusToParent(false, i)"
@@ -288,10 +289,10 @@
               [class.visible]="stepVariableData.currentStepIndex == i && displayedVariables.length > 0"
               [class.hidden]="!(stepVariableData.currentStepIndex == i && displayedVariables.length > 0)"
               [ngStyle]="{
-                'bottom.px':
-                  displayedVariables.length > 4
-                    ? -118
-                    : -displayedVariables.length * 30 + 2
+                'top.px': index !== 0 ? initialDropdownPosition : 'auto',
+                'bottom.px': index === 0 ? initialDropdownPosition : 'auto',
+                'max-height.px': variablePopupHeight,
+                'min-height.px': variablePopupHeight
               }">
               
               <div class="custom-autocomplete-header">
@@ -305,7 +306,11 @@
                 </button>
               </div>
               
-              <div class="custom-autocomplete-options">
+              <div class="custom-autocomplete-options"
+              [ngStyle]="{
+                'min-height.px': variablePopupHeight-60,
+                'max-height.px': variablePopupHeight-60 
+              }">
                 <ng-container *ngFor="let variable of displayedVariables; let i = index">
                   <div 
                     *ngIf="variable.variable_name; else noVariable"
@@ -313,7 +318,8 @@
                     #customAutocompleteOption
                     (click)="onClickVariable(variable.variable_name, stepVariableData.currentStepIndex)">
                     <span class="var_name">${{ variable.variable_name }}</span>
-                    <span class="var_value"> = {{ variable.variable_value }}</span>
+                    =&nbsp;&nbsp;
+                    <span class="var_value">{{ variable.variable_value }}</span>
                   </div>
                   <ng-template #noVariable>
                     <div class="custom-autocomplete-option" 

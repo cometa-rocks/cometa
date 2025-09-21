@@ -1,6 +1,6 @@
 {
-  "version": "3.0.103",
-  "stable_version": "3.0.103",
+  "version": "3.0.104",
+  "stable_version": "3.0.104",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,9 +242,27 @@
   ],
   "changelog": [
     {
+      "version": "3.0.104",
+      "date": "2025-09-22",
+      "features": [
+        {
+          "title": "Variable list visibility fix",
+          "description": "Improved visiblity of variables list in feature edit screen"
+        }
+      ]
+    },
+    {
       "version": "3.0.103",
       "date": "2025-09-17",
       "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Display AI Agent actions in UI - #6833",
+          "description": "AI Agent logs can now be viewed in real-time during execution on live-step viewer dialog."
+        },
         {
           "title": "Fixed issue with Main View - #6843",
           "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."

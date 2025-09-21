@@ -40,7 +40,8 @@ export class JsonViewerComponent implements OnInit {
   isStepVariableContent: boolean = false;
   sanitizedHtml: SafeHtml;
   dataToProcess: any;
-
+  showRawValue: boolean = false;
+  rawValue: string = '';
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogRef: MatDialogRef<JsonViewerComponent>,
@@ -129,6 +130,19 @@ export class JsonViewerComponent implements OnInit {
   getJQResult(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     this.jq_filter$.next(value);
+  }
+
+  showRawValueButton() {
+    this.showRawValue = !this.showRawValue;
+    if (this.showRawValue) {
+        if (this.jq_result.nativeElement.value) {
+          this.rawValue = this.jq_result.nativeElement.value;
+        } else if (typeof this.dataToProcess === 'string') {
+          this.rawValue = this.dataToProcess;
+        } else {
+          this.rawValue = JSON.stringify(this.dataToProcess, null, 2);
+        } 
+      }
   }
 
   closeDialog() {
