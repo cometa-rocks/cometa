@@ -1,7 +1,7 @@
 # create a basic configuration script for
 # selected server change extension name to
 # match filename
-.amvara2.stage:
+.amvara6.stage:
   # set main variable for selected server
   variables:
     #########################################################
@@ -29,7 +29,7 @@
     # Replace git client secret for access to git.amvara.de
     - echo $GITLAB_OIDC_SECRETS > $COMETA_DATA_FOLDER/front/apache2/metadata/git.amvara.de.client
   tags: # on what runners we'd like to run this job
-    - amvara2
+    - amvara6
   only: # on what branch we'd like to run this job
     refs:
       - stage

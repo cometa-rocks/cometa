@@ -58,6 +58,7 @@ import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
+import { FeatureMetricsUsageComponent } from '@components/feature-metrics-usage/feature-metrics-usage.component';
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-landing',
@@ -120,7 +121,8 @@ import { TranslateModule } from '@ngx-translate/core';
     L1FeatureTrashbinListComponent,
     MobileListComponent,
     AsyncPipe,
-    TranslateModule
+    TranslateModule,
+    FeatureMetricsUsageComponent
   ],
 })
 export class L1LandingComponent implements OnInit {

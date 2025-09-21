@@ -10,6 +10,7 @@
   flex-wrap: wrap;
   flex-direction: row;
   line-height: 20px;
+
   .title {
     text-transform: uppercase;
     color: $blue;
@@ -119,7 +120,9 @@
 }
 
 ::ng-deep .whats-new-panel {
-  max-width: 95%;
+  // Default width and height for the dialog
+  height: 75vh;
+  width: 50vw;
   @include for-tablet-portrait-up {
     max-width: 100%;
   }
@@ -133,7 +136,7 @@
     margin: 0;
     overflow-x: hidden;
     @include for-tablet-portrait-up {
-      max-height: 50vh;
+      max-height: 60vh;
     }
     &::-webkit-scrollbar {
       width: 6px;

@@ -1,4 +1,5 @@
 import traceback
+import logging
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -7,6 +8,8 @@ from cometa_pj.settings import DEBUG
 
 
 # This class used to provide simmiler structure while sending response.
+logger = logging.getLogger(__name__)
+
 class ResponseManager:
 
     def __init__(self, app_name: str):
@@ -137,7 +140,7 @@ class ResponseManager:
 
         if isinstance(exception, ValidationError):
             return self.validation_error_response(str(exception))
-        traceback.print_exc()
+        logger.exception("Exception while processing request")
         data = dict()
         data["success"] = False
         data["error"] = "Exception while processing your request"

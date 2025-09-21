@@ -83,29 +83,38 @@ def _async_post(url, headers=None, json=None):
     _executor.submit(_task)
 
 
-def takeScreenshot(device_driver):
-    try:
-        device_driver.switch_to.alert
-        logger.debug(
-            "Alert found ... if we take a screenshot now the alert box will be ignored..."
-        )
-        return None
+def takeScreenshot(device_driver, step_type="BROWSER"):
+    if step_type=="BROWSER":
+        logger.debug("Taking screenshot from browser")
+        try:
+            device_driver.switch_to.alert
+            logger.debug(
+                "Alert found ... if we take a screenshot now the alert box will be ignored..."
+            )
+            return None
+            
+        except Exception as err:
+            # create the screenshot
+            logger.debug("Saving screenshot to file")
+            try:
+                # device_driver.save_screenshot(final_screenshot_file)
+                return device_driver.get_screenshot_as_png()
+            except Exception as err:
+                logger.error(f"Unable to take screenshot ...{(str(err))}")
+                return None
         
-    except Exception as err:
-        # create the screenshot
-        logger.debug("Saving screenshot to file")
+    elif step_type=="MOBILE":
+        # Adding this else section to make sure for mobile step screenshot are taken from mobile even if browser contains the alert
+        logger.debug("Taking screenshot from mobile")
         try:
             # device_driver.save_screenshot(final_screenshot_file)
             return device_driver.get_screenshot_as_png()
         except Exception as err:
             logger.error(f"Unable to take screenshot ...{(str(err))}")
             return None
-#
-# some useful functions
-#
-# def takeScreenshot(device_driver, screenshots_step_path):
-    # pass
-    
+    else:
+        logger.error(f"step_type is not from devices like browser or mobile, skipping screenshot")
+        return None
         
 
 def convert_image_to_decoded_bytes(image_path):
@@ -671,6 +680,7 @@ def saveToDatabase(
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
         "notes": notes_data,
+        "healing_data": getattr(context, 'healing_data', {}),
         "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
         "step_execution_sequence": context.counters['step_sequence']
@@ -788,10 +798,11 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
         logger.debug("Screenshot filename: %s" % screenshot_file_name)
         final_screenshot_file = os.path.join(screenshots_step_path, screenshot_file_name)
         logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
+        screenshot_data = takeScreenshot(current_step_device_driver, context.STEP_TYPE)  
         logger.debug(f"Screenshot taken for step")
-        screenshot_data = takeScreenshot(current_step_device_driver)  
       
-        if final_screenshot_file is None:
+        if final_screenshot_file is None or screenshot_data is None:
+            logger.debug(f"Screenshot data is None, skipping screenshot processing")
             return
         
         logger.debug(f"Started the screenshot processing step thread for step {context.counters['index']}")
@@ -811,8 +822,7 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
                   context.PROXY_USER["user_id"],
                   context.browser_info,
                   context.step_data["belongs_to"],
-                  context.browser_hash,
-                #   current_step_device_driver
+                  context.browser_hash
                 ) 
         
     
@@ -1041,15 +1051,20 @@ def compareHTML(params):
         logger.error(str(err))
 
 # -----------
-# Function to compare HTML differences between previous state and current,
-# it first makes sure the previous state exists (by clonning current),
-# then executes the comparison and finally return if they are different
+# Function compares two images and returns the number of different pixels
 # -----------
 def highlight_pixel_differences(image1_path, image2_path, output_path):
     img1 = cv2.imread(image1_path)
     img2 = cv2.imread(image2_path)
 
     # Resize if needed
+    if img1 is None:
+        logger.error(f"{image1_path} is None, skipping comparison")
+        return 0
+    if img2 is None:
+        logger.error(f"{image2_path} is None, skipping comparison")
+        return 0
+    
     if img1.shape != img2.shape:
         img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
 

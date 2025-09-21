@@ -44,6 +44,19 @@
         white-space: nowrap;
         display: block;
       }
+
+      // Browser-use AI agent message styling
+      .step-detail {
+        &[title*="🤖"] {
+          background: linear-gradient(135deg, $info-background-feature-item, #f3e5f5);
+          border-left: 4px solid $mobile-information-color;
+          padding: 5px 10px;
+          border-radius: 4px;
+          white-space: normal; // Allow browser-use messages to wrap
+          max-height: 100px;
+          overflow-y: auto;
+        }
+      }
     }
     .icon-status {
       flex: 0 20px;
@@ -85,6 +98,7 @@
         background-image: url(^assets/Google-loader.svg);
       }
     }
+    
     .screenshot {
       flex: 0 75px !important;
       text-align: center;
@@ -104,7 +118,13 @@
       width: 100%;
       cursor: pointer;
     }
+
+    .healing-icon {
+      color: #ffa726;
+      cursor: pointer;
+    }
   }
+
   .error-row {
     color: #d32f2f;
     font-weight: bold;
@@ -129,3 +149,107 @@
     }
   }
 }
+
+// Browser-Use Logs
+.browser-use-logs-row {
+  margin: 4px 0;
+  background-color: $info-background-feature-item;
+  border: 1px solid rgba($mobile-information-color, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+
+  .logs-header {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: rgba($mobile-information-color, 0.1);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba($mobile-information-color, 0.15);
+    }
+
+    .expand-icon {
+      margin-right: 4px;
+      transition: transform 0.2s;
+      color: $mobile-information-color;
+
+      &.expanded {
+        transform: rotate(180deg);
+      }
+    }
+
+    .ai-icon {
+      margin-right: 4px;
+      color: $mobile-information-color;
+    }
+
+    .logs-title {
+      font-weight: bold;
+      color: $mobile-text-color;
+      font-size: 0.9rem; // Slightly smaller than default
+    }
+  }
+
+  .logs-container {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 8px;
+    font-family: 'Courier New', monospace;
+    line-height: 1.4;
+
+    .log-entry {
+      margin-bottom: 4px;
+      white-space: pre-wrap;
+
+      // Add visual separation for browser-use step indicators (📍 Step X:)
+      &[data-is-step-indicator="true"] {
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px dashed rgba($mobile-information-color, 0.3);
+
+        // First step indicator doesn't need margin
+        &:first-child {
+          margin-top: 0;
+          padding-top: 0;
+          border-top: none;
+        }
+      }
+
+      &.log-critical {
+        color: $bad;
+        font-weight: bold;
+      }
+
+      &.log-progress {
+        color: $mobile-information-color;
+        font-weight: 500;
+      }
+
+      &.log-detail,
+      &.log-info {
+        color: $mobile-text-color;
+      }
+
+      .log-timestamp {
+        color: $darker-step;
+        margin-right: 8px;
+        font-weight: 500;
+      }
+
+      .log-message {
+        word-wrap: break-word;
+        color: inherit;
+      }
+
+      // Bold formatting for browser-use key patterns
+      .log-message b {
+        font-weight: 600;
+        color: $mobile-information-color;
+      }
+    }
+  }
+}
+

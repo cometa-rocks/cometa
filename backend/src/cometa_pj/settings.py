@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(BASE_DIR, "migrations"))
 
 SCREENSHOTS_ROOT = '/data/screenshots/'
-
+BACKUP_FOLDER = '/data/backups/features/'
 
 SENTRY_DJANGO = ConfigurationManager.get_configuration('COMETA_SENTRY_DJANGO', False) 
 

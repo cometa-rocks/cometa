@@ -39,12 +39,13 @@ services:
       - ./data/cometa/downloads:/data/downloads:rw
       - ./data/cometa/uploads:/data/uploads:rw
       - ./data/department_data:/data/department_data:rw
+      - ./data/behave/logs:/opt/code/behave_logs:rw
       - ./data/cometa/config:/code/config:rw
       - ./data/django/migrations:/opt/code/migrations:rw
       - ./data/django/logs:/opt/code/logs:rw
       - ./data/django/clamav:/var/lib/clamav:rw
       # - ./backend:/code
-      # - ./backend/src:/opt/code:rw
+      - ./backend/src:/opt/code:rw
     working_dir: /opt/code
     healthcheck:
       test: ["CMD", "curl", "-s", "http://localhost:8000/health"]
@@ -94,11 +95,11 @@ services:
       - ./data/cometa/uploads:/data/test/uploads
       - ./data/cometa/html:/data/test/html
       - ./data/cometa/config:/code/config:rw
-      - ./data/behave/logs:/code/src/logs:rw
+      - ./data/behave/logs:/opt/code/behave_logs:rw
       - ./data/department_data:/data/department_data:rw
       - ./data/redis/certs:/share/certs
       - ./data/share/code/behave/logs:/data/logs
-      # - ./backend/behave:/opt/code:rw
+      - ./backend/behave:/opt/code:rw
       # - ./backend:/code
     command: "/opt/code/behave_django/entry.sh"
     # command:     sleep infinity
@@ -239,19 +240,19 @@ services:
       - testing
 
   redis:
-    build:
-      context: ./backend/redis
-      dockerfile: Dockerfile
+    image: redis:7.2.0
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_redis
-    # volumes:
-    #   - ./data/redis/data:/data
+    volumes:
+      - ./data/redis/data:/data
     networks:
       - testing
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      start_period: 30s
     restart: always
+
 
 networks:
   testing:

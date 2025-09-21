@@ -50,6 +50,7 @@ import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
 import { UserState } from '@store/user.state';
+import { log } from 'ngx-amvara-toolbox';
 
 @UntilDestroy()
 @Component({
@@ -155,7 +156,7 @@ export class MainViewComponent implements OnInit {
           tooltip: 'View browser test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
-          click: (result: FeatureResult) => this.openVideo(result, result.video_url),
+          click: (result: FeatureResult) => this.openVideo(result, result.video_url, 'browser'),
           class: 'replay-button',
         },
         {
@@ -165,7 +166,7 @@ export class MainViewComponent implements OnInit {
           tooltip: 'View mobile test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
-          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording),
+          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording, 'mobile'),
           class: 'replay-button-2',
         },
         {
@@ -298,14 +299,14 @@ export class MainViewComponent implements OnInit {
     private _pdfLinkPipe: PdfLinkPipe,
     private _downloadService: DownloadService,
     private elementRef: ElementRef,
-    private logger: LogService
+    private log: LogService
   ) {}
 
   featureId$: Observable<number>;
   originalResults: any[] = [];
 
   openContent(feature_result: FeatureResult) {
-    // this.logger.msg("1", "CO-featResult", "main-view", feature_result);
+    // this.log.msg("1", "CO-featResult", "main-view", feature_result);
 
     this._router.navigate([
       this._route.snapshot.paramMap.get('app'),
@@ -339,12 +340,19 @@ export class MainViewComponent implements OnInit {
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
 
+              // Doing this preserve the user action in the button (failed features, show all results)
+              if(this.showingFiltered) {
+                this.log.msg('4', '=== getResults() === Showing filtered results: ', 'main-view', this.showingFiltered);
+                this.results = this.results.filter(result => result.status === 'Failed');
+              }
+
               this.checkIfThereAreFailedSteps();
             },
             error: err => {
               console.error(err);
             },
             complete: () => {
+              // this.log.msg('4','ngOnInit - getResults', 'main-view', this.results);
               this.isLoading = false;
               this.cdRef.detectChanges();
             },
@@ -358,7 +366,7 @@ export class MainViewComponent implements OnInit {
     const selectedMobile = event.value;
 
     if (selectedMobile && selectedMobile.video_recording) {
-      this.openVideo(row, selectedMobile.video_recording);
+      this.openVideo(row, selectedMobile.video_recording, 'mobile');
     }
   }
 
@@ -389,7 +397,7 @@ export class MainViewComponent implements OnInit {
     });
   }
 
-  openVideo(result: FeatureResult, video_url:string) {
+  openVideo(result: FeatureResult, video_url:string, type: 'browser' | 'mobile') {
 
     this._sharedActions
       .loadingObservable(
@@ -403,7 +411,8 @@ export class MainViewComponent implements OnInit {
             panelClass: 'video-player-panel',
             data: {
               result: result,
-              video_url: video_url
+              video_url: video_url,
+              type: type
             },
           });
 

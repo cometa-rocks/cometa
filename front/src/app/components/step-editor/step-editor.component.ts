@@ -154,11 +154,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @Output() textareaFocusToParent = new EventEmitter<{isFocused: boolean, event: any}>();
 
+  //Added to send event (editVariables button) to parent component
+  @Output() editVariablesRequested = new EventEmitter<void>();
+  editVariables() {
+    this.logger.msg("4","editVariables button clicked","step-editor.component.ts");
+    this.editVariablesRequested.emit();
+  }
+
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
   @Input() variables: VariablePair[];
   @Input() department: Department;
+
+  //  {file_path} area variables. Add property for file path autocomplete
+  filePathAutocompleteOptions: { value: string; label: string; path: string }[] = [];
+  showFilePathAutocomplete: boolean = false;
+  lastSelectedFilePaths: Map<number, string> = new Map();
+  currentFilePathStepIndex: number | null = null;
+
+  // Add this line - reference to the filePathAutocompletePanel template
+  @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
   
   // Track which step is currently focused for the shared autocomplete
   currentFocusedStepIndex: number | null = null;
@@ -176,8 +192,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   touchStartY: number = 0;
   touchStartX: number = 0;
   isDragging: boolean = false;
+  variablePopupHeight: number = 260;
 
-  @ViewChildren(MatListItem, { read: ElementRef })
+  @ViewChildren('customAutocompleteOption', { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
   @ViewChild('variable_name', { read: ElementRef, static: false })
@@ -220,6 +237,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewChild('dropdownRef') dropdownRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
   dropdownActiveIndex: number = 0;
+
+  // Add a new property to track the initial dropdown position
+  private initialDropdownPosition: number | null = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -307,9 +327,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // ... existing code ...
   sendTextareaFocusToParent(isFocused: boolean, index?: number, showDocumentation: boolean = false): void {
-    this.textareaFocusToParent.emit({isFocused, event});
-
-
+    this.logger.msg("4","sendTextareaFocusToParent","step-editor", isFocused)
+    this.inputFocusService.setInputFocus(isFocused)
 
     if (index === undefined) {
       return;
@@ -565,8 +584,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * Placeholders allowed: {mobile_name}, {mobile_code}, {app_package}, {app_activity}, or any running mobile image_name.
    */
   onStepTextareaClick(event: MouseEvent, index: number) {
+    this.logger.msg('4', '=== onStepTextareaClick() === Onsteptextareaclick', 'step-editor');
     const textarea = event.target as HTMLTextAreaElement;
     const value = textarea.value;
+
+    this.logger.msg('4', '=== onStepTextareaClick() ===  this.lastSelectedFilePaths', 'step-editor', this.lastSelectedFilePaths);
+    // Check if this step contains {file_path} OR has a previously selected file path
+    if (this.lastSelectedFilePaths.has(index)) {
+      // Call the existing function that handles file path autocomplete
+      this.onTextareaFocusFilePath(event as any, index);
+    }
+
     // Auto-detect action based on content before the first quote (case-insensitive)
     const prefix = value.split('"')[0].trim().toLowerCase();
     const activatedAction = this.actions.find(action => {
@@ -586,6 +614,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // Only show dropdown if clicking directly on a placeholder text
     this.checkAndShowMobileDropdown(textarea, index, cursorPos);
+
+    // if the value includes $, show the variable dropdown
+    if (value.includes('$')) {
+      this.onStepChange(event as any, index);
+    }
   }
 
   /**
@@ -855,6 +888,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param {number} index Index of step
    */
   fixStep(event: any, index: number) {
+    this.logger.msg('4', '=== fixStep() === Mat Autocomplete Fix Step', 'step-editor');
     const actionsToValidate = ['StartBrowser and call URL', 'Goto URL'];
     // Get value from textarea input
     let stepValue: string = event.target.value;
@@ -883,6 +917,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // maintains focus on text area while firing events on arrow keys to select variables
   onTextareaArrowKey(event: Event, direction: string, step) {
+
+    if (this.displayedVariables.length > 0) {
+      return; // Exit early if variable dropdown is open
+    }
+
     event.preventDefault();
 
     setTimeout(() => {
@@ -961,7 +1000,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     
     // Inform parent of focus (without showing documentation)
-    this.sendTextareaFocusToParent(true, index, false);
+    // Commented function to prevent the focus from being sent twice to the parent since it already called in the html)
+    // this.sendTextareaFocusToParent(true, index, false);
     
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
@@ -1111,11 +1151,47 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
-    step.setValue(
-      step.value.substr(0, this.stepVariableData.quoteIndexes.prev) +
-        `$${variable_name}` +
-        step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
+    const currentValue = step.value;
+    
+    this.logger.msg('4', '=== onClickVariable() === Original value:', 'step-editor', currentValue);
+    this.logger.msg('4', '=== onClickVariable() === Quote indexes:', 'step-editor', this.stepVariableData.quoteIndexes);
+    
+    // Get the content between quotes (including quotes)
+    const contentBetweenQuotes = currentValue.substring(
+      this.stepVariableData.quoteIndexes.prev,
+      this.stepVariableData.quoteIndexes.next
     );
+    
+    this.logger.msg('4', '=== onClickVariable() === Content between quotes:', 'step-editor', contentBetweenQuotes);
+    
+    // Remove quotes to get the inner content
+    const innerContent = contentBetweenQuotes.replace(/"/g, '');
+    
+    this.logger.msg('4', '=== onClickVariable() === Inner content:', 'step-editor', innerContent);
+    
+    // Replace the $ part with the selected variable, preserving any text after $
+    let newInnerContent;
+    if (innerContent.includes('$')) {
+      // Find the position of $ and replace everything from $ onwards
+      const dollarIndex = innerContent.indexOf('$');
+      newInnerContent = innerContent.substring(0, dollarIndex) + `$${variable_name}`;
+      this.logger.msg('4', '=== onClickVariable() === Dollar found at index:', 'step-editor', dollarIndex);
+    } else {
+      // If no $ found, just add the variable
+      newInnerContent = innerContent + `$${variable_name}`;
+      this.logger.msg('4', '=== onClickVariable() === No dollar found, appending:', 'step-editor', '');
+    }
+    
+    this.logger.msg('4', '=== onClickVariable() === New inner content:', 'step-editor', newInnerContent);
+    
+    // Reconstruct the full text with quotes preserved
+    const newValue = currentValue.substring(0, this.stepVariableData.quoteIndexes.prev) +
+                    `"${newInnerContent}"` +
+                    currentValue.substring(this.stepVariableData.quoteIndexes.next);
+    
+    this.logger.msg('4', '=== onClickVariable() === Final value:', 'step-editor', newValue);
+    
+    step.setValue(newValue);
 
     this.stepVariableData.currentStepIndex = null;
   }
@@ -1147,13 +1223,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.displayedVariables = [];
   }
 
-
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
 
+    // Only reset position when changing steps, not when typing
+    if (this.stepVariableData.currentStepIndex !== index) {
+      this.initialDropdownPosition = null;
+    }
+
     const textarea = event.target as HTMLTextAreaElement;
-    this.updateTextareaResize(index); // Update resize state on input
+    // Update resize state on input but preserve dropdown position
+    this.updateTextareaResize(index);
     const textareaValue = textarea.value.trim();
 
     // Filter actions based on input
@@ -1246,10 +1327,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.stepsDocumentation[index].description === 'No documentation found for this step')) {
       this.loadStepDocumentation(index);
     }
-    
-
-
-
 
     this._cdr.detectChanges();
 
@@ -1268,12 +1345,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.stepVariableData.selectionIndex
     );
 
+    this.logger.msg('4', '=== onStepChange() === Quote indexes:', 'step-editor', this.stepVariableData.quoteIndexes);
+    this.logger.msg('4', '=== onStepChange() === Step value:', 'step-editor', this.stepVariableData.stepValue);
+    this.logger.msg('4', '=== onStepChange() === Selection index:', 'step-editor', this.stepVariableData.selectionIndex);
+
+    if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      return;
+    } 
+
     // return if left quote or right quote index is undefined
     if (
       !this.stepVariableData.quoteIndexes.next ||
       !this.stepVariableData.quoteIndexes.prev
-    )
+    ) {
+      this.logger.msg('4', '=== onStepChange() === No boundaries found, returning', 'step-editor', '');
       return;
+    }
 
     // gets the string between quotes(including quotes)
     this.stepVariableData.strToReplace =
@@ -1287,30 +1376,131 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       .replace(/"/g, '')
       .trim();
 
-    // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
-    if (this.stepVariableData.strWithoutQuotes.includes('$')) {
-      // Do not display variables or the dialog if the step is "Run Javascript function"
-      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
-        this.displayedVariables = [];
-        this.stepVariableData.currentStepIndex = null;
-        return;
-      }
+    this.logger.msg('4', '=== onStepChange() === Str to replace:', 'step-editor', this.stepVariableData.strToReplace);
+    this.logger.msg('4', '=== onStepChange() === Str without quotes:', 'step-editor', this.stepVariableData.strWithoutQuotes);
 
-      const filteredVariables = this.variables.filter(item =>
-        item.variable_name.includes(
-          this.stepVariableData.strWithoutQuotes.replace('$', '')
-        )
+    // Check if cursor is actually between boundaries (quotes or commas) and if the string contains a dollar sign
+    const cursorBetweenBoundaries = this.stepVariableData.quoteIndexes.prev !== undefined && 
+                                   this.stepVariableData.quoteIndexes.next !== undefined &&
+                                   this.stepVariableData.selectionIndex > this.stepVariableData.quoteIndexes.prev && 
+                                   this.stepVariableData.selectionIndex < this.stepVariableData.quoteIndexes.next;
+    
+    this.logger.msg('4', '=== onStepChange() === Cursor between boundaries:', 'step-editor', cursorBetweenBoundaries);
+    this.logger.msg('4', '=== onStepChange() === Cursor position:', 'step-editor', this.stepVariableData.selectionIndex);
+    this.logger.msg('4', '=== onStepChange() === Boundary range:', 'step-editor', `${this.stepVariableData.quoteIndexes.prev} - ${this.stepVariableData.quoteIndexes.next}`);
+    
+    // Only proceed if cursor is between boundaries AND the current field contains a dollar sign
+    if (cursorBetweenBoundaries) {
+      // Check if the current field (between boundaries) actually contains a variable
+      const currentField = this.stepVariableData.stepValue.substring(
+        this.stepVariableData.quoteIndexes.prev, 
+        this.stepVariableData.quoteIndexes.next
       );
-      this.displayedVariables =
-        filteredVariables.length > 0
-          ? filteredVariables
-          : ['No variable with this name'];
+      
+      this.logger.msg('4', '=== onStepChange() === Current field:', 'step-editor', currentField);
+      
+      // Check if cursor is positioned near a $ symbol (within 20 characters)
+      const cursorPos = this.stepVariableData.selectionIndex - this.stepVariableData.quoteIndexes.prev;
+      const textAroundCursor = currentField.substring(Math.max(0, cursorPos - 20), Math.min(currentField.length, cursorPos + 20));
+      const hasDollarNearCursor = textAroundCursor.includes('$');
+      
+      // Check if there's a valid variable pattern near the cursor
+      const hasValidVariableNearCursor = hasDollarNearCursor && /\$[a-zA-Z_][a-zA-Z0-9_]*/.test(textAroundCursor);
+      
+      // Also show variables if the field is just "$" (for starting a new variable)
+      const isJustDollar = currentField.trim() === '$' || currentField === '"$"' || currentField === '$';
+      
+      const shouldShowDialog = hasValidVariableNearCursor || isJustDollar;
+      this.logger.msg('4', '=== onStepChange() === Text around cursor:', 'step-editor', textAroundCursor);
+      this.logger.msg('4', '=== onStepChange() === Should show dialog:', 'step-editor', shouldShowDialog);
+      
+      if (shouldShowDialog) {
+        this.logger.msg('4', '=== onStepChange() === Showing variables dialog', 'step-editor', '');
+        // Do not display variables or the dialog if the step is "Run Javascript function"
+        if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+          this.displayedVariables = [];
+          this.stepVariableData.currentStepIndex = null;
+          return;
+        }
 
-      // when flyout of variables opens up, by default the selected element will be the first one
-      setTimeout(() => {
-        const firstVariableRef = this.varlistItems.toArray()[0].nativeElement;
-        this.renderer.addClass(firstVariableRef, 'selected');
-      }, 0);
+        // Extract variable name from current field
+        const variableMatch = currentField.match(/\$([a-zA-Z_][a-zA-Z0-9_]*)/);
+        const variableSearchTerm = variableMatch ? variableMatch[1] : this.stepVariableData.strWithoutQuotes.replace('$', '');
+        
+        this.logger.msg('4', '=== onStepChange() === Variable search term:', 'step-editor', variableSearchTerm);
+        this.logger.msg('4', '=== onStepChange() === Total variables available:', 'step-editor', this.variables.length);
+        this.logger.msg('4', '=== onStepChange() === All variables:', 'step-editor', this.variables.map(v => v.variable_name));
+        
+        // If search term is empty or too short, show all variables
+        let filteredVariables;
+        if (!variableSearchTerm || variableSearchTerm.length < 2) {
+          filteredVariables = this.variables;
+          this.logger.msg('4', '=== onStepChange() === Showing all variables (search term too short)', 'step-editor', '');
+        } else {
+          filteredVariables = this.variables.filter(item =>
+            item.variable_name.includes(variableSearchTerm)
+          );
+      
+        }
+
+        this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
+        this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
+        
+        // Calculate variable popup height based on filtered variables count
+        if (filteredVariables.length === 0) {
+          this.variablePopupHeight = 110;
+        } else if (filteredVariables.length <= 4) {
+          this.variablePopupHeight = (filteredVariables.length*50)+60;
+        } else {
+          this.variablePopupHeight = 260;
+        }
+        
+        
+
+        // Set initial position only when dropdown first appears (when it was not visible before)
+        if (this.initialDropdownPosition === null) {
+
+          const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
+          const textarea = textareas[index] as HTMLTextAreaElement;
+          const stepContent = textarea.closest('.step_content') as HTMLElement;
+          const stepContentHeight = stepContent.offsetHeight + 10;
+
+          this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
+
+          // Calculate initial position based on step index only to prevent shifts when typing
+          // Use a fixed calculation that doesn't depend on filtered variables count
+          this.initialDropdownPosition = index === 0 
+            ? stepContentHeight  // For first step, position below
+            : -this.variablePopupHeight;              // For other steps, position above with fixed offset
+          
+          this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+        }
+        // If position is already set, keep it stable - don't recalculate
+
+        this.displayedVariables =
+          filteredVariables.length > 0
+            ? filteredVariables
+            : ['No variable with this name'];
+        // Set current step index when dropdown opens
+        this.stepVariableData.currentStepIndex = index;
+
+        this.logger.msg('4', '=== onStepChange() === Displayed variables after assignment:', 'step-editor', this.displayedVariables);
+
+        this._cdr.detectChanges();
+        // when flyout of variables opens up, by default the selected element will be the first one
+        setTimeout(() => {
+          const varlistItemsArray = this.varlistItems.toArray();
+          if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
+            const firstVariableRef = varlistItemsArray[0].nativeElement;
+            this.renderer.addClass(firstVariableRef, 'selected');
+          }
+        }, 0);
+      } else {
+        this.logger.msg('4', '=== onStepChange() === No valid variable in current field, not showing dialog', 'step-editor', '');
+      }
+    } else {
+      this.logger.msg('4', '=== onStepChange() === Cursor not between boundaries', 'step-editor', '');
+      this.initialDropdownPosition = null;
     }
   }
 
@@ -1343,24 +1533,109 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
   getIndexes(str, startIndex): QuoteIndexes {
-    let prevQuoteIndex = getPrev();
-    let nextQuoteIndex = getNext();
+    // First try to find quotes (for normal cases like "$variable")
+    let prevQuoteIndex = getPrevQuote();
+    let nextQuoteIndex = getNextQuote();
 
     // returns the index of the nearest " that is positioned after received index
-    function getNext(): number {
+    function getNextQuote(): number | undefined {
       for (let i = startIndex; i < str.length; i++) {
         if (str[i] === '"') return i + 1;
       }
+      return undefined;
     }
 
-    // returns the index of the nearest $ that is positioned before received index
-    function getPrev(): number {
+    // returns the index of the nearest " that is positioned before received index
+    function getPrevQuote(): number | undefined {
       for (let i = startIndex - 1; i >= 0; i--) {
-        if (str[i] === '$') return i;
+        if (str[i] === '"') return i;
+      }
+      return undefined;
+    }
+
+    // If we found quotes and cursor is between them, check if we're in SQL context
+    if (prevQuoteIndex !== undefined && nextQuoteIndex !== undefined && 
+        startIndex > prevQuoteIndex && startIndex < nextQuoteIndex) {
+      
+      // Check if we're inside a SQL query by looking for SQL keywords
+      const textBetweenQuotes = str.substring(prevQuoteIndex, nextQuoteIndex - 1);
+      const isSQLContext = /INSERT\s+INTO|UPDATE|DELETE\s+FROM|SELECT/i.test(textBetweenQuotes);
+      
+      if (isSQLContext) {
+        // For SQL context, try to find comma boundaries within the quoted text
+        let prevCommaIndex = getPrevCommaWithinQuotes(prevQuoteIndex, nextQuoteIndex);
+        let nextCommaIndex = getNextCommaWithinQuotes(prevQuoteIndex, nextQuoteIndex);
+        
+        // If we found comma boundaries, use them instead of quotes
+        if (prevCommaIndex !== undefined && nextCommaIndex !== undefined) {
+          // Skip whitespace and trailing characters around comma/parenthesis boundaries
+          while (prevCommaIndex < str.length && /\s/.test(str[prevCommaIndex])) {
+            prevCommaIndex++;
+          }
+          while (nextCommaIndex > 0 && /[\s\)\]\}]/.test(str[nextCommaIndex - 1])) {
+            nextCommaIndex--;
+          }
+          return { prev: prevCommaIndex, next: nextCommaIndex };
+        }
+        
+        // If no comma boundaries found in SQL context, fall back to using quotes
+        return { prev: prevQuoteIndex, next: nextQuoteIndex };
+      }
+      
+      // If not SQL context or no comma boundaries found, use quotes
+      return { prev: prevQuoteIndex, next: nextQuoteIndex };
+    }
+
+    // If no quotes or cursor not between them, try comma boundaries (for SQL context like ,$variable,)
+    let prevCommaIndex = getPrevComma();
+    let nextCommaIndex = getNextComma();
+
+    // returns the index of the nearest , or ( that is positioned before received index within quotes
+    function getPrevCommaWithinQuotes(quoteStart: number, quoteEnd: number): number | undefined {
+      for (let i = startIndex - 1; i >= quoteStart; i--) {
+        if (str[i] === ',' || str[i] === '(') return i + 1; // Skip the comma or parenthesis
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ) that is positioned after received index within quotes
+    function getNextCommaWithinQuotes(quoteStart: number, quoteEnd: number): number | undefined {
+      for (let i = startIndex; i < quoteEnd; i++) {
+        if (str[i] === ',' || str[i] === ')') return i;
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ( that is positioned before received index
+    function getPrevComma(): number | undefined {
+      for (let i = startIndex - 1; i >= 0; i--) {
+        if (str[i] === ',' || str[i] === '(') return i + 1; // Skip the comma or parenthesis
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ) that is positioned after received index
+    function getNextComma(): number | undefined {
+      for (let i = startIndex; i < str.length; i++) {
+        if (str[i] === ',' || str[i] === ')') return i;
+      }
+      return undefined;
+    }
+
+    // Skip whitespace and trailing characters around comma boundaries
+    if (prevCommaIndex !== undefined) {
+      while (prevCommaIndex < str.length && /\s/.test(str[prevCommaIndex])) {
+        prevCommaIndex++;
+      }
+    }
+    if (nextCommaIndex !== undefined) {
+      // Skip whitespace and trailing characters like ), ], }
+      while (nextCommaIndex > 0 && /[\s\)\]\}]/.test(str[nextCommaIndex - 1])) {
+        nextCommaIndex--;
       }
     }
 
-    return { prev: prevQuoteIndex, next: nextQuoteIndex };
+    return { prev: prevCommaIndex, next: nextCommaIndex };
   }
 
   stepsDocumentation: { description: string, examples: string }[] = [];
@@ -1371,6 +1646,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
+
+    // department files
+    this.logger.msg('4', '=== onStepChange() === Department Files', 'step-editor', this.department.files);
+
+    // event
+    this.logger.msg('4', '=== onStepChange() === Event', 'step-editor', event);
+
+    // index
+    this.logger.msg('4', '=== onStepChange() === Index', 'step-editor', index);
+
     // Use the most reliable index - prioritize currentFocusedStepIndex but validate it
     let targetIndex = this.currentFocusedStepIndex ?? index;
     
@@ -1545,17 +1830,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   @ViewChildren(MatAutocompleteTrigger, { read: MatAutocompleteTrigger }) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
-  @HostListener('document:keydown', ['$event'])
-  handleGlobalKeyDown(event: KeyboardEvent): void {
+  @HostListener('keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
     const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
     if (!isEscape) {
       return;
+    }
+
+    this.closeVariableDropdown();
+
+    // Close filePathAutocompletePanel
+    if (this.showFilePathAutocomplete) {
+      this.showFilePathAutocomplete = false;
     }
 
     // Attempt to close autocomplete panels
     let panelClosed = false;
     this.autocompleteTriggers?.forEach(trigger => {
       if (trigger.panelOpen) {
+        this.logger.msg('4', '=== handleGlobalKeyDown() === Close Panel', 'step-editor', trigger);
         trigger.closePanel();
         panelClosed = true;
       }
@@ -1563,6 +1856,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // Close variable fly-out (step list) if it is open
     if (this.displayedVariables.length > 0) {
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Variable Fly-out', 'step-editor');
       this.displayedVariables = [];
       this.stepVariableData.currentStepIndex = null;
       panelClosed = true;
@@ -1571,6 +1865,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (panelClosed) {
       event.stopImmediatePropagation();
       event.preventDefault();
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Autocomplete', 'step-editor');
       this.isAutocompleteOpened = false;
       this.displayedVariables = [];
       this.stepVariableData.currentStepIndex = null;
@@ -1589,12 +1884,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
+    this.logger.msg('4', '=== closeAutocomplete() === Close Mat Autocomplete Step Index:', 'step-editor', index);
     const actualIndex = index ?? this.currentFocusedStepIndex;
     
     if (actualIndex !== null) {
       const stepFormGroup = this.stepsForm.at(actualIndex) as FormGroup;
       const stepContent = stepFormGroup?.get('step_content')?.value;
       
+      // If the step content is empty, set the documentation to empty
       if (stepContent == '') {
         this.stepsDocumentation[actualIndex] = {
           description: '',
@@ -1604,7 +1901,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       
       this.stepVisible[actualIndex] = false;
     }
-    
+
     this.isAutocompleteOpened = false;
     this._cdr.detectChanges();
 
@@ -1631,6 +1928,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   isAutocompleteSelectionInProgress: boolean = false;
 
   onAutocompleteOpened(index?: number) {
+    this.logger.msg('4', '=== onAutocompleteOpened() === On Mat Autocomplete Opened Step Index:', 'step-editor', index);
     const actualIndex = index ?? this.currentFocusedStepIndex;
     if (actualIndex !== null) {
       // Don't automatically show documentation when autocomplete opens
@@ -2308,28 +2606,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
   }
 
+
+  // This is a function to check if the step is an API call step
+  // It is used to show the collapsed API call in the step editor
   stepStates: { [key: number]: StepState } = {};
   isApiCallStep(index: number): boolean {
+    // If uncommented, it will log the index infite times (Ng if of textarea doing this)
+    // this.logger.msg('4', '=== isApiCallStep() === Index: ', 'step-editor', index);
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
     return content?.includes('Make an API call');
   }
 
+  // This is a function to check if the step is being edited
+  // It is used to show the API call dialog when the user clicks on the API call step
   isEditingApiCall(index: number): boolean {
+    this.logger.msg('4', '=== isEditingApiCall() === Index: ', 'step-editor', index);
     return this.editingApiCallIndex === index;
   }
 
+  // This is a function to expand the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   expandApiCall(index: number): void {
+    this.logger.msg('4', '=== expandApiCall() === Index: ', 'step-editor', index);
     this.editingApiCallIndex = index;
     this._cdr.detectChanges();
   }
 
+  // This is a function to get the collapsed API call content
+  // It is used to show the API call dialog when the user clicks on the API call step
   getCollapsedApiCall(index: number): string {
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    this.logger.msg('4', `=== getCollapsedApiCall(${index}) === Content: "${content}"`, 'step-editor');
     if (!content) return '';
     return content;
   }
 
+  // This is a function to edit the API call
+  // It is used to show the API call dialog when the user clicks on the API call step
   editApiCall(item: any) {
+    this.logger.msg('4', '=== editApiCall() === Item: ', 'step-editor', item);
     if (!this.isApiCallStep(item)) {
       return;
     }
@@ -3180,4 +3495,187 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     this._cdr.detectChanges();
   }
+
+  activeOptionIndex: number = 0
+
+  // Highlight the active option in the autocomplete panel
+  setActiveOption(index: number) {
+    this.logger.msg('4', '=== setActiveOption() === Set Active Option - Path', 'step-editor', index);
+    this.activeOptionIndex = index;
+  }
+
+
+  /*
+  * getStepContentAtIndex() - Get the step content at a specific index 
+  * (generic function used by Shift+Alt+F and onFilePathSelect())
+  *
+  * @param index number
+  * @returns string
+  */
+  getStepContentAtIndex(index: number) {
+    this.logger.msg('4', '=== getStepContentAtIndex() === Get Step Content At Index: ', 'step-editor', index);
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const returnValue =  stepFormGroup.get('step_content')?.value;
+    this.logger.msg('4', '=== getStepContentAtIndex() === Return Value: ', 'step-editor', returnValue);
+    return returnValue;
+  }
+
+  /*
+  * Creates a DIV like a mat autocomplete for the files name to be selected
+  * Used for the file path autocomplete - trigger by <textarea (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)">
+  * Shift+Alt+F
+  * 
+  * @param $event KeyboardEvent
+  * @param index number
+  */
+  createFilePathAutocomplete($event: KeyboardEvent, index: number) {
+
+    // Store the index of the step that have the {file_path} - save because if (function onFilePathSelect) its called will be have any index
+    this.currentFilePathStepIndex = index;
+
+    this.logger.msg('4', '=== createFilePathAutocomplete() currentFilePathStepIndex ===', 'step-editor', this.currentFilePathStepIndex);
+
+    // Hide the autocomplete panel
+    const autocompletePanel = document.querySelector('.mat-optgroup');
+    if (autocompletePanel) {
+      (autocompletePanel as HTMLElement).style.display = 'none';
+    }
+
+
+    // Get the step content
+    const stepContent = this.getStepContentAtIndex(index);
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Current Value: ', 'step-editor', stepContent);
+
+
+    // get the Files for the Pop to be shown
+    let files = [];
+    if (stepContent.includes('on mobile')) { 
+      // If step contains "on mobile", filter for APK files only
+      files = this.department.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
+    } else {
+      // Otherwise, filter for non-APK files
+      files = this.department.files.filter(file => !file.name.endsWith('.apk') && !file.is_removed);
+    }
+
+    // Create the options for the file Path Autocomplete
+    const fileOptions = files.map(file => ({
+      value: file.uploadPath, //complete path to be used in the step
+      label: file.name, //friendly name to show to the user
+      path: file.uploadPath //already have the full path
+    }));
+
+    // Show the file path autocomplete
+    this.showFilePathAutocomplete = true;
+    this.logger.msg('4', '=== createFilePathAutocomplete() === Show File Path Autocomplete', 'step-editor', this.showFilePathAutocomplete);
+
+    // Update the autocomplete options (files)
+    this.filePathAutocompleteOptions = fileOptions;
+    this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
+
+    // Position the panel near the textarea
+    const textarea = $event.target as HTMLTextAreaElement;
+    const rect = textarea.getBoundingClientRect();
+    const panel = this.filePathAutocompletePanel?.nativeElement;
+    
+    if (panel) {
+      // Set CSS custom properties for positioning
+      panel.style.setProperty('--textarea-left', rect.left + 'px');
+      panel.style.setProperty('--textarea-top', rect.top + 'px');
+      panel.style.setProperty('--textarea-height', rect.height + 'px');
+    }
+  }
+
+  // Handle file selection from autocomplete
+  // Replaces the apk file to apk path
+  onFilePathSelect(event: any, index: number) {
+    this.logger.msg('4', '=== onFilePathSelect() === Selected File Path: ', 'step-editor', event.option.value);
+
+    // Get the selected file path
+    const selectedFilePath = event.option.value; 
+
+    this.logger.msg('4', '=== onFilePathSelect() === Index from onFilePathSelect: ', 'step-editor', index);
+    
+    // Replace {file_path} with the selected file path
+    const currentValue = this.getStepContentAtIndex(index);
+    this.logger.msg('4', '=== onFilePathSelect() === Current Value: ', 'step-editor', currentValue);
+    
+    let newValue: string;
+
+    // Replace the path in steps with the word "file" 
+    // ... if nothing is found, anyhow the newvalue will contain the current value of the steps for further processing
+    const filePathRegex = /file\s*("[^"]*") sheet/g;
+    newValue = currentValue.replace(filePathRegex, `file "${selectedFilePath}" sheet`);
+
+    // Replace the path in steps with the word "app"
+    const appRegex = /app\s*("[^"]*") on mobile/g;
+    newValue = newValue.replace(appRegex, `app "${selectedFilePath}" on mobile`);
+
+    this.logger.msg('4', '=== onFilePathSelect() === New Value after regex replacements: ', 'step-editor', newValue);
+
+    // Set the new value to the textarea (newValue)
+    if (newValue !== undefined) {
+      this.stepsForm.at(index).get('step_content')?.setValue(newValue);
+    }
+  
+    // Close the autocomplete panel
+    this.showFilePathAutocomplete = false;
+    // Clear the stored index
+    this.currentFilePathStepIndex = null;
+
+    // Store the selected file path for this step to enable future div (autocomplte) triggers
+    // This allows users to modify previously selected files in the same step
+    // See in th elogs who is working put this in the filter 'onStepTextareaClick()'
+    this.lastSelectedFilePaths.set(index, selectedFilePath);
+  }
+
+  // Show the autocomplete if cursor focus in the {file_path} area
+  onTextareaFocusFilePath(event: FocusEvent, index: number) {
+    const textarea = event.target as HTMLTextAreaElement;
+    const cursorPos = textarea.selectionStart;
+    const content = textarea.value;
+
+    const beforeCursor = content.substring(0, cursorPos);
+    const afterCursor = content.substring(cursorPos);
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === Before Cursor: ', 'step-editor', beforeCursor);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === After Cursor: ', 'step-editor', afterCursor);
+    
+    // file match (browser)
+    const filePattern = /file\s*"([^"]*)$/;
+
+    // app match (mobile)
+    const appPattern = /app\s*"([^"]*)$/;
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === File Pattern: ', 'step-editor', filePattern);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === App Pattern: ', 'step-editor', appPattern);     
+    
+    // file match (browser)
+    const fileMatch = beforeCursor.match(filePattern);
+
+    // app match (mobile)
+    const appMatch = beforeCursor.match(appPattern);
+
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === File Match: ', 'step-editor', fileMatch);
+    this.logger.msg('4', '=== onTextareaFocusFilePath() === App Match: ', 'step-editor', appMatch);
+    
+    if (fileMatch || appMatch) {
+      // Check if there's a closing quote after cursor
+      const hasClosingQuote = afterCursor.includes('"'); //Example:  Read text excelfile "text... -->(")
+      this.logger.msg('4', '=== onTextareaFocusFilePath() === Has Closing Quote: ', 'step-editor', hasClosingQuote);
+      if (hasClosingQuote) { //if closed, show the autocomplete
+        this.createFilePathAutocomplete(event as any, index);
+      }
+    }
+  }
+
+  // Method to close variable dropdown
+  closeVariableDropdown(): void {
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this._cdr.detectChanges();
+  }
+
+  // To do: When variable dropdown is in last step, it should be reversed
+  // [class.reverse]="shouldReverseDropdown(stepVariableData.currentStepIndex)"
+  
 }

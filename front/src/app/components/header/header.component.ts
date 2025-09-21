@@ -31,6 +31,8 @@ import {
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { ChatbotService } from '../../services/chatbot.service';
+import { LogService } from '@services/log.service';
+import { ApiService } from '@services/api.service';
 
 @Component({
   selector: 'header',
@@ -71,6 +73,7 @@ export class HeaderComponent {
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('internal.openedMenu'))
   openedMenu: boolean = false;
   inputFocus: boolean = false;
+  version: string = 'Loading...';
 
   private inputFocusSubscription: Subscription;
 
@@ -80,10 +83,23 @@ export class HeaderComponent {
     private _store: Store,
     private inputFocusService: InputFocusService,
     private whatsNewService: WhatsNewService,
-    private chatbotService: ChatbotService
+    private chatbotService: ChatbotService,
+    private log: LogService,
   ) {
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
+    });
+  }
+
+  // Subscribe to the version from the config.json
+  @Select(CustomSelectors.GetConfigProperty('version'))
+  version$: Observable<string>;
+
+  ngOnInit() {
+    // Subscribe to the version from the config.json
+     this.version$.subscribe(version => {
+      this.log.msg('4', '=== HeaderComponent === Version: ', 'header', version);
+      this.version = 'v' + version;
     });
   }
 
