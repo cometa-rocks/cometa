@@ -192,6 +192,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   touchStartY: number = 0;
   touchStartX: number = 0;
   isDragging: boolean = false;
+  variablePopupHeight: number = 260;
 
   @ViewChildren('customAutocompleteOption', { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
@@ -1449,6 +1450,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
         this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
         this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
+        
+        // Calculate variable popup height based on filtered variables count
+        if (filteredVariables.length === 0) {
+          this.variablePopupHeight = 0;
+        } else if (filteredVariables.length <= 4) {
+          this.variablePopupHeight = (filteredVariables.length*50)+60;
+        } else {
+          this.variablePopupHeight = 260;
+        }
+        
+        
 
         // Set initial position only when dropdown first appears (when it was not visible before)
         if (this.initialDropdownPosition === null) {
@@ -1464,8 +1476,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           // Use a fixed calculation that doesn't depend on filtered variables count
           this.initialDropdownPosition = index === 0 
             ? stepContentHeight  // For first step, position below
-            : -160;              // For other steps, position above with fixed offset
-            
+            : -this.variablePopupHeight;              // For other steps, position above with fixed offset
+          
           this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
         }
         // If position is already set, keep it stable - don't recalculate
@@ -1474,7 +1486,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           filteredVariables.length > 0
             ? filteredVariables
             : ['No variable with this name'];
-
         // Set current step index when dropdown opens
         this.stepVariableData.currentStepIndex = index;
 
