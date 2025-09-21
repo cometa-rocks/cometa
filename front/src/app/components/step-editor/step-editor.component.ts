@@ -1440,12 +1440,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           filteredVariables = this.variables.filter(item =>
             item.variable_name.includes(variableSearchTerm)
           );
-          
-          // If no exact matches found, show all variables for better UX
-          if (filteredVariables.length === 0) {
-            filteredVariables = this.variables;
-            this.logger.msg('4', '=== onStepChange() === No matches found, showing all variables', 'step-editor', '');
-          }
+      
         }
 
         this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
@@ -1453,7 +1448,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         
         // Calculate variable popup height based on filtered variables count
         if (filteredVariables.length === 0) {
-          this.variablePopupHeight = 0;
+          this.variablePopupHeight = 110;
         } else if (filteredVariables.length <= 4) {
           this.variablePopupHeight = (filteredVariables.length*50)+60;
         } else {
