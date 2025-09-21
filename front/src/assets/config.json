@@ -1,6 +1,6 @@
 {
-  "version": "3.0.103",
-  "stable_version": "3.0.103",
+  "version": "3.0.104",
+  "stable_version": "3.0.104",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.104",
+      "date": "2025-09-22",
+      "features": [
+        {
+          "title": "Variable list visibility fix",
+          "description": "Improved visiblity of variables list in feature edit screen"
+        }
+      ]
+    },
     {
       "version": "3.0.103",
       "date": "2025-09-17",
