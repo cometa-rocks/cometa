@@ -244,8 +244,6 @@ export class SharedActionsService {
                   `Feature ${feature.feature_name} is running...`,
                   'OK'
                 );
-                // Open live steps dialog after starting the feature
-                this.openLiveSteps(featureId);
               },
               err => {
                 this._snackBar.open('An error ocurred', 'OK');

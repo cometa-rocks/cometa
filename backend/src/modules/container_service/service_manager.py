@@ -267,9 +267,9 @@ class DockerServiceManager:
                 # Stop the container if it's running or restarting
                 if status in ['running', 'restarting']:
                     logger.info(f"Killing container {service_name_or_id} (state: {status})")
-                    container.kill()
+                    container.stop(timeout=20)
                     # Wait for container to stop
-                    for _ in range(5):
+                    for _ in range(25):
                         container.reload()
                         status = container.attrs.get('State', {}).get('Status', 'unknown')
                         if status == 'exited':
