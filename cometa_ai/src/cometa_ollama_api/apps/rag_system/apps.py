@@ -45,7 +45,8 @@ class RagSystemConfig(AppConfig):
         if not ollama_host.startswith(('http://', 'https://')):
             ollama_host = f'http://{ollama_host}'
             
-        required_models = list(dict.fromkeys([RAG_MODEL, CHATBOT_MODEL_NAME]))
+        required_models = [m for m in [RAG_MODEL, CHATBOT_MODEL_NAME] if m]
+        pullable_models = required_models
         client = ollama.Client(host=ollama_host)
         
         try:
@@ -54,7 +55,7 @@ class RagSystemConfig(AppConfig):
             existing = {m.get('name', '') for m in models_response.get('models', [])}
             
             # Pull missing models
-            for model in set(required_models) - existing:
+            for model in set(pullable_models) - existing:
                 logger.info(f"Pulling missing model: {model}")
                 client.pull(model)
                 

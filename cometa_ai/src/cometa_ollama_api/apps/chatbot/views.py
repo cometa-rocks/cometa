@@ -11,11 +11,6 @@ import logging
 # Import the Redis connection
 from src.connections.redis_connection import connect_redis
 
-# Import RAG system
-from apps.rag_system.rag_engine import RAGEngine
-from apps.rag_system.vector_store import VectorStore
-from apps.rag_system.config import DEFAULT_TOP_K
-
 # Define the Redis queue name for chatbot
 REDIS_CHATBOT_QUEUE_NAME = os.getenv("REDIS_CHATBOT_QUEUE_NAME", "chatbot_queue")
 JOB_TIMEOUT = int(os.getenv("CHATBOT_JOB_TIMEOUT", "60"))
@@ -28,8 +23,6 @@ class ChatbotView(APIView):
     API endpoint for chatbot interactions using Redis queue and Ollama.
     """
     def post(self, request):
-        
-      
         try:
             # Get message from request data
             user_message = request.data.get('message', '')
@@ -40,30 +33,6 @@ class ChatbotView(APIView):
                     {'error': 'Message field is required'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
-            # Default system prompt if not provided
-            system_prompt = request.data.get('system_prompt', None)
-            
-            # Attempt to enhance with RAG if available
-            has_context = False
-            try:
-                rag_engine = RAGEngine(top_k=DEFAULT_TOP_K)
-                
-                # Process query with RAG
-                rag_result = rag_engine.process_query(
-                    query=user_message,
-                    system_prompt=None  # Use default system prompt
-                )
-                
-                # Extract relevant information
-                has_context = rag_result.get('has_context', False)
-                if has_context:
-                    system_prompt = rag_result.get('system', system_prompt)
-                    # Use the augmented system prompt with context
-                    user_message = f"{system_prompt}\n\nUser query: {user_message}"
-            except Exception as rag_error:
-                # Log the error but continue without RAG enhancement
-                logger.error(f"RAG enhancement failed: {rag_error}")
             
             # Connect to Redis
             redis_conn = connect_redis()

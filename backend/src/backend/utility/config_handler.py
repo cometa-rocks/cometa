@@ -27,9 +27,9 @@ def get_cometa_redis_port():
 def get_ollama_ai_api_url():
     host = ConfigurationManager.get_configuration('OLLAMA_AI_HOST', 'ollama.ai')
     port = ConfigurationManager.get_configuration('OLLAMA_AI_PORT', '8002')
-    
-    protocol = 'https' if ssl_enabled else 'http'
-    ai_server_url = f'{protocol}://{host}:{port}/api/chat/'
+
+    # Ollama always uses HTTP (no SSL/HTTPS required)
+    ai_server_url = f'http://{host}:{port}/api/chat/'
 
     logger.info(f"Using Ollama AI API URL: {ai_server_url}")
     

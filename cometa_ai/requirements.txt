@@ -34,7 +34,8 @@ PyPDF2==3.0.1
 markdown==3.7.0
 beautifulsoup4==4.13.3
 numpy==2.2.0
-chromadb==0.6.3
+chromadb==1.1.0
 python-dotenv==1.1.0
+onnxruntime==1.22.1
 uvicorn[standard]==0.34.0
 gunicorn==23.0.0

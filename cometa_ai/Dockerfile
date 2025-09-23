@@ -28,5 +28,10 @@ RUN mkdir -p /app/src/cometa_ollama_api/apps/rag_system/migrations
 # Define environment variable
 ENV NAME=ollama
 
+# ONNX Runtime configuration to optimize performance
+ENV ONNXRUNTIME_LOG_SEVERITY_LEVEL=3
+ENV OMP_NUM_THREADS=1
+ENV ONNX_PROVIDERS=CPUExecutionProvider
+
 # Run ollama when the container launches
 ENTRYPOINT ["supervisord", "-c", "/app/supervisor/supervisord.conf"]
