@@ -7,6 +7,11 @@
 @import 'color';
 @import 'breakpoints';
 
+// maybe ng-deep?
+::ng-deep .mat-dialog-container {
+  overflow: hidden;
+}
+
 .feature-history-container {
   position: relative;
   padding: 24px;
@@ -87,7 +92,9 @@
 
   .history-timeline {
     position: relative;
-    padding-left: 40px;
+    padding: 0 20px;
+    height: 725px;
+    overflow: auto;
 
     .history-entry {
       position: relative;
@@ -666,12 +673,12 @@
 }
 
 .close-button {
-  font-weight: bold !important;
-  color: "warn" !important;
+  font-weight: bold;
+  color: "warn";
 }
 
 mat-dialog-actions {
-  display: flex !important;
-  justify-content: flex-end !important;
-  padding: 16px 24px !important;
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
 }

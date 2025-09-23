@@ -1,6 +1,6 @@
 <!-- feature-history.component.html -->
 <draggable-window></draggable-window>
-<div class="feature-history-container">
+<mat-dialog-content class="feature-history-container">
   <div class="header">
     <h2>
       <mat-icon>history</mat-icon>
@@ -178,7 +178,7 @@
       <p class="empty-subtitle">Changes will appear here once the feature is modified</p>
     </div>
   </div>
-</div>
+</mat-dialog-content>
 <!-- Close button -->
 <mat-dialog-actions *ngIf="data?.departmentId" align="end">
   <button mat-stroked-button color="warn" (click)="close()" class="close-button">Close</button>
