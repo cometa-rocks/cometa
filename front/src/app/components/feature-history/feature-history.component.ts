@@ -20,6 +20,7 @@ import { LogService } from '@services/log.service';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { MatDialogModule } from '@angular/material/dialog';
+import { parseISO, isValid } from 'date-fns';
 @Component({
   selector: 'cometa-feature-history',
   templateUrl: './feature-history.component.html',
@@ -629,63 +630,83 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
-  // Helper method to parse backup timestamp format
+   // Helper method to parse backup timestamp format
+  // This method handles different timestamp formats from the backend and ensures
+  // proper timezone conversion. The main issue was that timestamps without timezone
+  // information were being interpreted as local time instead of UTC.
   parseBackupTimestamp(timestamp: string): Date {
-    try {      
+    try {
       if (!timestamp) {
         return new Date();
       }
-      
-      // Try different timestamp formats
-      let parsedDate: Date;
-      
-      // Format 1: ISO string (e.g., "2025-09-01T12:26:01.123Z")
-      if (timestamp.includes('T') && (timestamp.includes('Z') || timestamp.includes('+') || timestamp.includes('-'))) {
-        parsedDate = new Date(timestamp);
+
+      // Keep original timestamp to detect timezone information
+      const original = `${timestamp}`.trim();
+
+      // Check if timestamp has explicit timezone information (Z or ±hh:mm)
+      // This is important because we need to handle timezone-aware and timezone-naive
+      // timestamps differently
+      const hasExplicitOffset = /Z|[+-]\d{2}:?\d{2}$/.test(original);
+
+      // Normalize common backend timestamp formats to a standard format
+      // The backend sends timestamps in format: YYYY-MM-DD_HH-MM-SS
+      // We need to convert this to: YYYY-MM-DD HH:mm:ss for easier parsing
+      let normalized = original
+        .replace('_', ' ')           // Convert underscore to space: 2025-09-23_08-26-56 -> 2025-09-23 08-26-56
+        .replace('T', ' ')           // Convert T to space for ISO-like formats
+        .replace(/(\d{2})-(\d{2})-(\d{2})(?:\.\d+)?$/, '$1:$2:$3') // Convert time separators: 08-26-56 -> 08:26:56
+        .trim();
+
+      // 1) Handle timestamps WITH explicit timezone information
+      // If the timestamp has Z (UTC) or ±offset, let the browser handle it naturally
+      // This preserves the original timezone information
+      if (hasExplicitOffset) {
+        const d = new Date(original.replace('_', 'T')); // Convert underscore to T for ISO format
+        if (!isNaN(d.getTime())) return d;
       }
-      // Format 2: "2025-08-12 11:37:42" (space separated)
-      else if (timestamp.includes(' ') && timestamp.includes(':')) {
-        parsedDate = new Date(timestamp);
-      }
-      // Format 3: "2025-09-01_12-26-01" (YYYY-MM-DD_HH-MM-SS format)
-      else if (timestamp.includes('_') && timestamp.includes('-')) {
-        // Convert "2025-09-01_12-26-01" to "2025-09-01 12:26:01"
-        const normalizedTimestamp = timestamp.replace('_', ' ');
+
+      // 2) Handle timestamps WITHOUT timezone information (timezone-naive)
+      // These are treated as UTC timestamps and converted to local time
+      // This is the main fix for the 2-hour offset issue
+      // Supports format: YYYY-MM-DD HH:mm:ss
+      const m = normalized.match(
+        /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/
+      );
+      if (m) {
+        const y = Number(m[1]);   // Year
+        const mo = Number(m[2]) - 1; // Month (Date constructor expects 0-based month)
+        const d = Number(m[3]);   // Day
+        const h = Number(m[4]);   // Hour
+        const mi = Number(m[5]);  // Minute
+        const s = Number(m[6]);   // Second
         
-        // Try the normalized format first
-        parsedDate = new Date(normalizedTimestamp);
-        
-        // If that fails, try manual parsing
-        if (isNaN(parsedDate.getTime())) {
-          const parts = timestamp.split('_');
-          if (parts.length === 2) {
-            const datePart = parts[0]; // "2025-09-01"
-            const timePart = parts[1]; // "12-26-01"
-            const timeNormalized = timePart.replace(/-/g, ':'); // "12:26:01"
-            const fullTimestamp = `${datePart} ${timeNormalized}`; // "2025-09-01 12:26:01"
-            parsedDate = new Date(fullTimestamp);
-          }
-        }
+        // Create Date object as UTC time, which will be automatically converted
+        // to local time when displayed. This fixes the timezone offset issue.
+        // Example: 2025-09-23 08:26:56 UTC becomes 10:26:56 in UTC+2 timezone
+        return new Date(Date.UTC(y, mo, d, h, mi, s, 0));
       }
-      // Format 4: Unix timestamp (number)
-      else if (!isNaN(Number(timestamp))) {
-        parsedDate = new Date(Number(timestamp));
+
+      // 3) Handle Unix timestamps (seconds or milliseconds)
+      // This covers cases where the backend might send epoch timestamps
+      if (/^\d+$/.test(normalized)) {
+        const num = Number(normalized);
+        // If the number is less than 1e12, it's likely in seconds, convert to milliseconds
+        // If it's larger, assume it's already in milliseconds
+        const ms = num < 1e12 ? num * 1000 : num;
+        const d = new Date(ms);
+        if (!isNaN(d.getTime())) return d;
       }
-      // Format 5: Try as regular date string
-      else {
-        parsedDate = new Date(timestamp);
-      }
-      
-      // Validate the parsed date
-      if (isNaN(parsedDate.getTime())) {
-        throw new Error('Invalid date format');
-      }
-      
-      return parsedDate;
+
+      // 4) Fallback: try native Date parsing
+      // This handles any other format that the native Date constructor can parse
+      const fallback = new Date(normalized);
+      if (!isNaN(fallback.getTime())) return fallback;
+
+      // 5) Ultimate fallback: return current date
+      return new Date();
     } catch (error) {
       console.error('Error parsing timestamp:', error);
       console.error('Original timestamp:', timestamp);
-      // Fallback: return current date
       return new Date();
     }
   }
