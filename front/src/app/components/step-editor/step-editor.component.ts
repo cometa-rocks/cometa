@@ -2133,19 +2133,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     setTimeout(() => {
       // Double-check that the correct textarea is still focused
       const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
-      if (currentFocusedTextarea === textarea) {
+      if (currentFocusedTextarea !== textarea) return;
     
-        
-        // Reset autocomplete filtering to show all actions for new steps
-        const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
-        if (!stepContent.trim()) {
-          this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
-        }
-        
-        const trigger = this.autocompleteTriggers?.first;
-        if (trigger && !trigger.panelOpen) {
-          trigger.openPanel();
-        }
+      // Reset autocomplete filtering to show all actions for new steps
+      const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
+      if (!stepContent.trim()) {
+        this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+      }
+      
+      const triggers = this.autocompleteTriggers?.toArray();
+      const trigger = triggers?.[stepIndex];
+      if (trigger && !trigger.panelOpen) {
+        trigger.openPanel();
       }
     }, 150); // Increased delay to ensure focus is stable
   }
@@ -3714,10 +3713,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       return; 
     }
 
-    // Close the autocomplete using the ViewChild reference
-    if (this.stepHelpTrigger) {
-      this.stepHelpTrigger?.closePanel();
-    } 
+    // Close any open Material autocomplete panels across all triggers (handles newly added steps)
+    const triggers = this.autocompleteTriggers?.toArray() || [];
+    triggers.forEach(t => { if (t.panelOpen) { t.closePanel(); } }); 
 
     // Custom file path panel
     if (this.showFilePathAutocomplete) {
