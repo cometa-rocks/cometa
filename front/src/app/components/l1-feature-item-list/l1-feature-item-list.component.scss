@@ -527,7 +527,7 @@ input {
   margin: 0;
   padding: 0;
   
-  mat-icon {
+  i {
     font-size: 15px;
     width: 15px;
     height: 15px;
@@ -566,16 +566,16 @@ input {
   transition: all 0.2s ease;
   cursor: help;
 
-  .notification-icon-material {
-    font-size: 14px;
+  .material-icons {
+    font-size: 14px !important;
     width: 14px;
     height: 14px;
     line-height: 14px;
-    color: #666;
+    color: $edit-feature-icon-color;
   }
 
-  &:hover .notification-icon-material {
-    color: #333;
+  &:hover i.material-icons {
+    color: darken($edit-feature-icon-color, 5%);
   }
 }
 
@@ -604,11 +604,6 @@ input {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
-  }
-
-  .edit-feature-icon {
-    font-size: 14px;
-    color: $edit-feature-icon-color;
   }
 
   // Edit button styling
