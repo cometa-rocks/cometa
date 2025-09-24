@@ -1,6 +1,6 @@
 {
-  "version": "3.0.104",
-  "stable_version": "3.0.104",
+  "version": "3.0.105",
+  "stable_version": "3.0.105",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,15 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.105",
+      "features": [
+        {
+          "title": "Refactor API service to filter out 'error' field in patch requests - #6891",
+          "description": "Refactor API service to filter out 'error' field in patch requests and enhance logging in ResultsState. Updated getBrowserKey function comments for clarity."
+        }
+      ]
+    },
     {
       "version": "3.0.104",
       "date": "2025-09-22",
