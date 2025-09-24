@@ -66,9 +66,9 @@ export class ChatbotService {
     'zh': 'Chinese'
   };
   
-  // Multilingual greetings
+  // Multilingual greetings (HTML format)
   private greetings = {
-    'en': '# Welcome to Co.Meta Support! 👋\n\nHow can I help you today? You can ask me about:\n\n- Creating and running tests\n- Browser configurations\n- Scheduling tests\n- Mobile testing\n- API testing',
+    'en': '<h2>Welcome to Co.Meta Support! 👋</h2><p>How can I help you today? You can ask me about:</p><ul><li>Creating and running tests</li><li>Browser configurations</li><li>Scheduling tests</li><li>Mobile testing</li><li>API testing</li></ul>',
     'de': '# Willkommen beim Co.Meta Support! 👋\n\nWie kann ich Ihnen heute helfen? Sie können mich zu folgenden Themen befragen:\n\n- Erstellen und Ausführen von Tests\n- Browser-Konfigurationen\n- Testplanung\n- Mobile Tests\n- API-Tests',
     'es': '# ¡Bienvenido al soporte de Co.Meta! 👋\n\n¿Cómo puedo ayudarte hoy? Puedes preguntarme sobre:\n\n- Creación y ejecución de pruebas\n- Configuraciones de navegador\n- Programación de pruebas\n- Pruebas móviles\n- Pruebas de API',
     'fr': '# Bienvenue dans le support Co.Meta ! 👋\n\nComment puis-je vous aider aujourd\'hui ? Vous pouvez me poser des questions sur :\n\n- Création et exécution de tests\n- Configurations de navigateur\n- Planification des tests\n- Tests mobiles\n- Tests d\'API',
@@ -237,8 +237,8 @@ export class ChatbotService {
     
     // Add a helpful message to the user
     this.addBotMessage(
-      "I'm sorry, but the AI service is currently unavailable. Our team has been notified of this issue. " +
-      "In the meantime, you can try refreshing the page or trying again later."
+      "<p>I'm sorry, but the AI service is currently unavailable. Our team has been notified of this issue.</p>" +
+      "<p>In the meantime, you can try refreshing the page or trying again later.</p>"
     );
     this.isLoadingSubject.next(false);
   }
@@ -246,7 +246,7 @@ export class ChatbotService {
   // Generate a fallback response when AI services are unavailable
   private generateFallbackResponse(message: string): void {
     // Simple fallback response
-    this.addBotMessage("I'm sorry, but I can't provide a detailed answer right now as the AI service is unavailable.");
+    this.addBotMessage("<p>I'm sorry, but I can't provide a detailed answer right now as the AI service is unavailable.</p>");
     this.isLoadingSubject.next(false);
   }
 
@@ -269,7 +269,7 @@ export class ChatbotService {
         this.messagesSubject.getValue().length <= 2) {
       // This is just a greeting after our initial welcome message
       setTimeout(() => {
-        this.addBotMessage('Is there something specific you\'d like to know about Co.meta? I can help with test creation, execution, scheduling, and other platform features.');
+        this.addBotMessage('<p>Is there something specific you\'d like to know about Co.meta? I can help with test creation, execution, scheduling, and other platform features.</p>');
         this.isLoadingSubject.next(false);
       }, 500);
       return;
@@ -316,7 +316,7 @@ export class ChatbotService {
           }
         } else {
           // Handle unsuccessful response
-          this.addBotMessage("I'm sorry, I couldn't process your request. Please try again later.");
+          this.addBotMessage("<p>I'm sorry, I couldn't process your request. Please try again later.</p>");
         }
       }
       this.isLoadingSubject.next(false);
