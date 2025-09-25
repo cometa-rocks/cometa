@@ -1,6 +1,6 @@
 {
-  "version": "3.0.104",
-  "stable_version": "3.0.104",
+  "version": "3.0.105",
+  "stable_version": "3.0.105",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.105",
+      "date": "2025-09-25",
+      "features": [
+        {
+          "title": "Enhance variable list search - #6885",
+          "description": "Enhanced variable list search, now it searches in all columns of the variable list, and implemented multi-word search."
+        }
+      ]
+    },
     {
       "version": "3.0.104",
       "date": "2025-09-22",
