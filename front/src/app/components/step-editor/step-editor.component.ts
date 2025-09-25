@@ -792,7 +792,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Store coordinates for fixed positioning (relative to viewport)
     const rect = textarea.getBoundingClientRect();
     this.mobileDropdownPosition = {
-      top: rect.top + coords.top + textarea.clientHeight - 210,
+      top: rect.top + coords.top + textarea.clientHeight - 260,
       left: rect.left + coords.left 
     };
   }
