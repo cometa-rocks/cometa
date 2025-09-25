@@ -215,10 +215,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Track last checked index for multi-selection
   private lastEnableCheckedIndex: number | null = null;
   private lastScreenshotCheckedIndex: number | null = null;
-  private lastCompareCheckedIndex: number | null = null;
   private lastSelectCheckedIndex: number | null = null;
 
   runningMobiles: any[] = []; // Should be Container[], but using any to avoid import issues
+  userMobiles: any[] = [];
+  sharedMobiles: any[] = [];
   showMobileDropdown: boolean = false;
   mobileDropdownPosition: { top: number; left: number } = { top: 0, left: 0 };
   mobileDropdownStepIndex: number | null = null;
@@ -227,7 +228,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
 
   // Holds the pixel width of the quoted content for the mobile dropdown
-  mobileDropdownWidth: number = 180;
+  mobileDropdownWidth: number = 200;
+  mobileDropdownHeight: number = 200;
 
   // Tracks whether the dropdown is for mobile_name or mobile_code
   mobileDropdownType: 'name' | 'code' | 'package' = 'name';
@@ -239,7 +241,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   dropdownActiveIndex: number = 0;
 
   // Add a new property to track the initial dropdown position
-  private initialDropdownPosition: number | null = null;
+  initialDropdownPosition: number | null = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -607,6 +609,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     let cursorPos = textarea.selectionStart;
 
+    // Use custom dropdown instead of dialog when clicking inside quotes for mobile patterns
+
     // Reset dropdown state – will reopen only if a valid placeholder is found
     this.showMobileDropdown = false;
     this.mobileDropdownStepIndex = null;
@@ -710,21 +714,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.mobileDropdownStepIndex = index;
           this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
 
-          // Always recalculate the dropdown position and width every time it is shown
-          setTimeout(() => {
-            const coords = this.getCaretCoordinates(textarea, start);
-            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-            // Add offset: -120px to top, 18px to left for better dropdown positioning
-            // This ensures the dropdown appears above and slightly to the right of the quote
-            const left = textarea.offsetLeft + coords.left + 18;
-            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-            const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
-            this.mobileDropdownWidth = dropdownWidth;
-            this._cdr.detectChanges();
-            dropdownEl.style.left = `${left}px`;
-            dropdownEl.style.top = `${top}px`;
-            dropdownEl.style.minWidth = `${dropdownWidth}px`;
-          }, 0);
+          // Separate mobiles into user and shared groups
+          this.separateMobilesByOwnership();
+
+          // Calculate mobile dropdown position similar to variables
+          this.calculateMobileDropdownPosition(index, textarea);
 
 
           this.dropdownActiveIndex = 0;
@@ -758,6 +752,49 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const width = span.offsetWidth + 32; // add some padding for dropdown arrow
     document.body.removeChild(span);
     return width;
+  }
+
+  /**
+   * Separate mobiles into user and shared groups
+   */
+  separateMobilesByOwnership() {
+    this.userMobiles = [];
+    this.sharedMobiles = [];
+    
+    this.runningMobiles.forEach(mobile => {
+      if (mobile.shared && mobile.created_by !== this.user?.user_id) {
+        this.sharedMobiles.push(mobile);
+      } else {
+        this.userMobiles.push(mobile);
+      }
+    });
+  }
+
+  /**
+   * Calculate mobile dropdown position at cursor location
+   */
+  calculateMobileDropdownPosition(stepIndex: number, textarea: HTMLTextAreaElement) {
+    // Calculate dropdown height based on mobile count
+    const mobileCount = this.runningMobiles.length + (this.mobileDropdownType === 'package' ? this.appPackages?.length || 0 : 0);
+    if (mobileCount === 0) {
+      this.mobileDropdownHeight = 110;
+    } else if (mobileCount <= 4) {
+      this.mobileDropdownHeight = (mobileCount * 50) + 60;
+    } else {
+      this.mobileDropdownHeight = 260;
+    }
+    
+    // Calculate position at cursor location
+    const coords = this.getCaretCoordinates(textarea, this.mobileDropdownReplaceIndex! + 1);
+    const dropdownWidth = Math.max(this.measureTextWidth('', textarea), 300);
+    this.mobileDropdownWidth = dropdownWidth;
+    
+    // Store coordinates for fixed positioning (relative to viewport)
+    const rect = textarea.getBoundingClientRect();
+    this.mobileDropdownPosition = {
+      top: rect.top + coords.top + textarea.clientHeight - 210,
+      left: rect.left + coords.left 
+    };
   }
 
   /**
@@ -879,6 +916,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         }
       }, 0);
     }
+    this.closeMobileDropdown();
+  }
+
+  closeMobileDropdown() {
+    this.showMobileDropdown = false;
+    this.mobileDropdownStepIndex = null;
+    this.mobileDropdownReplaceIndex = null;
+    this.dropdownActiveIndex = 0;
+    this.initialDropdownPosition = null;
   }
 
   /**
@@ -1121,19 +1167,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.mobileDropdownStepIndex = i;
         this.mobileDropdownReplaceIndex = nextQuote.start - 1;
         
+        // Separate mobiles into user and shared groups
+        this.separateMobilesByOwnership();
+        
         // Position the dropdown with mobile-friendly adjustments
-        setTimeout(() => {
-          const coords = this.getCaretCoordinates(textarea, nextQuote.start);
-          const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-          const left = textarea.offsetLeft + coords.left + 18;
-          const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-          const dropdownWidth = Math.max(this.measureTextWidth(nextQuote.text, textarea), 120);
-          this.mobileDropdownWidth = dropdownWidth;
-          this._cdr.detectChanges();
-          dropdownEl.style.left = `${left}px`;
-          dropdownEl.style.top = `${top}px`;
-          dropdownEl.style.minWidth = `${dropdownWidth}px`;
-        }, 0);
+        // Calculate mobile dropdown position similar to variables
+        this.calculateMobileDropdownPosition(i, textarea);
         
 
         this.dropdownActiveIndex = 0;
@@ -3389,10 +3428,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param index Index of the clicked checkbox
    */
   onCompareCheckboxClick(event: MouseEvent, index: number) {
-    if (event.shiftKey && this.lastCompareCheckedIndex !== null) {
+    if (event.shiftKey && this.lastEnableCheckedIndex !== null) {
       // Always set checked to true for shift+click multi-select
       const checked = true;
-      const [start, end] = [this.lastCompareCheckedIndex, index].sort((a, b) => a - b); 
+      const [start, end] = [this.lastEnableCheckedIndex, index].sort((a, b) => a - b); 
       for (let i = start; i <= end; i++) {
         this.stepsForm.at(i).get('compare')?.setValue(checked);
         // If compare is checked, ensure screenshot is also checked
@@ -3402,7 +3441,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
       event.preventDefault();
     }
-    this.lastCompareCheckedIndex = index;
+    this.lastEnableCheckedIndex = index;
   }
 
   /**
@@ -3489,8 +3528,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     } else if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation(); // Prevent dialog close
-      this.showMobileDropdown = false;
-      this.dropdownActiveIndex = 0;
+      this.closeMobileDropdown();
       this._cdr.detectChanges();
     }
     this._cdr.detectChanges();
