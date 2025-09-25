@@ -160,7 +160,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     private _cdr: ChangeDetectorRef,
     private _dialog: MatDialog,
     private inputFocusService: InputFocusService,
-    private logger: LogService
+    private log: LogService
   ) {}
 
   sendInputFocusToParent(inputFocus: boolean): void {
@@ -316,7 +316,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
   onEncryptCheckboxChange(event: MatCheckboxChange, variable: VariablePair) {
     // Check if the checkbox is checked and the variable is encrypted
-    this.logger.msg('1', `onEncryptCheckboxChange() - event.checked: ${event.checked}\nvariable value: ${variable.variable_value}`, 'edit-variables');    
+    this.log.msg('1', `onEncryptCheckboxChange() - event.checked: ${event.checked}\nvariable value: ${variable.variable_value}`, 'edit-variables');    
     if (!event.checked && variable.variable_value.startsWith('U2FsdGVkX1')) {
 
       // Prevent the checkbox from being changed
@@ -335,7 +335,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
         if (res) {
           // if dialog result is no/false. go back to previous state of value encryption and focus variable-name input
           variable.encrypted = false;
-          this.logger.msg('1', `Variable encrypted if yes: ${variable.encrypted}`, 'edit-variables');
+          this.log.msg('1', `Variable encrypted if yes: ${variable.encrypted}`, 'edit-variables');
           variable.variable_value = '';
           this.setInputStatus({ required: true }, 'value');
           this._cdr.markForCheck();
@@ -353,8 +353,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     else if (event.checked && !variable.variable_value.startsWith('U2FsdGVkX1')) {
       // If the checkbox is checked and the variable is not encrypted, encrypt the variable
       variable.encrypted = true;
-      this.logger.msg('1', `Variable encrypted if no: ${variable.encrypted}`, 'edit-variables');
-      this.logger.msg('1', `Variable value: ${variable.variable_value}`, 'edit-variables');
+      this.log.msg('1', `Variable encrypted if no: ${variable.encrypted}`, 'edit-variables');
+      this.log.msg('1', `Variable value: ${variable.variable_value}`, 'edit-variables');
     }
   }
 
@@ -413,6 +413,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
   // Receives string from search input and adds it to dataSource as filterTerm.
   applyFilter() {
+    this.log.msg('1', `applyFilter() - searchTerm: ${this.searchTerm}`, 'edit-variables');
     this.dataSource.filter = this.searchTerm.trim().toLowerCase();
   }
 
@@ -423,11 +424,26 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
       if (row.id === 0) {
         return true;
       }
-      return (
-        row.variable_name.toLocaleLowerCase().includes(filter) ||
-        row.based.toLocaleLowerCase().includes(filter) ||
-        row.department_name.toLocaleLowerCase().includes(filter)
-      );
+      // Example:
+      // filter = "test"
+      // searchableText = "test red test"
+      // filterWords = ["test", "red"]
+      // return true  
+
+      const filterWords = filter.trim().toLowerCase().split(/\s+/);
+      this.log.msg('4', `filterWords: `, 'edit-variables', filterWords);
+      const searchableText = [
+        row.variable_name,
+        row.variable_value,
+        row.based,
+        row.department_name,
+        row.environment_name,
+        row.feature_name,
+        row.created_by_name || ''
+      ].join(' ').toLowerCase();
+      this.log.msg('4', `searchableText: `, 'edit-variables', searchableText);
+      // Check if ANY filter word is found (more flexible)
+      return filterWords.some(word => searchableText.includes(word));
     };
   }
 
