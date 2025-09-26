@@ -1,6 +1,6 @@
 {
-  "version": "3.0.104",
-  "stable_version": "3.0.104",
+  "version": "3.0.105",
+  "stable_version": "3.0.105",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.105",
+      "date": "2025-09-26",
+      "features": [
+          {
+            "title": "Add mobile dialog - #5981",
+          "description": "Add mobile dialog, which can be used to select a mobile from the list giving feedback (status, shared, etc)."
+        }
+      ]
+    },
     {
       "version": "3.0.104",
       "date": "2025-09-22",
