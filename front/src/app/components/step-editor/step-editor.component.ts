@@ -622,6 +622,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.showMobileDropdown = false;
     this.mobileDropdownStepIndex = null;
     this.mobileDropdownReplaceIndex = null;
+    
+    // Strategy file_path: Hide mat-autocomplete panel with CSS
+    const autocompletePanel = document.querySelector('.mat-optgroup');
+    if (autocompletePanel) {
+      (autocompletePanel as HTMLElement).style.display = 'none';
+    }
+
+    this._cdr.detectChanges();
 
     // Only show dropdown if clicking directly on a placeholder text
     this.checkAndShowMobileDropdown(textarea, index, cursorPos);
