@@ -221,7 +221,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   userMobiles: any[] = [];
   sharedMobiles: any[] = [];
   showMobileDropdown: boolean = false;
-  mobileDropdownPosition: { top: number; left: number } = { top: 0, left: 0 };
   mobileDropdownStepIndex: number | null = null;
   mobileDropdownReplaceIndex: number | null = null;
 
@@ -242,6 +241,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // Add a new property to track the initial dropdown position
   initialDropdownPosition: number | null = null;
+  mobileDropdownLeft: number = 0;
 
   constructor(
     private _dialog: MatDialog,
@@ -818,6 +818,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   /**
+   * Get all mobiles (user + shared) in one combined array for simplified rendering
+   */
+  getAllMobiles(): any[] {
+    return [...this.userMobiles, ...this.sharedMobiles];
+  }
+
+  /**
+   * Check if a mobile is shared to determine badge display
+   */
+  isSharedMobile(mobile: any): boolean {
+    return this.sharedMobiles.includes(mobile);
+  }
+
+  /**
    * Refresh mobile status by refetching the list
    */
   refreshMobileStatus() {
@@ -829,37 +843,32 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * Calculate mobile dropdown position at cursor location
    */
   calculateMobileDropdownPosition(stepIndex: number, textarea: HTMLTextAreaElement) {
-    // Get the step_content div instead of using textarea directly
-    // Find the step_content div for the current step index
-    const stepRows = document.querySelectorAll('div.step-row');
-    const currentStepRow = stepRows[stepIndex] as HTMLElement;
-    const stepContentDiv = currentStepRow ? currentStepRow.querySelector('div.step_content') as HTMLElement : null;
+    // Calculate position exactly like variables do - get cursor coordinates
+    const coords = this.getCaretCoordinates(textarea, this.mobileDropdownReplaceIndex! + 1);
     
-    if (stepContentDiv) {
-      // Calculate position based on step_content div position
-      const rect = stepContentDiv.getBoundingClientRect();
-      this.mobileDropdownWidth = Math.max(300, stepContentDiv.offsetWidth);
-      
-      // Get position of first quote (cursor position)
-      const coords = this.getCaretCoordinates(textarea, this.mobileDropdownReplaceIndex! + 1);
-      
-      const viewportHeight = window.innerHeight;
-      const dropdownHeight = Math.min(this.mobileDropdownHeight, 400); // Cap dropdown height
-      
-      // Position dropdown below the step_content div
-      const preferredTop = rect.bottom;
-      
-      // Check if dropdown fits below step
-      const fitsBelow = (preferredTop + dropdownHeight) <= viewportHeight;
-      const adjustedTop = fitsBelow 
-        ? preferredTop 
-        : Math.max(10, rect.top - dropdownHeight - 10); // Position above step if needed
-        
-      this.mobileDropdownPosition = {
-        top: adjustedTop,
-        left: rect.left + coords.left // Use first quote position relative to step_content
-      };
-    } 
+    // Get the textarea position to add relative to document
+    const textareaRect = textarea.getBoundingClientRect();
+    
+    // Calculate height like variables but for mobiles - MUST do this first
+    const allMobiles = this.getAllMobiles();
+    const mobileCount = allMobiles.length;
+    if (mobileCount === 0) {
+      this.mobileDropdownHeight = 120;
+    } else if (mobileCount <= 4) {
+      this.mobileDropdownHeight = (mobileCount * 50) + 80;
+    } else {
+      this.mobileDropdownHeight = 260;
+    }
+    
+    // Set position to cursor coordinates like variables do - absolute positioning
+    this.initialDropdownPosition = textareaRect.top + coords.top + 25; // Add some offset from cursor
+    this.mobileDropdownLeft = textareaRect.left + coords.left;
+    
+    this.logger.msg('4', '=== calculateMobileDropdownPosition === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+    this.logger.msg('4', '=== calculateMobileDropdownPosition === Calculated mobileDropdownLeft:', 'step-editor', this.mobileDropdownLeft);
+    
+    // Set width
+    this.mobileDropdownWidth = 450;
   }
 
   /**
@@ -988,6 +997,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.mobileDropdownReplaceIndex = null;
     this.dropdownActiveIndex = 0;
     this.initialDropdownPosition = null;
+    this.mobileDropdownLeft = 0;
   }
 
   /**
@@ -1941,6 +1951,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
 
     this.closeVariableDropdown();
+
+    // Close mobile dropdown panel
+    if (this.showMobileDropdown) {
+      this.closeMobileDropdown();
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Mobile Dropdown', 'step-editor');
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      this._cdr.detectChanges();
+      return;
+    }
 
     // Close filePathAutocompletePanel
     if (this.showFilePathAutocomplete) {
@@ -3557,7 +3577,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (this.mobileDropdownType === 'package') {
       optionsLength = this.appPackages.length;
     } else {
-      optionsLength = this.runningMobiles.length;
+      optionsLength = this.getAllMobiles().length;
     }
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -3566,7 +3586,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       do {
         this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
         attempts++;
-      } while (attempts < optionsLength && !this.isMobileInteractive(this.runningMobiles[this.dropdownActiveIndex]));
+      } while (attempts < optionsLength && !this.isMobileInteractive(this.getAllMobiles()[this.dropdownActiveIndex]));
       
       this._cdr.detectChanges();
       setTimeout(() => {
@@ -3582,7 +3602,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       do {
         this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
         attempts++;
-      } while (attempts < optionsLength && !this.isMobileInteractive(this.runningMobiles[this.dropdownActiveIndex]));
+      } while (attempts < optionsLength && !this.isMobileInteractive(this.getAllMobiles()[this.dropdownActiveIndex]));
       
       this._cdr.detectChanges();
       setTimeout(() => {
@@ -3597,7 +3617,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         if (this.mobileDropdownType === 'package') {
           this.onMobileDropdownSelect(this.appPackages[this.dropdownActiveIndex]);
         } else {
-          const mobile = this.runningMobiles[this.dropdownActiveIndex];
+          const mobile = this.getAllMobiles()[this.dropdownActiveIndex];
           // Only allow selection if mobile is interactive
           if (this.isMobileInteractive(mobile)) {
             this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);

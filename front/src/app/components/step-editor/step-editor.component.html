@@ -627,10 +627,9 @@
   [class.visible]="showMobileDropdown"
   [class.hidden]="!showMobileDropdown"
   [ngStyle]="{
-    'top.px': mobileDropdownPosition.top,
-    'left.px': mobileDropdownPosition.left,
+    'top.px': initialDropdownPosition,
+    'left.px': mobileDropdownLeft,
     'max-height.px': mobileDropdownHeight,
-    'min-height.px': mobileDropdownHeight,
     'min-width.px': mobileDropdownWidth
   }">
   <div class="custom-autocomplete-header">
@@ -644,65 +643,31 @@
     </button>
   </div>
   <div class="custom-autocomplete-options">
-    <!-- User's mobiles -->
-    <div *ngIf="userMobiles.length > 0" class="mobile-group">
-      <div class="mobile-group-header">Your Mobiles</div>
+    <!-- All mobiles in one loop -->
+    <div *ngFor="let mobile of getAllMobiles(); let i = index" class="mobile-group">
       <div 
-        *ngFor="let mobile of userMobiles; let j = index"
         class="custom-autocomplete-option"
         [class.disabled]="!isMobileInteractive(mobile)"
-        #dropdownOptionRef
-        [class.active]="j === dropdownActiveIndex && isMobileInteractive(mobile)"
+        [class.active]="i === dropdownActiveIndex && isMobileInteractive(mobile)"
         [class.inactive]="!isMobileInteractive(mobile)"
-        [matTooltip]="mobile.service_status !== 'Running' ? 'Activate the mobile in Start Mobile section' : ''"
+        [matTooltip]="mobile.service_status !== 'Running' && !isSharedMobile(mobile) ? 'Start the mobile in Mobile section' : ''"
         [matTooltipPosition]="'above'"
         [matTooltipDisabled]="mobile.service_status === 'Running'"
-        (click)="isMobileInteractive(mobile) && onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)"
-        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = j)">
+        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = i)">
         <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
         =&nbsp;&nbsp;
         <span class="var_value">{{ mobile.hostname }}</span>
         <span class="mobile-status" [class.running]="mobile.service_status === 'Running'" [class.stopped]="mobile.service_status !== 'Running'">
           {{ mobile.service_status === 'Running' ? 'Running' : 'Paused' }}
         </span>
+        <span *ngIf="isSharedMobile(mobile)" class="shared-badge">Shared</span>
       </div>
     </div>
     
-    <!-- Shared mobiles -->
-    <div *ngIf="sharedMobiles.length > 0" class="mobile-group">
-      <div class="mobile-group-header">Shared Mobiles</div>
-      <div 
-        *ngFor="let mobile of sharedMobiles; let k = index"
-        class="custom-autocomplete-option"
-        [class.disabled]="!isMobileInteractive(mobile)"
-        #dropdownOptionRef
-        [class.active]="(userMobiles.length + k) === dropdownActiveIndex && isMobileInteractive(mobile)"
-        [class.inactive]="!isMobileInteractive(mobile)"
-        (click)="isMobileInteractive(mobile) && onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)"
-        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = userMobiles.length + k)">
-        <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
-        =&nbsp;&nbsp;
-        <span class="var_value">{{ mobile.hostname }}</span>
-        <span class="mobile-status" [class.running]="mobile.service_status === 'Running'" [class.stopped]="mobile.service_status !== 'Running'">
-          {{ mobile.service_status === 'Running' ? 'Running' : 'Paused' }}
-        </span>
-        <span class="shared-badge">Shared</span>
-      </div>
+    <!-- No mobiles message -->
+    <div *ngIf="getAllMobiles().length === 0" class="custom-autocomplete-option">
+      <span class="no-mobile">No mobiles available. Start a mobile in Mobile section.</span>
     </div>
-    
-    <!-- App packages -->
-    <!-- <div *ngIf="mobileDropdownType === 'package' && appPackages?.length" class="mobile-group">
-      <div class="mobile-group-header">App Packages</div>
-      <div 
-        *ngFor="let pkg of appPackages; let l = index"
-        class="custom-autocomplete-option"
-        #dropdownOptionRef
-        [class.active]="(userMobiles.length + sharedMobiles.length + l) === dropdownActiveIndex"
-        (click)="onMobileDropdownSelect(pkg)"
-        (mouseenter)="dropdownActiveIndex = userMobiles.length + sharedMobiles.length + l">
-        <span class="var_name">{{ pkg }}</span>
-      </div>
-    </div> -->
   </div>
 </div>
 

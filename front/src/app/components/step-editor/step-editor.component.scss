@@ -967,7 +967,7 @@ textarea {
   overflow-y: auto;
   height: 140px;
   .custom-autocomplete-option {
-    padding: 8px 16px;
+    padding: 22px 16px;
     cursor: pointer;
     transition: background-color 0.2s ease;
     
@@ -1063,9 +1063,10 @@ Usage:
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
               0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
               0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-  min-width: 400px;
-  max-height: none !important;
-  overflow: visible !important;
+  min-width: 300px;
+  max-height: none;
+  overflow: visible;
+  z-index: 1000;
   
   &.visible {
     display: block;
@@ -1121,15 +1122,21 @@ Usage:
   .custom-autocomplete-options {
     overflow-y: auto;
     max-height: 400px;
-    min-height: 140px;
+    min-height: auto;
+    padding-bottom: 8px;
 
+    .no-mobile {
+      color: $bad;
+      user-select: none;
+      font-size: 14px;
+    }
+    
     .mobile-group {
       .mobile-group-header {
         padding: 16px 16px;
         font-size: 18px;
         color: $blue;
         background-color: $grey-bg-matautocomplete;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
       }
 
@@ -1149,7 +1156,6 @@ Usage:
         &.disabled, &.inactive {
           opacity: 0.5;
           cursor: not-allowed;
-          pointer-events: none;
           
           .var_name, .var_value {
             color: $darker-step;
