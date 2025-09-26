@@ -1063,8 +1063,9 @@ Usage:
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
               0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
               0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-  z-index: 10000 !important;
   min-width: 400px;
+  max-height: none !important;
+  overflow: visible !important;
   
   &.visible {
     display: block;
@@ -1119,14 +1120,10 @@ Usage:
 
   .custom-autocomplete-options {
     overflow-y: auto;
-    max-height: 300px;
+    max-height: 400px;
+    min-height: 140px;
 
     .mobile-group {
-      &:not(:last-child) {
-        margin-bottom: 8px;
-        padding-bottom: 8px;
-      }
-
       .mobile-group-header {
         padding: 16px 16px;
         font-size: 18px;
@@ -1147,6 +1144,20 @@ Usage:
         
         &:hover { 
           background-color: $grey-bg-matautocomplete;
+        }
+        
+        &.disabled, &.inactive {
+          opacity: 0.5;
+          cursor: not-allowed;
+          pointer-events: none;
+          
+          .var_name, .var_value {
+            color: $darker-step;
+          }
+          
+          .mobile-status {
+            opacity: 0.7;
+          }
         }
         
         &:not(:last-child) {
@@ -1172,20 +1183,20 @@ Usage:
           font-weight: 500;
           
           &.running {
-            background-color: #4caf50;
-            color: white;
+            background-color: $success;
+            color: $body-bg-color;
           }
           
           &.stopped {
-            background-color: #f44336;
-            color: white;
+            background-color: $bg-and-status;
+            color: $body-bg-color;
           }
         }
 
         .shared-badge {
           font-size: 10px;
           background-color: $blue;
-          color: white;
+          color: $body-bg-color;
           padding: 2px 6px;
           border-radius: 10px;
           margin-left: 8px;

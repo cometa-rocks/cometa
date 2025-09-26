@@ -650,15 +650,20 @@
       <div 
         *ngFor="let mobile of userMobiles; let j = index"
         class="custom-autocomplete-option"
+        [class.disabled]="!isMobileInteractive(mobile)"
         #dropdownOptionRef
-        [class.active]="j === dropdownActiveIndex"
-        (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)"
-        (mouseenter)="dropdownActiveIndex = j">
+        [class.active]="j === dropdownActiveIndex && isMobileInteractive(mobile)"
+        [class.inactive]="!isMobileInteractive(mobile)"
+        [matTooltip]="mobile.service_status !== 'Running' ? 'Activate the mobile in Start Mobile section' : ''"
+        [matTooltipPosition]="'above'"
+        [matTooltipDisabled]="mobile.service_status === 'Running'"
+        (click)="isMobileInteractive(mobile) && onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)"
+        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = j)">
         <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
         =&nbsp;&nbsp;
-        <span class="var_value">{{ mobile.hostname || '—' }}</span>
+        <span class="var_value">{{ mobile.hostname }}</span>
         <span class="mobile-status" [class.running]="mobile.service_status === 'Running'" [class.stopped]="mobile.service_status !== 'Running'">
-          {{ mobile.service_status === 'Running' ? 'Running' : 'Stopped' }}
+          {{ mobile.service_status === 'Running' ? 'Running' : 'Paused' }}
         </span>
       </div>
     </div>
@@ -669,15 +674,17 @@
       <div 
         *ngFor="let mobile of sharedMobiles; let k = index"
         class="custom-autocomplete-option"
+        [class.disabled]="!isMobileInteractive(mobile)"
         #dropdownOptionRef
-        [class.active]="(userMobiles.length + k) === dropdownActiveIndex"
-        (click)="onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)"
-        (mouseenter)="dropdownActiveIndex = userMobiles.length + k">
+        [class.active]="(userMobiles.length + k) === dropdownActiveIndex && isMobileInteractive(mobile)"
+        [class.inactive]="!isMobileInteractive(mobile)"
+        (click)="isMobileInteractive(mobile) && onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)"
+        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = userMobiles.length + k)">
         <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
         =&nbsp;&nbsp;
-        <span class="var_value">{{ mobile.hostname || '—' }}</span>
+        <span class="var_value">{{ mobile.hostname }}</span>
         <span class="mobile-status" [class.running]="mobile.service_status === 'Running'" [class.stopped]="mobile.service_status !== 'Running'">
-          {{ mobile.service_status === 'Running' ? 'Running' : 'Stopped' }}
+          {{ mobile.service_status === 'Running' ? 'Running' : 'Paused' }}
         </span>
         <span class="shared-badge">Shared</span>
       </div>

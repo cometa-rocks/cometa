@@ -568,12 +568,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   /**
-   * Fetch the list of running mobile containers and store them in runningMobiles.
-   * Debug log added to show the result.
+   * Fetch the list of mobile containers (running and paused) and store them in runningMobiles.
+   * This includes all mobiles with different status so paused mobiles are visible but not interactive.
    */
   fetchRunningMobiles() {
     this._api.getContainersList().subscribe((containers: any[]) => { // Changed type to any[] to avoid import issues
-      this.runningMobiles = containers.filter(c => c.service_status === 'Running');
+      // Include all mobile containers regardless of status so paused mobiles are visible
+      this.runningMobiles = containers.filter(c => 
+        c.service_status === 'Running' || 
+        c.service_status === 'Stopped' || 
+        c.service_status === 'Stopping' ||
+        c.service_status === 'Paused' ||
+        c.service_status === 'Pausing'
+      );
       // Debug: Log the runningMobiles array
 
       this._cdr.detectChanges();
@@ -672,29 +679,35 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         // Only show dropdown if the text is exactly a placeholder or if it's an empty quote in a mobile action
         let shouldShowDropdown = false;
         
+        // Check if step starts with "Connect to mobile" or "Start mobile" patterns
+        const stepStartsWithMobile = /^(Connect to mobile|Start mobile)\s*"/i.test(value.trim());
+        if (stepStartsWithMobile && paramIndex === 0) {
+          // For first quoted parameter in Connect to mobile or Start mobile patterns
+          shouldShowDropdown = true;
+          if (value.toLowerCase().includes('connect to mobile')) {
+            this.mobileDropdownType = 'code';
+          } else {
+            this.mobileDropdownType = 'name';
+          }
+        }
         // Check if it's exactly a placeholder text
-        if (insideText === '{mobile_name}' || insideText === '{mobile_code}' || insideText === '{app_package}') {
+        else if (insideText === '{mobile_name}' || insideText === '{mobile_code}') {
           shouldShowDropdown = true;
           // Determine dropdown type based on the placeholder
           if (insideText === '{mobile_code}') {
             this.mobileDropdownType = 'code';
-          } else if (insideText === '{app_package}') {
-            this.mobileDropdownType = 'package';
           } else if (insideText === '{mobile_name}') {
             this.mobileDropdownType = 'name';
           }
         }
         // Check if it's an existing mobile value (for editing)
         else if (this.runningMobiles.some(m => m.image_name === insideText) ||
-                 this.runningMobiles.some(m => m.hostname === insideText) ||
-                 this.appPackages.includes(insideText)) {
+                 this.runningMobiles.some(m => m.hostname === insideText)) {
           shouldShowDropdown = true;
           // Determine dropdown type based on what matches
           const matchingMobile = this.runningMobiles.find(m => m.hostname === insideText);
           if (matchingMobile) {
             this.mobileDropdownType = 'code';
-          } else if (this.appPackages.includes(insideText)) {
-            this.mobileDropdownType = 'package';
           } else {
             this.mobileDropdownType = 'name';
           }
@@ -714,8 +727,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.mobileDropdownStepIndex = index;
           this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
 
-          // Separate mobiles into user and shared groups
+          // Separate mobiles into user and shared groups and refresh status
           this.separateMobilesByOwnership();
+          
+          // Force status refresh after a short delay
+          setTimeout(() => {
+            this.refreshMobileStatus();
+          }, 100);
 
           // Calculate mobile dropdown position similar to variables
           this.calculateMobileDropdownPosition(index, textarea);
@@ -762,39 +780,86 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.sharedMobiles = [];
     
     this.runningMobiles.forEach(mobile => {
-      if (mobile.shared && mobile.created_by !== this.user?.user_id) {
-        this.sharedMobiles.push(mobile);
-      } else {
+      // Debug logging to see mobile properties
+      this.logger.msg('4', '=== separateMobilesByOwnership === Mobile data:', 'step-editor', {
+        image_name: mobile.image_name,
+        hostname: mobile.hostname,
+        shared: mobile.shared,
+        created_by: mobile.created_by,
+        current_user_id: this.user?.user_id
+      });
+      
+      // Ensure we have valid user and mobile data
+      const currentUserId = this.user?.user_id;
+      const mobileCreatedBy = mobile.created_by;
+      
+      // Check if mobile is owned by current user
+      const isOwnedByCurrentUser = !mobileCreatedBy || 
+        (currentUserId && mobileCreatedBy === currentUserId);
+      
+      if (isOwnedByCurrentUser) {
+        // Mobile belongs to current user - always in USER section
         this.userMobiles.push(mobile);
+      } else {
+        // Mobile belongs to another user - check if it's explicitly shared
+        if (mobile.shared === true) {
+          // Mobile is shared by someone else - goes to SHARED section
+          this.sharedMobiles.push(mobile);
+        }
       }
     });
+  }
+
+  /**
+   * Check if a mobile is interactive (available for selection)
+   */
+  isMobileInteractive(mobile: any): boolean {
+    return mobile.service_status === 'Running';
+  }
+
+  /**
+   * Refresh mobile status by refetching the list
+   */
+  refreshMobileStatus() {
+    this.fetchRunningMobiles();
+    this.separateMobilesByOwnership();
   }
 
   /**
    * Calculate mobile dropdown position at cursor location
    */
   calculateMobileDropdownPosition(stepIndex: number, textarea: HTMLTextAreaElement) {
-    // Calculate dropdown height based on mobile count
-    const mobileCount = this.runningMobiles.length + (this.mobileDropdownType === 'package' ? this.appPackages?.length || 0 : 0);
-    if (mobileCount === 0) {
-      this.mobileDropdownHeight = 110;
-    } else if (mobileCount <= 4) {
-      this.mobileDropdownHeight = (mobileCount * 50) + 60;
-    } else {
-      this.mobileDropdownHeight = 260;
-    }
+    // Get the step_content div instead of using textarea directly
+    // Find the step_content div for the current step index
+    const stepRows = document.querySelectorAll('div.step-row');
+    const currentStepRow = stepRows[stepIndex] as HTMLElement;
+    const stepContentDiv = currentStepRow ? currentStepRow.querySelector('div.step_content') as HTMLElement : null;
     
-    // Calculate position at cursor location
-    const coords = this.getCaretCoordinates(textarea, this.mobileDropdownReplaceIndex! + 1);
-    const dropdownWidth = Math.max(this.measureTextWidth('', textarea), 300);
-    this.mobileDropdownWidth = dropdownWidth;
-    
-    // Store coordinates for fixed positioning (relative to viewport)
-    const rect = textarea.getBoundingClientRect();
-    this.mobileDropdownPosition = {
-      top: rect.top + coords.top + textarea.clientHeight - 260,
-      left: rect.left + coords.left 
-    };
+    if (stepContentDiv) {
+      // Calculate position based on step_content div position
+      const rect = stepContentDiv.getBoundingClientRect();
+      this.mobileDropdownWidth = Math.max(300, stepContentDiv.offsetWidth);
+      
+      // Get position of first quote (cursor position)
+      const coords = this.getCaretCoordinates(textarea, this.mobileDropdownReplaceIndex! + 1);
+      
+      const viewportHeight = window.innerHeight;
+      const dropdownHeight = Math.min(this.mobileDropdownHeight, 400); // Cap dropdown height
+      
+      // Position dropdown below the step_content div
+      const preferredTop = rect.bottom;
+      
+      // Check if dropdown fits below step
+      const fitsBelow = (preferredTop + dropdownHeight) <= viewportHeight;
+      const adjustedTop = fitsBelow 
+        ? preferredTop 
+        : Math.max(10, rect.top - dropdownHeight - 10); // Position above step if needed
+        
+      this.mobileDropdownPosition = {
+        top: adjustedTop,
+        left: rect.left + coords.left // Use first quote position relative to step_content
+      };
+    } 
   }
 
   /**
@@ -868,8 +933,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (!replaced) {
       if (this.mobileDropdownType === 'code') {
         newValue = value.replace('{mobile_code}', mobileName);
-      } else if (this.mobileDropdownType === 'package') {
-        newValue = value.replace('{app_package}', mobileName);
       } else {
         newValue = value.replace('{mobile_name}', mobileName);
       }
@@ -1146,16 +1209,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       // Check if the next quote contains a placeholder and open corresponding dropdown
       // Only show dropdown if the text is exactly a placeholder or if it's an existing mobile value
       if (nextQuote.text === '{mobile_name}' || nextQuote.text === '{mobile_code}' || 
-          nextQuote.text === '{app_package}' ||
           this.runningMobiles.some(m => m.image_name === nextQuote.text) ||
-          this.runningMobiles.some(m => m.hostname === nextQuote.text) ||
-          this.appPackages.includes(nextQuote.text)) {
+          this.runningMobiles.some(m => m.hostname === nextQuote.text)) {
         
         // Set dropdown type based on placeholder or existing value
         if (nextQuote.text === '{mobile_code}' || this.runningMobiles.some(m => m.hostname === nextQuote.text)) {
           this.mobileDropdownType = 'code';
-        } else if (nextQuote.text === '{app_package}' || this.appPackages.includes(nextQuote.text)) {
-          this.mobileDropdownType = 'package';
         } else {
           this.mobileDropdownType = 'name';
         }
@@ -1169,6 +1228,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         
         // Separate mobiles into user and shared groups
         this.separateMobilesByOwnership();
+        
+        // Force status refresh after a short delay
+        setTimeout(() => {
+          this.refreshMobileStatus();
+        }, 100);
         
         // Position the dropdown with mobile-friendly adjustments
         // Calculate mobile dropdown position similar to variables
@@ -3497,7 +3561,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
+      // Navigate to next interactive mobile
+      let attempts = 0;
+      do {
+        this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
+        attempts++;
+      } while (attempts < optionsLength && !this.isMobileInteractive(this.runningMobiles[this.dropdownActiveIndex]));
+      
       this._cdr.detectChanges();
       setTimeout(() => {
         const options = this.dropdownOptionRefs?.toArray();
@@ -3507,7 +3577,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }, 0);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
+      // Navigate to previous interactive mobile
+      let attempts = 0;
+      do {
+        this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
+        attempts++;
+      } while (attempts < optionsLength && !this.isMobileInteractive(this.runningMobiles[this.dropdownActiveIndex]));
+      
       this._cdr.detectChanges();
       setTimeout(() => {
         const options = this.dropdownOptionRefs?.toArray();
@@ -3522,7 +3598,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.onMobileDropdownSelect(this.appPackages[this.dropdownActiveIndex]);
         } else {
           const mobile = this.runningMobiles[this.dropdownActiveIndex];
-          this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);
+          // Only allow selection if mobile is interactive
+          if (this.isMobileInteractive(mobile)) {
+            this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);
+          }
         }
       }
     } else if (event.key === 'Escape') {
