@@ -247,7 +247,7 @@
       "features": [
         {
           "title": "Fixed issue with file path autocomplete - #6921",
-          "description": "Fixed issue with file path autocomplete, now it shows correct position and height, add close button."
+          "description": "Add text when no files found, now it shows correct position and height, add close button."
         }
       ]
     },
