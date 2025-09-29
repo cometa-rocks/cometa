@@ -3541,11 +3541,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       (autocompletePanel as HTMLElement).style.display = 'none';
     }
 
-
     // Get the step content
     const stepContent = this.getStepContentAtIndex(index);
     this.logger.msg('4', '=== createFilePathAutocomplete() === Current Value: ', 'step-editor', stepContent);
-
 
     // get the Files for the Pop to be shown
     let files = [];
@@ -3571,17 +3569,67 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Update the autocomplete options (files)
     this.filePathAutocompleteOptions = fileOptions;
     this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
-
-    // Position the panel near the textarea
-    const textarea = $event.target as HTMLTextAreaElement;
-    const rect = textarea.getBoundingClientRect();
-    const panel = this.filePathAutocompletePanel?.nativeElement;
     
+    // Calculate position and height dynamically
+    this.calculateFilePathAutocompletePosition($event, index);
+  }
+
+  /**
+   * Calculate file path autocomplete position at cursor location
+   */
+  calculateFilePathAutocompletePosition($event: KeyboardEvent, stepIndex: number) {
+    const textarea = $event.target as HTMLTextAreaElement;
+    
+    // Find the position of {file_path} in the textarea
+    const textareaValue = textarea.value;
+    const filePathIndex = textareaValue.indexOf('{file_path}');
+    
+    if (filePathIndex === -1) {
+      this.logger.msg('4', '=== calculateFilePathAutocompletePosition === {file_path} not found', 'step-editor');
+      return;
+    }
+
+    // Calculate position exactly like variables do - get cursor coordinates
+    const coords = this.getCaretCoordinates(textarea, filePathIndex);
+    
+    // Get the textarea position to add relative to document
+    const textareaRect = textarea.getBoundingClientRect();
+    
+    // Calculate height based on number of files - limit maximum height
+    const fileCount = this.filePathAutocompleteOptions.length;
+    let panelHeight = 40; // Header height
+    const maxHeight = 280; // Maximum height for the panel
+    
+    if (fileCount === 0) {
+      panelHeight = 80; // Header + "No files found" message
+    } else if (fileCount <= 4) {
+      panelHeight = 40 + (fileCount * 48); // 48px per file + header
+    } else {
+      panelHeight = maxHeight; // Use maximum height with scroll
+    }
+    
+    // Set position to cursor coordinates - absolute positioning
+    const panel = this.filePathAutocompletePanel?.nativeElement;
     if (panel) {
+      // Position above the textarea, but keep left aligned with cursor
+      const top = textareaRect.top - panelHeight + 65; // 10px gap above the textarea
+      const left = textareaRect.left + coords.left; // Keep left aligned with cursor position
+      
+      // Ensure panel doesn't go above viewport
+      const finalTop = Math.max(10, top); // At least 10px from top of viewport
+      
       // Set CSS custom properties for positioning
-      panel.style.setProperty('--textarea-left', rect.left + 'px');
-      panel.style.setProperty('--textarea-top', rect.top + 'px');
-      panel.style.setProperty('--textarea-height', rect.height + 'px');
+      panel.style.setProperty('--textarea-left', left + 'px');
+      panel.style.setProperty('--textarea-top', finalTop + 'px');
+      panel.style.setProperty('--textarea-height', panelHeight + 'px');
+      
+      this.logger.msg('4', '=== calculateFilePathAutocompletePosition === Calculated position:', 'step-editor', { 
+        top: finalTop, 
+        left, 
+        panelHeight, 
+        fileCount,
+        textareaRect: { top: textareaRect.top, left: textareaRect.left, width: textareaRect.width }
+      });
     }
   }
 
@@ -3666,6 +3714,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.createFilePathAutocomplete(event as any, index);
       }
     }
+  }
+
+  // Close the file path autocomplete panel
+  closeFilePathAutocomplete(): void {
+    this.showFilePathAutocomplete = false;
   }
 
   // Method to close variable dropdown

@@ -1,6 +1,6 @@
 {
-  "version": "3.0.104",
-  "stable_version": "3.0.104",
+  "version": "3.0.106",
+  "stable_version": "3.0.106",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.106",
+      "date": "2025-09-29",
+      "features": [
+        {
+          "title": "Fixed issue with file path autocomplete - #6921",
+          "description": "Fixed issue with file path autocomplete, now it shows correct position and height, add close button."
+        }
+      ]
+    },
     {
       "version": "3.0.104",
       "date": "2025-09-22",
