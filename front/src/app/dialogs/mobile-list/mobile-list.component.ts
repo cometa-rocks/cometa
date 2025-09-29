@@ -152,6 +152,9 @@ export class MobileListComponent implements OnInit, OnDestroy {
   private isNoVNCMobile = false;
   private clickTimeout = 2000; // 2 seconds timeout
 
+  // Spinner state management with localStorage persistence
+  private spinnerStates: { [containerId: number]: boolean } = {};
+
   // View state management
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('mobileView.with'))
   mobileViewWith: 'tiles' | 'list';
@@ -263,6 +266,12 @@ export class MobileListComponent implements OnInit, OnDestroy {
     // Load saved column settings
     this.getSavedMobileColumnSettings();
     this.getSavedSharedMobileColumnSettings();
+    
+    // Load spinner states from localStorage
+    const savedSpinnerStates = localStorage.getItem('mobileSpinnerStates');
+    if (savedSpinnerStates) {
+      this.spinnerStates = JSON.parse(savedSpinnerStates);
+    }
     
 
 
@@ -452,7 +461,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.cleanupSubscriptions();
     
-
+    // Clear localStorage spinner states
+    localStorage.removeItem('mobileSpinnerStates');
     
     // Clear shared status timeout
     if (this.sharedStatusUpdateTimeout) {
@@ -680,10 +690,20 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // This method restarts the mobile container using ID
   restartMobile(container: Container): void {
+
+    if (container.service_status === 'Restarting') {
+      this.logger.msg('4', 'Container is already in temporary state, ignoring click', 'MobileListComponent', );
+      this.logger.msg('4', '=== END handleMobileState DEBUG ===', 'MobileListComponent', );
+      return;
+    }
+
     let body = {
       action: 'restart'
     };
     container.service_status = 'Restarting';
+
+    // Force immediate change detection to show spinner
+    this._cdr.detectChanges();
 
     // Only clear cache if we're in table view to show immediate status change
     if (this.mobileViewWithLocal === 'list') {
@@ -691,43 +711,46 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this._cdr.detectChanges();
     }
 
-    // Call the API service on component initialization
-    this._api.updateMobile(container.id, body).subscribe(
-      (response: any) => {
-        if (response.success) {
-          container.isPaused = false;
-          container.service_status = 'Running';
-          this.snack.open(`Mobile restarted successfully`, 'OK');
-          container = response.containerservice;
-          
-          // Refresh container data to get updated APK information
-          this.refreshContainerData(container.id);
-          
-          // Only clear cache if we're in table view
-          if (this.mobileViewWithLocal === 'list') {
-            this.clearTableDataCache();
+    // Add a small delay to ensure spinner shows before API call
+    setTimeout(() => {
+      // Call the API service on component initialization
+      this._api.updateMobile(container.id, body).subscribe(
+        (response: any) => {
+          if (response.success) {
+            container.isPaused = false;
+            container.service_status = 'Running';
+            this.snack.open(`Mobile restarted successfully`, 'OK');
+            container = response.containerservice;
+            
+            // Refresh container data to get updated APK information
+            this.refreshContainerData(container.id);
+            
+            // Only clear cache if we're in table view
+            if (this.mobileViewWithLocal === 'list') {
+              this.clearTableDataCache();
+              this._cdr.detectChanges();
+            }
+          } else {
+            console.error(
+              `Failed to restart mobile container with ID: ${container.id}. Reason: ${response.message}`
+            );
+            this.snack.open(`Error restarting the mobile container`, 'OK');
+            container.service_status = 'Error';
             this._cdr.detectChanges();
           }
-        } else {
+        },
+        error => {
+          // Enhanced error handling for API call
           console.error(
-            `Failed to restart mobile container with ID: ${container.id}. Reason: ${response.message}`
+            `Network or server error occurred while attempting to restart mobile container with ID: ${container.id}.`,
+            error
           );
-          this.snack.open(`Error restarting the mobile container`, 'OK');
+          this.snack.open(`Network error while restarting mobile`, 'OK');
           container.service_status = 'Error';
           this._cdr.detectChanges();
         }
-      },
-      error => {
-        // Enhanced error handling for API call
-        console.error(
-          `Network or server error occurred while attempting to restart mobile container with ID: ${container.id}.`,
-          error
-        );
-        this.snack.open(`Network error while restarting mobile`, 'OK');
-        container.service_status = 'Error';
-        this._cdr.detectChanges();
-      }
-    );
+      );
+    }, 100); // Small delay to ensure spinner shows
   }
 
   // Refresh container data to get updated APK information
@@ -754,10 +777,20 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // This method pauses the mobile container using ID
   pauseMobile(container: Container): void {
+    if (container.service_status === 'Stopping') {
+      this.logger.msg('4', 'Container is already in temporary state, ignoring click', 'MobileListComponent', );
+      this.logger.msg('4', '=== END handleMobileState DEBUG ===', 'MobileListComponent', );
+      return;
+    }
+
     let body = {
       action: 'stop'
     };
-    container.service_status = 'Pausing';
+    container.service_status = 'Stopping';
+
+    // Set spinner state for this container
+    this.spinnerStates[container.id] = true;
+    this.saveSpinnerStates();
 
     // Only clear cache if we're in table view to show immediate status change
     if (this.mobileViewWithLocal === 'list') {
@@ -765,39 +798,53 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this._cdr.detectChanges();
     }
 
-    // Call the API service on component initialization
-    this._api.updateMobile(container.id, body).subscribe(
-      (response: any) => {
-        if (response.success) {
-          container.isPaused = true;
-          container.service_status = 'Stopped';
-          this.snack.open(`Mobile paused successfully`, 'OK');
-          container = response.containerservice;
-          // Only clear cache if we're in table view
-          if (this.mobileViewWithLocal === 'list') {
-            this.clearTableDataCache();
+    // Add a small delay to ensure spinner shows before API call
+    setTimeout(() => {
+      // Call the API service on component initialization
+      this._api.updateMobile(container.id, body).subscribe(
+        (response: any) => {
+          if (response.success) {
+            this.snack.open(`Mobile paused successfully`, 'OK');
+
+
+            container.isPaused = true;
+            container.service_status = 'Stopped';
+            container = response.containerservice;
+
+            // Clear spinner state
+            delete this.spinnerStates[container.id];
+            this.saveSpinnerStates();
+
+            // Only clear cache if we're in table view
+            if (this.mobileViewWithLocal === 'list') {
+              this.clearTableDataCache();
+              this._cdr.detectChanges();
+            }
+          } else {
+            console.error(
+              'An error occurred while stopping the mobile',
+              response.message
+            );
+            this.snack.open(`Error while stopping the Mobile`, 'OK');
+            container.service_status = 'Error';
+            delete this.spinnerStates[container.id];
+            this.saveSpinnerStates();
             this._cdr.detectChanges();
           }
-        } else {
+        },
+        error => {
+          // Handle any errors
           console.error(
-            'An error occurred while stopping the mobile',
-            response.message
+            'An error occurred while fetching the mobile list',
+            error
           );
-          this.snack.open(`Error while stopping the Mobile`, 'OK');
           container.service_status = 'Error';
+          delete this.spinnerStates[container.id];
+          this.saveSpinnerStates();
           this._cdr.detectChanges();
         }
-      },
-      error => {
-        // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
-        );
-        container.service_status = 'Error';
-        this._cdr.detectChanges();
-      }
-    );
+      );
+    }, 100); // Small delay to ensure spinner shows before API call
   }
 
   handleMobileState(container: Container): void {
@@ -805,7 +852,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
       this.pauseMobile(container);
     } else if (container.service_status === 'Stopped') {
       this.restartMobile(container);
-    } else if (container.service_status === 'Pausing' || container.service_status === 'Restarting') {
+    } else if (container.service_status === 'Stopping' || container.service_status === 'Restarting') {
       return;
     }
   }
@@ -860,7 +907,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
   // access or not to novnc or inspect
   stopGoToUrl(container: Container) {
-    if (container.service_status === 'Stopped' || container.service_status === 'Pausing' || container.service_status === 'Restarting') {
+    if (container.service_status === 'Stopped' || container.service_status === 'Stopping' || container.service_status === 'Restarting') {
       return true;
     }
     return false;
@@ -872,11 +919,18 @@ export class MobileListComponent implements OnInit, OnDestroy {
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
       return null;
     }
+
+    this.logger.msg('4', 'Running containers: ' + JSON.stringify(this.runningMobiles), 'MobileListComponent', );
     
+    // Including temporary states (Stopping and Restarting) we are sure spinner will show
     for (let container of this.runningMobiles) {
       if (container.image == mobile_id && container.department_id == this.selectedDepartment?.id) {
-        // Additional check to ensure container is actually running
-        if (container.service_status === 'Running' || container.service_status === 'Stopped') {
+        this.logger.msg('4', 'Container status: ' + JSON.stringify(container.service_status), 'MobileListComponent', );
+        // Include all states including intermediate states
+        if (container.service_status === 'Running' || 
+            container.service_status === 'Stopped' || 
+            container.service_status === 'Stopping' || 
+            container.service_status === 'Restarting') {
           return container;
         }
       }
@@ -1650,6 +1704,24 @@ export class MobileListComponent implements OnInit, OnDestroy {
     if (viewType === 'tree') {
       this.snack.open('Tree view is not available in this modality', 'OK', { duration: 3000 });
     }
+  }
+
+  /**
+   * Saves spinner states to localStorage
+   */
+  private saveSpinnerStates(): void {
+    localStorage.setItem('mobileSpinnerStates', JSON.stringify(this.spinnerStates));
+  }
+
+  /**
+   * Checks if spinner should be shown for a container
+   * @param container The container to check
+   * @returns true if spinner should be shown
+   */
+  shouldShowSpinner(container: Container): boolean {
+    return container.service_status === 'Stopping' || 
+           container.service_status === 'Restarting' || 
+           this.spinnerStates[container.id] === true;
   }
 
 }
