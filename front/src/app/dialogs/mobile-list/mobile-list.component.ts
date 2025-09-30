@@ -70,11 +70,12 @@ import {
   UntypedFormBuilder,
 } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
-import { interval } from 'rxjs';
 import { Departments } from '@store/actions/departments.actions';
 import { Configuration } from '@store/actions/config.actions';
 import { CustomSelectors } from '@others/custom-selectors';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
+import { Actions, ofActionSuccessful } from '@ngxs/store';
+import { MobileWebSockets } from '@store/actions/mobile.actions';
 
 
 /**
@@ -180,6 +181,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
     private _store: Store,
     private logger: LogService,
     private _fb: UntypedFormBuilder,
+    private _actions$: Actions,
   ) {
     this.featureForm = this._fb.group({
       department_name: ['', Validators.required],
@@ -327,6 +329,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
       (mobiles: IMobile[]) => {
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
+        this.logger.msg('1', `Mobiles loaded: ${this.mobiles.length}`, 'mobile-list');
+
         // Clear table data cache when mobiles data changes
         this.clearTableDataCache();
         // department_id is received only when component is opened as dialog
@@ -334,7 +338,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
 
         // If proxy object, use this Json stringify to avoid proxy objects
         this._store.select(UserState.RetrieveUserDepartments).pipe(
-          map(departments => JSON.parse(JSON.stringify(departments)))
+          map(departments => JSON.parse(JSON.stringify(departments))),
+          takeUntil(this.destroy$)
         ).subscribe(departments => {
           this.departments = departments;
           
@@ -354,7 +359,8 @@ export class MobileListComponent implements OnInit, OnDestroy {
           })
         });
 
-        // Call the API service on component initialization
+        // Initial containers load: only hydrate running containers owned by the user.
+        // Do NOT populate sharedMobileContainers here to avoid duplications.
         this._api.getContainersList().subscribe(
           (containers: Container[]) => {
 
@@ -364,32 +370,15 @@ export class MobileListComponent implements OnInit, OnDestroy {
                 this.showSpinnerFor(container.id);
               }
 
-              if (container.shared && this.user.user_id != container.created_by) {
-                container.image = this.mobiles.find( m => m.mobile_id === container.image);
-
-                if(this.isDialog){
-                  container.apk_file = this.data.uploadedAPKsList.find(
-                    m => m.mobile_id === container.apk_file
-                  );
-                }
-                else{
-                  this.departments.forEach(department => {
-                    const depData = JSON.parse(JSON.stringify(department));
-                    this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk') && !file.is_removed);
-                  })
-                }
-
-                if (this.selectedDepartment && this.selectedDepartment.id && container.department_id === this.selectedDepartment.id) {
-                  this.sharedMobileContainers.push(container);
-                }
-
-              } else if (this.user.user_id == container.created_by) {
+              if (this.user.user_id == container.created_by) {
                 this.runningMobiles.push(container);
               }
             }
             // Clear table data cache when containers data changes
             this.clearTableDataCache();
             this._cdr.detectChanges();
+            // Ensure shared containers are loaded via the dedicated loader to avoid duplicates
+            this.loadSharedContainers();
           },
           error => {
             // Handle any errors
@@ -417,15 +406,127 @@ export class MobileListComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Configurar la actualización periódica de la lista
-    this.intervalSubscription = interval(this.updateInterval)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        // if (!this.isFirstLoad) {
-          this.loadSharedContainers();
-        // }
-      });
+    // Subscription to Mobile WebSocket events (realtime)
+    this._actions$
+      .pipe(
+        ofActionSuccessful(
+          MobileWebSockets.ContainerStatusUpdate,
+          MobileWebSockets.ContainerSharedUpdate,
+          MobileWebSockets.ContainerStarted,
+          MobileWebSockets.ContainerStopped,
+          MobileWebSockets.ContainerTerminated,
+          MobileWebSockets.ContainerApkUpdate
+        ),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((action: any) => this.applyMobileWsAction(action));
 
+  }
+
+  private applyMobileWsAction(action: any): void {
+    this.logger.msg('4', 'WS action received', 'mobile-list', action);
+
+    const removeRunning = (id: number) => {
+      this.runningMobiles = this.runningMobiles.filter(c => c.id !== id);
+    };
+    const removeShared = (id: number) => {
+      this.sharedMobileContainers = this.sharedMobileContainers.filter(c => c.id !== id);
+    };
+    const refreshIfSharedExists = (id: number) => {
+      if (this.sharedMobileContainers.some(c => c.id === id)) {
+        this.refreshSingleSharedContainer(id);
+      }
+    };
+    const updateRunningIfPresent = (id: number, patch: Partial<Container>) => {
+      const idx = this.runningMobiles.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        this.runningMobiles[idx] = { ...this.runningMobiles[idx], ...patch, id } as Container;
+      }
+    };
+
+    switch ((action as any).constructor) {
+      case MobileWebSockets.ContainerStatusUpdate: {
+        const id = action.containerUpdate.container_id;
+        // Keep owner's card in sync if present
+        updateRunningIfPresent(id, action.containerUpdate);
+        // If the shared card exists, hydrate from server (no merging logic)
+        refreshIfSharedExists(id);
+        break;
+      }
+      case MobileWebSockets.ContainerSharedUpdate: {
+        const id = action.container_id;
+        // Mark running shared flag if present for owner
+        updateRunningIfPresent(id, { shared: action.shared } as any);
+        if (action.shared) {
+          // Minimal logic: hydrate from server; method ignores other departments
+          this.refreshSingleSharedContainer(id);
+        } else {
+          removeShared(id);
+        }
+        break;
+      }
+      case MobileWebSockets.ContainerStarted: {
+        const id = action.container_id;
+        updateRunningIfPresent(id, { service_status: 'Running', hostname: action.hostname } as any);
+        refreshIfSharedExists(id);
+        break;
+      }
+      case MobileWebSockets.ContainerStopped: {
+        const id = action.container_id;
+        updateRunningIfPresent(id, { service_status: 'Stopped' } as any);
+        refreshIfSharedExists(id);
+        break;
+      }
+      case MobileWebSockets.ContainerTerminated: {
+        const id = action.container_id;
+        removeRunning(id);
+        removeShared(id);
+        break;
+      }
+      case MobileWebSockets.ContainerApkUpdate: {
+        const id = action.container_id;
+        updateRunningIfPresent(id, { apk_file: action.apk_file } as any);
+        refreshIfSharedExists(id);
+        break;
+      }
+    }
+
+    this.clearTableDataCache();
+    this._cdr.markForCheck();
+    this._cdr.detectChanges();
+  }
+
+
+  /**
+   * Fetch the containers list and hydrate one shared container by id with full data.
+   * Used when WS events bring partial payloads for containers created by other users.
+   */
+  private refreshSingleSharedContainer(containerId: number): void {
+    // Only run if we have a selected department
+    if (!this.selectedDepartment || !this.selectedDepartment.id) return;
+    this._api.getContainersList().subscribe(
+      (containers: Container[]) => {
+        const serverContainer = containers.find(c =>
+          c.id === containerId && c.department_id === this.selectedDepartment.id && c.created_by !== this.user.user_id
+        );
+        if (!serverContainer) return;
+        // Ensure image is fully resolved
+        if (typeof (serverContainer as any).image === 'number') {
+          const found = this.mobiles.find(m => m.mobile_id === (serverContainer as any).image);
+          if (found) (serverContainer as any).image = found;
+        }
+        const idx = this.sharedMobileContainers.findIndex(c => c.id === containerId);
+        if (idx >= 0) {
+          this.sharedMobileContainers[idx] = { ...this.sharedMobileContainers[idx], ...serverContainer } as Container;
+        } else {
+          this.sharedMobileContainers.push(serverContainer);
+        }
+        this.clearTableDataCache();
+        this._cdr.markForCheck();
+        this._cdr.detectChanges();
+      },
+      () => {}
+    );
   }
 
   private cleanupSubscriptions() {
@@ -940,9 +1041,6 @@ export class MobileListComponent implements OnInit, OnDestroy {
     // Then load shared containers for the new department
     this.loadSharedContainers();
     
-    // Load shared containers for the newly selected department
-    this.loadSharedContainers();
-    
     // Trigger change detection to update the UI
     this._cdr.detectChanges();
 
@@ -1007,10 +1105,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Limpiar la lista actual antes de cargar nuevos contenedores
+    // Clean the current list before loading new containers
     this.sharedMobileContainers = [];
 
-    // Cancelar la suscripción anterior si existe
+    // Cancel the previous subscription if it exists
     if (this.containersSubscription) {
       this.containersSubscription.unsubscribe();
     }
@@ -1034,18 +1132,29 @@ export class MobileListComponent implements OnInit, OnDestroy {
       // Check if shared containers data has actually changed
       const sharedContainersChanged = this.hasSharedContainersChanged(currentSharedContainers);
 
-      // Asignar los nuevos contenedores compartidos
+      // Assign the new shared containers
       this.sharedMobileContainers = currentSharedContainers;
       
-      // Asignar la imagen correspondiente a cada contenedor de forma segura
+      // Asign the corresponding image to each container safely
       this.sharedMobileContainers.forEach(container => {
-        const foundImage = this.mobiles.find(m => m.mobile_id === container.image);
-        if (foundImage) {
-          container.image = foundImage;
+        // If image is a number, search for the complete object
+        if (typeof container.image === 'number') {
+          const foundImage = this.mobiles.find(m => m.mobile_id === container.image);
+          if (foundImage) {
+            container.image = foundImage;
+          }
+        }
+        // If image is an object but lacks mobile_json, try to search it by ID
+        else if (container.image && !container.image.mobile_json) {
+          const foundImage = this.mobiles.find(m => m.mobile_id === container.image.mobile_id);
+          if (foundImage) {
+            container.image = foundImage;
+          }
         }
       });
+      this._cdr.detectChanges();
 
-      // Actualizar contenedores propios (runningMobiles)
+      // Update own containers (runningMobiles)
       const currentRunningContainers = containers.filter(container =>
         container.created_by === this.user.user_id
       );
@@ -1407,6 +1516,10 @@ export class MobileListComponent implements OnInit, OnDestroy {
     // Force immediate change detection
     this._cdr.detectChanges();
     
+    // Immediately reload shared containers so table/tiles have data after switch
+    if (this.selectedDepartment && this.selectedDepartment.id) {
+      this.loadSharedContainers();
+    }
     // Force comprehensive change detection
     setTimeout(() => {
       this.forceUpdate();

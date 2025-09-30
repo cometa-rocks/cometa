@@ -1,6 +1,6 @@
 {
-  "version": "3.0.104",
-  "stable_version": "3.0.104",
+  "version": "3.0.106",
+  "stable_version": "3.0.106",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.106",
+      "date": "2025-09-30",
+      "features": [
+        {
+          "title": "Mobile websocket improvements - #6860",
+          "description": "Mobile websocket improvements, fixed issue with shared containers, now it shows the shared containers in the list and tiles."
+        }
+      ]
+    },
     {
       "version": "3.0.104",
       "date": "2025-09-22",
