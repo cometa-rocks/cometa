@@ -1,0 +1,46 @@
+<div class="items mat-elevation-z1" *ngIf="items.length > 0">
+  <div class="controls">
+    <mat-checkbox color="primary" [checked]="allSelected" (change)="onSelectAll($event.checked)">Select all</mat-checkbox>
+  </div>
+  <div class="list">
+    <div class="row header">
+      <div class="col sel">Sel</div>
+      <div class="col name">Name</div>
+      <div class="col browsers">Browsers</div>
+      <div class="col status">Status</div>
+    </div>
+    <div class="row" *ngFor="let item of items; trackBy: trackByIndex" [class.invalid]="item.error">
+      <div class="col sel">
+        <mat-checkbox
+          color="primary"
+          [checked]="item.selected"
+          (change)="onItemSelection(item, $event.checked)">
+        </mat-checkbox>
+      </div>
+      <div class="col name">
+        <input
+          matInput
+          placeholder="Feature name"
+          [ngModel]="item.name"
+          (ngModelChange)="onNameChange(item, $event)" />
+      </div>
+      <div class="col browsers">
+        <span class="browser-chip" *ngIf="!requiresBrowsers(item.original)">{{ browsersLabel(item) }}</span>
+        <span class="browser-chip" *ngIf="requiresBrowsers(item.original) && (item.original?.browsers?.length || 0) > 0">{{ browsersLabel(item) }}</span>
+        <button
+          mat-stroked-button
+          color="primary"
+          class="add-browser"
+          *ngIf="requiresBrowsers(item.original) && (item.original?.browsers?.length || 0) === 0"
+          (click)="onAddDefault(item)">
+          <mat-icon>add</mat-icon>
+          Add default
+        </button>
+      </div>
+      <div class="col status">
+        <span class="ok" *ngIf="!item.error">Ready</span>
+        <span class="error" *ngIf="item.error">{{ item.error }}</span>
+      </div>
+    </div>
+  </div>
+</div>

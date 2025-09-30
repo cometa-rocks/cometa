@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>Import Feature(s)</h2>
+<div mat-dialog-content class="content import-features">
+  <div class="mode-bar">
+    <div class="toggles">
+      <button mat-button [class.active]="mode === 'file'" (click)="setMode('file')">
+        Upload file
+      </button>
+      <button mat-button [class.active]="mode === 'paste'" (click)="setMode('paste')">
+        Paste JSON
+      </button>
+    </div>
+    <button mat-button class="clear" (click)="clear()" *ngIf="hasItems">
+      <mat-icon>clear</mat-icon>
+      Clear list
+    </button>
+  </div>
+  <div class="instructions mat-body-2">
+    1. Choose a source above (toggle between Upload or Paste) and load your JSON export.<br />
+    2. Review detected features: edit names, add browsers when needed, or leave inherited ones for dependencies.<br />
+    3. Select the feature(s) you want and press Save to import.
+  </div>
+  <div class="file-picker" *ngIf="mode === 'file'">
+    <label class="upload">
+      <input type="file" accept="application/json" (change)="onFileSelected($event)" />
+      <span class="btn">Choose File</span>
+      <span class="file-name" *ngIf="lastFileName">{{ lastFileName }}</span>
+    </label>
+  </div>
+  <div class="paste-container" *ngIf="mode === 'paste'">
+    <button mat-stroked-button class="paste" (click)="openPasteDialog()">
+      <mat-icon>content_paste</mat-icon>
+      Open paste dialog
+    </button>
+    <span class="hint">Paste raw JSON to replace the current list.</span>
+  </div>
+
+  <div *ngIf="currentParseError" class="inline-error">{{ currentParseError }}</div>
+
+  <cometa-import-features-table
+    *ngIf="hasItems"
+    [items]="currentItems"
+    [allSelected]="currentAllSelected"
+    [browsersLabel]="browsersLabel.bind(this)"
+    [requiresBrowsers]="requiresBrowsers.bind(this)"
+    (selectAllChange)="toggleSelectAll($event)"
+    (selectionChange)="onItemSelectionChange($event.item, $event.selected)"
+    (nameChange)="onNameChange($event.item, $event.name)"
+    (addDefaultBrowsers)="setDefaultBrowsers($event)">
+  </cometa-import-features-table>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="busy">Cancel</button>
+  <button mat-flat-button color="primary" (click)="importSelected()" [disabled]="busy || !hasItems">Save</button>
+</div>

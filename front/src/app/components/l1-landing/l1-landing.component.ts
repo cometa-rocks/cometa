@@ -59,6 +59,7 @@ import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { FeatureMetricsUsageComponent } from '@components/feature-metrics-usage/feature-metrics-usage.component';
+import { ImportFeaturesDialogComponent } from '../../dialogs/import-features/import-features.component';
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-landing',
@@ -159,6 +160,15 @@ export class L1LandingComponent implements OnInit {
       this.inputFocus = inputFocused;
     });
 
+  }
+
+  openImportFeatures() {
+    this._dialog.open(ImportFeaturesDialogComponent, {
+      panelClass: 'no-resize-dialog',
+      width: '900px',
+      maxWidth: '95vw',
+      autoFocus: false,
+    });
   }
 
   // Contains all the features and folders data

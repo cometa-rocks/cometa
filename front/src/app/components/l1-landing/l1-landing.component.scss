@@ -189,8 +189,8 @@ edit-variables {
     // justify-content: flex-start;
     // box-sizing: border-box;
     .addFeatureIcon,
+    .importFeatureIcon,
     .addFolderIcon {
-      width: 170px;
       height: 40px;
       background: $blue;
       padding: 0 10px;
@@ -235,6 +235,17 @@ edit-variables {
             margin-left: 3px;
           }
         }
+      }
+    }
+    .importFeatureIcon {
+      position: absolute;
+      visibility: visible;
+      top: 180px;
+      transition: all 0.3s ease-in-out;
+      z-index: 101;
+      mat-icon {
+        font-size: 21px;
+        line-height: 21px;
       }
     }
     .addDataDrivenIcon {

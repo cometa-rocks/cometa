@@ -62,6 +62,18 @@ Author: dph000
         </div>
         Create feature
       </button>
+      <!-- Import features button -->
+      <button
+        *ngIf="canCreateFeature && hasSubscription"
+        class="importFeatureIcon"
+        mat-raised-button
+        aria-label="Import features button"
+        (click)="openImportFeatures()"
+        [class.hideAdd]="!openedAdd"
+        matTooltip="Import Feature(s)" matTooltipPosition="right">
+        <mat-icon>file_upload</mat-icon>
+        Import Feature(s)
+      </button>
       <!--
         <button *ngIf="canCreateFeature && hasSubscription" class="addDataDrivenIcon" mat-raised-button
           aria-label="Create Data Driven button" [routerLink]="['/data-driven']" [class.hideAdd]="!openedAdd">
