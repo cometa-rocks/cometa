@@ -482,6 +482,14 @@ Author: dph000
         </button>
       </ng-template>
       <mat-divider></mat-divider>
+      <button
+        type="button"
+        (click)="exportFolderFeatures(item.reference)"
+        mat-menu-item>
+        <mat-icon>file_download</mat-icon>
+        <span>Export features</span>
+      </button>
+      <mat-divider></mat-divider>
       <!-- Next update 2.8.77 config.json -->
         <!-- <button
         (click)="_sharedActions.cancelAllFeatures(item.reference)"

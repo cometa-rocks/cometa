@@ -4013,6 +4013,87 @@ def KillTaskPID(request, pid):
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
 
+def _load_feature_steps_safe(feature):
+    json_file_path = get_feature_path(feature)['fullPath'] + '.json'
+    try:
+        with open(json_file_path, 'r') as feature_file:
+            return json.load(feature_file), None
+    except FileNotFoundError:
+        warning = f"Steps file not found for feature {feature.feature_id}"
+        logger.warning(warning)
+        return None, warning
+    except json.JSONDecodeError:
+        warning = f"Invalid JSON content in steps file for feature {feature.feature_id}"
+        logger.warning(warning)
+        return None, warning
+    except Exception as exc:
+        warning = f"Unexpected error reading steps file for feature {feature.feature_id}: {exc}"
+        logger.warning(warning)
+        return None, warning
+
+
+def _build_folder_export_tree(folder):
+    department_data = None
+    if folder.department_id:
+        department_name = folder.department.department_name if getattr(folder, 'department', None) else None
+        department_data = {
+            "id": folder.department_id,
+            "name": department_name,
+        }
+
+    folder_payload = {
+        "id": folder.folder_id,
+        "name": folder.name,
+        "parent_id": folder.parent_id_id,
+        "created_on": folder.created_on.isoformat() if folder.created_on else None,
+        "department": department_data,
+        "features": [],
+        "folders": [],
+    }
+
+    feature_links = list(
+        Folder_Feature.objects.filter(folder=folder)
+        .select_related('feature')
+        .order_by('feature__feature_name')
+    )
+
+    feature_ids = [link.feature.feature_id for link in feature_links if link.feature_id]
+
+    metadata_by_id = {}
+    if feature_ids:
+        features_qs = FeatureSerializer.fast_loader(
+            Feature.objects.filter(feature_id__in=feature_ids)
+        )
+        serialized_features = FeatureSerializer(features_qs, many=True).data
+        metadata_by_id = {item['feature_id']: item for item in serialized_features}
+
+    feature_count = 0
+    for link in feature_links:
+        feature_obj = link.feature
+        metadata = metadata_by_id.get(feature_obj.feature_id)
+        if metadata is None:
+            continue
+
+        steps_payload, warning = _load_feature_steps_safe(feature_obj)
+        feature_entry = {
+            "metadata": metadata,
+            "steps": steps_payload,
+        }
+        if warning:
+            feature_entry["error"] = warning
+
+        folder_payload["features"].append(feature_entry)
+        feature_count += 1
+
+    child_folders = Folder.objects.filter(parent_id=folder).select_related('department').order_by('name')
+    for child in child_folders:
+        child_payload, child_count = _build_folder_export_tree(child)
+        folder_payload["folders"].append(child_payload)
+        feature_count += child_count
+
+    return folder_payload, feature_count
+
+
 @csrf_exempt
 def GetJsonFile(request, feature_id):
     feature = Feature.objects.get(feature_id=feature_id)
@@ -4020,6 +4101,28 @@ def GetJsonFile(request, feature_id):
     f = open(jsonFile, "r")
     content = json.loads(f.read())
     return JsonResponse(content, status=200, safe=False)
+
+
+@csrf_exempt
+def GetFolderJson(request, folder_id):
+    try:
+        folder = Folder.objects.select_related('department').get(folder_id=folder_id)
+    except Folder.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": f"Folder {folder_id} not found"
+        }, status=404)
+
+    folder_payload, feature_count = _build_folder_export_tree(folder)
+
+    response_payload = {
+        "success": True,
+        "exported_at": timezone.now().isoformat(),
+        "feature_count": feature_count,
+        "folder": folder_payload,
+    }
+
+    return JsonResponse(response_payload, status=200)
 
 
 @csrf_exempt

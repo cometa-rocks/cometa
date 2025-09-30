@@ -27,7 +27,7 @@ import { WebSockets } from '@store/actions/results.actions';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { FeaturesState } from '@store/features.state';
 import { LoadingActions } from '@store/loadings.state';
-import { deepClone } from 'ngx-amvara-toolbox';
+import { deepClone, exportToJSONFile } from 'ngx-amvara-toolbox';
 import { from, Observable, of, BehaviorSubject, combineLatest, Subject } from 'rxjs';
 
 import {
@@ -188,6 +188,44 @@ export class SharedActionsService {
         type: 'folder',
         folder,
       } as IMoveData,
+    });
+  }
+
+  exportFolderFeatures(folder: Folder) {
+    if (!folder?.folder_id) {
+      return;
+    }
+
+    const folderName = folder.name || 'folder';
+    const sanitizedName = folderName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    const exportName = sanitizedName ? `folder_${sanitizedName}_export` : 'folder_export';
+
+    const request$ = this._api.getFolderFeatureExport(folder.folder_id).pipe(
+      map(response => {
+        if (!response?.success) {
+          throw new Error(response?.error || 'Unable to export folder features');
+        }
+        return response;
+      })
+    );
+
+    this.loadingObservable(request$, `Exporting ${folderName}...`).subscribe({
+      next: response => {
+        exportToJSONFile(exportName, response);
+        const featureCount = response.feature_count ?? 0;
+        const message =
+          featureCount === 1
+            ? 'Exported 1 feature'
+            : `Exported ${featureCount} features`;
+        this._snackBar.open(message, 'OK');
+      },
+      error: err => {
+        const message = err?.message || 'Unable to export folder features. Please try again.';
+        this._snackBar.open(message, 'OK');
+      },
     });
   }
 

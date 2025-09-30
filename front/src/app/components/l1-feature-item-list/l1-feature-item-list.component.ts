@@ -246,6 +246,11 @@ export class L1FeatureItemListComponent implements OnInit {
     this._sharedActions.moveFolder(folder);
   }
 
+  exportFolderFeatures(folder: Folder) {
+    this.log.msg('1', 'Exporting folder features...', 'feature-item-list', folder);
+    this._sharedActions.exportFolderFeatures(folder);
+  }
+
   // Moves the selected feature
   SAmoveFeature(feature: Feature) {
     this.log.msg('1', 'Moving feature...', 'feature-item-list', feature);
@@ -590,4 +595,3 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
 }
-
