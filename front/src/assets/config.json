@@ -1,6 +1,6 @@
 {
   "version": "3.0.105",
-  "stable_version": "3.0.105",
+  "stable_version": "3.0.104",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -246,6 +246,11 @@
       "date": "2025-09-23",
       "features": [
         {
+          "title": "Visual and context update for chatbot",
+          "description": "Chatbot responses are now properly formatted and contains more processed data for context"
+        },
+        {
+        
           "title": "Fixed issue with dialogs - #6441",
           "description": "Fixed issue with autocomplete, now it closes when doing scroll."
         }
