@@ -424,6 +424,14 @@ def done(*_args, **_kwargs):
 
             # run the step inside try/except syntax to avoid crashes
             try:
+                # Check if feature was aborted before executing step
+                # Import the global variable from environment
+                from environment import _feature_aborted
+                if _feature_aborted:
+                    logger.warn("Feature was aborted during step execution, raising 'aborted' exception")
+                    logger.debug(f"Feature aborted status: {_feature_aborted}")
+                    raise Exception("'aborted'")
+                
                 # reset the step_error field in context
                 if hasattr(args[0], "step_error"):
                     del args[0].step_error
@@ -602,7 +610,9 @@ def done(*_args, **_kwargs):
 
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
-                logger.debug("Checking if feature was aborted: " + str(aborted))
+                if aborted:
+                    logger.warn("Feature was aborted, this should result in Canceled status")
+                    raise err
 
                 # check the continue on failure hierarchy
                 continue_on_failure = False  # default value
