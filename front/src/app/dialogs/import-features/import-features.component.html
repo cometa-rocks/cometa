@@ -19,6 +19,25 @@
     2. Review detected features: edit names, add browsers when needed, or leave inherited ones for dependencies.<br />
     3. Select the feature(s) you want and press Save to import.
   </div>
+  <div class="location-controls" *ngIf="departments.length > 0">
+    <mat-form-field appearance="outline">
+      <mat-label>Department</mat-label>
+      <mat-select [(ngModel)]="selectedDepartmentId" (selectionChange)="onDepartmentChange($event.value)">
+        <mat-option *ngFor="let dept of departments" [value]="dept.department_id">
+          {{ dept.department_name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Folder</mat-label>
+      <mat-select [(ngModel)]="selectedFolderId">
+        <mat-option [value]="0">Department root</mat-option>
+        <mat-option *ngFor="let option of folderOptions" [value]="option.id">
+          {{ option.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
   <div class="file-picker" *ngIf="mode === 'file'">
     <label class="upload">
       <input type="file" accept="application/json" (change)="onFileSelected($event)" />
@@ -48,7 +67,23 @@
     (addDefaultBrowsers)="setDefaultBrowsers($event)">
   </cometa-import-features-table>
 </div>
-<div mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close [disabled]="busy">Cancel</button>
-  <button mat-flat-button color="primary" (click)="importSelected()" [disabled]="busy || !hasItems">Save</button>
-</div>
+<mat-dialog-actions>
+  <div class="actions-right">
+    <button
+      type="button"
+      color="warn"
+      [disabled]="busy"
+      mat-stroked-button
+      (click)="handleCancel()">
+      CANCEL
+    </button>
+    <button
+      type="button"
+      color="primary"
+      [disabled]="busy || !hasItems"
+      mat-stroked-button
+      (click)="importSelected()">
+      SAVE
+    </button>
+  </div>
+</mat-dialog-actions>

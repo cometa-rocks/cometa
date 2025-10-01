@@ -37,20 +37,23 @@ export class ImportFeaturesTableComponent {
 
   trackByIndex = (index: number) => index;
 
+  // Emits when the master checkbox toggles
   onSelectAll(checked: boolean) {
     this.selectAllChange.emit(checked);
   }
 
+  // Bubbles row selection changes back to the dialog
   onItemSelection(item: ImportItem, checked: boolean) {
     this.selectionChange.emit({ item, selected: checked });
   }
 
+  // Informs the parent about name edits so validation can rerun
   onNameChange(item: ImportItem, value: string) {
     this.nameChange.emit({ item, name: value });
   }
 
+  // Shortcut for injecting the default browser set
   onAddDefault(item: ImportItem) {
     this.addDefaultBrowsers.emit(item);
   }
 }
-
