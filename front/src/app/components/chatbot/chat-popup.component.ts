@@ -27,9 +27,12 @@ import { LogService } from '@services/log.service';
         <div class="chat-messages" #messagesContainer>
           <div *ngFor="let message of messages$ | async" class="message" [ngClass]="{'user-message': message.isUser, 'bot-message': !message.isUser}">
             <div class="message-content">
-              <div class="message-text">
-                <span>{{ message.text }}</span>
-              </div>
+              <ng-container *ngIf="message.isUser; else botMessage">
+                <div class="message-text user-text">{{ message.text }}</div>
+              </ng-container>
+              <ng-template #botMessage>
+                <div class="bot-html" [innerHTML]="message.text"></div>
+              </ng-template>
               <div class="message-time">{{ message.timestamp | date:'shortTime' }}</div>
             </div>
           </div>
