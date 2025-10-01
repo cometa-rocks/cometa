@@ -681,6 +681,13 @@
   
   <div class="custom-autocomplete-header">
     <span class="custom-autocomplete-title">Select File</span>
+    <button 
+      class="file-path-close-btn" 
+      (click)="closeFilePathAutocomplete()"
+      [matTooltip]="'changelog.close' | translate"
+      matTooltipPosition="above">
+      <i class="material-icons">close</i>
+    </button>
   </div>
   
   <div class="custom-autocomplete-options">
@@ -693,4 +700,10 @@
       {{ option.label }}
     </div>
   </div>
+
+  <ng-template *ngIf="filePathAutocompleteOptions.length === 0">
+    <div class="custom-autocomplete-no-files-found">
+      <span>No files found</span>
+    </div>
+  </ng-template>
 </div>
