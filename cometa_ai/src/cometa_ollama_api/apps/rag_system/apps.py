@@ -3,6 +3,9 @@ Django app configuration for RAG system.
 """
 from django.apps import AppConfig
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RagSystemConfig(AppConfig):
     """
@@ -11,7 +14,7 @@ class RagSystemConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.rag_system'
     verbose_name = 'RAG System'
-    
+
     def ready(self):
         """
         Initialize the RAG system when Django starts.
@@ -19,13 +22,13 @@ class RagSystemConfig(AppConfig):
         """
         # Create data directory if it doesn't exist
         from django.conf import settings
-        
+
         # Set up RAG data directory
         rag_data_dir = os.path.join(settings.BASE_DIR, 'data', 'chromadb')
         os.makedirs(rag_data_dir, exist_ok=True)
 
-        # Import signals to register them
+        # Register signals after everything is ready
         try:
-            import apps.rag_system.signals
+            from . import signals
         except ImportError:
             pass 
