@@ -279,6 +279,7 @@
               autocomplete="off"
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
+              #stepHelpTrigger="matAutocompleteTrigger"
               placeholder="Step Code"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>

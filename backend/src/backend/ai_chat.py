@@ -1,14 +1,16 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-import requests
+from __future__ import annotations
+
 import json
 import logging
 import os
 import socket
-import uuid
 import time
-import re
+import uuid
+import requests
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
 from backend.utility.config_handler import get_ollama_ai_api_url
 from backend.utility.configurations import ConfigurationManager
 
@@ -49,7 +51,6 @@ def chat_completion(request):
         request_data['wait'] = True
         logger.debug(f"[{request_id}] Request data with history: {json.dumps(request_data)}")
         authorization_header = f"{ConfigurationManager.get_configuration('OLLAMA_AI_SECRET_ID',)}==={ConfigurationManager.get_configuration('OLLAMA_AI_SECRET_KEY')}"
-        # Forward the request directly to Ollama AI API
         django_response = requests.post(
             ollama_api_url,
             json=request_data,

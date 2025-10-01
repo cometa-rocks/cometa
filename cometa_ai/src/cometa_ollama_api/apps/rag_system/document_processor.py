@@ -374,8 +374,9 @@ class DocumentProcessor:
         # Fix common entity encoding issues
         text = html.unescape(text)
         
-        # Remove very long sequences of non-alphanumeric characters
-        text = re.sub(r'[^a-zA-Z0-9\s.,;:!?()\[\]{}\-_=+\'"`~#$%^&*|/\\]{10,}', ' ', text)
+        # Remove very long sequences of non-alphanumeric characters (but preserve code/technical content)
+        # Only remove if it's more than 20 chars of weird symbols and not containing common code chars
+        text = re.sub(r'[^a-zA-Z0-9\s.,;:!?()\[\]{}\-_=+\'"`~#$%^&*|/\\<>]{20,}', ' ', text)
         
         # Remove excessive punctuation repetition (like !!!!! or ????)
         text = re.sub(r'([!?.]{2,})', lambda m: m.group(1)[0], text)
