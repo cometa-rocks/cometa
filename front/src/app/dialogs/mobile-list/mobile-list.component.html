@@ -463,9 +463,9 @@
             </div>
             <div class="mobiles">
               <!-- Iterate over shared containers list -->
-              <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackByContainerId">
+              <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackBySharedContainerId">
                 <div *ngLet="container.service_status == 'Running' as isRunning">
-                  <p> {{ conatiner }}</p>
+                  <!-- fixed variable name typo; removed debug print that could break change detection -->
                   <!-- Shared device details -->
                   <div class="mobile-details-shared">
                     <!-- <h4>Shared Device Information</h4>
@@ -505,12 +505,12 @@
                       <div class="emulator-info">
                         <i class="material-icons">adb</i>
                         <strong>Mobile Name:</strong>
-                        {{ container.image.mobile_image_name }}
+                        {{ container.image?.mobile_image_name || '—' }}
                         <i
-                          (click)="importClipboard(container.image.mobile_image_name)"
-                          [ngClass]="{ active: isIconActive[container.image.mobile_image_name] }"
+                          (click)="container.image?.mobile_image_name && importClipboard(container.image.mobile_image_name)"
+                          [ngClass]="{ active: isIconActive[container.image?.mobile_image_name] }"
                           class="material-icons copyClipboardIcon"
-                          [color]="isIconActive[container.image.mobile_image_name] ? 'primary' : ''">
+                          [color]="isIconActive[container.image?.mobile_image_name] ? 'primary' : ''">
                           content_copy
                         </i>
                       </div>
@@ -556,22 +556,22 @@
 
                           <mat-menu-item>
                             <i class="material-icons">info</i>
-                            <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
+                            <strong>Device Name:</strong> {{ container.image?.mobile_json?.deviceName || '—' }}
                           </mat-menu-item>
 
                           <mat-menu-item>
                             <i class="material-icons">memory</i>
-                            <strong>Architecture:</strong> {{ container.image.mobile_json.architecture }}
+                            <strong>Architecture:</strong> {{ container.image?.mobile_json?.architecture || '—' }}
                           </mat-menu-item>
 
                           <mat-menu-item>
                             <i class="material-icons">phone_android</i>
-                            <strong>Android Version:</strong> {{ container.image.mobile_json.android_version }}
+                            <strong>Android Version:</strong> {{ container.image?.mobile_json?.android_version || '—' }}
                           </mat-menu-item>
 
                           <mat-menu-item>
                             <i class="material-icons">layers</i>
-                            <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
+                            <strong>API Level:</strong> {{ container.image?.mobile_json?.api_level || '—' }}
                           </mat-menu-item>
                           
                         </mat-menu-item>
@@ -1063,12 +1063,12 @@
                             <div class="emulator-info">
                               <i class="material-icons">adb</i>
                               <strong>Mobile Name:</strong>
-                              {{ container.image.mobile_image_name }}
+                              {{ container.image?.mobile_image_name || '—' }}
                               <i
-                                (click)="importClipboard(container.image.mobile_image_name)"
-                                [ngClass]="{ active: isIconActive[container.image.mobile_image_name] }"
+                                (click)="container.image?.mobile_image_name && importClipboard(container.image.mobile_image_name)"
+                                [ngClass]="{ active: isIconActive[container.image?.mobile_image_name] }"
                                 class="material-icons copyClipboardIcon"
-                                [color]="isIconActive[container.image.mobile_image_name] ? 'primary' : ''">
+                                [color]="isIconActive[container.image?.mobile_image_name] ? 'primary' : ''">
                                 content_copy
                               </i>
                             </div>
@@ -1113,22 +1113,22 @@
                               <mat-menu-item class="pop-up-info">
                                 <mat-menu-item>
                                   <i class="material-icons">info</i>
-                                  <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
+                                  <strong>Device Name:</strong> {{ container.image?.mobile_json?.deviceName }}
                                 </mat-menu-item>
 
                                 <mat-menu-item>
                                   <i class="material-icons">memory</i>
-                                  <strong>Architecture:</strong> {{ container.image.mobile_json.architecture }}
+                                  <strong>Architecture:</strong> {{ container.image?.mobile_json?.architecture }}
                                 </mat-menu-item>
 
                                 <mat-menu-item>
                                   <i class="material-icons">phone_android</i>
-                                  <strong>Android Version:</strong> {{ container.image.mobile_json.android_version }}
+                                  <strong>Android Version:</strong> {{ container.image?.mobile_json?.android_version }}
                                 </mat-menu-item>
 
                                 <mat-menu-item>
                                   <i class="material-icons">layers</i>
-                                  <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
+                                  <strong>API Level:</strong> {{ container.image?.mobile_json?.api_level }}
                                 </mat-menu-item>
                               </mat-menu-item>
                             </mat-menu>

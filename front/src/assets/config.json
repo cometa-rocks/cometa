@@ -314,6 +314,16 @@
       ]
     },
     {
+      "version": "3.0.106",
+      "date": "2025-09-30",
+      "features": [
+        {
+          "title": "Mobile websocket improvements - #6860",
+          "description": "Mobile websocket improvements, fixed issue with shared containers, now it shows the shared containers in the list and tiles."
+        }
+      ]
+    },
+    {
       "version": "3.0.104",
       "date": "2025-09-22",
       "features": [
