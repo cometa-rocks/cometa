@@ -56,11 +56,15 @@
 
 .father-block {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
+  flex-wrap: wrap;
+  
   @include for-tablet-portrait-up {
     flex-direction: row;
+    flex-wrap: nowrap;
   }
+  
   &.odd-row {
     background-color: white;
   }
@@ -74,6 +78,14 @@
   flex-direction: row;
   flex: 1;
   width: 100%;
+  flex-wrap: wrap;
+  order: 1;
+  
+  @include for-tablet-portrait-up {
+    flex-wrap: nowrap;
+    order: unset;
+    width: auto;
+  }
 }
 
 .second-block {
@@ -85,119 +97,213 @@
 .step-row {
   display: flex;
   width: 100%;
-  // align-items: center;
   position: relative;
-  min-height: 45px;
-  // height: 50px; /* setting height to have correct size in FF browser - RRO  */
+  min-height: 40px;
   flex-direction: column;
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
+  
+  @include for-tablet-portrait-up {
+    min-height: 45px;
+  }
+  
   &.disabled {
     opacity: 0.5;
   }
+  
   .step-extras {
     display: flex;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    order: 1;
+    
     @include for-tablet-portrait-up {
       flex: 0 0 420px;
+      order: unset;
     }
   }
+  
   ::ng-deep mat-checkbox {
+    text-align: center;
+    position: relative;
+    
+    // Mobile styles
+    flex: 0 0 35px;
+    padding: 10px 0px 0px;
+    transform: scale(1);
+    
+    // Desktop styles (original)
     @include for-tablet-portrait-up {
       flex: 0 0 50px;
+      padding: 10px 15px 0;
+      transform: none;
     }
-    flex: 0 0 35px;
-    text-align: center;
-    @media (max-width: 768px) {
-      padding: 0 8px;
-    }
-    padding: 10px 15px 0;
-    position: relative;
-    padding-top: 10px;
+    
     &.enable, &.more-vert {
       flex: 0 0 30px;
     }
   }
   .prefix {
-    flex: 0 0 80px;
-    height: 50px;
+    position: absolute;
+    left: 5px;
+    top: 40px;
+    width: 70px;
+    height: 40px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-left: 2px;
+    justify-content: flex-start;
+    z-index: 1;
+    
+    @include for-tablet-portrait-up {
+      position: relative;
+      left: auto;
+      top: auto;
+      flex: 0 0 80px;
+      height: 50px;
+      margin-left: 2px;
+      justify-content: center;
+    }
 
     &::ng-deep {
       .mat-select {
         width: 100%;
-        min-width: 60px;
+        min-width: 50px;
+        
+        @include for-tablet-portrait-up {
+          min-width: 60px;
+        }
         
         .mat-select-value {
-          font-size: 1rem;
-          line-height: 1.5;
-          padding: 0 8px;
+          font-size: 0.875rem;
+          line-height: 1.4;
+          padding: 0 4px;
+          
+          @include for-tablet-portrait-up {
+            font-size: 1rem;
+            line-height: 1.5;
+            padding: 0 8px;
+          }
         }
         
         .mat-select-arrow {
-          margin-right: 8px;
+          margin-right: 4px;
+          
+          @include for-tablet-portrait-up {
+            margin-right: 8px;
+          }
         }
       }
       
       .mat-select-panel {
-        min-width: 80px !important;
+        min-width: 70px !important;
+        
+        @include for-tablet-portrait-up {
+          min-width: 80px !important;
+        }
         
         .mat-option {
-          font-size: 1rem;
-          line-height: 1.5;
-          height: 36px;
-          padding: 0 16px;
+          font-size: 0.875rem;
+          line-height: 1.4;
+          height: 32px;
+          padding: 0 12px;
+          
+          @include for-tablet-portrait-up {
+            font-size: 1rem;
+            line-height: 1.5;
+            height: 36px;
+            padding: 0 16px;
+          }
         }
       }
     }
   }
+  
   &:hover .move-row {
     opacity: 0.54;
     visibility: visible;
   }
+  
   &:hover .step_remove {
     visibility: visible;
     &:hover {
       opacity: 0.9;
     }
   }
+  
   .index {
-    @include for-tablet-portrait-up {
-      flex: 0 0 40px;
-    }
-    flex: 0 0 20px;
-    line-height: 45px;
+    flex: 0 0 30px;
+    line-height: 40px;
     text-align: center;
     color: $blue;
     font-weight: bold;
-  }
-  .move-row {
+    font-size: 12px;
+    
     @include for-tablet-portrait-up {
-      flex: 0 0 30px;
+      flex: 0 0 40px;
+      line-height: 45px;
+      font-size: 14px;
     }
-    flex: 0 0 40px;
+  }
+  
+  .move-row {
+    flex: 0 0 30px;
     background-image: url(^assets/move-row.svg);
-    background-size: 25px;
+    background-size: 20px;
     background-repeat: no-repeat;
-    background-position-x: 5px;
+    background-position-x: 3px;
     opacity: 0.54;
     cursor: move;
-    background-position-y: 10px;
+    background-position-y: 8px;
+    order: 0;
+    
     @include for-tablet-portrait-up {
+      flex: 0 0 30px;
+      background-size: 25px;
+      background-position-x: 5px;
+      background-position-y: 10px;
       visibility: hidden;
+      order: unset;
     }
   }
+  
+  .more-vert-step {
+    flex: 0 0 30px;
+    order: 0;
+    
+    ::ng-deep .mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 16px;
+    }
+    
+    @include for-tablet-portrait-up {
+      flex: 0 0 30px;
+      order: unset;
+      margin-top: 5px;
+      
+      ::ng-deep .mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+  
   .step_content {
-    padding: 12px 10px;
-    flex: 1;
+    padding: 8px 6px 8px 80px;
+    flex: 0 0 100%;
     display: flex;
     position: relative;
     min-width: 0;
+    order: 10;
+    
+    @include for-tablet-portrait-up {
+      padding: 12px 10px;
+      flex: 1;
+      order: unset;
+    }
 
     // Remove the old var_name_autoComplete styles and replace with custom-variable-autocomplete-panel
     .custom-variable-autocomplete-panel {
@@ -311,29 +417,39 @@
 
     .code {
       display: flex;
-      $lineHeight: 25px;
+      $lineHeightMobile: 20px;
+      $lineHeightDesktop: 25px;
       flex: 1;
-      line-height: $lineHeight;
+      line-height: $lineHeightMobile;
       box-sizing: border-box;
       border: 0;
       outline: 0;
       background-color: transparent;
-      font-size: 1rem;
+      font-size: 0.875rem;
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
       width: 100%;
-      min-height: 25px;
-
-      // Default state: fixed height, no resize handle
-      height: $lineHeight;
+      min-height: 20px;
+      height: $lineHeightMobile;
       resize: none;
       overflow: hidden;
+      
+      @include for-tablet-portrait-up {
+        line-height: $lineHeightDesktop;
+        font-size: 1rem;
+        min-height: 25px;
+        height: $lineHeightDesktop;
+      }
 
       // Active state: when content wraps or has newlines
       &.allow-resize {
-        height: 100px; // 4 times the min-height
+        height: 80px;
         resize: vertical;
         overflow: visible;
+        
+        @include for-tablet-portrait-up {
+          height: 100px;
+        }
       }
     }
     .code.multi-line {
@@ -349,10 +465,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 10px;
-    min-width: 40px;
-    flex: 0 0 40px;
+    padding: 0 4px;
+    min-width: 30px;
+    flex: 0 0 30px;
+    
     @include for-tablet-portrait-up {
+      padding: 0 10px;
+      min-width: 40px;
       flex: 0 0 40px;
     }
   }
@@ -397,67 +516,147 @@
   display: flex;
   width: 100%;
   color: $blue;
-  line-height: 40px;
+  line-height: 30px;
   position: sticky;
   top: 0;
   background-color: white;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 8px 0 15px 0;
+  padding: 4px 0 8px 0;
+  align-items: center;
+  
+  @include for-tablet-portrait-up {
+    line-height: 40px;
+    padding: 8px 0 15px 0;
+    align-items: baseline;
+  }
 
   .index {
-    @include for-tablet-portrait-up {
-      flex: 0 0 40px;
-    }
-    // flex: 0 0 20px;
+    flex: 0 0 30px;
     text-align: center;
     font-weight: bold;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    
+    @include for-tablet-portrait-up {
+      flex: 0 0 40px;
+      font-size: 14px;
+    }
   }
-  .move-row, .more-vert-step{
+  
+  .move-row {
+    flex: 0 0 30px;
+    
     @include for-tablet-portrait-up {
       flex: 0 0 30px;
     }
-    // flex: 0 0 30px;
   }
-  .more-vert,
-  .enable,
-  .screenshot,
-  .compare,
-  .warnings,
-  .select-step,
-  .actions {
+  
+  .more-vert-step {
+    flex: 0 0 30px;
+    
     @include for-tablet-portrait-up {
-      flex: 0 0 80px;
+      flex: 0 0 30px;
     }
-    // flex: 0 0 75px;
-    text-align: center;
-    font-weight: bold;
   }
+  
   .more-vert {
-    @include for-tablet-portrait-up {
-      flex: 0 0 40px;
-    }
-    // flex: 0 0 50px;
+    flex: 0 0 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
+    text-align: center;
+    font-weight: bold;
+    
+    @include for-tablet-portrait-up {
+      flex: 0 0 30px;
+      gap: 4px;
+    }
 
     .desktop, .mobile {
       display: flex;
       align-items: center;
       justify-content: center;
     }
+    
+    .desktop {
+      display: none;
+      @include for-tablet-portrait-up {
+        display: block;
+      }
+    }
+    
+    .mobile {
+      display: block;
+      @include for-tablet-portrait-up {
+        display: none;
+      }
+    }
   }
+  
   .enable {
+    flex: 0 0 30px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
     @include for-tablet-portrait-up {
       flex: 0 0 60px;
     }
-    // flex: 0 0 50px;
+    
+    .desktop {
+      display: none;
+      @include for-tablet-portrait-up {
+        display: block;
+      }
+    }
+    
+    .mobile {
+      display: block;
+      @include for-tablet-portrait-up {
+        display: none;
+      }
+    }
   }
+  
+  .screenshot,
+  .compare,
+  .select-step {
+    flex: 0 0 35px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    @include for-tablet-portrait-up {
+      flex: 0 0 80px;
+    }
+    
+    .desktop {
+      display: none;
+      @include for-tablet-portrait-up {
+        display: block;
+      }
+    }
+    
+    .mobile {
+      display: block;
+      @include for-tablet-portrait-up {
+        display: none;
+      }
+    }
+  }
+  
   .step {
     flex: 1;
     text-align: left;
@@ -468,46 +667,96 @@
       display: block;
     }
   }
+  
   .warnings {
+    flex: 0 0 40px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
     @include for-tablet-portrait-up {
       flex: 0 0 100px;
       text-align: center;
     }
-    // flex: 0 0 75px;
+    
+    .desktop {
+      display: none;
+      @include for-tablet-portrait-up {
+        display: block;
+      }
+    }
+    
+    .mobile {
+      display: block;
+      @include for-tablet-portrait-up {
+        display: none;
+      }
+    }
+  }
+  
+  .actions {
+    flex: 0 0 50px;
     text-align: center;
     font-weight: bold;
-  }
-  .actions {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    
     @include for-tablet-portrait-up {
+      display: flex;
       flex: 0 0 80px;
       text-align: center;
     }
-    // flex: 0 0 75px;
-    text-align: center;
-    font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    
+    .desktop {
+      display: none;
+      @include for-tablet-portrait-up {
+        display: block;
+      }
+    }
+    
+    .mobile {
+      display: block;
+      @include for-tablet-portrait-up {
+        display: none;
+      }
+    }
     
     .documentation-icon {
       cursor: pointer;
       color: $blue;
-      font-size: 16px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      margin: 0 auto;
+      
+      @include for-tablet-portrait-up {
+        font-size: 16px;
+        width: 24px;
+        height: 24px;
+      }
     }
   }
 
   .options {
+    flex: 0 0 30px;
+    
     @include for-tablet-portrait-up {
       flex: 0 0 40px;
     }
-    // flex: 0 0 40px;
   }
 
-  .enable, .screenshot, .compare, .select-all, .toggle-all-documentation {
+  .enable, .screenshot, .compare, .select-step, .select-all, .toggle-all-documentation {
     display: flex;
     flex-direction: column;
     align-items: center;
-    // gap: 4px;
 
     .select-all {
       margin-top: 0;
@@ -575,7 +824,14 @@
 .fake-hash,
 .fake-actions {
   @include for-tablet-portrait-up {
-    flex: 0 0 71.5px;
+    flex: 0 0 70px;
+  }
+  // Hide fake elements on mobile to allow documentation icons to be visible
+  display: none;
+  
+  @include for-tablet-portrait-up {
+    display: block;
+    flex: 0 0 70px;
   }
   flex: 0 0 71.5px;
   text-align: center;
@@ -584,6 +840,23 @@
 
 .stepDescriptionExample{
   flex: 1;
+  width: 100px;
+  // Limit width on mobile to allow columnOfIcons to be visible
+  max-width: 100px;
+  
+  @include for-tablet-portrait-up {
+    max-width: none;
+  }
+}
+
+.stepDocumentationIcons {
+  // Limit width on mobile to ensure columnOfIcons is visible
+  flex: 0 0 auto;
+  max-width: 100px;
+  
+  @include for-tablet-portrait-up {
+    max-width: none;
+  }
 }
 
 .columnOfIcons {
@@ -666,25 +939,64 @@ mat-icon {
 
 
 .button-actions {
-  margin-top: 20px;
   display: flex;
   justify-content: space-between;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+  
+  @include for-tablet-portrait-up {
+    margin-top: 20px;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+  
   button {
     font-weight: bold;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    
+    @include for-tablet-portrait-up {
+      font-size: 0.875rem;
+      padding: 0px 10px;
+    }
   }
+  
   .left {
     display: none;
     @include for-tablet-portrait-up {
       display: block;
     }
   }
+  
   .left,
   .right {
     display: inline-flex;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    @include for-tablet-portrait-up {
+      flex-wrap: nowrap;
+      gap: 0;
+    }
+    
     button:not(:first-child) {
-      margin-left: 20px;
+      margin-left: 0;
+      
+      @include for-tablet-portrait-up {
+        margin-left: 20px;
+      }
+    }
+  }
+  
+  .right {
+    width: 100%;
+    justify-content: flex-end;
+    
+    @include for-tablet-portrait-up {
+      width: auto;
     }
   }
 }
@@ -788,10 +1100,18 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 64px;
+  height: 40px;
   position: relative;
-  flex: 0 0 100px;
-  min-height: 64px;
+  flex: 0 0 40px;
+  min-height: 40px;
+  order: 11;
+  
+  @include for-tablet-portrait-up {
+    height: 64px;
+    flex: 0 0 100px;
+    min-height: 64px;
+    order: unset;
+  }
 
   .invalid-sign,
   .duplicate-step-sign,
@@ -799,14 +1119,21 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    margin: 0 4px;
+    width: 18px;
+    height: 18px;
+    margin: 0 2px;
     cursor: pointer;
     opacity: 0.9;
     transition: opacity 0.2s ease;
     position: relative;
-    font-size: 16px;
+    font-size: 14px;
+    
+    @include for-tablet-portrait-up {
+      width: 24px;
+      height: 24px;
+      margin: 0 4px;
+      font-size: 16px;
+    }
 
     &:hover {
       opacity: 1;
@@ -814,22 +1141,33 @@ textarea {
 
     .little-icon {
       position: relative;
-      bottom: -8px;
-      right: -8px;
+      bottom: -6px;
+      right: -6px;
       display: flex;
       align-items: center;
       justify-content: center;
       width: 100%;
       height: 100%;
       
+      @include for-tablet-portrait-up {
+        bottom: -8px;
+        right: -8px;
+      }
+      
       i {
-        font-size: 18px;
-        width: 20px;
-        height: 20px;
+        font-size: 14px;
+        width: 16px;
+        height: 16px;
         color: $bad;
         display: flex;
         align-items: center;
         justify-content: center;
+        
+        @include for-tablet-portrait-up {
+          font-size: 18px;
+          width: 20px;
+          height: 20px;
+        }
       }
     }
   }
@@ -851,22 +1189,37 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 64px;
+  height: 40px;
   position: relative;
-  flex: 0 0 80px;
-  min-height: 64px;
+  flex: 0 0 50px;
+  min-height: 40px;
+  order: 12;
+  
+  @include for-tablet-portrait-up {
+    height: 64px;
+    flex: 0 0 80px;
+    min-height: 64px;
+    order: unset;
+  }
 
   .documentation-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    margin: 0 4px;
+    width: 20px;
+    height: 20px;
+    margin: 0 2px;
     cursor: pointer;
     position: relative;
-    font-size: 16px;
+    font-size: 14px;
     color: $blue;
+    
+    @include for-tablet-portrait-up {
+      width: 24px;
+      height: 24px;
+      margin: 0 4px;
+      font-size: 16px;
+    }
   }
 }
 

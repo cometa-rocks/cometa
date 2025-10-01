@@ -1,6 +1,6 @@
 {
-  "version": "3.0.105",
-  "stable_version": "3.0.105",
+  "version": "3.0.106",
+  "stable_version": "3.0.106",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -241,6 +241,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.106",
+      "date": "2025-09-30",
+      "features": [
+        {
+          "title": "Step editor mobile first - #6920",
+          "description": "Step editor mobile first, now it's mobile first, it's more responsive and easier to use on mobile."
+        }
+      ]
+    },
     {
       "version": "3.0.105",
       "date": "2025-09-23",
