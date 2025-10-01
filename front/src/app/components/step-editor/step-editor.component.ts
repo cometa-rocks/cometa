@@ -93,7 +93,7 @@ import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 import { KEY_CODES } from '@others/enums';
 import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartmentsState } from '@store/departments.state';
 import { FeaturesState } from '@store/features.state';
@@ -173,7 +173,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   lastSelectedFilePaths: Map<number, string> = new Map();
   currentFilePathStepIndex: number | null = null;
 
-  // Add this line - reference to the filePathAutocompletePanel template
   @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
   
   // Track which step is currently focused for the shared autocomplete
@@ -199,6 +198,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
   @ViewChild('variable_name', { read: ElementRef, static: false })
   varname: ElementRef;
+  @ViewChild('variableAutocompletePanel') variableAutocompletePanel: ElementRef;
+
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
@@ -208,6 +209,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
 
+  private lastPointer = { x: 0, y: 0, target: null as EventTarget | null };
+  
   /**
    * Clipboard for storing copied steps.
    */
@@ -224,8 +227,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   mobileDropdownStepIndex: number | null = null;
   mobileDropdownReplaceIndex: number | null = null;
 
-
-
   // Holds the pixel width of the quoted content for the mobile dropdown
   mobileDropdownWidth: number = 200;
   mobileDropdownHeight: number = 200;
@@ -238,6 +239,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewChild('dropdownRef') dropdownRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
   dropdownActiveIndex: number = 0;
+
+  @ViewChild('stepHelpTrigger', { read: MatAutocompleteTrigger })
+  stepHelpTrigger!: MatAutocompleteTrigger;
 
   // Add a new property to track the initial dropdown position
   initialDropdownPosition: number | null = null;
@@ -2260,19 +2264,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     setTimeout(() => {
       // Double-check that the correct textarea is still focused
       const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
-      if (currentFocusedTextarea === textarea) {
+      if (currentFocusedTextarea !== textarea) return;
     
-        
-        // Reset autocomplete filtering to show all actions for new steps
-        const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
-        if (!stepContent.trim()) {
-          this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
-        }
-        
-        const trigger = this.autocompleteTriggers?.first;
-        if (trigger && !trigger.panelOpen) {
-          trigger.openPanel();
-        }
+      // Reset autocomplete filtering to show all actions for new steps
+      const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
+      if (!stepContent.trim()) {
+        this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+      }
+      
+      const triggers = this.autocompleteTriggers?.toArray();
+      const trigger = triggers?.[stepIndex];
+      if (trigger && !trigger.panelOpen) {
+        trigger.openPanel();
       }
     }, 150); // Increased delay to ensure focus is stable
   }
@@ -2925,6 +2928,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         });
       });
     }
+
+    // Listen for scroll only in edit-feature dialog containers and component root
+    // (Removed global window listener to avoid over-closing outside the dialog)
+    const candidateSelectors = [
+      '.edit-feature-panel',      // overlay pane of edit-feature dialog
+      '.editFeatureContent'       // content of edit-feature dialog
+    ];
+    const nodeLists = candidateSelectors.map(sel => document.querySelectorAll(sel));
+    nodeLists.forEach(list => {
+      Array.from(list).forEach(el => {
+        this.subs.sink = fromEvent(el as Element, 'scroll', { capture: true } as any)
+          .subscribe(() => this._ngZone.run(() => this.closeAllOnScroll()));
+      });
+    });
+    // Also listen on the component root element
+    this.subs.sink = fromEvent(this._elementRef.nativeElement, 'scroll', { capture: true } as any)
+      .subscribe(() => this._ngZone.run(() => this.closeAllOnScroll()));
   }
 
 
@@ -3820,7 +3840,34 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._cdr.detectChanges();
   }
 
-  // To do: When variable dropdown is in last step, it should be reversed
-  // [class.reverse]="shouldReverseDropdown(stepVariableData.currentStepIndex)"
+  private closeAllOnScroll(): void {
+    // Only skip closing if the pointer is currently inside our own dropdown panels
+    const pointerTarget = (this.lastPointer?.target || null) as (Node | null);
+
+    // Angular Material autocomplete panel
+    const autoPanelEl = document.querySelector('.mat-autocomplete-panel') as HTMLElement | null;
+
+    // File-path autocomplete panel
+    const filePanelEl = this.filePathAutocompletePanel?.nativeElement as (HTMLElement | undefined);
+    
+    // LOGIC to check if the pointer is inside the dropdown panels
+    const insideAuto = !!(pointerTarget && autoPanelEl && autoPanelEl.contains(pointerTarget));
+    const insideFile = !!(pointerTarget && filePanelEl && filePanelEl.contains(pointerTarget));
+    
+    if (insideAuto || insideFile) {
+      return; 
+    }
+
+    // Close any open Material autocomplete panels across all triggers (handles newly added steps)
+    const triggers = this.autocompleteTriggers?.toArray() || [];
+    triggers.forEach(t => { if (t.panelOpen) { t.closePanel(); } }); 
+
+    // Custom file path panel
+    if (this.showFilePathAutocomplete) {
+      this.showFilePathAutocomplete = false;
+      this._cdr.detectChanges();
+    }
+
+  }
   
 }

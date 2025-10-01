@@ -22,12 +22,13 @@ services:
   ollama.ai:
     build: ./cometa_ai
     # container_name: cometa.ollama.ai
+    user: "0"  # This forces the container to run as root
     ports:
       # - "8083:8083"  # Ollama port
       - "8002:8002"  # Django port
     volumes:
       - ./cometa_ai:/app
-      - ./data/ollama:/home/cometa/.ollama/models
+      - ./data/ollama:/root/.ollama/models
       - ./data/redis/certs:/share/certs
       - ./data/chromadb:/app/data/chromadb
     working_dir: /app

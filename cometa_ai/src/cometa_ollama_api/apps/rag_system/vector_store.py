@@ -156,8 +156,9 @@ class VectorStore:
                     "hnsw:construction_ef": HNSW_CONSTRUCTION_EF,
                     "hnsw:search_ef": HNSW_SEARCH_EF,
                     "hnsw:M": HNSW_M,
-                    "model_name": RAG_MODEL
                 }
+                if RAG_MODEL:
+                    metadata["model_name"] = RAG_MODEL
                 logger.info(f"Collection metadata: {metadata}")
                 
                 self.collection = self.client.create_collection(
@@ -235,7 +236,7 @@ class VectorStore:
               query_embedding: List[float] = None, 
               n_results: int = 10,  # Increased from default 3 to 10 
               where: Optional[Dict[str, Any]] = None,
-              distance_threshold: float = 0.75) -> Dict[str, Any]:
+              distance_threshold: float = 0.6) -> Dict[str, Any]:
         """
         Query the vector store for similar documents.
         
