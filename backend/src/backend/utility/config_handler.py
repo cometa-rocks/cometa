@@ -26,7 +26,7 @@ def get_cometa_redis_port():
 
 def get_ollama_ai_api_url():
 
- ssl_enabled = ConfigurationManager.get_configuration('OLLAMA_AI_TLS_SSL_ENABLED', 'False')=='True'
+    ssl_enabled = ConfigurationManager.get_configuration('OLLAMA_AI_TLS_SSL_ENABLED', 'False')=='True'
     host = ConfigurationManager.get_configuration('OLLAMA_AI_HOST', 'ollama.ai')
     port = ConfigurationManager.get_configuration('OLLAMA_AI_PORT', '8002')
     
