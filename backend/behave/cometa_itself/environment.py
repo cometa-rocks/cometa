@@ -84,10 +84,15 @@ DEPARTMENT_DATA_PATH = "/data/department_data"
 
 TEST_LOG_DIRECTORY = "/opt/code/behave_logs"
 
+# Global variable to track if feature was aborted
+_feature_aborted = False
+
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
+    global _feature_aborted
     logger.warn("SIGTERM Found, will stop the session")
-    context.aborted = True
+    _feature_aborted = True
+    raise Exception("'aborted'")
 
 
 # check if context has a variable
@@ -126,6 +131,11 @@ def error_handling(*_args, **_kwargs):
                     result = fn(*args, **kwargs)
                     return result
                 except Exception as err:
+                    # Check if this is an 'aborted' exception - if so, stop immediately
+                    if str(err) == "'aborted'":
+                        logger.warn("Feature was aborted, stopping execution immediately")
+                        raise err
+                    
                     # print the traceback
                     logger.exception(err)
                     logger.debug(
@@ -891,13 +901,31 @@ def after_all(context):
         "files": downloadedFiles,
         "running": False,
     }
+    
+    # Initialize stderr variable
+    stderr = None
+    failure_message = ""
+    
     # check if testcase was aborted by the user if so set the status to Canceled
-    stderr = False
     if isinstance(testcase.find("./failure"), ET.Element):
         # save the failed output
         stderr = testcase.find("./failure").text
-        if testcase.find("./failure").attrib["message"] == "'aborted'":
+        failure_message = testcase.find("./failure").attrib.get("message", "")
+        
+        # Check if the error message contains 'aborted'
+        is_aborted = (failure_message == "'aborted'" or 
+                    (stderr and "'aborted'" in stderr) or
+                    (failure_message and "'aborted'" in failure_message))
+        
+        if is_aborted:
             data["status"] = "Canceled"
+            data["success"] = False
+    else:
+        # Check if we should set as Canceled based on global variable
+        global _feature_aborted
+        if _feature_aborted:
+            data["status"] = "Canceled"
+            data["success"] = False
 
     # get the system output from the xmlfile
     stdout = testcase.find("./system-out").text
@@ -932,14 +960,32 @@ def after_all(context):
     data["log"] = log_content
     # set the headers for the request
     headers = {"Content-type": "application/json", "Host": "cometa.local"}
+    
+    # Log the final data being sent to backend
+    logger.debug(f"Final feature result data: {data}")
+    logger.debug(f"Status being sent to backend: {data.get('status', 'Unknown')}")
+    
     # send the patch request
-    requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
+    response = requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
+    logger.debug(f"Backend response status: {response.status_code}")
+    if response.status_code != 200:
+        logger.error(f"Backend response error: {response.text}")
 
     logger.debug("\33[92m" + "FeatureResult ran successfully!" + "\33[0m")
 
     # get the final result for the feature_result
     request_info = requests.get(f"{get_cometa_backend_url()}/api/feature_results/%s" % os.environ['feature_result_id'],
                                 headers=headers)
+    
+    # Log the feature result info being sent to WebSocket
+    if request_info.status_code == 200:
+        feature_result_info = request_info.json()
+        logger.debug(f"Feature result info from backend: {feature_result_info}")
+        logger.debug(f"Status in feature result info: {feature_result_info.get('status', 'Unknown')}")
+    else:
+        logger.error(f"Failed to get feature result info: {request_info.status_code} - {request_info.text}")
+        feature_result_info = {}
+    
     requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         "browser_info": json.dumps(context.browser_info),
@@ -1055,6 +1101,12 @@ def after_all(context):
 @error_handling()
 def before_step(context, step):
     logger.debug(f"Starting Step : ################################ {step.name} ################################")
+    
+    # Check if feature was aborted before executing step
+    global _feature_aborted
+    if _feature_aborted:
+        raise Exception("'aborted'")
+    
     context.CURRENT_STEP = step
     context.CURRENT_STEP_STATUS = "Failed"
     context.STEP_TYPE = 'BROWSER'
