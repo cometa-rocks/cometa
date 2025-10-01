@@ -621,6 +621,57 @@
 
 </mat-autocomplete>
 
+<!-- Custom mobile dropdown panel - single instance outside the loop -->
+<div 
+  #dropdownRef
+  class="custom-mobile-autocomplete-panel"
+  [class.visible]="showMobileDropdown"
+  [class.hidden]="!showMobileDropdown"
+  [ngStyle]="{
+    'top.px': initialDropdownPosition,
+    'left.px': mobileDropdownLeft,
+    'max-height.px': mobileDropdownHeight,
+    'min-width.px': mobileDropdownWidth
+  }">
+  <div class="custom-autocomplete-header">
+    <span class="custom-autocomplete-title">Mobiles</span>
+    <button 
+      class="variable-close-btn" 
+      (click)="closeMobileDropdown()"
+      [matTooltip]="'changelog.close' | translate"
+      matTooltipPosition="above">
+      <i class="material-icons">close</i>
+    </button>
+  </div>
+  <div class="custom-autocomplete-options">
+    <!-- All mobiles in one loop -->
+    <div *ngFor="let mobile of getAllMobiles(); let i = index" class="mobile-group">
+      <div 
+        class="custom-autocomplete-option"
+        [class.disabled]="!isMobileInteractive(mobile)"
+        [class.active]="i === dropdownActiveIndex && isMobileInteractive(mobile)"
+        [class.inactive]="!isMobileInteractive(mobile)"
+        [matTooltip]="mobile.service_status !== 'Running' && !isSharedMobile(mobile) ? 'Start the mobile in Mobile section' : ''"
+        [matTooltipPosition]="'above'"
+        [matTooltipDisabled]="mobile.service_status === 'Running'"
+        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = i)">
+        <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
+        =&nbsp;&nbsp;
+        <span class="var_value">{{ mobile.hostname }}</span>
+        <span class="mobile-status" [class.running]="mobile.service_status === 'Running'" [class.stopped]="mobile.service_status !== 'Running'">
+          {{ mobile.service_status === 'Running' ? 'Running' : 'Paused' }}
+        </span>
+        <span *ngIf="isSharedMobile(mobile)" class="shared-badge">Shared</span>
+      </div>
+    </div>
+    
+    <!-- No mobiles message -->
+    <div *ngIf="getAllMobiles().length === 0" class="custom-autocomplete-option">
+      <span class="no-mobile">No mobiles available. Start a mobile in Mobile section.</span>
+    </div>
+  </div>
+</div>
+
 <!-- div for file paths {file_path} -->
 <div 
   #filePathAutocompletePanel
