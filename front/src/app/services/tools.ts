@@ -93,6 +93,9 @@ export function csvToJson(data): any[] {
  * @author Alex Barba
  */
 export function getBrowserKey(browser: BrowserstackBrowser) {
+  // I can not use this.log here, thats why i am using console.log
+  // console.log("Complete Browser -> ", browser);
+  // console.log("Browser -> ", browser.browser);
   return `${browser.browser}-${browser.browser_version}-${browser.device}-${browser.os}-${browser.os_version}-${browser.real_mobile}`;
 }
 

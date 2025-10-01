@@ -1,5 +1,5 @@
 import os
-from backend.utility.configurations import ConfigurationManager
+from backend.utility.configurations import ConfigurationManager, logger
 
 # It a wrapper to in case way of getting env info changes
 def get_config(key,default_value):
@@ -25,15 +25,16 @@ def get_cometa_redis_port():
     return get_config("REDIS_PORT","6379")
 
 def get_ollama_ai_api_url():
+
     ssl_enabled = ConfigurationManager.get_configuration('OLLAMA_AI_TLS_SSL_ENABLED', 'False')=='True'
     host = ConfigurationManager.get_configuration('OLLAMA_AI_HOST', 'ollama.ai')
     port = ConfigurationManager.get_configuration('OLLAMA_AI_PORT', '8002')
     
     protocol = 'https' if ssl_enabled else 'http'
-    
+    ai_server_url = f'{protocol}://{host}:{port}/api/chat/'    
     # host = get_config("OLLAMA_AI_HOST", "ollama.ai.dev") #Change to actual amvara server IP
     # port = get_config("OLLAMA_AI_PORT", "8002")
-    return f'{protocol}://{host}:{port}/api/chat/'
+    return ai_server_url
 
 # Add any new environment with in this function, if environment information will be used in during test
 def get_all_cometa_environments():

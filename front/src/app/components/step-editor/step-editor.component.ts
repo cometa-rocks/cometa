@@ -93,7 +93,7 @@ import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 import { KEY_CODES } from '@others/enums';
 import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartmentsState } from '@store/departments.state';
 import { FeaturesState } from '@store/features.state';
@@ -173,7 +173,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   lastSelectedFilePaths: Map<number, string> = new Map();
   currentFilePathStepIndex: number | null = null;
 
-  // Add this line - reference to the filePathAutocompletePanel template
   @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
   
   // Track which step is currently focused for the shared autocomplete
@@ -192,12 +191,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   touchStartY: number = 0;
   touchStartX: number = 0;
   isDragging: boolean = false;
+  variablePopupHeight: number = 260;
 
   @ViewChildren('customAutocompleteOption', { read: ElementRef })
   varlistItems: QueryList<ElementRef>;
   @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
   @ViewChild('variable_name', { read: ElementRef, static: false })
   varname: ElementRef;
+  @ViewChild('variableAutocompletePanel') variableAutocompletePanel: ElementRef;
+
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
@@ -207,6 +209,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
 
+  private lastPointer = { x: 0, y: 0, target: null as EventTarget | null };
+  
   /**
    * Clipboard for storing copied steps.
    */
@@ -214,19 +218,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // Track last checked index for multi-selection
   private lastEnableCheckedIndex: number | null = null;
   private lastScreenshotCheckedIndex: number | null = null;
-  private lastCompareCheckedIndex: number | null = null;
   private lastSelectCheckedIndex: number | null = null;
 
   runningMobiles: any[] = []; // Should be Container[], but using any to avoid import issues
+  userMobiles: any[] = [];
+  sharedMobiles: any[] = [];
   showMobileDropdown: boolean = false;
-  mobileDropdownPosition: { top: number; left: number } = { top: 0, left: 0 };
   mobileDropdownStepIndex: number | null = null;
   mobileDropdownReplaceIndex: number | null = null;
 
-
-
   // Holds the pixel width of the quoted content for the mobile dropdown
-  mobileDropdownWidth: number = 180;
+  mobileDropdownWidth: number = 200;
+  mobileDropdownHeight: number = 200;
 
   // Tracks whether the dropdown is for mobile_name or mobile_code
   mobileDropdownType: 'name' | 'code' | 'package' = 'name';
@@ -236,6 +239,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   @ViewChild('dropdownRef') dropdownRef!: ElementRef<HTMLDivElement>;
   @ViewChildren('dropdownOptionRef') dropdownOptionRefs!: QueryList<ElementRef<HTMLLIElement>>;
   dropdownActiveIndex: number = 0;
+
+  @ViewChild('stepHelpTrigger', { read: MatAutocompleteTrigger })
+  stepHelpTrigger!: MatAutocompleteTrigger;
+
+  // Add a new property to track the initial dropdown position
+  initialDropdownPosition: number | null = null;
+  mobileDropdownLeft: number = 0;
 
   constructor(
     private _dialog: MatDialog,
@@ -562,12 +572,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   /**
-   * Fetch the list of running mobile containers and store them in runningMobiles.
-   * Debug log added to show the result.
+   * Fetch the list of mobile containers (running and paused) and store them in runningMobiles.
+   * This includes all mobiles with different status so paused mobiles are visible but not interactive.
    */
   fetchRunningMobiles() {
     this._api.getContainersList().subscribe((containers: any[]) => { // Changed type to any[] to avoid import issues
-      this.runningMobiles = containers.filter(c => c.service_status === 'Running');
+      // Include all mobile containers regardless of status so paused mobiles are visible
+      this.runningMobiles = containers.filter(c => 
+        c.service_status === 'Running' || 
+        c.service_status === 'Stopped' || 
+        c.service_status === 'Stopping' ||
+        c.service_status === 'Paused' ||
+        c.service_status === 'Pausing'
+      );
       // Debug: Log the runningMobiles array
 
       this._cdr.detectChanges();
@@ -603,13 +620,28 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
     let cursorPos = textarea.selectionStart;
 
+    // Use custom dropdown instead of dialog when clicking inside quotes for mobile patterns
+
     // Reset dropdown state – will reopen only if a valid placeholder is found
     this.showMobileDropdown = false;
     this.mobileDropdownStepIndex = null;
     this.mobileDropdownReplaceIndex = null;
+    
+    // Strategy file_path: Hide mat-autocomplete panel with CSS
+    const autocompletePanel = document.querySelector('.mat-optgroup');
+    if (autocompletePanel) {
+      (autocompletePanel as HTMLElement).style.display = 'none';
+    }
+
+    this._cdr.detectChanges();
 
     // Only show dropdown if clicking directly on a placeholder text
     this.checkAndShowMobileDropdown(textarea, index, cursorPos);
+
+    // if the value includes $, show the variable dropdown
+    if (value.includes('$')) {
+      this.onStepChange(event as any, index);
+    }
   }
 
   /**
@@ -659,29 +691,35 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         // Only show dropdown if the text is exactly a placeholder or if it's an empty quote in a mobile action
         let shouldShowDropdown = false;
         
+        // Check if step starts with "Connect to mobile" or "Start mobile" patterns
+        const stepStartsWithMobile = /^(Connect to mobile|Start mobile)\s*"/i.test(value.trim());
+        if (stepStartsWithMobile && paramIndex === 0) {
+          // For first quoted parameter in Connect to mobile or Start mobile patterns
+          shouldShowDropdown = true;
+          if (value.toLowerCase().includes('connect to mobile')) {
+            this.mobileDropdownType = 'code';
+          } else {
+            this.mobileDropdownType = 'name';
+          }
+        }
         // Check if it's exactly a placeholder text
-        if (insideText === '{mobile_name}' || insideText === '{mobile_code}' || insideText === '{app_package}') {
+        else if (insideText === '{mobile_name}' || insideText === '{mobile_code}') {
           shouldShowDropdown = true;
           // Determine dropdown type based on the placeholder
           if (insideText === '{mobile_code}') {
             this.mobileDropdownType = 'code';
-          } else if (insideText === '{app_package}') {
-            this.mobileDropdownType = 'package';
           } else if (insideText === '{mobile_name}') {
             this.mobileDropdownType = 'name';
           }
         }
         // Check if it's an existing mobile value (for editing)
         else if (this.runningMobiles.some(m => m.image_name === insideText) ||
-                 this.runningMobiles.some(m => m.hostname === insideText) ||
-                 this.appPackages.includes(insideText)) {
+                 this.runningMobiles.some(m => m.hostname === insideText)) {
           shouldShowDropdown = true;
           // Determine dropdown type based on what matches
           const matchingMobile = this.runningMobiles.find(m => m.hostname === insideText);
           if (matchingMobile) {
             this.mobileDropdownType = 'code';
-          } else if (this.appPackages.includes(insideText)) {
-            this.mobileDropdownType = 'package';
           } else {
             this.mobileDropdownType = 'name';
           }
@@ -701,21 +739,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           this.mobileDropdownStepIndex = index;
           this.mobileDropdownReplaceIndex = start - 1; // position of opening quote
 
-          // Always recalculate the dropdown position and width every time it is shown
+          // Separate mobiles into user and shared groups and refresh status
+          this.separateMobilesByOwnership();
+          
+          // Force status refresh after a short delay
           setTimeout(() => {
-            const coords = this.getCaretCoordinates(textarea, start);
-            const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-            // Add offset: -120px to top, 18px to left for better dropdown positioning
-            // This ensures the dropdown appears above and slightly to the right of the quote
-            const left = textarea.offsetLeft + coords.left + 18;
-            const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-            const dropdownWidth = Math.max(this.measureTextWidth(insideText, textarea), 120);
-            this.mobileDropdownWidth = dropdownWidth;
-            this._cdr.detectChanges();
-            dropdownEl.style.left = `${left}px`;
-            dropdownEl.style.top = `${top}px`;
-            dropdownEl.style.minWidth = `${dropdownWidth}px`;
-          }, 0);
+            this.refreshMobileStatus();
+          }, 100);
+
+          // Calculate mobile dropdown position similar to variables
+          this.calculateMobileDropdownPosition(index, textarea);
 
 
           this.dropdownActiveIndex = 0;
@@ -749,6 +782,105 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const width = span.offsetWidth + 32; // add some padding for dropdown arrow
     document.body.removeChild(span);
     return width;
+  }
+
+  /**
+   * Separate mobiles into user and shared groups
+   */
+  separateMobilesByOwnership() {
+    this.userMobiles = [];
+    this.sharedMobiles = [];
+    
+    this.runningMobiles.forEach(mobile => {
+      // Debug logging to see mobile properties
+      this.logger.msg('4', '=== separateMobilesByOwnership === Mobile data:', 'step-editor', {
+        image_name: mobile.image_name,
+        hostname: mobile.hostname,
+        shared: mobile.shared,
+        created_by: mobile.created_by,
+        current_user_id: this.user?.user_id
+      });
+      
+      // Ensure we have valid user and mobile data
+      const currentUserId = this.user?.user_id;
+      const mobileCreatedBy = mobile.created_by;
+      
+      // Check if mobile is owned by current user
+      const isOwnedByCurrentUser = !mobileCreatedBy || 
+        (currentUserId && mobileCreatedBy === currentUserId);
+      
+      if (isOwnedByCurrentUser) {
+        // Mobile belongs to current user - always in USER section
+        this.userMobiles.push(mobile);
+      } else {
+        // Mobile belongs to another user - check if it's explicitly shared
+        if (mobile.shared === true) {
+          // Mobile is shared by someone else - goes to SHARED section
+          this.sharedMobiles.push(mobile);
+        }
+      }
+    });
+  }
+
+  /**
+   * Check if a mobile is interactive (available for selection)
+   */
+  isMobileInteractive(mobile: any): boolean {
+    return mobile.service_status === 'Running';
+  }
+
+  /**
+   * Get all mobiles (user + shared) in one combined array for simplified rendering
+   */
+  getAllMobiles(): any[] {
+    return [...this.userMobiles, ...this.sharedMobiles];
+  }
+
+  /**
+   * Check if a mobile is shared to determine badge display
+   */
+  isSharedMobile(mobile: any): boolean {
+    return this.sharedMobiles.includes(mobile);
+  }
+
+  /**
+   * Refresh mobile status by refetching the list
+   */
+  refreshMobileStatus() {
+    this.fetchRunningMobiles();
+    this.separateMobilesByOwnership();
+  }
+
+  /**
+   * Calculate mobile dropdown position at cursor location
+   */
+  calculateMobileDropdownPosition(stepIndex: number, textarea: HTMLTextAreaElement) {
+    // Calculate position exactly like variables do - get cursor coordinates
+    const coords = this.getCaretCoordinates(textarea, this.mobileDropdownReplaceIndex! + 1);
+    
+    // Get the textarea position to add relative to document
+    const textareaRect = textarea.getBoundingClientRect();
+    
+    // Calculate height like variables but for mobiles - MUST do this first
+    const allMobiles = this.getAllMobiles();
+    const mobileCount = allMobiles.length;
+    if (mobileCount === 0) {
+      this.mobileDropdownHeight = 120;
+    } else if (mobileCount <= 4) {
+      this.mobileDropdownHeight = (mobileCount * 50) + 80;
+    } else {
+      this.mobileDropdownHeight = 260;
+    }
+    
+    // Set position to cursor coordinates like variables do - absolute positioning
+    this.initialDropdownPosition = textareaRect.top + coords.top + 25; // Add some offset from cursor
+    this.mobileDropdownLeft = textareaRect.left + coords.left;
+    
+    this.logger.msg('4', '=== calculateMobileDropdownPosition === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+    this.logger.msg('4', '=== calculateMobileDropdownPosition === Calculated mobileDropdownLeft:', 'step-editor', this.mobileDropdownLeft);
+    
+    // Set width
+    this.mobileDropdownWidth = 450;
   }
 
   /**
@@ -822,8 +954,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (!replaced) {
       if (this.mobileDropdownType === 'code') {
         newValue = value.replace('{mobile_code}', mobileName);
-      } else if (this.mobileDropdownType === 'package') {
-        newValue = value.replace('{app_package}', mobileName);
       } else {
         newValue = value.replace('{mobile_name}', mobileName);
       }
@@ -870,6 +1000,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         }
       }, 0);
     }
+    this.closeMobileDropdown();
+  }
+
+  closeMobileDropdown() {
+    this.showMobileDropdown = false;
+    this.mobileDropdownStepIndex = null;
+    this.mobileDropdownReplaceIndex = null;
+    this.dropdownActiveIndex = 0;
+    this.initialDropdownPosition = null;
+    this.mobileDropdownLeft = 0;
   }
 
   /**
@@ -908,6 +1048,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // maintains focus on text area while firing events on arrow keys to select variables
   onTextareaArrowKey(event: Event, direction: string, step) {
+
+    if (this.displayedVariables.length > 0) {
+      return; // Exit early if variable dropdown is open
+    }
+
     event.preventDefault();
 
     setTimeout(() => {
@@ -1086,16 +1231,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       // Check if the next quote contains a placeholder and open corresponding dropdown
       // Only show dropdown if the text is exactly a placeholder or if it's an existing mobile value
       if (nextQuote.text === '{mobile_name}' || nextQuote.text === '{mobile_code}' || 
-          nextQuote.text === '{app_package}' ||
           this.runningMobiles.some(m => m.image_name === nextQuote.text) ||
-          this.runningMobiles.some(m => m.hostname === nextQuote.text) ||
-          this.appPackages.includes(nextQuote.text)) {
+          this.runningMobiles.some(m => m.hostname === nextQuote.text)) {
         
         // Set dropdown type based on placeholder or existing value
         if (nextQuote.text === '{mobile_code}' || this.runningMobiles.some(m => m.hostname === nextQuote.text)) {
           this.mobileDropdownType = 'code';
-        } else if (nextQuote.text === '{app_package}' || this.appPackages.includes(nextQuote.text)) {
-          this.mobileDropdownType = 'package';
         } else {
           this.mobileDropdownType = 'name';
         }
@@ -1107,19 +1248,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.mobileDropdownStepIndex = i;
         this.mobileDropdownReplaceIndex = nextQuote.start - 1;
         
-        // Position the dropdown with mobile-friendly adjustments
+        // Separate mobiles into user and shared groups
+        this.separateMobilesByOwnership();
+        
+        // Force status refresh after a short delay
         setTimeout(() => {
-          const coords = this.getCaretCoordinates(textarea, nextQuote.start);
-          const dropdownEl = this.dropdownRef.nativeElement as HTMLElement;
-          const left = textarea.offsetLeft + coords.left + 18;
-          const top = textarea.offsetTop + coords.top + textarea.clientHeight - 120;
-          const dropdownWidth = Math.max(this.measureTextWidth(nextQuote.text, textarea), 120);
-          this.mobileDropdownWidth = dropdownWidth;
-          this._cdr.detectChanges();
-          dropdownEl.style.left = `${left}px`;
-          dropdownEl.style.top = `${top}px`;
-          dropdownEl.style.minWidth = `${dropdownWidth}px`;
-        }, 0);
+          this.refreshMobileStatus();
+        }, 100);
+        
+        // Position the dropdown with mobile-friendly adjustments
+        // Calculate mobile dropdown position similar to variables
+        this.calculateMobileDropdownPosition(i, textarea);
         
 
         this.dropdownActiveIndex = 0;
@@ -1137,11 +1276,47 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
-    step.setValue(
-      step.value.substr(0, this.stepVariableData.quoteIndexes.prev) +
-        `$${variable_name}` +
-        step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
+    const currentValue = step.value;
+    
+    this.logger.msg('4', '=== onClickVariable() === Original value:', 'step-editor', currentValue);
+    this.logger.msg('4', '=== onClickVariable() === Quote indexes:', 'step-editor', this.stepVariableData.quoteIndexes);
+    
+    // Get the content between quotes (including quotes)
+    const contentBetweenQuotes = currentValue.substring(
+      this.stepVariableData.quoteIndexes.prev,
+      this.stepVariableData.quoteIndexes.next
     );
+    
+    this.logger.msg('4', '=== onClickVariable() === Content between quotes:', 'step-editor', contentBetweenQuotes);
+    
+    // Remove quotes to get the inner content
+    const innerContent = contentBetweenQuotes.replace(/"/g, '');
+    
+    this.logger.msg('4', '=== onClickVariable() === Inner content:', 'step-editor', innerContent);
+    
+    // Replace the $ part with the selected variable, preserving any text after $
+    let newInnerContent;
+    if (innerContent.includes('$')) {
+      // Find the position of $ and replace everything from $ onwards
+      const dollarIndex = innerContent.indexOf('$');
+      newInnerContent = innerContent.substring(0, dollarIndex) + `$${variable_name}`;
+      this.logger.msg('4', '=== onClickVariable() === Dollar found at index:', 'step-editor', dollarIndex);
+    } else {
+      // If no $ found, just add the variable
+      newInnerContent = innerContent + `$${variable_name}`;
+      this.logger.msg('4', '=== onClickVariable() === No dollar found, appending:', 'step-editor', '');
+    }
+    
+    this.logger.msg('4', '=== onClickVariable() === New inner content:', 'step-editor', newInnerContent);
+    
+    // Reconstruct the full text with quotes preserved
+    const newValue = currentValue.substring(0, this.stepVariableData.quoteIndexes.prev) +
+                    `"${newInnerContent}"` +
+                    currentValue.substring(this.stepVariableData.quoteIndexes.next);
+    
+    this.logger.msg('4', '=== onClickVariable() === Final value:', 'step-editor', newValue);
+    
+    step.setValue(newValue);
 
     this.stepVariableData.currentStepIndex = null;
   }
@@ -1173,13 +1348,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.displayedVariables = [];
   }
 
-
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
 
+    // Only reset position when changing steps, not when typing
+    if (this.stepVariableData.currentStepIndex !== index) {
+      this.initialDropdownPosition = null;
+    }
+
     const textarea = event.target as HTMLTextAreaElement;
-    this.updateTextareaResize(index); // Update resize state on input
+    // Update resize state on input but preserve dropdown position
+    this.updateTextareaResize(index);
     const textareaValue = textarea.value.trim();
 
     // Filter actions based on input
@@ -1272,10 +1452,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         this.stepsDocumentation[index].description === 'No documentation found for this step')) {
       this.loadStepDocumentation(index);
     }
-    
-
-
-
 
     this._cdr.detectChanges();
 
@@ -1294,12 +1470,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       this.stepVariableData.selectionIndex
     );
 
+    this.logger.msg('4', '=== onStepChange() === Quote indexes:', 'step-editor', this.stepVariableData.quoteIndexes);
+    this.logger.msg('4', '=== onStepChange() === Step value:', 'step-editor', this.stepVariableData.stepValue);
+    this.logger.msg('4', '=== onStepChange() === Selection index:', 'step-editor', this.stepVariableData.selectionIndex);
+
+    if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      return;
+    } 
+
     // return if left quote or right quote index is undefined
     if (
       !this.stepVariableData.quoteIndexes.next ||
       !this.stepVariableData.quoteIndexes.prev
-    )
+    ) {
+      this.logger.msg('4', '=== onStepChange() === No boundaries found, returning', 'step-editor', '');
       return;
+    }
 
     // gets the string between quotes(including quotes)
     this.stepVariableData.strToReplace =
@@ -1313,33 +1501,131 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       .replace(/"/g, '')
       .trim();
 
-    // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
-    if (this.stepVariableData.strWithoutQuotes.includes('$')) {
-      // Do not display variables or the dialog if the step is "Run Javascript function"
-      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
-        this.displayedVariables = [];
-        this.stepVariableData.currentStepIndex = null;
-        return;
-      }
+    this.logger.msg('4', '=== onStepChange() === Str to replace:', 'step-editor', this.stepVariableData.strToReplace);
+    this.logger.msg('4', '=== onStepChange() === Str without quotes:', 'step-editor', this.stepVariableData.strWithoutQuotes);
 
-      const filteredVariables = this.variables.filter(item =>
-        item.variable_name.includes(
-          this.stepVariableData.strWithoutQuotes.replace('$', '')
-        )
+    // Check if cursor is actually between boundaries (quotes or commas) and if the string contains a dollar sign
+    const cursorBetweenBoundaries = this.stepVariableData.quoteIndexes.prev !== undefined && 
+                                   this.stepVariableData.quoteIndexes.next !== undefined &&
+                                   this.stepVariableData.selectionIndex > this.stepVariableData.quoteIndexes.prev && 
+                                   this.stepVariableData.selectionIndex < this.stepVariableData.quoteIndexes.next;
+    
+    this.logger.msg('4', '=== onStepChange() === Cursor between boundaries:', 'step-editor', cursorBetweenBoundaries);
+    this.logger.msg('4', '=== onStepChange() === Cursor position:', 'step-editor', this.stepVariableData.selectionIndex);
+    this.logger.msg('4', '=== onStepChange() === Boundary range:', 'step-editor', `${this.stepVariableData.quoteIndexes.prev} - ${this.stepVariableData.quoteIndexes.next}`);
+    
+    // Only proceed if cursor is between boundaries AND the current field contains a dollar sign
+    if (cursorBetweenBoundaries) {
+      // Check if the current field (between boundaries) actually contains a variable
+      const currentField = this.stepVariableData.stepValue.substring(
+        this.stepVariableData.quoteIndexes.prev, 
+        this.stepVariableData.quoteIndexes.next
       );
-      this.displayedVariables =
-        filteredVariables.length > 0
-          ? filteredVariables
-          : ['No variable with this name'];
-
-      // when flyout of variables opens up, by default the selected element will be the first one
-      setTimeout(() => {
-        const varlistItemsArray = this.varlistItems.toArray();
-        if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
-          const firstVariableRef = varlistItemsArray[0].nativeElement;
-          this.renderer.addClass(firstVariableRef, 'selected');
+      
+      this.logger.msg('4', '=== onStepChange() === Current field:', 'step-editor', currentField);
+      
+      // Check if cursor is positioned near a $ symbol (within 20 characters)
+      const cursorPos = this.stepVariableData.selectionIndex - this.stepVariableData.quoteIndexes.prev;
+      const textAroundCursor = currentField.substring(Math.max(0, cursorPos - 20), Math.min(currentField.length, cursorPos + 20));
+      const hasDollarNearCursor = textAroundCursor.includes('$');
+      
+      // Check if there's a valid variable pattern near the cursor
+      const hasValidVariableNearCursor = hasDollarNearCursor && /\$[a-zA-Z_][a-zA-Z0-9_]*/.test(textAroundCursor);
+      
+      // Also show variables if the field is just "$" (for starting a new variable)
+      const isJustDollar = currentField.trim() === '$' || currentField === '"$"' || currentField === '$';
+      
+      const shouldShowDialog = hasValidVariableNearCursor || isJustDollar;
+      this.logger.msg('4', '=== onStepChange() === Text around cursor:', 'step-editor', textAroundCursor);
+      this.logger.msg('4', '=== onStepChange() === Should show dialog:', 'step-editor', shouldShowDialog);
+      
+      if (shouldShowDialog) {
+        this.logger.msg('4', '=== onStepChange() === Showing variables dialog', 'step-editor', '');
+        // Do not display variables or the dialog if the step is "Run Javascript function"
+        if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+          this.displayedVariables = [];
+          this.stepVariableData.currentStepIndex = null;
+          return;
         }
-      }, 0);
+
+        // Extract variable name from current field
+        const variableMatch = currentField.match(/\$([a-zA-Z_][a-zA-Z0-9_]*)/);
+        const variableSearchTerm = variableMatch ? variableMatch[1] : this.stepVariableData.strWithoutQuotes.replace('$', '');
+        
+        this.logger.msg('4', '=== onStepChange() === Variable search term:', 'step-editor', variableSearchTerm);
+        this.logger.msg('4', '=== onStepChange() === Total variables available:', 'step-editor', this.variables.length);
+        this.logger.msg('4', '=== onStepChange() === All variables:', 'step-editor', this.variables.map(v => v.variable_name));
+        
+        // If search term is empty or too short, show all variables
+        let filteredVariables;
+        if (!variableSearchTerm || variableSearchTerm.length < 2) {
+          filteredVariables = this.variables;
+          this.logger.msg('4', '=== onStepChange() === Showing all variables (search term too short)', 'step-editor', '');
+        } else {
+          filteredVariables = this.variables.filter(item =>
+            item.variable_name.includes(variableSearchTerm)
+          );
+      
+        }
+
+        this.logger.msg('4', '=== onStepChange() === Filtered variables length:', 'step-editor', filteredVariables.length);
+        this.logger.msg('4', '=== onStepChange() === Filtered variables:', 'step-editor', filteredVariables);
+        
+        // Calculate variable popup height based on filtered variables count
+        if (filteredVariables.length === 0) {
+          this.variablePopupHeight = 110;
+        } else if (filteredVariables.length <= 4) {
+          this.variablePopupHeight = (filteredVariables.length*50)+60;
+        } else {
+          this.variablePopupHeight = 260;
+        }
+        
+        
+
+        // Set initial position only when dropdown first appears (when it was not visible before)
+        if (this.initialDropdownPosition === null) {
+
+          const textareas = document.querySelectorAll(`textarea[formcontrolname="step_content"]`);
+          const textarea = textareas[index] as HTMLTextAreaElement;
+          const stepContent = textarea.closest('.step_content') as HTMLElement;
+          const stepContentHeight = stepContent.offsetHeight + 10;
+
+          this.logger.msg('4', '=== onStepChange() === Textarea height:', 'step-editor', stepContentHeight);
+
+          // Calculate initial position based on step index only to prevent shifts when typing
+          // Use a fixed calculation that doesn't depend on filtered variables count
+          this.initialDropdownPosition = index === 0 
+            ? stepContentHeight  // For first step, position below
+            : -this.variablePopupHeight;              // For other steps, position above with fixed offset
+          
+          this.logger.msg('4', '=== onStepChange() === Calculated initialDropdownPosition:', 'step-editor', this.initialDropdownPosition);
+        }
+        // If position is already set, keep it stable - don't recalculate
+
+        this.displayedVariables =
+          filteredVariables.length > 0
+            ? filteredVariables
+            : ['No variable with this name'];
+        // Set current step index when dropdown opens
+        this.stepVariableData.currentStepIndex = index;
+
+        this.logger.msg('4', '=== onStepChange() === Displayed variables after assignment:', 'step-editor', this.displayedVariables);
+
+        this._cdr.detectChanges();
+        // when flyout of variables opens up, by default the selected element will be the first one
+        setTimeout(() => {
+          const varlistItemsArray = this.varlistItems.toArray();
+          if (varlistItemsArray.length > 0 && varlistItemsArray[0] && varlistItemsArray[0].nativeElement) {
+            const firstVariableRef = varlistItemsArray[0].nativeElement;
+            this.renderer.addClass(firstVariableRef, 'selected');
+          }
+        }, 0);
+      } else {
+        this.logger.msg('4', '=== onStepChange() === No valid variable in current field, not showing dialog', 'step-editor', '');
+      }
+    } else {
+      this.logger.msg('4', '=== onStepChange() === Cursor not between boundaries', 'step-editor', '');
+      this.initialDropdownPosition = null;
     }
   }
 
@@ -1372,24 +1658,109 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
   getIndexes(str, startIndex): QuoteIndexes {
-    let prevQuoteIndex = getPrev();
-    let nextQuoteIndex = getNext();
+    // First try to find quotes (for normal cases like "$variable")
+    let prevQuoteIndex = getPrevQuote();
+    let nextQuoteIndex = getNextQuote();
 
     // returns the index of the nearest " that is positioned after received index
-    function getNext(): number {
+    function getNextQuote(): number | undefined {
       for (let i = startIndex; i < str.length; i++) {
         if (str[i] === '"') return i + 1;
       }
+      return undefined;
     }
 
-    // returns the index of the nearest $ that is positioned before received index
-    function getPrev(): number {
+    // returns the index of the nearest " that is positioned before received index
+    function getPrevQuote(): number | undefined {
       for (let i = startIndex - 1; i >= 0; i--) {
-        if (str[i] === '$') return i;
+        if (str[i] === '"') return i;
+      }
+      return undefined;
+    }
+
+    // If we found quotes and cursor is between them, check if we're in SQL context
+    if (prevQuoteIndex !== undefined && nextQuoteIndex !== undefined && 
+        startIndex > prevQuoteIndex && startIndex < nextQuoteIndex) {
+      
+      // Check if we're inside a SQL query by looking for SQL keywords
+      const textBetweenQuotes = str.substring(prevQuoteIndex, nextQuoteIndex - 1);
+      const isSQLContext = /INSERT\s+INTO|UPDATE|DELETE\s+FROM|SELECT/i.test(textBetweenQuotes);
+      
+      if (isSQLContext) {
+        // For SQL context, try to find comma boundaries within the quoted text
+        let prevCommaIndex = getPrevCommaWithinQuotes(prevQuoteIndex, nextQuoteIndex);
+        let nextCommaIndex = getNextCommaWithinQuotes(prevQuoteIndex, nextQuoteIndex);
+        
+        // If we found comma boundaries, use them instead of quotes
+        if (prevCommaIndex !== undefined && nextCommaIndex !== undefined) {
+          // Skip whitespace and trailing characters around comma/parenthesis boundaries
+          while (prevCommaIndex < str.length && /\s/.test(str[prevCommaIndex])) {
+            prevCommaIndex++;
+          }
+          while (nextCommaIndex > 0 && /[\s\)\]\}]/.test(str[nextCommaIndex - 1])) {
+            nextCommaIndex--;
+          }
+          return { prev: prevCommaIndex, next: nextCommaIndex };
+        }
+        
+        // If no comma boundaries found in SQL context, fall back to using quotes
+        return { prev: prevQuoteIndex, next: nextQuoteIndex };
+      }
+      
+      // If not SQL context or no comma boundaries found, use quotes
+      return { prev: prevQuoteIndex, next: nextQuoteIndex };
+    }
+
+    // If no quotes or cursor not between them, try comma boundaries (for SQL context like ,$variable,)
+    let prevCommaIndex = getPrevComma();
+    let nextCommaIndex = getNextComma();
+
+    // returns the index of the nearest , or ( that is positioned before received index within quotes
+    function getPrevCommaWithinQuotes(quoteStart: number, quoteEnd: number): number | undefined {
+      for (let i = startIndex - 1; i >= quoteStart; i--) {
+        if (str[i] === ',' || str[i] === '(') return i + 1; // Skip the comma or parenthesis
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ) that is positioned after received index within quotes
+    function getNextCommaWithinQuotes(quoteStart: number, quoteEnd: number): number | undefined {
+      for (let i = startIndex; i < quoteEnd; i++) {
+        if (str[i] === ',' || str[i] === ')') return i;
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ( that is positioned before received index
+    function getPrevComma(): number | undefined {
+      for (let i = startIndex - 1; i >= 0; i--) {
+        if (str[i] === ',' || str[i] === '(') return i + 1; // Skip the comma or parenthesis
+      }
+      return undefined;
+    }
+
+    // returns the index of the nearest , or ) that is positioned after received index
+    function getNextComma(): number | undefined {
+      for (let i = startIndex; i < str.length; i++) {
+        if (str[i] === ',' || str[i] === ')') return i;
+      }
+      return undefined;
+    }
+
+    // Skip whitespace and trailing characters around comma boundaries
+    if (prevCommaIndex !== undefined) {
+      while (prevCommaIndex < str.length && /\s/.test(str[prevCommaIndex])) {
+        prevCommaIndex++;
+      }
+    }
+    if (nextCommaIndex !== undefined) {
+      // Skip whitespace and trailing characters like ), ], }
+      while (nextCommaIndex > 0 && /[\s\)\]\}]/.test(str[nextCommaIndex - 1])) {
+        nextCommaIndex--;
       }
     }
 
-    return { prev: prevQuoteIndex, next: nextQuoteIndex };
+    return { prev: prevCommaIndex, next: nextCommaIndex };
   }
 
   stepsDocumentation: { description: string, examples: string }[] = [];
@@ -1592,6 +1963,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
 
     this.closeVariableDropdown();
+
+    // Close mobile dropdown panel
+    if (this.showMobileDropdown) {
+      this.closeMobileDropdown();
+      this.logger.msg('4', '=== handleGlobalKeyDown() === Close Mobile Dropdown', 'step-editor');
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      this._cdr.detectChanges();
+      return;
+    }
 
     // Close filePathAutocompletePanel
     if (this.showFilePathAutocomplete) {
@@ -1883,19 +2264,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     setTimeout(() => {
       // Double-check that the correct textarea is still focused
       const currentFocusedTextarea = document.activeElement as HTMLTextAreaElement;
-      if (currentFocusedTextarea === textarea) {
+      if (currentFocusedTextarea !== textarea) return;
     
-        
-        // Reset autocomplete filtering to show all actions for new steps
-        const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
-        if (!stepContent.trim()) {
-          this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
-        }
-        
-        const trigger = this.autocompleteTriggers?.first;
-        if (trigger && !trigger.panelOpen) {
-          trigger.openPanel();
-        }
+      // Reset autocomplete filtering to show all actions for new steps
+      const stepContent = this.stepsForm.at(stepIndex)?.get('step_content')?.value || '';
+      if (!stepContent.trim()) {
+        this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+      }
+      
+      const triggers = this.autocompleteTriggers?.toArray();
+      const trigger = triggers?.[stepIndex];
+      if (trigger && !trigger.panelOpen) {
+        trigger.openPanel();
       }
     }, 150); // Increased delay to ensure focus is stable
   }
@@ -2548,6 +2928,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         });
       });
     }
+
+    // Listen for scroll only in edit-feature dialog containers and component root
+    // (Removed global window listener to avoid over-closing outside the dialog)
+    const candidateSelectors = [
+      '.edit-feature-panel',      // overlay pane of edit-feature dialog
+      '.editFeatureContent'       // content of edit-feature dialog
+    ];
+    const nodeLists = candidateSelectors.map(sel => document.querySelectorAll(sel));
+    nodeLists.forEach(list => {
+      Array.from(list).forEach(el => {
+        this.subs.sink = fromEvent(el as Element, 'scroll', { capture: true } as any)
+          .subscribe(() => this._ngZone.run(() => this.closeAllOnScroll()));
+      });
+    });
+    // Also listen on the component root element
+    this.subs.sink = fromEvent(this._elementRef.nativeElement, 'scroll', { capture: true } as any)
+      .subscribe(() => this._ngZone.run(() => this.closeAllOnScroll()));
   }
 
 
@@ -3143,10 +3540,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * @param index Index of the clicked checkbox
    */
   onCompareCheckboxClick(event: MouseEvent, index: number) {
-    if (event.shiftKey && this.lastCompareCheckedIndex !== null) {
+    if (event.shiftKey && this.lastEnableCheckedIndex !== null) {
       // Always set checked to true for shift+click multi-select
       const checked = true;
-      const [start, end] = [this.lastCompareCheckedIndex, index].sort((a, b) => a - b); 
+      const [start, end] = [this.lastEnableCheckedIndex, index].sort((a, b) => a - b); 
       for (let i = start; i <= end; i++) {
         this.stepsForm.at(i).get('compare')?.setValue(checked);
         // If compare is checked, ensure screenshot is also checked
@@ -3156,7 +3553,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
       event.preventDefault();
     }
-    this.lastCompareCheckedIndex = index;
+    this.lastEnableCheckedIndex = index;
   }
 
   /**
@@ -3208,11 +3605,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (this.mobileDropdownType === 'package') {
       optionsLength = this.appPackages.length;
     } else {
-      optionsLength = this.runningMobiles.length;
+      optionsLength = this.getAllMobiles().length;
     }
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
+      // Navigate to next interactive mobile
+      let attempts = 0;
+      do {
+        this.dropdownActiveIndex = (this.dropdownActiveIndex + 1) % optionsLength;
+        attempts++;
+      } while (attempts < optionsLength && !this.isMobileInteractive(this.getAllMobiles()[this.dropdownActiveIndex]));
+      
       this._cdr.detectChanges();
       setTimeout(() => {
         const options = this.dropdownOptionRefs?.toArray();
@@ -3222,7 +3625,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }, 0);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
+      // Navigate to previous interactive mobile
+      let attempts = 0;
+      do {
+        this.dropdownActiveIndex = (this.dropdownActiveIndex - 1 + optionsLength) % optionsLength;
+        attempts++;
+      } while (attempts < optionsLength && !this.isMobileInteractive(this.getAllMobiles()[this.dropdownActiveIndex]));
+      
       this._cdr.detectChanges();
       setTimeout(() => {
         const options = this.dropdownOptionRefs?.toArray();
@@ -3236,15 +3645,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
         if (this.mobileDropdownType === 'package') {
           this.onMobileDropdownSelect(this.appPackages[this.dropdownActiveIndex]);
         } else {
-          const mobile = this.runningMobiles[this.dropdownActiveIndex];
-          this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);
+          const mobile = this.getAllMobiles()[this.dropdownActiveIndex];
+          // Only allow selection if mobile is interactive
+          if (this.isMobileInteractive(mobile)) {
+            this.onMobileDropdownSelect(this.mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name);
+          }
         }
       }
     } else if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation(); // Prevent dialog close
-      this.showMobileDropdown = false;
-      this.dropdownActiveIndex = 0;
+      this.closeMobileDropdown();
       this._cdr.detectChanges();
     }
     this._cdr.detectChanges();
@@ -3295,11 +3706,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       (autocompletePanel as HTMLElement).style.display = 'none';
     }
 
-
     // Get the step content
     const stepContent = this.getStepContentAtIndex(index);
     this.logger.msg('4', '=== createFilePathAutocomplete() === Current Value: ', 'step-editor', stepContent);
-
 
     // get the Files for the Pop to be shown
     let files = [];
@@ -3325,17 +3734,67 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Update the autocomplete options (files)
     this.filePathAutocompleteOptions = fileOptions;
     this.logger.msg('4', '=== createFilePathAutocomplete() === File Path Autocomplete Options', 'step-editor', this.filePathAutocompleteOptions);
-
-    // Position the panel near the textarea
-    const textarea = $event.target as HTMLTextAreaElement;
-    const rect = textarea.getBoundingClientRect();
-    const panel = this.filePathAutocompletePanel?.nativeElement;
     
+    // Calculate position and height dynamically
+    this.calculateFilePathAutocompletePosition($event, index);
+  }
+
+  /**
+   * Calculate file path autocomplete position at cursor location
+   */
+  calculateFilePathAutocompletePosition($event: KeyboardEvent, stepIndex: number) {
+    const textarea = $event.target as HTMLTextAreaElement;
+    
+    // Find the position of {file_path} in the textarea
+    const textareaValue = textarea.value;
+    const filePathIndex = textareaValue.indexOf('{file_path}');
+    
+    if (filePathIndex === -1) {
+      this.logger.msg('4', '=== calculateFilePathAutocompletePosition === {file_path} not found', 'step-editor');
+      return;
+    }
+
+    // Calculate position exactly like variables do - get cursor coordinates
+    const coords = this.getCaretCoordinates(textarea, filePathIndex);
+    
+    // Get the textarea position to add relative to document
+    const textareaRect = textarea.getBoundingClientRect();
+    
+    // Calculate height based on number of files - limit maximum height
+    const fileCount = this.filePathAutocompleteOptions.length;
+    let panelHeight = 40; // Header height
+    const maxHeight = 280; // Maximum height for the panel
+    
+    if (fileCount === 0) {
+      panelHeight = 80; // Header + "No files found" message
+    } else if (fileCount <= 4) {
+      panelHeight = 40 + (fileCount * 48); // 48px per file + header
+    } else {
+      panelHeight = maxHeight; // Use maximum height with scroll
+    }
+    
+    // Set position to cursor coordinates - absolute positioning
+    const panel = this.filePathAutocompletePanel?.nativeElement;
     if (panel) {
+      // Position above the textarea, but keep left aligned with cursor
+      const top = textareaRect.top - panelHeight + 65; // 10px gap above the textarea
+      const left = textareaRect.left + coords.left; // Keep left aligned with cursor position
+      
+      // Ensure panel doesn't go above viewport
+      const finalTop = Math.max(10, top); // At least 10px from top of viewport
+      
       // Set CSS custom properties for positioning
-      panel.style.setProperty('--textarea-left', rect.left + 'px');
-      panel.style.setProperty('--textarea-top', rect.top + 'px');
-      panel.style.setProperty('--textarea-height', rect.height + 'px');
+      panel.style.setProperty('--textarea-left', left + 'px');
+      panel.style.setProperty('--textarea-top', finalTop + 'px');
+      panel.style.setProperty('--textarea-height', panelHeight + 'px');
+      
+      this.logger.msg('4', '=== calculateFilePathAutocompletePosition === Calculated position:', 'step-editor', { 
+        top: finalTop, 
+        left, 
+        panelHeight, 
+        fileCount,
+        textareaRect: { top: textareaRect.top, left: textareaRect.left, width: textareaRect.width }
+      });
     }
   }
 
@@ -3422,6 +3881,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
   }
 
+  // Close the file path autocomplete panel
+  closeFilePathAutocomplete(): void {
+    this.showFilePathAutocomplete = false;
+  }
+
   // Method to close variable dropdown
   closeVariableDropdown(): void {
     this.displayedVariables = [];
@@ -3429,7 +3893,34 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._cdr.detectChanges();
   }
 
-  // To do: When variable dropdown is in last step, it should be reversed
-  // [class.reverse]="shouldReverseDropdown(stepVariableData.currentStepIndex)"
+  private closeAllOnScroll(): void {
+    // Only skip closing if the pointer is currently inside our own dropdown panels
+    const pointerTarget = (this.lastPointer?.target || null) as (Node | null);
+
+    // Angular Material autocomplete panel
+    const autoPanelEl = document.querySelector('.mat-autocomplete-panel') as HTMLElement | null;
+
+    // File-path autocomplete panel
+    const filePanelEl = this.filePathAutocompletePanel?.nativeElement as (HTMLElement | undefined);
+    
+    // LOGIC to check if the pointer is inside the dropdown panels
+    const insideAuto = !!(pointerTarget && autoPanelEl && autoPanelEl.contains(pointerTarget));
+    const insideFile = !!(pointerTarget && filePanelEl && filePanelEl.contains(pointerTarget));
+    
+    if (insideAuto || insideFile) {
+      return; 
+    }
+
+    // Close any open Material autocomplete panels across all triggers (handles newly added steps)
+    const triggers = this.autocompleteTriggers?.toArray() || [];
+    triggers.forEach(t => { if (t.panelOpen) { t.closePanel(); } }); 
+
+    // Custom file path panel
+    if (this.showFilePathAutocomplete) {
+      this.showFilePathAutocomplete = false;
+      this._cdr.detectChanges();
+    }
+
+  }
   
 }

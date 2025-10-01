@@ -170,6 +170,30 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         request.data["created_by"] = request.session["user"]["user_id"]        
         
+        # Check if user already has this mobile emulator running in ANY department
+        if request.data.get("service_type") == "Emulator" and request.data.get("image"):
+            existing_container = ContainerService.objects.filter(
+                image=request.data["image"],
+                created_by=request.data["created_by"]
+            ).first()
+            
+            if existing_container:
+                # Get the department name for better error message
+                from backend.ee.modules.mobile.models import Mobile
+                mobile = Mobile.objects.filter(mobile_id=request.data["image"]).first()
+                mobile_name = mobile.mobile_image_name if mobile else "Unknown Mobile"
+                
+                # Get department name from user session
+                user_departments = request.session["user"]["departments"]
+                department_name = "Unknown Department"
+                for dept in user_departments:
+                    if dept["department_id"] == existing_container.department_id:
+                        department_name = dept["department_name"]
+                        break
+                error_msg = f"You already have the {mobile_name} emulator running in {department_name} department. Please stop it first before starting it in another department."
+                logger.error(error_msg)
+                return self.response_manager.response(dict_data={"success": False, "message": error_msg})
+        
         # check for container which are in use for more than 3hrs
         in_use_containers = ContainerService.objects.filter(in_use=True, service_type="Browser", since_in_use__lt=datetime.now()-timedelta(hours=3))
         for container in in_use_containers:

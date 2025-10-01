@@ -240,6 +240,12 @@ def show_variable_value(context, variable, seconds):
 def step_impl(context, value, variable_name):
     send_step_details(context, 'Saving value to environment variable')
     # add variable
+    description = context.text
+    if description is not None and description:
+        # User provided a multiline value, use it instead
+        value = description
+
+    logger.debug(f"Saving value to environment variable: {variable_name} = {value}")
     addVariable(context, variable_name, value, save_to_step_report=True)
 
 
@@ -250,8 +256,13 @@ def step_impl(context, value, variable_name):
 def step_impl(context, value, variable_name):
     logger.debug("Saving value to runtime variable")
     send_step_details(context, 'Saving value to runtime variable')
-    logger.debug(f"Saving value to runtime variable: {variable_name} = {value}")
     # add variable
+    description = context.text
+    if description is not None and description:
+        # User provided a multiline value, use it instead
+        value = description
+
+    logger.debug(f"Saving value to runtime variable: {variable_name} = {value}")    
     addTestRuntimeVariable(context, variable_name, value, save_to_step_report=True)
 
 
