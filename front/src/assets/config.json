@@ -246,8 +246,13 @@
       "date": "2025-09-23",
       "features": [
         {
+<<<<<<< front/src/assets/config.json
           "title": "Visual and context update for chatbot",
           "description": "Chatbot responses are now properly formatted and contains more processed data for context"
+=======
+          "title": "Fixed issue with dialogs - #6441",
+          "description": "Fixed issue with autocomplete, now it closes when doing scroll."
+>>>>>>> front/src/assets/config.json
         }
       ]
     },
@@ -294,6 +299,10 @@
         {
           "title": "Fixed issue with Step Make an api call - #6824",
           "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        },
+        {
+          "title": "Fixed issue with Step Editor - #6824",
+          "description": "Fixed issue with Step Editor, now it doesn't check if steps have changed when they belong to other features."
         }
       ]
     },
