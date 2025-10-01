@@ -1,5 +1,5 @@
 {
-  "version": "3.0.105",
+  "version": "3.0.106",
   "stable_version": "3.0.104",
   "language": "en",
   "appTitle": "co.meta",
@@ -268,7 +268,6 @@
           "description": "Chatbot responses are now properly formatted and contains more processed data for context"
         },
         {
-        
           "title": "Fixed issue with dialogs - #6441",
           "description": "Fixed issue with autocomplete, now it closes when doing scroll."
         }
@@ -281,6 +280,16 @@
           {
             "title": "Add mobile dialog - #5981",
           "description": "Add mobile dialog, which can be used to select a mobile from the list giving feedback (status, shared, etc)."
+        }
+      ]
+    },
+    {
+      "version": "3.0.106",
+      "date": "2025-09-28",
+      "features": [
+        {
+          "title": "Align copyclipboard icon - #5981",
+          "description": "Align copyclipboard icon in browser selection component."
         }
       ]
     },
