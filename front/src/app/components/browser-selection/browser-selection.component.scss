@@ -26,11 +26,11 @@ h4 {
 .copyClipboardIcon {
   transform: scale(0.7);
   width: 15px;
-  margin-left: 72px;
   cursor: pointer;
-  align-items: right !important;
   margin-top: 6px;
   margin-right: 6px;
+  flex-shrink: 0;
+  align-self: center;
 
   &.active {
     animation: changeColor 3s forwards;
@@ -263,11 +263,12 @@ h4 {
           border-radius: 5px;
           line-height: 40px;
           justify-content: space-between;
+          align-items: center;
           &::ng-deep .mat-checkbox {
-            flex: initial;
+            flex: 1;
           }
           .favourite {
-            flex: initial;
+            flex-shrink: 0;
             height: 40px;
             width: 40px;
             background-image: url(^assets/icons/star.svg);
@@ -277,6 +278,7 @@ h4 {
             opacity: 0.4;
             transform: scale(1) rotate(0deg);
             transition: transform 0.15s ease-in-out;
+            align-self: center;
             &:hover {
               transform: scale(1.4) rotate(-72deg);
               opacity: 1;
@@ -367,6 +369,8 @@ h4 {
 
 .join {
   display: flex;
+  align-items: center;
+  flex: 1;
 }
 .multiplier {
   display: flex;

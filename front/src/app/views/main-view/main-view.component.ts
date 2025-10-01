@@ -165,8 +165,13 @@ export class MainViewComponent implements OnInit {
           icon: 'videocam',
           tooltip: 'View mobile test result replay',
           color: 'primary',
-          iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
-          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording, 'mobile'),
+          iif: ({ mobile }: FeatureResult) => !!mobile?.[0]?.video_recording,
+          click: (result: FeatureResult) => {
+            const video = result.mobile?.[0]?.video_recording;
+            if (video) {
+              this.openVideo(result, video, 'mobile');
+            }
+          },
           class: 'replay-button-2',
         },
         {

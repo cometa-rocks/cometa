@@ -16,63 +16,183 @@
     },
     {
       "name": "SECURITY.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/SECURITY.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/SECURITY.md",
       "description": "Guidelines and information on the security policies of the Co.meta project."
     },
     {
-      "name": "MFA_Authentication_preparation.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/MFA_Authentication_preparation.md",
+      "name": "mfa_authentication_preparation.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/mfa_authentication_preparation.md",
       "description": "Instructions on preparing for Multi-Factor Authentication with Co.meta."
     },
     {
-      "name": "MFA_Authentication_using_cometa.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/MFA_Authentication_using_cometa.md",
+      "name": "mfa_authentication_using_cometa.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/mfa_authentication_using_cometa.md",
       "description": "Steps on how to use Multi-Factor Authentication within Co.meta."
     },
     {
-      "name": "REST-API.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/REST-API.md",
-      "description": "Documentation detailing the REST API endpoints provided by Co.meta."
+      "name": "api_test.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/api_test.md",
+      "description": "Documentation detailing API testing capabilities in Co.meta."
     },
     {
       "name": "ai_feature.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/ai_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/ai_feature.md",
       "description": "Information about the AI features integrated into Co.meta."
     },
     {
-      "name": "browser_concurrency.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/browser_concurrency.md",
-      "description": "Details on handling browser concurrency within Co.meta."
-    },
-    {
       "name": "cometa_actions.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/cometa_actions.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/cometa_actions.md",
       "description": "A comprehensive list and explanation of actions or steps that can be performed in Co.meta."
     },
     {
       "name": "cometa_features.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/cometa_features.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/cometa_features.md",
       "description": "An overview of the features offered by Co.meta."
     },
     {
-      "name": "css-xpath.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/css-xpath.md",
+      "name": "cometa_selectors.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/cometa_selectors.md",
       "description": "Guidelines on using CSS selectors and XPath within Co.meta."
     },
     {
       "name": "mobile_feature.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/mobile_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/mobile_feature.md",
       "description": "Documentation on the mobile features supported by Co.meta."
     },
     {
       "name": "questions.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/questions.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/questions.md",
       "description": "A compilation of frequently asked questions about Co.meta."
     },
     {
       "name": "FAQ.md",
-      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/new-faq/FAQ.md",
-      "description": "A compilation of frequently asked questions about Co.meta."
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/FAQ.md",
+      "description": "A comprehensive FAQ with detailed answers about Co.meta functionality."
+    },
+    {
+      "name": "GETTING_STARTED.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/GETTING_STARTED.md",
+      "description": "Getting started guide for new Co.meta users."
+    },
+    {
+      "name": "TUTORIALS.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/TUTORIALS.md",
+      "description": "Step-by-step tutorials for using Co.meta features."
+    },
+    {
+      "name": "LOAD_TESTING.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/LOAD_TESTING.md",
+      "description": "Documentation on load testing capabilities in Co.meta."
+    },
+    {
+      "name": "database_testing.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/database_testing.md",
+      "description": "Guide to database testing features in Co.meta."
+    },
+    {
+      "name": "accessibility_testing.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/accessibility_testing.md",
+      "description": "Documentation on accessibility testing capabilities."
+    },
+    {
+      "name": "security_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/security_feature.md",
+      "description": "Documentation on security testing features in Co.meta."
+    },
+    {
+      "name": "email_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/email_feature.md",
+      "description": "Guide to email testing capabilities in Co.meta."
+    },
+    {
+      "name": "telegram_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/telegram_feature.md",
+      "description": "Documentation on Telegram integration features."
+    },
+    {
+      "name": "e2e_monitoring.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/e2e_monitoring.md",
+      "description": "Guide to end-to-end monitoring capabilities in Co.meta."
+    },
+    {
+      "name": "historical_analysis.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/historical_analysis.md",
+      "description": "Documentation on historical test analysis features."
+    },
+    {
+      "name": "data_driven_testing.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/data_driven_testing.md",
+      "description": "Guide to data-driven testing capabilities in Co.meta."
+    },
+    {
+      "name": "mobile_automation_testing.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/mobile_automation_testing.md",
+      "description": "Documentation on mobile automation testing features."
+    },
+    {
+      "name": "Random_Data_Generation.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/Random_Data_Generation.md",
+      "description": "Guide to random data generation features for testing."
+    },
+    {
+      "name": "deployment.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/admin/deployment.md",
+      "description": "Administrative guide for Co.meta deployment and configuration."
+    },
+    {
+      "name": "developer_guide.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/developer/README.md",
+      "description": "Developer documentation for extending and contributing to Co.meta."
+    },
+    {
+      "name": "contributing.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/developer/CONTRIBUTING.md",
+      "description": "Guidelines for contributing to the Co.meta project."
+    },
+    {
+      "name": "user_guide.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/README.md",
+      "description": "User documentation and guide for Co.meta platform."
+    },
+    {
+      "name": "feature_example_your_first_testcase.json",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/user/feature_example_your_first_testcase.json",
+      "description": "Example JSON configuration for creating your first test case in Co.meta."
+    },
+    {
+      "name": "root_contributing.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/CONTRIBUTING.md",
+      "description": "Main contributing guidelines for the repository."
+    },
+    {
+      "name": "code_of_conduct.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/CODE_OF_CONDUCT.md",
+      "description": "Community guidelines and code of conduct."
+    },
+    {
+      "name": "docs_readme.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/README.md",
+      "description": "Main documentation index and overview."
+    },
+    {
+      "name": "docs_index.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/index.md",
+      "description": "Documentation website index."
+    },
+    {
+      "name": "amd_vs_amd64_readme.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/admin/AMD_vs_amd64_README.md",
+      "description": "Architecture-specific deployment information."
+    },
+    {
+      "name": "custom_mobile_emulator_start.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/admin/Custom_Mobile_Emulator_Start.md",
+      "description": "Mobile emulator configuration guide."
+    },
+    {
+      "name": "sharepoint_access_clientid_secrets.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/docs/admin/Sharepoint_Access_ClientID_Secrets.md",
+      "description": "SharePoint integration configuration guide."
     }
   ]
   

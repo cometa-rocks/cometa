@@ -1448,27 +1448,42 @@ export class EditFeature implements OnInit, OnDestroy {
     // because it is only used for documentation purposes and is not saved in the backend
     if (originalSteps === undefined || currentSteps === undefined) {
       this.logger.msg('4', `Skipping steps for being undefined`, 'edit-feature');
+      console.log('Skipping steps for being undefined');
       return false;
     }
 
+    // Filter out steps that belong to other features (subfeature steps)
+    // These steps are loaded from referenced features and shouldn't be compared
+    const originalStepsFiltered = originalSteps.filter(step => {
+      // In interfaces can we add if we don't use as any:
+      // interface FeatureStep {
+      // feature_id?: number;
+      // belongs_to?: number; 
+      const belongsTo = (step as any)?.belongs_to; 
+      const featureId = (step as any)?.feature_id;
+      
+      return !belongsTo || belongsTo === featureId;
+    });
+
     // XXX - FIXME QAD: original=0 current=1 ... means the current was just added
-    if (originalSteps.length === 0 && currentSteps.length == 1) {
-      this.logger.msg('4', `Steps length changed: original=${originalSteps.length}, current=${currentSteps.length}`, 'edit-feature');
+    if (originalStepsFiltered.length === 0 && currentSteps.length == 1) {
+      this.logger.msg('4', `Steps length changed: original=${originalStepsFiltered.length}, current=${currentSteps.length}`, 'edit-feature');
       this.logger.msg('4', `Ignoring steps length change for being just added.`, 'edit-feature');
+      console.log('Ignoring steps length change for being just added.');
       return false;
     }
 
     // Check if arrays have different lengths
-    if (originalSteps.length !== currentSteps.length) {
-      this.logger.msg('4', `Steps length changed: original=${originalSteps.length}, current=${currentSteps.length}`, 'edit-feature');
+    if (originalStepsFiltered.length !== currentSteps.length) {
+      this.logger.msg('4', `Steps length changed: original=${originalStepsFiltered.length}, current=${currentSteps.length}`, 'edit-feature');
       return true;
     }
 
     // Compare each step using generic property comparison
     for (let i = 0; i < currentSteps.length; i++) {
-      const originalStep = originalSteps[i];
+      const originalStep = originalStepsFiltered[i];
       const currentStep = currentSteps[i];
-
+      
       if (this.hasStepChanged(originalStep, currentStep)) {
         this.logger.msg('4', `Step ${i} has changed`, 'edit-feature');
         return true;

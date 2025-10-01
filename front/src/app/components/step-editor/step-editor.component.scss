@@ -925,7 +925,11 @@ textarea {
 }
 
 .custom-file-autocomplete-panel {
-  position: absolute;
+  position: fixed; // Use fixed instead of absolute for better positioning
+  left: var(--textarea-left, 0);
+  top: var(--textarea-top, 0);
+  width: 600px;
+  max-height: var(--textarea-height, 200px);
   background: $pure-white;
   border: 1px solid $black-border-top-matautocomplete;
   border-radius: 4px;
@@ -934,60 +938,6 @@ textarea {
               0px 1px 10px 0px rgba(0, 0, 0, 0.12);
   z-index: 9999;
   min-width: 200px;
-  
-  &.visible {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-  
-  &.hidden {
-    display: none;
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-.custom-autocomplete-header {
-  padding: 8px 16px;
-  background-color: $grey-bg-matautocomplete;
-  height: 40px;
-  
-  .custom-autocomplete-title {
-    color: $blue;
-    font-weight: 500;
-    font-size: 18px;
-    line-height: 40px;
-    letter-spacing: 0.03125em;
-  }
-}
-
-.custom-autocomplete-options {
-  overflow-y: auto;
-  height: 140px;
-  .custom-autocomplete-option {
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    
-    &:hover { 
-      background-color: $grey-bg-matautocomplete;
-    }
-    
-    &:not(:last-child) {
-      border-bottom: 1px solid $black-border-bottom-matautocomplete;
-    }
-  }
-}
-
-.custom-file-autocomplete-panel {
-  position: fixed; // Use fixed instead of absolute for better positioning
-  left: calc(var(--textarea-left) + 170px);
-  top: calc(var(--textarea-top) - 150px); // 200px panel height + 20px gap
-  z-index: 1000;
-  width: 600px;
-  max-height: 200px;
   
   // Ensure panel doesn't go off-screen
   @media (max-width: 768px) {
@@ -1000,7 +950,106 @@ textarea {
   &.below {
     top: calc(var(--textarea-top) + var(--textarea-height) + 20px);
   }
+
+  &.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  
+  &.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .custom-autocomplete-options {
+    overflow-y: auto;
+    max-height: calc(var(--textarea-height, 200px) - 40px); // Subtract header height
+      .custom-autocomplete-option {
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        height: 30px;
+        font-size: 16px;
+      
+      &:hover { 
+        background-color: $grey-bg-matautocomplete;
+      }
+    }
+  }
+  
+  &:not(:last-child) {
+    border-bottom: 1px solid $black-border-bottom-matautocomplete;
+  }
+
+  .custom-autocomplete-no-files-found {
+    padding: 8px 16px;
+    color: $bad;
+    font-size: 14px;
+    line-height: 1.5;
+  }
 }  
+
+.custom-autocomplete-header {
+  padding: 8px 16px;
+  background-color: $grey-bg-matautocomplete;
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .custom-autocomplete-title {
+    color: $blue;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 40px;
+    letter-spacing: 0.03125em;
+  }
+
+  .file-path-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    i {
+      font-size: 16px;
+      color: $darker-step;
+    }
+  }
+
+}
+
+.custom-autocomplete-options {
+  overflow-y: auto;
+  height: 140px;
+  .custom-autocomplete-option {
+    padding: 22px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover { 
+      background-color: $grey-bg-matautocomplete;
+    }
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid $black-border-bottom-matautocomplete;
+    }
+  }
+}
 
 // Tootip custom. Material Design
 /*
@@ -1052,4 +1101,163 @@ Usage:
 .amv_custom-tooltip:hover::after {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+// Global mobile dropdown panel - positioned at cursor location
+.custom-mobile-autocomplete-panel {
+  position: fixed;
+  background: $pure-white;
+  border: 1px solid $black-border-top-matautocomplete;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 
+              0px 4px 5px 0px rgba(0, 0, 0, 0.14), 
+              0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  min-width: 300px;
+  max-height: none;
+  overflow: visible;
+  z-index: 1000;
+  
+  &.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  
+  &.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .custom-autocomplete-header {
+    padding: 8px 16px;
+    background-color: $grey-bg-matautocomplete;
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .custom-autocomplete-title {
+      color: $blue;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 40px;
+      letter-spacing: 0.03125em;
+    }
+
+    .variable-close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+
+      i {
+        font-size: 16px;
+        color: $darker-step;
+      }
+    }
+  }
+
+  .custom-autocomplete-options {
+    overflow-y: auto;
+    max-height: 400px;
+    min-height: auto;
+    padding-bottom: 8px;
+
+    .no-mobile {
+      color: $bad;
+      user-select: none;
+      font-size: 14px;
+    }
+    
+    .mobile-group {
+      .mobile-group-header {
+        padding: 16px 16px;
+        font-size: 18px;
+        color: $blue;
+        background-color: $grey-bg-matautocomplete;
+        letter-spacing: 0.5px;
+      }
+
+      .custom-autocomplete-option {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+        position: relative;
+        
+        &:hover { 
+          background-color: $grey-bg-matautocomplete;
+        }
+        
+        &.disabled, &.inactive {
+          opacity: 0.5;
+          cursor: not-allowed;
+          
+          .var_name, .var_value {
+            color: $darker-step;
+          }
+          
+          .mobile-status {
+            opacity: 0.7;
+          }
+        }
+        
+        &:not(:last-child) {
+          border-bottom: 1px solid $black-border-bottom-matautocomplete;
+        }
+
+        .var_name {
+          color: $blue;
+          font-weight: 500;
+          margin-right: 8px;
+        }
+
+        .var_value {
+          color: $darker-step;
+          flex: 1;
+        }
+
+        .mobile-status {
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 10px;
+          margin-left: 8px;
+          font-weight: 500;
+          
+          &.running {
+            background-color: $success;
+            color: $body-bg-color;
+          }
+          
+          &.stopped {
+            background-color: $bg-and-status;
+            color: $body-bg-color;
+          }
+        }
+
+        .shared-badge {
+          font-size: 10px;
+          background-color: $blue;
+          color: $body-bg-color;
+          padding: 2px 6px;
+          border-radius: 10px;
+          margin-left: 8px;
+          font-weight: 500;
+        }
+      }
+    }
+  }
 }
