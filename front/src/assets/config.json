@@ -1,6 +1,6 @@
 {
   "version": "3.0.105",
-  "stable_version": "3.0.105",
+  "stable_version": "3.0.104",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,12 +242,25 @@
   ],
   "changelog": [
     {
-      "version": "3.0.105",
+      "version": "3.0.105",4
       "date": "2025-09-24",
       "features": [
         {
           "title": "Enhance feature metrics component with empty state - #6802",
           "description": "Added conditional rendering to hide zero values and display a user-friendly message when no data is available. Updated styles for the empty state to improve UI presentation."
+        },
+        {
+          "title": "Refactor API service to filter out 'error' field in patch requests - #6891",
+          "description": "Refactor API service to filter out 'error' field in patch requests and enhance logging in ResultsState. Updated getBrowserKey function comments for clarity."
+        },
+        {
+          "title": "Visual and context update for chatbot",
+          "description": "Chatbot responses are now properly formatted and contains more processed data for context"
+        },
+        {
+        
+          "title": "Fixed issue with dialogs - #6441",
+          "description": "Fixed issue with autocomplete, now it closes when doing scroll."
         }
       ]
     },
@@ -294,6 +307,10 @@
         {
           "title": "Fixed issue with Step Make an api call - #6824",
           "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        },
+        {
+          "title": "Fixed issue with Step Editor - #6824",
+          "description": "Fixed issue with Step Editor, now it doesn't check if steps have changed when they belong to other features."
         }
       ]
     },
