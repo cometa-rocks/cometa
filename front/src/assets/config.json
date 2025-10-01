@@ -304,6 +304,16 @@
       ]
     },
     {
+      "version": "3.0.106",
+      "date": "2025-09-30",
+      "features": [
+        {
+          "title": "Missing spinner transitions for mobile - #6922",
+          "description": "Show spinner when stopping or restarting mobile, and save the state in localStorage."
+        }
+      ]
+    },
+    {
       "version": "3.0.104",
       "date": "2025-09-22",
       "features": [

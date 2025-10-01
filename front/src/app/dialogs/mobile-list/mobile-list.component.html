@@ -239,7 +239,7 @@
                               (runningContainer.service_status === 'Stopped' ? 'Click to restart' : '')"
                               matTooltipPosition="above">
 
-                              <ng-container *ngIf="runningContainer.service_status === 'Stopping' || runningContainer.service_status === 'Restarting'; else showIcon">
+                              <ng-container *ngIf="shouldShowSpinner(runningContainer); else showIcon">
                                 <mat-spinner
                                   class="spinnerPause"
                                   [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
@@ -792,7 +792,7 @@
                               (runningContainer.service_status === 'Stopped' ? 'Click to restart' : '')"
                               matTooltipPosition="above">
 
-                              <ng-container *ngIf="runningContainer.service_status === 'Stopping' || runningContainer.service_status === 'Restarting'; else showIcon">
+                              <ng-container *ngIf="shouldShowSpinner(runningContainer); else showIcon">
                                 <mat-spinner
                                   class="spinnerPause"
                                   [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
