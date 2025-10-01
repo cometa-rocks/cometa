@@ -246,13 +246,13 @@
       "date": "2025-09-23",
       "features": [
         {
-<<<<<<< front/src/assets/config.json
           "title": "Visual and context update for chatbot",
           "description": "Chatbot responses are now properly formatted and contains more processed data for context"
-=======
+        },
+        {
+        
           "title": "Fixed issue with dialogs - #6441",
           "description": "Fixed issue with autocomplete, now it closes when doing scroll."
->>>>>>> front/src/assets/config.json
         }
       ]
     },
