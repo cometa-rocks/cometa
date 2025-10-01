@@ -1155,6 +1155,129 @@ mat-dialog-container draggable-window{
   resize: none !important;
 }
 
+// ########## Custom tooltip ##########
+
+// Make sure tooltip overflow is visible ouside the expansion panel
+.edit-feature-panel {
+  .mat-expansion-panel,
+  .mat-expansion-panel-header,
+  .mat-expansion-panel-content {
+    overflow: visible !important;
+  }
+}
+
+// Custom tooltip styles
+.amv_custom-tooltip {
+  position: relative; 
+}
+
+.amv_custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+
+  // Fix the problem of overlapping (warning: but (fixed) not relative to the parent)
+  // position: fixed;
+  // bottom: 68%;
+  // left: 20%;
+  transform: translate(-50%, 8px);
+
+  display: block;                    
+  text-align: center;                
+  
+  font-weight: 500;
+  font-style: normal;
+  font-family: Roboto, sans-serif;
+
+  background: rgba(97,97,97,0.9);
+  color: $pure-white;
+  padding: 10px 10px; 
+  border-radius: 4px;
+  line-height: 1.2;
+  font-size: 12px;
+  z-index: 99999;
+
+  white-space: normal;               
+  overflow-wrap: anywhere;
+  word-break:  normal;
+
+  // Dynamic width and height based on content
+  max-width: 300px; // Prevents tooltip from being too wide
+  width: max-content;
+  height: auto;
+
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none; 
+} 
+
+.amv_custom-tooltip:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+// ########## Position tooltip ##########
+
+/* ABOVE (default) */
+.amv_custom-tooltip:not([data-position]),
+.amv_custom-tooltip[data-position="above"] {
+  &::after {
+    bottom: 150%;
+    left: 50%;
+    transform: translate(-50%, 8px);
+  }
+  &:hover::after {
+    transform: translate(-50%, 0);
+  }
+}
+
+/* BELOW */
+.amv_custom-tooltip[data-position="below"] {
+  &::after {
+    top: 150%;
+    left: 50%;
+    bottom: auto;
+    transform: translate(-50%, -8px);
+  }
+  &:hover::after {
+    transform: translate(-50%, 0);
+  }
+}
+
+/* LEFT */
+.amv_custom-tooltip[data-position="before"] {
+  &::after {
+    right: 150%;
+    top: 50%;
+    left: auto;
+    bottom: auto;
+    transform: translate(8px, -50%);
+  }
+  &:hover::after {
+    transform: translate(0, -50%);
+  }
+}
+
+/* RIGHT */
+.amv_custom-tooltip[data-position="after"] {
+  &::after {
+    left: 150%;
+    top: 50%;
+    bottom: auto;
+    transform: translate(-8px, -50%);
+  }
+  &:hover::after {
+    transform: translate(0, -50%);
+  }
+}
+
+// ########## Disabled tooltip ##########
+
+.amv_custom-tooltip[data-disabled="true"]::after { 
+  display: none; 
+}
+
 /* Global styles for chatbot HTML content - needed for [innerHTML] binding */
 .bot-html {
   h1, h2, h3, h4, h5, h6 {
