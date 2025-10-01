@@ -1,23 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Input,
   OnInit,
-  Output,
-  ViewChild,
 } from '@angular/core';
-import { Select, Store } from '@ngxs/store';
-import { SharedActionsService } from '@services/shared-actions.service';
-
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-
 import { LogService } from '@services/log.service';
-
-import { StarredService } from '@services/starred.service';
-import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -64,7 +51,19 @@ export class FeatureMetricsUsageComponent implements OnInit {
     this._api.getUsageStatistics().subscribe({
       next: (data) => {
         this.log.msg('feature-metrics-usage.component.ts','Received data from API','',JSON.stringify(data));
+        
+        // Test with zero values
+        // data.total_number_features = "0";
+        // data.total_tests_executed = "0";
+        // data.average_execution_time_ms = "0";
+        // data.average_execution_time_s = "0";
+        // data.total_execution_time_ms = "0";
+        // data.total_execution_time_s = "0";
+        // data.total_execution_time_m = "0";
+        // data.total_execution_time_h = "0";
+
         this.statistics = data;
+        console.log('Statistics', this.statistics);
         this.loading = false;
         this.changeDetectorRef.detectChanges();
       },
@@ -74,6 +73,33 @@ export class FeatureMetricsUsageComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // Hide zero/empty metrics in UI
+  isNonZero(value: string | number | null | undefined): boolean {
+    if (value === null || value === undefined) return false;
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return !isNaN(num as number) && (num as number) > 0;
+  }
+
+  // True if at least one value is > 0
+  anyNonZero(...values: Array<string | number | null | undefined>): boolean {
+    return values.some(v => this.isNonZero(v));
+  }
+
+  // Returns true if any metric contains a non-zero value
+  hasAnyData(): boolean {
+    const s = this.statistics || {};
+    return this.anyNonZero(
+      s.average_execution_time_ms,
+      s.average_execution_time_s,
+      s.total_execution_time_ms,
+      s.total_execution_time_s,
+      s.total_execution_time_m,
+      s.total_execution_time_h,
+      s.total_tests_executed,
+      s.total_number_features
+    );
   }
 
   /**
