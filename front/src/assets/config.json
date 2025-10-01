@@ -294,6 +294,10 @@
         {
           "title": "Fixed issue with Step Make an api call - #6824",
           "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        },
+        {
+          "title": "Fixed issue with Step Editor - #6824",
+          "description": "Fixed issue with Step Editor, now it doesn't check if steps have changed when they belong to other features."
         }
       ]
     },
