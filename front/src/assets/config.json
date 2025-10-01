@@ -243,8 +243,12 @@
   "changelog": [
     {
       "version": "3.0.105",
-      "date": "2025-09-23",
+      "date": "2025-09-24",
       "features": [
+        {
+          "title": "Enhance feature metrics component with empty state - #6802",
+          "description": "Added conditional rendering to hide zero values and display a user-friendly message when no data is available. Updated styles for the empty state to improve UI presentation."
+        },
         {
           "title": "Refactor API service to filter out 'error' field in patch requests - #6891",
           "description": "Refactor API service to filter out 'error' field in patch requests and enhance logging in ResultsState. Updated getBrowserKey function comments for clarity."
