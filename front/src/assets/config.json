@@ -1,6 +1,6 @@
 {
-  "version": "3.0.102",
-  "stable_version": "3.0.102",
+  "version": "3.0.105",
+  "stable_version": "3.0.105",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,9 +242,59 @@
   ],
   "changelog": [
     {
-      "version": "3.0.102",
-      "date": "2025-09-14",
+      "version": "3.0.105",
+      "date": "2025-09-23",
       "features": [
+        {
+          "title": "Fixed issue with dialogs - #6441",
+          "description": "Fixed issue with autocomplete, now it closes when doing scroll."
+        }
+      ]
+    },
+    {
+      "version": "3.0.104",
+      "date": "2025-09-22",
+      "features": [
+        {
+          "title": "Variable list visibility fix",
+          "description": "Improved visiblity of variables list in feature edit screen"
+        }
+      ]
+    },
+    {
+      "version": "3.0.103",
+      "date": "2025-09-17",
+      "features": [
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Display AI Agent actions in UI - #6833",
+          "description": "AI Agent logs can now be viewed in real-time during execution on live-step viewer dialog."
+        },
+        {
+          "title": "Fixed issue with Main View - #6843",
+          "description": "Fixed issue with Main View, now it preserves the user action in the button (failed features, show all results)."
+        },
+        {
+          "title": "Implement dynamic version display - #6847",
+          "description": "Implement dynamic version display in header and footer."
+        },
+        {
+          "title": "Enhance dialog of variables - #6850",
+          "description": "Enhance dialog of variables, add 'x to close dialog, now it closes when pressing ESC."
+        }
+      ]
+    },
+    {
+      "version": "3.0.102",
+      "date": "2025-09-16",
+      "features": [
+        {
+          "title": "Fixed issue with Step Make an api call - #6824",
+          "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        },
         {
           "title": "Fixed issue with Step Editor - #6824",
           "description": "Fixed issue with Step Editor, now it doesn't check if steps have changed when they belong to other features."

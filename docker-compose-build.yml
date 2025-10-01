@@ -240,19 +240,19 @@ services:
       - testing
 
   redis:
-    build:
-      context: ./backend/redis
-      dockerfile: Dockerfile
+    image: redis:7.2.0
     # platform hint for running on apple silicon
     platform: linux/amd64
     container_name: cometa_redis
-    # volumes:
-    #   - ./data/redis/data:/data
+    volumes:
+      - ./data/redis/data:/data
     networks:
       - testing
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      start_period: 30s
     restart: always
+
 
 networks:
   testing:

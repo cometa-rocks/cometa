@@ -41,15 +41,21 @@ def run_browser(env, **kwargs):
     # This is required to make sure feature file is generated before running the feature with result id added to it
     # While doing parallel execution and housekeeping it should not conflict with other threads
     # File name should be unique for each test execution i.e 1174_458556_Simple-Smoke-test
+    feature_result_id = env.get('feature_result_id')
+    feature_id = kwargs.get('feature_id')
+    browser_info = kwargs.get('BROWSER_INFO', None)
+    user_id = kwargs.get('user_data', {}).get('user_id', None)
+    run_id = int(kwargs.get('feature_run'))
+    
     response = requests.post(f'{get_cometa_backend_url()}/generateFeatureFile/', json={
-        'feature_id': kwargs.get('feature_id'),
-        'feature_result_id': env.get('feature_result_id')
+        'feature_id': feature_id,
+        'feature_result_id': feature_result_id
     })
     if not response.json().get('success'):
-        requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % int(kwargs.get('feature_id')), data={
-            "user_id": kwargs.get('user_data', {}).get('user_id', None),
-            "browser_info": json.dumps(kwargs.get('BROWSER_INFO', None)),
-            "feature_result_id": env.get('feature_result_id'),
+        requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % int(feature_id), data={
+            "user_id": user_id,
+            "browser_info": json.dumps(browser_info),
+            "feature_result_id": feature_result_id,
             "run_id": int(kwargs.get('feature_run')),
             "feature_result_info": json.dumps(response.json()),
             "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -57,9 +63,9 @@ def run_browser(env, **kwargs):
                 # call update task to delete a task with pid.
         task = {
             "action": "delete",
-            "browser": json.dumps(kwargs.get('BROWSER_INFO', None)),
-            "feature_result_id": env.get('feature_result_id'),
-            "feature_id": kwargs.get('feature_id'),
+            "browser": json.dumps(browser_info),
+            "feature_result_id": feature_result_id,
+            "feature_id": feature_id,
             "pid": str(os.getpid()),
         }
         requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
@@ -103,6 +109,33 @@ def run_browser(env, **kwargs):
                 logger.error(f"Error ocurred during the feature execution ... please check the output:\n{out}")
                 if 'Parser failure' in out:
                     raise Exception("Parsing error in the feature, please recheck the steps.")
+                # Adding this code to make sure if case of any error in the feature execution, 
+                # the feature result is marked as failed and websocket is updated so user can stop the feature execution
+                data = {
+                    "feature_result_id": feature_result_id,
+                    "status": "Failed",
+                    "error": out
+                }
+                headers = {"Content-type": "application/json", "Host": "cometa.local"}
+                requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
+                logger.debug("\33[92m" + "Feature result threw an exception!" + "\33[0m")
+
+                # get the final result for the feature_result
+                request_info = requests.get(f"{get_cometa_backend_url()}/api/feature_results/%s" % feature_result_id,
+                                            headers=headers)
+                # Without this request, if some unformated error (error attached in 6849) raised by behave breaks the flow 
+                # and socket is not updated which leaves feature in queuing state,
+                # because of that it shows as running in the live screen, which requies websocket to restart
+                requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % env.get('feature_result_id'), data={
+                    "user_id": user_id,
+                    "browser_info": json.dumps(browser_info),
+                    "feature_result_id": feature_result_id,
+                    "run_id": run_id,
+                    "feature_result_info": json.dumps(request_info.json()['result']),
+                    "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                })
+                
+
         except JobTimeoutException as err:
             # job was timed out, kill the process
             logger.error("Job timed out.")
@@ -122,7 +155,7 @@ def run_browser(env, **kwargs):
             requests.post(f'{get_cometa_socket_url()}/feature/%s/error' % kwargs.get('feature_id', None), data={
                 "browser_info": kwargs.get('browser', None),
                 "feature_result_id": kwargs.get('feature_result_id', None),
-                "run_id": kwargs.get('feature_run', None),
+                "run_id": run_id,
                 "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
                 "error": str(e),
                 "user_id": kwargs.get('user_data', {}).get('user_id', None)
