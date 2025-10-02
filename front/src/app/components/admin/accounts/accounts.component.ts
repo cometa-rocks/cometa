@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Observable, timer, Subject, BehaviorSubject, of, forkJoin, merge, combineLatest } from 'rxjs';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounce, map, startWith, catchError, switchMap, take } from 'rxjs/operators';
+import { debounce, map, startWith, catchError, switchMap, take, tap } from 'rxjs/operators';
 import { Sort } from '@angular/material/sort';
 import { AsyncPipe, NgIf, NgClass, NgSwitch, NgSwitchCase, NgSwitchDefault, NgFor } from '@angular/common';
 import { AccountComponent } from './account/account.component';
@@ -104,6 +104,8 @@ export class AccountsComponent implements OnInit {
   totalAccounts = 0;
   // Server-side pagination/sort state
   pageIndex = 0; // zero-based for UI
+  currentPageSize = parseInt(localStorage.getItem('co_accounts_pagination') || '25');
+  currentSort = { active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' };
   private pageChange$ = new BehaviorSubject<{ pageIndex: number; pageSize: number }>({ pageIndex: 0, pageSize: parseInt(localStorage.getItem('co_accounts_pagination') || '25') });
   private sortChange$ = new BehaviorSubject<{ active: string; direction: 'asc' | 'desc' | '' }>({ active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' });
   private isSorting = false;
@@ -113,6 +115,10 @@ export class AccountsComponent implements OnInit {
     parseInt(localStorage.getItem('co_accounts_pagination') || '25')
   );
   public pageSize$ = this.pageSizeSubject.asObservable();
+  
+  // Local page index management
+  private pageIndexSubject = new BehaviorSubject<number>(0);
+  public pageIndex$ = this.pageIndexSubject.asObservable();
   
   
   // Table configuration
@@ -151,11 +157,12 @@ export class AccountsComponent implements OnInit {
   @Select(CustomSelectors.GetConfigProperty('co_accounts_data'))
   accountsData$: Observable<any[]>;
 
-
-
-
   ngOnInit() {
-    this.log.msg('1', 'Initializing accounts component...', 'accounts');
+    this.log.msg('1', '🚀 INITIALIZING ACCOUNTS COMPONENT', 'accounts', {
+      initialPageSize: this.currentPageSize,
+      initialPageIndex: this.pageIndex,
+      localStorageValue: localStorage.getItem('co_accounts_pagination')
+    });
     
     // Initialize pagination from store (but don't override localStorage)
     this.accountsPagination$.subscribe(value => {
@@ -164,6 +171,7 @@ export class AccountsComponent implements OnInit {
       if (!savedValue) {
         localStorage.setItem('co_accounts_pagination', value);
         this.pageSizeSubject.next(parseInt(value) || 25);
+        this.log.msg('1', '📝 Updated pageSize from store:', 'accounts', value);
       }
     });
 
@@ -176,29 +184,68 @@ export class AccountsComponent implements OnInit {
       this.search.valueChanges.pipe(
         startWith(''),
         map(value => (typeof value === 'string' ? value : '')),
-        debounce(v => (v ? timer(300) : timer(0)))
+        debounce(searchValue => (searchValue ? timer(300) : timer(0)))
       ),
       this.pageChange$,
       this.sortChange$,
-      this.pageSize$
+      this.pageSize$,
+      this.refreshTrigger$.pipe(startWith(null))
     ]).pipe(
-      switchMap(([search, pageEvt, sortEvt, pageSize]) => {
-        // reset to first page on search
+      switchMap(([search, pageEvt, sortEvt, pageSize, refresh]) => {
+        this.log.msg('1', '🚀 DATA STREAM TRIGGERED', 'accounts', { 
+          search, 
+          pageEvt, 
+          pageSize, 
+          refresh,
+          currentPageSize: this.currentPageSize,
+          currentPageIndex: this.pageIndex
+        });
+        
+        // reset to first page on search or page size change
         if (search !== this.currentSearch) {
+          this.log.msg('1', '🔍 SEARCH CHANGED - resetting to page 1', 'accounts', { oldSearch: this.currentSearch, newSearch: search });
           this.pageIndex = 0;
-          this.pageChange$.next({ pageIndex: 0, pageSize });
+          this.pageIndexSubject.next(0);
+          this.pageChange$.next({ pageIndex: 0, pageSize: this.currentPageSize });
+        }
+        // Reset to first page when page size changes
+        if (this.currentPageSize !== pageEvt?.pageSize) {
+          this.log.msg('1', '📏 PAGE SIZE CHANGED - resetting to page 1', 'accounts', { oldSize: pageEvt?.pageSize, newSize: this.currentPageSize });
+          this.pageIndex = 0;
+          this.pageIndexSubject.next(0);
+          this.pageChange$.next({ pageIndex: 0, pageSize: this.currentPageSize });
         }
         this.currentSearch = search;
         const page = this.pageIndex + 1; // API is 1-based
-        const size = pageEvt.pageSize;
-        const ordering = sortEvt.direction === 'desc' ? `-${sortEvt.active}` : sortEvt.active;
+        const size = this.currentPageSize; // Use the current page size directly
+        const ordering = sortEvt?.direction === 'desc' ? `-${sortEvt?.active}` : sortEvt?.active;
+        
+        this.log.msg('1', '🌐 FETCHING ACCOUNTS - API call params:', 'accounts', { page, size, search, ordering });
         if (!this.isSorting) this.isLoading$.next(true);
         return this.fetchAccountsPage({ page, size, search, ordering }).pipe(
           map(resp => {
             this.totalAccounts = resp.count || 0;
             this.isLoading$.next(false);
+            
+            // TEMPORARY FIX: Backend ignores page_size, so we slice the results on frontend
+            const requestedPageSize = this.currentPageSize;
+            const fullApiResponse = resp.results || [];
+            const paginatedResults = fullApiResponse.slice(0, requestedPageSize);
+            
+            this.log.msg('1', '📥 API RESPONSE RECEIVED', 'accounts', { 
+              totalCount: resp.count, 
+              fullApiResponseLength: fullApiResponse.length,
+              requestedPageSize: requestedPageSize,
+              paginatedResultsLength: paginatedResults.length,
+              pageSize: size,
+              page: page,
+              currentPageSize: this.currentPageSize,
+              currentPageIndex: this.pageIndex,
+              backendIgnoresPageSize: fullApiResponse.length !== requestedPageSize
+            });
+            
             return {
-              rows: resp.results || [],
+              rows: paginatedResults, // Use paginated results instead of full API response
               total: resp.count || 0
             };
           }),
@@ -218,47 +265,47 @@ export class AccountsComponent implements OnInit {
 
 
   // Filter accounts based on search term (frontend filtering)
-  private filterAccounts(accounts: any[], searchTerm: any): any[] {
+  private filterAccounts(accountsList: any[], searchTerm: any): any[] {
     this.log.msg('4', 'Filtering accounts with searchTerm:', 'accounts', searchTerm);
     this.log.msg('4', 'SearchTerm type:', 'accounts', typeof searchTerm);
     
     // Convert searchTerm to string safely
-    let searchString = '';
+    let normalizedSearchTerm = '';
     try {
       if (typeof searchTerm === 'string') {
-        searchString = searchTerm;
+        normalizedSearchTerm = searchTerm;
       } else if (searchTerm && typeof searchTerm === 'object') {
         if (Array.isArray(searchTerm) && searchTerm.length > 0) {
-          searchString = String(searchTerm[0]);
+          normalizedSearchTerm = String(searchTerm[0]);
         } else if (searchTerm.value) {
-          searchString = String(searchTerm.value);
+          normalizedSearchTerm = String(searchTerm.value);
         } else {
-          searchString = JSON.stringify(searchTerm);
+          normalizedSearchTerm = JSON.stringify(searchTerm);
         }
       } else {
-        searchString = String(searchTerm || '');
+        normalizedSearchTerm = String(searchTerm || '');
       }
     } catch (error) {
       this.log.msg('0', 'Error converting searchTerm:', 'accounts', error);
-      searchString = '';
+      normalizedSearchTerm = '';
     }
     
-    this.log.msg('4', 'Converted searchString:', 'accounts', searchString);
+    this.log.msg('4', 'Converted searchString:', 'accounts', normalizedSearchTerm);
     
-    if (!searchString || !searchString.trim()) {
-      this.log.msg('4', 'No search term, returning all accounts:', 'accounts', accounts.length);
-      return accounts;
+    if (!normalizedSearchTerm || !normalizedSearchTerm.trim()) {
+      this.log.msg('4', 'No search term, returning all accounts:', 'accounts', accountsList.length);
+      return accountsList;
     }
     
-    const term = searchString.toLowerCase().trim();
-    const filtered = accounts.filter(account => 
-      account.name?.toLowerCase().includes(term) ||
-      account.email?.toLowerCase().includes(term) ||
-      account.permission_name?.toLowerCase().includes(term)
+    const searchQuery = normalizedSearchTerm.toLowerCase().trim();
+    const filteredAccounts = accountsList.filter(account => 
+      account.name?.toLowerCase().includes(searchQuery) ||
+      account.email?.toLowerCase().includes(searchQuery) ||
+      account.permission_name?.toLowerCase().includes(searchQuery)
     );
     
-    this.log.msg('4', 'Filtered results:', 'accounts', filtered.length);
-    return filtered;
+    this.log.msg('4', 'Filtered results:', 'accounts', filteredAccounts.length);
+    return filteredAccounts;
   }
 
   // Set optimal page size based on total accounts
@@ -348,9 +395,6 @@ export class AccountsComponent implements OnInit {
     return this._cachedPageSizeOptions;
   }
 
-
-
-
   // Function to get all accounts for frontend sorting (like l1-feature-list)
   private loadAllAccounts() {
     const startTime = performance.now();
@@ -394,10 +438,10 @@ export class AccountsComponent implements OnInit {
 
         // Create array of page requests for remaining pages
         const pageRequests: Observable<any>[] = [];
-        for (let page = 2; page <= totalPages; page++) {
-          const pageParams = { ...params, page };
+        for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
+          const currentPageParams = { ...params, page: currentPage };
           pageRequests.push(
-            this._http.get<any>(`${this._api.api}accounts/`, { params: pageParams })
+            this._http.get<any>(`${this._api.api}accounts/`, { params: currentPageParams })
           );
         }
 
@@ -442,11 +486,26 @@ export class AccountsComponent implements OnInit {
 
   // Server-side: fetch one page
   private fetchAccountsPage(params: { page: number; size: number; search: string; ordering: string }) {
-    const q: any = { page: params.page, page_size: params.size };
-    if (params.search && params.search.trim()) q.search = params.search.trim();
-    if (params.ordering && params.ordering.trim()) q.ordering = params.ordering.trim();
-    this.log.msg('4', 'Fetching page (server-side):', 'accounts', q);
-    return this._http.get<any>(`${this._api.api}accounts/`, { params: q });
+    const apiQueryParams: any = { page: params.page, page_size: params.size };
+    if (params.search && params.search.trim()) apiQueryParams.search = params.search.trim();
+    if (params.ordering && params.ordering.trim()) apiQueryParams.ordering = params.ordering.trim();
+    this.log.msg('1', '🔗 API CALL - Final query params:', 'accounts', apiQueryParams);
+    this.log.msg('1', '🔗 API CALL - Full URL:', 'accounts', `${this._api.api}accounts/`);
+    
+    // Try different parameter names to see which one the backend expects
+    const alternativeParams = { ...apiQueryParams, limit: params.size };
+    this.log.msg('1', '🧪 TESTING - Alternative params with limit:', 'accounts', alternativeParams);
+    
+    return this._http.get<any>(`${this._api.api}accounts/`, { params: apiQueryParams }).pipe(
+      tap(response => {
+        this.log.msg('1', '🔍 BACKEND RESPONSE ANALYSIS:', 'accounts', {
+          requestedPageSize: params.size,
+          actualResultsLength: response.results?.length,
+          totalCount: response.count,
+          isPageSizeRespected: response.results?.length === params.size
+        });
+      })
+    );
   }
 
   // Function to get all accounts by fetching all pages (DEPRECATED - keeping for compatibility)
@@ -479,9 +538,9 @@ export class AccountsComponent implements OnInit {
 
         // Create array of page requests
         const pageRequests: Observable<any>[] = [];
-        for (let page = 2; page <= totalPages; page++) {
+        for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
           pageRequests.push(
-            this._http.get<any>(`${this._api.api}accounts/?page=${page}&page_size=${actualPageSize}`)
+            this._http.get<any>(`${this._api.api}accounts/?page=${currentPage}&page_size=${actualPageSize}`)
           );
         }
 
@@ -490,23 +549,23 @@ export class AccountsComponent implements OnInit {
         this.log.msg('4', '🔄 Fetching additional pages...', 'accounts');
         
         return forkJoin(pageRequests).pipe(
-          map(additionalPages => {
+          map(additionalPagesResponse => {
             const additionalPagesTime = performance.now();
             this.log.msg('4', '⏱️ Additional pages loaded in:', 'accounts', `${(additionalPagesTime - additionalPagesStartTime).toFixed(2)}ms`);
-            this.log.msg('4', 'Additional pages fetched:', 'accounts', additionalPages.length);
+            this.log.msg('4', 'Additional pages fetched:', 'accounts', additionalPagesResponse.length);
             
             // Combine all results
-            let allResults = [...firstPage.results];
-            additionalPages.forEach((page: any) => {
-              allResults = [...allResults, ...page.results];
+            let allAccountsCombined = [...firstPage.results];
+            additionalPagesResponse.forEach((pageResponse: any) => {
+              allAccountsCombined = [...allAccountsCombined, ...pageResponse.results];
             });
 
             const totalTime = performance.now();
             this.log.msg('4', '✅ All accounts loaded in:', 'accounts', `${(totalTime - startTime).toFixed(2)}ms`);
-            this.log.msg('4', 'Total accounts loaded:', 'accounts', allResults.length);
+            this.log.msg('4', 'Total accounts loaded:', 'accounts', allAccountsCombined.length);
             
             return {
-              rows: allResults,
+              rows: allAccountsCombined,
               total: firstPage.count
             };
           })
@@ -517,9 +576,9 @@ export class AccountsComponent implements OnInit {
     // Keep the original URL stream for compatibility
     this.accountsUrl$ = this.search.valueChanges.pipe(
       startWith(this.search.value),
-      debounce(e => {
-        this.log.msg('4', 'Debounce triggered with value:', 'accounts', e);
-        return e ? timer(300) : timer(0);
+      debounce(searchEvent => {
+        this.log.msg('4', 'Debounce triggered with value:', 'accounts', searchEvent);
+        return searchEvent ? timer(300) : timer(0);
       }),
       map(search => {
         this.log.msg('4', 'Map triggered with search:', 'accounts', search);
@@ -563,17 +622,36 @@ export class AccountsComponent implements OnInit {
   storePagination(event) {
     this.log.msg(
       '1',
-      'Storing accounts pagination in localstorage...',
+      '🔄 STORE PAGINATION CALLED',
       'accounts',
-      event.pageSize
+      { 
+        oldPageSize: this.currentPageSize, 
+        newPageSize: event.pageSize, 
+        oldPageIndex: this.pageIndex,
+        newPageIndex: event.pageIndex 
+      }
     );
     
     // Update local page size and persist to localStorage
+    this.currentPageSize = event.pageSize;
     this.pageSizeSubject.next(event.pageSize);
     localStorage.setItem('co_accounts_pagination', String(event.pageSize));
-    // Update server-side page state
-    this.pageIndex = event.pageIndex || 0;
-    this.pageChange$.next({ pageIndex: this.pageIndex, pageSize: event.pageSize });
+    
+    // Reset to first page when page size changes
+    this.pageIndex = 0;
+    this.pageIndexSubject.next(0);
+    this.pageChange$.next({ pageIndex: 0, pageSize: event.pageSize });
+    
+    this.log.msg('1', '📊 AFTER UPDATE - currentPageSize:', 'accounts', this.currentPageSize);
+    this.log.msg('1', '📊 AFTER UPDATE - pageIndex:', 'accounts', this.pageIndex);
+    
+    // Force data refresh by triggering the data stream
+    this.refreshTrigger$.next();
+    
+    // Force change detection
+    this.cdr.detectChanges();
+    
+    this.log.msg('1', '✅ STORE PAGINATION COMPLETED', 'accounts', 'Data refresh triggered');
     
     return this._store.dispatch(
       new Configuration.SetProperty(
