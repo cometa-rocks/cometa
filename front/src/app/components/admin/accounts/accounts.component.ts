@@ -222,32 +222,20 @@ export class AccountsComponent implements OnInit {
         
         this.log.msg('1', '🌐 FETCHING ACCOUNTS - API call params:', 'accounts', { page, size, search, ordering });
         if (!this.isSorting) this.isLoading$.next(true);
-        return this.fetchAccountsPage({ page, size, search, ordering }).pipe(
-          map(resp => {
-            this.totalAccounts = resp.count || 0;
+        return this.fetchAccountsPageWithPagination({ page, size, search, ordering }).pipe(
+          map(paginatedResponse => {
+            this.totalAccounts = paginatedResponse.total || 0;
             this.isLoading$.next(false);
             
-            // TEMPORARY FIX: Backend ignores page_size, so we slice the results on frontend
-            const requestedPageSize = this.currentPageSize;
-            const fullApiResponse = resp.results || [];
-            const paginatedResults = fullApiResponse.slice(0, requestedPageSize);
-            
-            this.log.msg('1', '📥 API RESPONSE RECEIVED', 'accounts', { 
-              totalCount: resp.count, 
-              fullApiResponseLength: fullApiResponse.length,
-              requestedPageSize: requestedPageSize,
-              paginatedResultsLength: paginatedResults.length,
-              pageSize: size,
-              page: page,
-              currentPageSize: this.currentPageSize,
-              currentPageIndex: this.pageIndex,
-              backendIgnoresPageSize: fullApiResponse.length !== requestedPageSize
+            this.log.msg('1', '📥 PAGINATED RESPONSE RECEIVED', 'accounts', { 
+              totalCount: paginatedResponse.total, 
+              resultsLength: paginatedResponse.rows.length,
+              requestedPageSize: this.currentPageSize,
+              currentPage: page,
+              currentPageIndex: this.pageIndex
             });
             
-            return {
-              rows: paginatedResults, // Use paginated results instead of full API response
-              total: resp.count || 0
-            };
+            return paginatedResponse;
           }),
           catchError(err => {
             this.log.msg('0', 'Server pagination error:', 'accounts', err);
@@ -480,6 +468,86 @@ export class AccountsComponent implements OnInit {
         this.log.msg('0', 'Load first page error:', 'accounts', error);
         this.isLoading$.next(false);
         return of({ rows: [], total: 0 });
+      })
+    );
+  }
+
+  // Server-side: fetch one page with proper pagination handling
+  private fetchAccountsPageWithPagination(params: { page: number; size: number; search: string; ordering: string }) {
+    const { page, size, search, ordering } = params;
+    
+    this.log.msg('1', '🔄 FETCHING PAGE WITH PAGINATION', 'accounts', { page, size, search, ordering });
+    
+    // First, get the first page to know the total count
+    return this.fetchAccountsPage({ page: 1, size: 200, search, ordering }).pipe(
+      switchMap(firstPageResponse => {
+        const totalCount = firstPageResponse.count || 0;
+        const backendPageSize = 200; // Backend's fixed page size
+        const totalPages = Math.ceil(totalCount / backendPageSize);
+        
+        this.log.msg('1', '📊 PAGINATION CALCULATION', 'accounts', {
+          totalCount,
+          backendPageSize,
+          totalPages,
+          requestedPage: page,
+          requestedSize: size
+        });
+        
+        // Calculate which backend pages we need to fetch
+        const startIndex = (page - 1) * size;
+        const endIndex = startIndex + size;
+        const startBackendPage = Math.floor(startIndex / backendPageSize) + 1;
+        const endBackendPage = Math.floor((endIndex - 1) / backendPageSize) + 1;
+        
+        this.log.msg('1', '📄 BACKEND PAGES NEEDED', 'accounts', {
+          startIndex,
+          endIndex,
+          startBackendPage,
+          endBackendPage
+        });
+        
+        // If we only need the first page, return it directly
+        if (startBackendPage === 1 && endBackendPage === 1) {
+          const startOffset = startIndex % backendPageSize;
+          const endOffset = Math.min(endIndex, backendPageSize);
+          const slicedResults = firstPageResponse.results?.slice(startOffset, endOffset) || [];
+          
+          return of({
+            rows: slicedResults,
+            total: totalCount
+          });
+        }
+        
+        // We need multiple backend pages
+        const backendPagesToFetch: Observable<any>[] = [];
+        for (let backendPage = startBackendPage; backendPage <= endBackendPage; backendPage++) {
+          backendPagesToFetch.push(
+            this.fetchAccountsPage({ page: backendPage, size: backendPageSize, search, ordering })
+          );
+        }
+        
+        return forkJoin(backendPagesToFetch).pipe(
+          map(backendPages => {
+            // Combine all results from backend pages
+            const allBackendResults = [].concat(...backendPages.map((pageResponse: any) => pageResponse.results || []));
+            
+            // Slice to get the exact page we need
+            const startOffset = startIndex % backendPageSize;
+            const endOffset = startOffset + size;
+            const finalResults = allBackendResults.slice(startOffset, endOffset);
+            
+            this.log.msg('1', '✅ PAGINATION COMPLETE', 'accounts', {
+              totalBackendResults: allBackendResults.length,
+              finalResultsLength: finalResults.length,
+              requestedSize: size
+            });
+            
+            return {
+              rows: finalResults,
+              total: totalCount
+            };
+          })
+        );
       })
     );
   }
