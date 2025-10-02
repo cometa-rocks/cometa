@@ -15,15 +15,15 @@
 <!-- Use mtx-grid directly with data from API -->
 <ng-container *ngLet="(data$ | async) as table">
   <div class="table_container">
-    <!-- Loading spinner -->
-    <div *ngIf="isLoading$ | async" class="loading-container">
+    <!-- Loading spinner: keep visible until there are rows -->
+    <div *ngIf="(isLoading$ | async) || !(table?.rows?.length)" class="loading-container">
       <mat-spinner diameter="50"></mat-spinner>
       <p class="loading-text">Loading accounts...</p>
     </div>
     
     <!-- Table content -->
     <mtx-grid
-      *ngIf="!(isLoading$ | async)"
+      *ngIf="!(isLoading$ | async) && (table?.rows?.length)"
       [data]="table?.rows || []"
       [columns]="columns"
       [showToolbar]="true"
@@ -43,9 +43,10 @@
       [columnMenuHeaderText]="'Columns Settings'"
       (columnChange)="saveColumnSettings($event)"
       sortStart="asc"
-      [pageOnFront]="true"
+      [pageOnFront]="false"
+      [length]="table?.total || 0"
       (page)="storePagination($event)"
-      (sortChange)="saveSort($event)"
+      (sortChange)="onSortChange($event)"
       [cellTemplate]="{
         actions: actionsTpl,
         name: nameTpl,

@@ -1,7 +1,8 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Observable, timer, Subject, BehaviorSubject, of, forkJoin, merge } from 'rxjs';
+import { Observable, timer, Subject, BehaviorSubject, of, forkJoin, merge, combineLatest } from 'rxjs';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounce, map, startWith, catchError, switchMap, take } from 'rxjs/operators';
+import { Sort } from '@angular/material/sort';
 import { AsyncPipe, NgIf, NgClass, NgSwitch, NgSwitchCase, NgSwitchDefault, NgFor } from '@angular/common';
 import { AccountComponent } from './account/account.component';
 import { NetworkPaginatedListComponent } from '../../network-paginated-list/network-paginated-list.component';
@@ -101,6 +102,11 @@ export class AccountsComponent implements OnInit {
   // Frontend sorting (like l1-feature-list)
   currentSearch = '';
   totalAccounts = 0;
+  // Server-side pagination/sort state
+  pageIndex = 0; // zero-based for UI
+  private pageChange$ = new BehaviorSubject<{ pageIndex: number; pageSize: number }>({ pageIndex: 0, pageSize: parseInt(localStorage.getItem('co_accounts_pagination') || '25') });
+  private sortChange$ = new BehaviorSubject<{ active: string; direction: 'asc' | 'desc' | '' }>({ active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' });
+  private isSorting = false;
   
   // Local page size management
   private pageSizeSubject = new BehaviorSubject<number>(
@@ -138,8 +144,12 @@ export class AccountsComponent implements OnInit {
     new MatTableDataSource<any>([])
   );
 
-  // Data stream for mtx-grid
+  // Data stream for mtx-grid - now using store data
   data$: Observable<any>;
+  
+  // Store data management
+  @Select(CustomSelectors.GetConfigProperty('co_accounts_data'))
+  accountsData$: Observable<any[]>;
 
 
 
@@ -161,16 +171,43 @@ export class AccountsComponent implements OnInit {
     this.getSavedColumnSettings();
 
 
-    // Data stream for mtx-grid with frontend sorting (like l1-feature-list)
-    this.data$ = merge(
-      this.search.valueChanges.pipe(startWith('')),
-      this.refreshTrigger$
-    ).pipe(
-      debounce(e => (e ? timer(300) : timer(0))),
-      switchMap(search => {
-        this.log.msg('4', 'Search value:', 'accounts', search);
-        this.currentSearch = search || '';
-        return this.loadAllAccounts();
+    // Data stream for mtx-grid - server-side pagination and sorting
+    this.data$ = combineLatest([
+      this.search.valueChanges.pipe(
+        startWith(''),
+        map(value => (typeof value === 'string' ? value : '')),
+        debounce(v => (v ? timer(300) : timer(0)))
+      ),
+      this.pageChange$,
+      this.sortChange$,
+      this.pageSize$
+    ]).pipe(
+      switchMap(([search, pageEvt, sortEvt, pageSize]) => {
+        // reset to first page on search
+        if (search !== this.currentSearch) {
+          this.pageIndex = 0;
+          this.pageChange$.next({ pageIndex: 0, pageSize });
+        }
+        this.currentSearch = search;
+        const page = this.pageIndex + 1; // API is 1-based
+        const size = pageEvt.pageSize;
+        const ordering = sortEvt.direction === 'desc' ? `-${sortEvt.active}` : sortEvt.active;
+        if (!this.isSorting) this.isLoading$.next(true);
+        return this.fetchAccountsPage({ page, size, search, ordering }).pipe(
+          map(resp => {
+            this.totalAccounts = resp.count || 0;
+            this.isLoading$.next(false);
+            return {
+              rows: resp.results || [],
+              total: resp.count || 0
+            };
+          }),
+          catchError(err => {
+            this.log.msg('0', 'Server pagination error:', 'accounts', err);
+            this.isLoading$.next(false);
+            return of({ rows: [], total: 0 });
+          })
+        );
       })
     );
   }
@@ -178,6 +215,51 @@ export class AccountsComponent implements OnInit {
   // Cached page size options to avoid recalculation
   private _cachedPageSizeOptions: number[] | null = null;
   private _lastTotalAccounts = 0;
+
+
+  // Filter accounts based on search term (frontend filtering)
+  private filterAccounts(accounts: any[], searchTerm: any): any[] {
+    this.log.msg('4', 'Filtering accounts with searchTerm:', 'accounts', searchTerm);
+    this.log.msg('4', 'SearchTerm type:', 'accounts', typeof searchTerm);
+    
+    // Convert searchTerm to string safely
+    let searchString = '';
+    try {
+      if (typeof searchTerm === 'string') {
+        searchString = searchTerm;
+      } else if (searchTerm && typeof searchTerm === 'object') {
+        if (Array.isArray(searchTerm) && searchTerm.length > 0) {
+          searchString = String(searchTerm[0]);
+        } else if (searchTerm.value) {
+          searchString = String(searchTerm.value);
+        } else {
+          searchString = JSON.stringify(searchTerm);
+        }
+      } else {
+        searchString = String(searchTerm || '');
+      }
+    } catch (error) {
+      this.log.msg('0', 'Error converting searchTerm:', 'accounts', error);
+      searchString = '';
+    }
+    
+    this.log.msg('4', 'Converted searchString:', 'accounts', searchString);
+    
+    if (!searchString || !searchString.trim()) {
+      this.log.msg('4', 'No search term, returning all accounts:', 'accounts', accounts.length);
+      return accounts;
+    }
+    
+    const term = searchString.toLowerCase().trim();
+    const filtered = accounts.filter(account => 
+      account.name?.toLowerCase().includes(term) ||
+      account.email?.toLowerCase().includes(term) ||
+      account.permission_name?.toLowerCase().includes(term)
+    );
+    
+    this.log.msg('4', 'Filtered results:', 'accounts', filtered.length);
+    return filtered;
+  }
 
   // Set optimal page size based on total accounts
   private setOptimalPageSize() {
@@ -358,6 +440,15 @@ export class AccountsComponent implements OnInit {
     );
   }
 
+  // Server-side: fetch one page
+  private fetchAccountsPage(params: { page: number; size: number; search: string; ordering: string }) {
+    const q: any = { page: params.page, page_size: params.size };
+    if (params.search && params.search.trim()) q.search = params.search.trim();
+    if (params.ordering && params.ordering.trim()) q.ordering = params.ordering.trim();
+    this.log.msg('4', 'Fetching page (server-side):', 'accounts', q);
+    return this._http.get<any>(`${this._api.api}accounts/`, { params: q });
+  }
+
   // Function to get all accounts by fetching all pages (DEPRECATED - keeping for compatibility)
   private getAllAccounts() {
     const startTime = performance.now();
@@ -480,6 +571,9 @@ export class AccountsComponent implements OnInit {
     // Update local page size and persist to localStorage
     this.pageSizeSubject.next(event.pageSize);
     localStorage.setItem('co_accounts_pagination', String(event.pageSize));
+    // Update server-side page state
+    this.pageIndex = event.pageIndex || 0;
+    this.pageChange$.next({ pageIndex: this.pageIndex, pageSize: event.pageSize });
     
     return this._store.dispatch(
       new Configuration.SetProperty(
@@ -548,8 +642,8 @@ export class AccountsComponent implements OnInit {
         // Make API call in background
         this._store.dispatch(new Accounts.ModifyAccount(updatedAccount));
         
-        // Refresh current page
-        this.refreshTrigger$.next();
+        // Update store data immediately (optimistic update)
+        this.updateStoreData();
       });
   }
 
@@ -573,6 +667,9 @@ export class AccountsComponent implements OnInit {
           // Show success message immediately
           this._snack.open('Account removed successfully!', 'OK');
           
+          // Update store data immediately (optimistic update)
+          this.removeFromStoreData(account.user_id);
+          
           // Make API call in background
           this._api.deleteAccount(account.user_id).subscribe(
             res => {
@@ -580,18 +677,53 @@ export class AccountsComponent implements OnInit {
                 this._store.dispatch(
                   new Accounts.RemoveAccount(account.user_id)
                 );
-                // Refresh current page
-                this.refreshTrigger$.next();
               } else {
                 this._snack.open('Failed to delete account', 'OK');
+                // Revert optimistic update on failure
+                this.refreshTrigger$.next();
               }
             },
             err => {
               this._snack.open('An error occurred', 'OK');
+              // Revert optimistic update on failure
+              this.refreshTrigger$.next();
             }
           );
         }
       });
+  }
+
+  // Update store data after edit
+  private updateStoreData() {
+    this.accountsData$.pipe(take(1)).subscribe(storeData => {
+      if (storeData && storeData.length > 0) {
+        this.log.msg('4', 'Updating store data after edit...', 'accounts');
+        this._store.dispatch(
+          new Configuration.SetProperty(
+            'co_accounts_data',
+            storeData,
+            true
+          )
+        );
+      }
+    });
+  }
+
+  // Remove account from store data
+  private removeFromStoreData(userId: number) {
+    this.accountsData$.pipe(take(1)).subscribe(storeData => {
+      if (storeData && storeData.length > 0) {
+        const updatedData = storeData.filter(account => account.user_id !== userId);
+        this.log.msg('4', 'Removing account from store:', 'accounts', userId);
+        this._store.dispatch(
+          new Configuration.SetProperty(
+            'co_accounts_data',
+            updatedData,
+            true
+          )
+        );
+      }
+    });
   }
 
   /**
@@ -601,6 +733,20 @@ export class AccountsComponent implements OnInit {
   saveSort(event) {
     this.log.msg('1', 'Saving chosen sort in localstorage...', 'accounts', event);
     localStorage.setItem('co_accounts_table_sort', JSON.stringify(event));
+    // Update server-side sort state, avoid spinner flash
+    this.isSorting = true;
+    this.sortChange$.next({ active: event.active, direction: event.direction || 'asc' });
+    // small timeout to re-enable spinner if needed for subsequent actions
+    setTimeout(() => (this.isSorting = false), 200);
+  }
+
+  // Handle sort change from mtx-grid (frontend sort)
+  onSortChange(event: Sort) {
+    this.log.msg('4', 'Sort change from mtx-grid:', 'accounts', event);
+    this.saveSort({
+      active: event.active,
+      direction: event.direction
+    });
   }
 
   /**
