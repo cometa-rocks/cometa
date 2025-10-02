@@ -1,3 +1,36 @@
+@import 'color';
+@import 'breakpoints';
+
+// Loading spinner styles
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  
+  .loading-text {
+    margin-top: 16px;
+    color: $grey;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Sort header styles
+.mat-sort-header-content {
+  font-weight: 800;
+}
+
+// Mtx-grid header styles
+:host ::ng-deep .mtx-grid .mat-mdc-header-cell {
+  font-weight: 800 !important;
+  max-width: 300px !important;
+  width: 300px !important;
+}
+
+
 h2 {
   // margin: 50px 0 20px;
   font-size: 12pt;
@@ -31,8 +64,7 @@ account:nth-child(2n + 2) {
 }
 
 ::ng-deep .mat-icon {
-  font-size: 21px !important;
-  margin-right: 5px;
+  font-size: 18px;
 }
 
 .mat-spinner {
@@ -44,7 +76,7 @@ account:nth-child(2n + 2) {
 .header-container {
   position: sticky;
   top: -45px;
-  z-index: 10;
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,4 +96,220 @@ account:nth-child(2n + 2) {
     text-align: center;
   }
 }
+
+// Table container for mtx-grid
+.table_container {
+  margin-top: 16px;
+}
+
+// Mtx-grid custom styling
+:host ::ng-deep mtx-grid {
+  .mtx-grid {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+  }
+  
+  .mtx-grid-toolbar {
+    padding: 0 0 8px;
+  }
+  
+  .mat-table-with-data {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+  
+  .mtx-grid-header {
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+    
+    .mtx-grid-header-cell {
+      color: $disabled-slide-toggle;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      
+      &.name {
+        color: $blue;
+      }
+    }
+  }
+  
+  .mtx-grid-body {
+    .mtx-grid-row {
+      &:hover {
+        background-color: #f8f9fa;
+      }
+      
+      &:nth-child(even) {
+        background-color: #fafafa;
+      }
+    }
+  }
+  
+  // Cell width and text wrapping
+  .mtx-grid-cell {
+    max-width: 200px;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    padding: 8px 12px;
+    vertical-align: top;
+    
+    // Specific column widths
+    &:nth-child(1) { // Actions
+      max-width: 80px;
+      text-align: center;
+    }
+    
+    &:nth-child(2) { // Name
+      max-width: 150px;
+    }
+    
+    &:nth-child(3) { // Email
+      max-width: 200px;
+    }
+    
+    &:nth-child(4) { // Permission
+      max-width: 120px;
+    }
+    
+    &:nth-child(5) { // Created On
+      max-width: 150px;
+    }
+    
+    &:nth-child(6) { // Last Login
+      max-width: 150px;
+    }
+  }
+  
+  // Header cell widths to match body cells
+  .mtx-grid-header-cell {
+    // font-weight: 800;
+    // max-width: 300px;
+    // width: 300px;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+    padding: 8px 12px;
+    
+    &:nth-child(1) { // Actions
+      max-width: 80px;
+      text-align: center;
+    }
+    
+    &:nth-child(2) { // Name
+      max-width: 150px;
+    }
+    
+    &:nth-child(3) { // Email
+      max-width: 200px;
+    }
+    
+    &:nth-child(4) { // Permission
+      max-width: 120px;
+    }
+    
+    &:nth-child(5) { // Created On
+      max-width: 150px;
+    }
+    
+    &:nth-child(6) { // Last Login
+      max-width: 150px;
+    }
+  }
+}
+
+// Cell styling for mtx-grid templates
+.actions-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.edit-button, .delete-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 20px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+  }
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.edit-button {
+  color: $blue;
+  
+  &:hover {
+    background-color: rgba(25, 118, 210, 0.08);
+  }
+}
+
+.delete-button {
+  color: $red;
+  
+  &:hover {
+    background-color: rgba(211, 47, 47, 0.08);
+  }
+}
+
+.name-text {
+  color: $blue;
+  font-weight: 500;
+  cursor: pointer;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.email-text {
+  color: $grey;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.permission-text {
+  color: $disabled-slide-toggle;
+  font-weight: 500;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.date-text {
+  color: $grey;
+  font-size: 13px;
+  font-family: 'Roboto Mono', monospace;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
 

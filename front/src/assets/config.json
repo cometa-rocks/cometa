@@ -21,6 +21,7 @@
   "payment_enabled": false,
   "co_active_list": "recent",
   "co_features_pagination": 10,
+    "co_accounts_pagination": 100,
   "co_first_time_cometa": true,
   "openedSidenav": false,
   "openedSearch": false,
