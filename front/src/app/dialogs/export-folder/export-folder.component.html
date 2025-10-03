@@ -74,7 +74,7 @@
 
 <div mat-dialog-actions>
   <button mat-stroked-button color="warn" (click)="close()">Cancel</button>
-  <button mat-flat-button color="primary" [disabled]="loading || !!error" (click)="exportSelection()">
+  <button mat-flat-button color="primary" [disabled]="loading || !!error || selectedCount === 0" (click)="exportSelection()">
     Export
   </button>
 </div>

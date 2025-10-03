@@ -25,6 +25,7 @@ import { UserState } from '@store/user.state';
 import { CustomSelectors } from '@others/custom-selectors';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { combineLatest } from 'rxjs';
+import { Features } from '@store/actions/features.actions';
 
 type ImportMode = 'file' | 'paste';
 type RawExport = any;
@@ -283,6 +284,7 @@ export class ImportFeaturesDialogComponent {
 
     this.busy = true;
     const createdIds: number[] = [];
+    const createdFeatures: any[] = [];
     try {
       for (const it of selected) {
         const payload = this.toCreatePayload(
@@ -295,13 +297,20 @@ export class ImportFeaturesDialogComponent {
           throw new Error('Unexpected response while creating feature');
         }
         createdIds.push(created.feature_id);
+        createdFeatures.push(created);
         if (this.selectedFolderId) {
           await this.api
             .moveFeatureFolder(0, this.selectedFolderId, created.feature_id, targetDepartmentId)
             .toPromise();
         }
       }
+      if (createdFeatures.length > 0) {
+        await this.store.dispatch(new Features.SetFeatureInfo(createdFeatures)).toPromise();
+      }
+      await this.store.dispatch(new Features.GetFolders()).toPromise();
       this.snack.open(`Imported ${createdIds.length} feature(s)`, 'OK');
+      this.dialogRef.close({ imported: createdIds.length });
+      return;
     } catch (err: any) {
       for (const id of createdIds) {
         try {
@@ -425,7 +434,16 @@ export class ImportFeaturesDialogComponent {
   // Shapes the payload expected by the backend create feature endpoint
   private toCreatePayload(obj: any, departmentId: number, departmentName: string) {
     const needsBrowsers = this.requiresBrowsers(obj);
-    return {
+    const toInt = (value: any, fallback: number = 0) => {
+      const parsed = parseInt(value as any, 10);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    const emailAddresses = Array.isArray(obj.email_address) ? obj.email_address : [];
+    const emailCc = Array.isArray(obj.email_cc_address) ? obj.email_cc_address : [];
+    const emailBcc = Array.isArray(obj.email_bcc_address) ? obj.email_bcc_address : [];
+
+    const payload: any = {
       feature_name: obj.feature_name,
       app_id: obj.app_id,
       app_name: obj.app_name,
@@ -448,7 +466,39 @@ export class ImportFeaturesDialogComponent {
       network_logging: !!obj.network_logging,
       generate_dataset: !!obj.generate_dataset,
       continue_on_failure: !!obj.continue_on_failure,
+      mobiles: Array.isArray(obj.mobiles) ? obj.mobiles : [],
+      need_help: !!obj.need_help,
+      send_mail: !!obj.send_mail,
+      send_mail_on_error: !!obj.send_mail_on_error,
+      check_maximum_notification_on_error: !!obj.check_maximum_notification_on_error,
+      maximum_notification_on_error: toInt(obj.maximum_notification_on_error, 0),
+      attach_pdf_report_to_email:
+        obj.attach_pdf_report_to_email === undefined ? true : !!obj.attach_pdf_report_to_email,
+      do_not_use_default_template: !!obj.do_not_use_default_template,
+      email_address: emailAddresses,
+      email_cc_address: emailCc,
+      email_bcc_address: emailBcc,
+      email_subject: obj.email_subject || '',
+      email_body: obj.email_body || '',
+      send_telegram_notification: !!obj.send_telegram_notification,
     };
+
+    if (obj.telegram_options) {
+      const {
+        id: _ignoreId,
+        feature: _ignoreFeature,
+        created_on: _ignoreCreated,
+        updated_on: _ignoreUpdated,
+        number_notification_sent_telegram: _ignoreSent,
+        ...rest
+      } = obj.telegram_options;
+
+      if (Object.keys(rest).length > 0) {
+        payload.telegram_options = rest;
+      }
+    }
+
+    return payload;
   }
 
   // Stores mode-specific items while keeping the master checkbox state fresh

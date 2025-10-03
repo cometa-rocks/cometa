@@ -14,8 +14,9 @@ Author: dph000
     *ngLet="lastFolder$ | async as lastFolder"
     [class.selected]="lastFolder === folder.folder_id"
     [class.has-department-actions]="department === true"
-    [class.menu-open]="departmentMenuOpen">
-    <div class="row-surface" matRipple (click)="onRowClick($event)">
+    [class.menu-open]="departmentMenuOpen"
+    matRipple>
+    <div class="row-surface" (click)="onRowClick($event)">
       <mat-icon class="arrow" [class.hidden]="getFolders().length === 0">
         keyboard_arrow_right</mat-icon
       >
@@ -87,6 +88,7 @@ Author: dph000
       (menuOpened)="onDepartmentMenuOpened()"
       (menuClosed)="onDepartmentMenuClosed()"
       (click)="$event.stopPropagation()"
+      (mousedown)="$event.stopPropagation()"
     >
       <mat-icon>more_vert</mat-icon>
     </button>

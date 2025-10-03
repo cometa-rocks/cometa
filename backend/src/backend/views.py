@@ -3098,6 +3098,16 @@ class FeatureViewSet(viewsets.ModelViewSet):
         """
         Create feature with POST data
         """
+        def _parse_int(value, default=0):
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return default
+
+        email_address = request.data.get('email_address') or []
+        email_cc_address = request.data.get('email_cc_address') or []
+        email_bcc_address = request.data.get('email_bcc_address') or []
+
         newFeature = Feature(
             feature_name=request.data['feature_name'],
             app_id=request.data['app_id'],
@@ -3114,11 +3124,26 @@ class FeatureViewSet(viewsets.ModelViewSet):
             depends_on_others=False if 'depends_on_others' not in request.data else (
                 False if request.data['depends_on_others'] == None else request.data['depends_on_others']),
             browsers=request.data['browsers'],
+            mobiles=request.data.get('mobiles', []),
             cloud=request.data['cloud'],
             video=request.data['video'],
             network_logging=request.data.get('network_logging', False),
             generate_dataset=request.data.get('generate_dataset', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
+            need_help=request.data.get('need_help', False),
+            send_mail=request.data.get('send_mail', False),
+            send_mail_on_error=request.data.get('send_mail_on_error', False),
+            check_maximum_notification_on_error=request.data.get('check_maximum_notification_on_error', False),
+            maximum_notification_on_error=_parse_int(request.data.get('maximum_notification_on_error'), 0),
+            number_notification_sent=_parse_int(request.data.get('number_notification_sent'), 0),
+            attach_pdf_report_to_email=request.data.get('attach_pdf_report_to_email', True),
+            do_not_use_default_template=request.data.get('do_not_use_default_template', False),
+            email_address=email_address,
+            email_cc_address=email_cc_address,
+            email_bcc_address=email_bcc_address,
+            email_subject=request.data.get('email_subject', ''),
+            email_body=request.data.get('email_body', ''),
+            send_telegram_notification=request.data.get('send_telegram_notification', False),
             last_edited_id=request.session['user']['user_id'],
             last_edited_date=timezone.now(),
             created_by_id=request.session['user']['user_id']
@@ -3128,6 +3153,51 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Save feature object into DB while also saving new steps
         """
         newFeature.save(steps=request.data['steps']['steps_content'])
+
+        # Handle telegram options if provided
+        if 'telegram_options' in request.data:
+            telegram_data = request.data.get('telegram_options') or {}
+
+            telegram_options, created = FeatureTelegramOptions.objects.get_or_create(
+                feature=newFeature,
+                defaults={
+                    'include_department': False,
+                    'include_application': False,
+                    'include_environment': False,
+                    'include_feature_name': False,
+                    'include_datetime': False,
+                    'include_execution_time': False,
+                    'include_browser_timezone': False,
+                    'include_browser': False,
+                    'include_overall_status': False,
+                    'include_step_results': False,
+                    'include_pixel_diff': False,
+                    'include_feature_url': False,
+                    'include_failed_step_details': False,
+                    'attach_pdf_report': False,
+                    'attach_screenshots': False,
+                    'custom_message': '',
+                    'send_on_error': False,
+                    'do_not_use_default_template': False,
+                    'check_maximum_notification_on_error_telegram': False,
+                    'maximum_notification_on_error_telegram': 3,
+                    'number_notification_sent_telegram': 0
+                }
+            )
+
+            for key, value in telegram_data.items():
+                if key in ['id', 'feature', 'created_on', 'updated_on', 'number_notification_sent_telegram']:
+                    continue
+                if hasattr(telegram_options, key):
+                    if key in ['override_message_thread_id', 'maximum_notification_on_error_telegram', 'number_notification_sent_telegram']:
+                        if value == '' or value is None:
+                            value = None
+                        elif isinstance(value, str) and value.strip() == '':
+                            value = None
+                    setattr(telegram_options, key, value)
+
+            telegram_options.save()
+            logger.debug(f"Updated telegram options for feature {newFeature.feature_id}: created={created}")
 
         """
         Process schedule if requested
