@@ -18,6 +18,7 @@
         </mat-checkbox>
       </div>
       <div class="col name">
+        <span class="feature-id">#{{ item.original?.metadata?.feature_id || item.original?.feature_id || 'n/a' }}</span>
         <input
           matInput
           placeholder="Feature name"

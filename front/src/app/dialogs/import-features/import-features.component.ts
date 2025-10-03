@@ -103,8 +103,8 @@ export class ImportFeaturesDialogComponent {
   mode: ImportMode = 'file';
   lastFileName: string | null = null;
 
-  departments: Department[] = [];
-  private departmentTrees: Folder[] = [];
+  departments: DepartmentSummary[] = [];
+  private departmentTrees: FolderTreeNode[] = [];
   selectedDepartmentId: number | null = null;
   folderOptions: FolderOption[] = [];
   selectedFolderId = 0;
@@ -145,6 +145,7 @@ export class ImportFeaturesDialogComponent {
 
   onDepartmentChange(departmentId: number) {
     this.selectedDepartmentId = departmentId;
+    this.selectedFolderId = 0;
     this.updateFolderOptions();
   }
 
@@ -345,9 +346,8 @@ export class ImportFeaturesDialogComponent {
 
   // Extracts a display name whether the export is flat or nested
   private getName(obj: any): string {
-    if (obj && obj.feature_name) return obj.feature_name;
-    if (obj && obj.metadata && obj.metadata.feature_name) return obj.metadata.feature_name;
-    return 'Unnamed';
+    const featureName = obj.feature_name ?? obj.metadata?.feature_name;
+    return featureName ? featureName : 'Unnamed';
   }
 
   // Converts folder exports into a simple array of feature metadata + steps
@@ -475,7 +475,7 @@ export class ImportFeaturesDialogComponent {
     const tree = this.departmentTrees.find(
       item => item.department === this.selectedDepartmentId
     );
-    const nestedFolders = (tree?.folders as Folder[]) || [];
+    const nestedFolders = tree?.folders || [];
     const flattened = this.flattenFolderTree(nestedFolders);
     this.folderOptions = flattened;
 
@@ -485,7 +485,7 @@ export class ImportFeaturesDialogComponent {
     this.cdr.markForCheck();
   }
 
-  private flattenFolderTree(folders: Folder[], parentPath: string = ''): FolderOption[] {
+  private flattenFolderTree(folders: FolderTreeNode[], parentPath: string = ''): FolderOption[] {
     if (!folders || folders.length === 0) {
       return [];
     }
@@ -496,7 +496,7 @@ export class ImportFeaturesDialogComponent {
       const label = parentPath ? `${parentPath} / ${folder.name}` : folder.name;
       options.push({ id: folder.folder_id, label });
 
-      const children = (folder.folders as Folder[]) || [];
+      const children = folder.folders || [];
       if (children.length > 0) {
         options.push(...this.flattenFolderTree(children, label));
       }
@@ -504,6 +504,19 @@ export class ImportFeaturesDialogComponent {
 
     return options;
   }
+
+}
+
+interface DepartmentSummary {
+  department_id: number;
+  department_name: string;
+}
+
+interface FolderTreeNode {
+  folder_id: number;
+  name: string;
+  department?: number;
+  folders?: FolderTreeNode[];
 }
 
 interface FolderOption {

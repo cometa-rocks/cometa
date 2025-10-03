@@ -4075,6 +4075,26 @@ def _build_folder_export_tree(folder):
             continue
 
         steps_payload, warning = _load_feature_steps_safe(feature_obj)
+
+        if steps_payload is None:
+            step_records = list(
+                Step.objects.filter(feature_id=feature_obj.feature_id)
+                .order_by('id')
+                .values(
+                    'step_keyword',
+                    'step_content',
+                    'step_action',
+                    'enabled',
+                    'step_type',
+                    'screenshot',
+                    'compare',
+                    'continue_on_failure',
+                    'timeout',
+                    'belongs_to'
+                )
+            )
+            steps_payload = step_records
+
         feature_entry = {
             "metadata": metadata,
             "steps": steps_payload,

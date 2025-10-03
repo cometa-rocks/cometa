@@ -33,6 +33,13 @@
         width: 100%;
       }
 
+      .feature-id {
+        display: inline-block;
+        margin-right: 8px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.6);
+      }
+
       .browser-chip {
         display: inline-flex;
         align-items: center;
