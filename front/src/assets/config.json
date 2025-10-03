@@ -246,10 +246,11 @@
       "date": "2025-10-03",
       "features": [
         {
-          "title": "Fixed issue when scrolling on step editor - #6922",
-          "description": "Fixed and added logic to close dialogs when scrolling on step editor."
+          "title": "Filter mobile list to display only Android emulators - #6943",
+          "description": "Filter mobile list to display only Android emulators."
         }
-      ]
+      ],
+      "bugfixes":["Fixed and added logic to close dialogs when scrolling on step editor."]
     },
     {
       "version": "3.0.106",

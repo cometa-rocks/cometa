@@ -834,7 +834,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * Get all mobiles (user + shared) in one combined array for simplified rendering
    */
   getAllMobiles(): any[] {
-    return [...this.userMobiles, ...this.sharedMobiles];
+    const allMobiles = [...this.userMobiles, ...this.sharedMobiles];
+    
+    // Filter to show only Android emulators, exclude browsers
+    return allMobiles.filter(mobile => {
+      const imageName = mobile.image_name || mobile.mobile_image_name || '';
+      const hostname = mobile.hostname || '';
+      
+      // Include only Android emulators (contain "Android" in name)
+      // Exclude browsers like Chrome, Firefox, etc.
+      return imageName.toLowerCase().includes('android') && 
+             !imageName.toLowerCase().includes('chrome') &&
+             !imageName.toLowerCase().includes('firefox') &&
+             !imageName.toLowerCase().includes('browser') &&
+             !imageName.toLowerCase().includes('safari');
+    });
   }
 
   /**
