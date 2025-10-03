@@ -21,6 +21,7 @@
   "payment_enabled": false,
   "co_active_list": "recent",
   "co_features_pagination": 10,
+    "co_accounts_pagination": 100,
   "co_first_time_cometa": true,
   "openedSidenav": false,
   "openedSearch": false,
@@ -245,6 +246,10 @@
       "version": "3.0.107",
       "date": "2025-10-03",
       "features": [
+        {
+          "title": "Accounts table improvements - #6937",
+          "description": "Modified Table, add column headers(Sortable), add reactivity to the table, add reactive UI to the table."
+        },
         {
           "title": "Filter mobile list to display only Android emulators - #6943",
           "description": "Filter mobile list to display only Android emulators."
