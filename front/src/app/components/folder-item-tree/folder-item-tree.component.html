@@ -8,13 +8,17 @@ Author: dph000
 <ng-container *ngLet="expanded$ | async as expanded">
   <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and adapt arrow icon's direction depending on value-->
   <div
-    (click)="toggleExpand()"
+    (mousedown)="onRowMouseDown($event)"
+    (click)="onRowClick($event)"
     [class.opened]="folderState[folder.name]?.open"
     [style.paddingLeft.px]="level * 25"
     matRipple
+    [matRippleDisabled]="disableRowRipple"
     class="row"
     *ngLet="lastFolder$ | async as lastFolder"
-    [class.selected]="lastFolder === folder.folder_id">
+    [class.selected]="lastFolder === folder.folder_id"
+    [class.has-department-actions]="department === true"
+    [class.menu-open]="departmentMenuOpen">
     <!-- Arrow to show / hide the folder -->
     <mat-icon class="arrow" [class.hidden]="getFolders().length === 0">
       keyboard_arrow_right</mat-icon
@@ -75,6 +79,36 @@ Author: dph000
       </ng-template>
       <div class="folderName">{{ folder.name }}</div>
     </div>
+    <button
+      *ngIf="department === true"
+      type="button"
+      matTooltip="Department options"
+      matTooltipPosition="above"
+      stopPropagation
+      mat-icon-button
+      class="department-actions options"
+      [class.menu-open]="departmentMenuOpen"
+      [matMenuTriggerFor]="departmentMenu"
+      (menuOpened)="onDepartmentMenuOpened()"
+      (menuClosed)="onDepartmentMenuClosed()"
+      (click)="$event.stopPropagation()"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu
+      [panelClass]="['feature-options', 'folderOptionsMenu']"
+      #departmentMenu="matMenu"
+    >
+      <button type="button" mat-menu-item (click)="$event.stopPropagation()">
+        <mat-icon>file_download</mat-icon>
+        <span>Export features</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button type="button" mat-menu-item (click)="$event.stopPropagation()">
+        <mat-icon>file_upload</mat-icon>
+        <span>Import features</span>
+      </button>
+    </mat-menu>
   </div>
   <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and expand folder or not depending on the value-->
   <div *ngIf="folderState[folder.name]?.open" class="container">

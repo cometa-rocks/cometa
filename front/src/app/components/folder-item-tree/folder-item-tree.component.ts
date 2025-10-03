@@ -23,6 +23,8 @@ import { LogService } from '@services/log.service';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
@@ -35,6 +37,8 @@ import { LetDirective } from '../../directives/ng-let.directive';
     LetDirective,
     MatRippleModule,
     MatIconModule,
+    MatLegacyMenuModule,
+    MatLegacyButtonModule,
     NgIf,
     NgFor,
     forwardRef(() => FolderItemTreeComponent),
@@ -46,6 +50,8 @@ export class FolderItemTreeComponent implements OnInit {
   folderState = {};
   // Local state for sorted folders
   sortedFolders: Folder[] = [];
+  disableRowRipple = false;
+  departmentMenuOpen = false;
 
   constructor(
     private _store: Store,
@@ -173,6 +179,33 @@ export class FolderItemTreeComponent implements OnInit {
   toggleRow() {
     let status = !this.expanded$.getValue();
     this.expanded$.next(status);
+  }
+
+  onRowClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target && target.closest('.department-actions')) {
+      return;
+    }
+    this.toggleExpand();
+  }
+
+  onRowMouseDown(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target && target.closest('.department-actions')) {
+      event.stopPropagation();
+      this.disableRowRipple = true;
+      setTimeout(() => (this.disableRowRipple = false));
+      return;
+    }
+    this.disableRowRipple = false;
+  }
+
+  onDepartmentMenuOpened() {
+    this.departmentMenuOpen = true;
+  }
+
+  onDepartmentMenuClosed() {
+    this.departmentMenuOpen = false;
   }
 
   // toggles clicked department/folder

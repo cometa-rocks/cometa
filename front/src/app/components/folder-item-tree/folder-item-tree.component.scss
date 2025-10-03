@@ -17,6 +17,7 @@
   margin: 0 0 0 7px;
   box-sizing: border-box;
   cursor: pointer;
+  position: relative;
   .item {
     width: 100%;
     display: grid;
@@ -40,6 +41,31 @@
     flex: 0 20px;
     transition: transform 0.15s ease-in-out;
   }
+
+  &.has-department-actions {
+    padding-right: 40px;
+  }
+
+  .department-actions {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+  }
+
+  &:hover .department-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &.menu-open .department-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   &:hover {
     background: $medium-black;
   }
@@ -391,4 +417,3 @@
 .row:hover .both-sec-folder-line-two {
   top: 11.5px;
 }
-
