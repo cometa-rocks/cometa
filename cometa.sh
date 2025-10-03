@@ -29,7 +29,7 @@ HELPERS="helpers"
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
 info "------------------------------------------------------------------------"
-info "This is $0 version ${VERSION} running for your convinience"
+info "This is $0 version ${VERSION} running for your convenience"
 info "------------------------------------------------------------------------"
 
 # 
