@@ -174,6 +174,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   currentFilePathStepIndex: number | null = null;
 
   @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
+  @ViewChild('basicMenu') basicContextMenu: any; // Context menu reference
   
   // Track which step is currently focused for the shared autocomplete
   currentFocusedStepIndex: number | null = null;
@@ -1024,6 +1025,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.dropdownActiveIndex = 0;
     this.initialDropdownPosition = null;
     this.mobileDropdownLeft = 0;
+    this._cdr.detectChanges();
   }
 
   /**
@@ -2959,6 +2961,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Also listen on the component root element
     this.subs.sink = fromEvent(this._elementRef.nativeElement, 'scroll', { capture: true } as any)
       .subscribe(() => this._ngZone.run(() => this.closeAllOnScroll()));
+    
+    // Track mouse movement to update lastPointer
+    this.subs.sink = fromEvent(document, 'mousemove', { capture: true } as any)
+      .subscribe((event: any) => {
+        this.lastPointer = {
+          x: event.clientX,
+          y: event.clientY,
+          target: event.target
+        };
+      });
   }
 
 
@@ -3916,12 +3928,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // File-path autocomplete panel
     const filePanelEl = this.filePathAutocompletePanel?.nativeElement as (HTMLElement | undefined);
-    
+
+    // Variable dialog - look for the visible one, not the hidden one
+    const variablePanelEl = document.querySelector('.custom-variable-autocomplete-panel.visible') as HTMLElement | null;
+
+    // Context menu panel
+    const contextMenuEl = document.querySelector('.ngx-contextmenu.step-contect-menu') as HTMLElement | null;
+
+    // Mobile dropdown panel
+    const mobilePanelEl = document.querySelector('.custom-mobile-autocomplete-panel.visible') as HTMLElement | null;
+
     // LOGIC to check if the pointer is inside the dropdown panels
     const insideAuto = !!(pointerTarget && autoPanelEl && autoPanelEl.contains(pointerTarget));
     const insideFile = !!(pointerTarget && filePanelEl && filePanelEl.contains(pointerTarget));
+    const insideContextMenu = !!(pointerTarget && contextMenuEl && contextMenuEl.contains(pointerTarget));
+    const insideVariable = !!(pointerTarget && variablePanelEl && variablePanelEl.contains(pointerTarget));
+    // Check if mobile dropdown is open and pointer is inside it
+    const insideMobile = !!(pointerTarget && mobilePanelEl && mobilePanelEl.contains(pointerTarget));
     
-    if (insideAuto || insideFile) {
+    if (insideAuto || insideFile || insideContextMenu || insideVariable || insideMobile) {
       return; 
     }
 
@@ -3933,6 +3958,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (this.showFilePathAutocomplete) {
       this.showFilePathAutocomplete = false;
       this._cdr.detectChanges();
+    }
+
+    // Close context menu by hiding it
+    if (contextMenuEl) {
+      (contextMenuEl as HTMLElement).style.display = 'none';
+    }
+
+    // Close variable dialog by resetting Angular state
+    if (this.displayedVariables.length > 0) {
+      this.closeVariableDropdown();
+    }
+
+    // Close mobile dropdown by resetting Angular state
+    if (this.showMobileDropdown) {
+      this.closeMobileDropdown();
     }
 
   }
