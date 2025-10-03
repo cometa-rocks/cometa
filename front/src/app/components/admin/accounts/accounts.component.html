@@ -30,7 +30,7 @@
       [sortOnFront]="true"
       [sortDisableClear]="true"
       [sortDisabled]="false"
-      [pageIndex]="pageIndex"
+      [pageIndex]="currentPageIndex"
       [pageSize]="currentPageSize"
       [sortActive]="getSavedSort('active')"
       [sortDirection]="getSavedSort('direction')"
@@ -64,7 +64,7 @@
 
 
 <!-- Cell templates for mtx-grid -->
-<ng-template #actionsTpl let-row let-index="index" let-col="colDef">
+<ng-template #actionsTpl let-row let-index="index" let-col="colDef" class="actions">
   <div class="actions-cell">
     <button 
       *ngIf="canEditAccount$ | async"
@@ -87,7 +87,7 @@
   </div>
 </ng-template>
 
-<ng-template #nameTpl let-row let-index="index" let-col="colDef">
+<ng-template #nameTpl let-row let-index="index" let-col="colDef" class="name">
   <span class="name-text">{{ row.name }}</span>
 </ng-template>
 

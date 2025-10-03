@@ -18,21 +18,59 @@
   }
 }
 
-// Sort header styles
-.mat-sort-header-content {
+// Mtx-grid header styles
+:host ::ng-deep .mtx-grid .mat-mdc-header-cell {
   font-weight: 800;
+  max-width: 300px;
+  width: 300px;
+  font-size: 16px;
+  background-color: #e5b355;
 }
 
 // Mtx-grid header styles
-:host ::ng-deep .mtx-grid .mat-mdc-header-cell {
-  font-weight: 800 !important;
-  max-width: 300px !important;
-  width: 300px !important;
+:host ::ng-deep .mtx-grid .mat-mdc-cell {
+  font-size: 16px;
+  background-color: #e5b355;
+}
+
+// Mtx-grid header styles
+:host ::ng-deep .mtx-grid .mat-mdc-cell:nth-child(2n+1), :host ::ng-deep .mtx-grid .mat-mdc-cell:nth-child(2n+2) {
+  font-size: 16px;
+  background-color: transparent;
+}
+
+
+:host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+2) {
+  background-color: #0000000d;
+  border-radius: 5px;
+}
+
+// Mtx-grid header styles
+:host ::ng-deep .mtx-grid .mat-mdc-header-cell:first-child {
+  max-width: 50px;
+  width: 50px;
+}
+
+:host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+1) {
+  background-color: #e5b355;
+  border-radius: 5px;
+}
+
+:host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+2) {
+  background-color: darken(#e5b355, 5%);
+  border-radius: 5px;
+}
+
+:host ::ng-deep .mtx-grid .mat-mdc-header-cell:first-child .mat-header-cell-inner {
+  justify-content: center;
+}
+
+:host ::ng-deep .mtx-grid .mat-mdc-paginator-container {
+  background-color: #e5b355;
 }
 
 
 h2 {
-  // margin: 50px 0 20px;
   font-size: 12pt;
   text-transform: uppercase;
 }
@@ -52,15 +90,9 @@ h2 {
   overflow: hidden;
 }
 
-account:nth-child(2n + 2) {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 5px;
-}
-
 ::ng-deep button.add-item {
-  font-size: 16px !important;
-  font-weight: bold !important;
-  // margin-top: 20px !important;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 ::ng-deep .mat-icon {
@@ -121,9 +153,6 @@ account:nth-child(2n + 2) {
   }
   
   .mtx-grid-header {
-    background-color: #f5f5f5;
-    border-bottom: 2px solid #e0e0e0;
-    
     .mtx-grid-header-cell {
       color: $disabled-slide-toggle;
       font-size: 14px;
@@ -136,21 +165,9 @@ account:nth-child(2n + 2) {
     }
   }
   
-  .mtx-grid-body {
-    .mtx-grid-row {
-      &:hover {
-        background-color: #f8f9fa;
-      }
-      
-      &:nth-child(even) {
-        background-color: #fafafa;
-      }
-    }
-  }
-  
   // Cell width and text wrapping
   .mtx-grid-cell {
-    max-width: 200px;
+    max-width: 100px;
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
@@ -158,69 +175,15 @@ account:nth-child(2n + 2) {
     hyphens: auto;
     padding: 8px 12px;
     vertical-align: top;
-    
-    // Specific column widths
-    &:nth-child(1) { // Actions
-      max-width: 80px;
-      text-align: center;
-    }
-    
-    &:nth-child(2) { // Name
-      max-width: 150px;
-    }
-    
-    &:nth-child(3) { // Email
-      max-width: 200px;
-    }
-    
-    &:nth-child(4) { // Permission
-      max-width: 120px;
-    }
-    
-    &:nth-child(5) { // Created On
-      max-width: 150px;
-    }
-    
-    &:nth-child(6) { // Last Login
-      max-width: 150px;
-    }
   }
   
   // Header cell widths to match body cells
   .mtx-grid-header-cell {
-    // font-weight: 800;
-    // max-width: 300px;
-    // width: 300px;
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
     overflow-wrap: break-word;
     padding: 8px 12px;
-    
-    &:nth-child(1) { // Actions
-      max-width: 80px;
-      text-align: center;
-    }
-    
-    &:nth-child(2) { // Name
-      max-width: 150px;
-    }
-    
-    &:nth-child(3) { // Email
-      max-width: 200px;
-    }
-    
-    &:nth-child(4) { // Permission
-      max-width: 120px;
-    }
-    
-    &:nth-child(5) { // Created On
-      max-width: 150px;
-    }
-    
-    &:nth-child(6) { // Last Login
-      max-width: 150px;
-    }
   }
 }
 
@@ -274,15 +237,10 @@ account:nth-child(2n + 2) {
 .name-text {
   color: $blue;
   font-weight: 500;
-  cursor: pointer;
   word-wrap: break-word;
   word-break: break-word;
   white-space: normal;
   overflow-wrap: break-word;
-  
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .email-text {
@@ -304,12 +262,10 @@ account:nth-child(2n + 2) {
 
 .date-text {
   color: $grey;
-  font-size: 13px;
   font-family: 'Roboto Mono', monospace;
   word-wrap: break-word;
   word-break: break-word;
   white-space: normal;
   overflow-wrap: break-word;
 }
-
 

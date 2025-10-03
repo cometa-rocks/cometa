@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Observable, timer, Subject, BehaviorSubject, of, forkJoin, merge, combineLatest } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, of, combineLatest } from 'rxjs';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounce, map, startWith, catchError, switchMap, take, tap } from 'rxjs/operators';
+import { map, startWith, catchError, switchMap, take, tap, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { Sort } from '@angular/material/sort';
 import { AsyncPipe, NgIf, NgClass, NgSwitch, NgSwitchCase, NgSwitchDefault, NgFor } from '@angular/common';
 import { AccountComponent } from './account/account.component';
@@ -24,7 +24,7 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { ApiService } from '@services/api.service';
 import { LogService } from '@services/log.service';
-import { Store, Select } from '@ngxs/store';
+import { Store, Select, Actions, ofActionDispatched } from '@ngxs/store';
 import { HttpClient } from '@angular/common/http';
 import { Configuration } from '@store/actions/config.actions';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -32,7 +32,6 @@ import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/materia
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ModifyUserComponent } from '@dialogs/modify-user/modify-user.component';
-import { ModifyPasswordComponent } from '@dialogs/modify-password/modify-password.component';
 import { Accounts } from '@store/actions/accounts.actions';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { UserState } from '@store/user.state';
@@ -83,7 +82,8 @@ export class AccountsComponent implements OnInit {
     private _store: Store,
     private _dialog: MatDialog,
     private _snack: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private actions$: Actions
   ){}
 
   // Permission selectors
@@ -97,22 +97,30 @@ export class AccountsComponent implements OnInit {
   search = new UntypedFormControl('');
   isLoading$ = new BehaviorSubject<boolean>(true);
   private refreshTrigger$ = new Subject<void>();
-  private currentAccounts: any[] = [];
   
   // Frontend sorting (like l1-feature-list)
   currentSearch = '';
+  // Locally removed account ids to hide rows immediately without reload
+  private locallyRemovedAccountIds: Set<string> = new Set<string>();
+  private removedAccountIdsSubject = new BehaviorSubject<Set<string>>(new Set<string>());
+  private removedAccountIds$ = this.removedAccountIdsSubject.asObservable();
+  
+  // Locally modified accounts to update rows immediately without reload
+  private locallyModifiedAccounts: Map<string, any> = new Map<string, any>();
+  private modifiedAccountsSubject = new BehaviorSubject<Map<string, any>>(new Map<string, any>());
+  private modifiedAccounts$ = this.modifiedAccountsSubject.asObservable();
   totalAccounts = 0;
   // Server-side pagination/sort state
-  pageIndex = 0; // zero-based for UI
-  currentPageSize = parseInt(localStorage.getItem('co_accounts_pagination') || '25');
-  currentSort = { active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' };
-  private pageChange$ = new BehaviorSubject<{ pageIndex: number; pageSize: number }>({ pageIndex: 0, pageSize: parseInt(localStorage.getItem('co_accounts_pagination') || '25') });
-  private sortChange$ = new BehaviorSubject<{ active: string; direction: 'asc' | 'desc' | '' }>({ active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' });
-  private isSorting = false;
+  currentPageIndex = 0; // zero-based for UI
+  currentPageSize = parseInt(localStorage.getItem('co_accounts_pagination') || '200');
+  currentSortSettings = { active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' };
+  private pageChangeSubject$ = new BehaviorSubject<{ pageIndex: number; pageSize: number }>({ pageIndex: 0, pageSize: parseInt(localStorage.getItem('co_accounts_pagination') || '200') });
+  private sortChangeSubject$ = new BehaviorSubject<{ active: string; direction: 'asc' | 'desc' | '' }>({ active: this.getSavedSort('active') || 'name', direction: this.getSavedSort('direction') || 'asc' });
+  private isCurrentlySorting = false;
   
   // Local page size management
   private pageSizeSubject = new BehaviorSubject<number>(
-    parseInt(localStorage.getItem('co_accounts_pagination') || '25')
+    parseInt(localStorage.getItem('co_accounts_pagination') || '200')
   );
   public pageSize$ = this.pageSizeSubject.asObservable();
   
@@ -123,7 +131,7 @@ export class AccountsComponent implements OnInit {
   
   // Table configuration
   columns = [
-    { header: 'Actions', field: 'actions' },
+    { header: 'Actions', field: 'actions', width: '50px' },
     { header: 'Name', field: 'name', sortable: true, class: 'name' },
     { header: 'Email', field: 'email', sortable: true },
     { header: 'Permission', field: 'permission_name', sortable: true },
@@ -160,7 +168,7 @@ export class AccountsComponent implements OnInit {
   ngOnInit() {
     this.log.msg('1', '🚀 INITIALIZING ACCOUNTS COMPONENT', 'accounts', {
       initialPageSize: this.currentPageSize,
-      initialPageIndex: this.pageIndex,
+      initialPageIndex: this.currentPageIndex,
       localStorageValue: localStorage.getItem('co_accounts_pagination')
     });
     
@@ -180,62 +188,83 @@ export class AccountsComponent implements OnInit {
 
 
     // Data stream for mtx-grid - server-side pagination and sorting
-    this.data$ = combineLatest([
+    const serverSideData$ = combineLatest([
       this.search.valueChanges.pipe(
         startWith(''),
         map(value => (typeof value === 'string' ? value : '')),
-        debounce(searchValue => (searchValue ? timer(300) : timer(0)))
+        debounceTime(200),
+        distinctUntilChanged()
       ),
-      this.pageChange$,
-      this.sortChange$,
-      this.pageSize$,
+      this.pageChangeSubject$.pipe(
+        distinctUntilChanged((previousPage, currentPage) => previousPage.pageIndex === currentPage.pageIndex && previousPage.pageSize === currentPage.pageSize)
+      ),
+      this.sortChangeSubject$.pipe(
+        distinctUntilChanged((previousSort, currentSort) => previousSort.active === currentSort.active && previousSort.direction === currentSort.direction)
+      ),
+      this.pageSize$.pipe(distinctUntilChanged()),
       this.refreshTrigger$.pipe(startWith(null))
     ]).pipe(
-      switchMap(([search, pageEvt, sortEvt, pageSize, refresh]) => {
+      switchMap(([searchTerm, pageEvent, sortEvent, pageSize, refreshTrigger]) => {
         this.log.msg('1', '🚀 DATA STREAM TRIGGERED', 'accounts', { 
-          search, 
-          pageEvt, 
+          searchTerm, 
+          pageEvent, 
           pageSize, 
-          refresh,
+          refreshTrigger,
           currentPageSize: this.currentPageSize,
-          currentPageIndex: this.pageIndex
+          currentPageIndex: this.currentPageIndex
         });
         
         // reset to first page on search or page size change
-        if (search !== this.currentSearch) {
-          this.log.msg('1', '🔍 SEARCH CHANGED - resetting to page 1', 'accounts', { oldSearch: this.currentSearch, newSearch: search });
-          this.pageIndex = 0;
+        if (searchTerm !== this.currentSearch) {
+          this.log.msg('1', '🔍 SEARCH CHANGED - resetting to page 1', 'accounts', { oldSearch: this.currentSearch, newSearch: searchTerm });
+          this.currentPageIndex = 0;
           this.pageIndexSubject.next(0);
-          this.pageChange$.next({ pageIndex: 0, pageSize: this.currentPageSize });
         }
         // Reset to first page when page size changes
-        if (this.currentPageSize !== pageEvt?.pageSize) {
-          this.log.msg('1', '📏 PAGE SIZE CHANGED - resetting to page 1', 'accounts', { oldSize: pageEvt?.pageSize, newSize: this.currentPageSize });
-          this.pageIndex = 0;
+        if (this.currentPageSize !== pageEvent?.pageSize) {
+          this.log.msg('1', '📏 PAGE SIZE CHANGED - resetting to page 1', 'accounts', { oldSize: pageEvent?.pageSize, newSize: this.currentPageSize });
+          this.currentPageIndex = 0;
           this.pageIndexSubject.next(0);
-          this.pageChange$.next({ pageIndex: 0, pageSize: this.currentPageSize });
         }
-        this.currentSearch = search;
-        const page = this.pageIndex + 1; // API is 1-based
-        const size = this.currentPageSize; // Use the current page size directly
-        const ordering = sortEvt?.direction === 'desc' ? `-${sortEvt?.active}` : sortEvt?.active;
+        this.currentSearch = searchTerm;
+        const apiPageNumber = this.currentPageIndex + 1; // API is 1-based
+        const apiPageSize = this.currentPageSize; // Use the current page size directly
+        const sortOrdering = sortEvent?.direction === 'desc' ? `-${sortEvent?.active}` : sortEvent?.active;
         
-        this.log.msg('1', '🌐 FETCHING ACCOUNTS - API call params:', 'accounts', { page, size, search, ordering });
-        if (!this.isSorting) this.isLoading$.next(true);
-        return this.fetchAccountsPageWithPagination({ page, size, search, ordering }).pipe(
-          map(paginatedResponse => {
-            this.totalAccounts = paginatedResponse.total || 0;
+        this.log.msg('1', '🌐 FETCHING ACCOUNTS - API call params:', 'accounts', { page: apiPageNumber, size: apiPageSize, search: searchTerm, ordering: sortOrdering });
+        if (!this.isCurrentlySorting) this.isLoading$.next(true);
+        return this.fetchAccountsPage({ page: apiPageNumber, size: apiPageSize, search: searchTerm, ordering: sortOrdering }).pipe(
+          map(apiResponse => {
+            this.totalAccounts = apiResponse.count || 0;
             this.isLoading$.next(false);
             
-            this.log.msg('1', '📥 PAGINATED RESPONSE RECEIVED', 'accounts', { 
-              totalCount: paginatedResponse.total, 
-              resultsLength: paginatedResponse.rows.length,
-              requestedPageSize: this.currentPageSize,
-              currentPage: page,
-              currentPageIndex: this.pageIndex
+            // TEMPORARY FIX: Backend ignores page_size, so we slice the results on frontend
+            const requestedPageSize = this.currentPageSize;
+            const fullApiResponse = apiResponse.results || [];
+            const paginatedResults = fullApiResponse.slice(0, requestedPageSize);
+
+          // Immediately reflect locally removed rows (without extra network calls)
+          const visibleResults = paginatedResults.filter((account: any) => !this.locallyRemovedAccountIds.has(String(account.user_id)));
+          const removedOnThisPage = paginatedResults.length - visibleResults.length;
+            
+            this.log.msg('1', '📥 API RESPONSE RECEIVED', 'accounts', { 
+              totalCount: apiResponse.count, 
+              fullApiResponseLength: fullApiResponse.length,
+              requestedPageSize: requestedPageSize,
+            paginatedResultsLength: paginatedResults.length,
+            visibleAfterLocalRemovals: visibleResults.length,
+              pageSize: apiPageSize,
+              page: apiPageNumber,
+              currentPageSize: this.currentPageSize,
+              currentPageIndex: this.currentPageIndex,
+              backendIgnoresPageSize: fullApiResponse.length !== requestedPageSize
             });
             
-            return paginatedResponse;
+            return {
+              rows: visibleResults, // Hide rows removed locally
+              // Adjust total minimally to force UI refresh without extra XHR
+              total: Math.max(0, (apiResponse.count || 0) - removedOnThisPage)
+            };
           }),
           catchError(err => {
             this.log.msg('0', 'Server pagination error:', 'accounts', err);
@@ -245,6 +274,68 @@ export class AccountsComponent implements OnInit {
         );
       })
     );
+
+    // Combine with locally removed ids and modified accounts to update rows instantly without refetching
+    this.data$ = combineLatest([serverSideData$, this.removedAccountIds$, this.modifiedAccounts$]).pipe(
+      map(([serverData, removedAccountIds, modifiedAccounts]) => {
+        // First filter out removed accounts
+        let visibleRows = (serverData?.rows || []).filter((account: any) => !removedAccountIds.has(String(account.user_id)));
+        
+        // Then apply local modifications
+        visibleRows = visibleRows.map((account: any) => {
+          const accountId = String(account.user_id);
+          return modifiedAccounts.has(accountId) ? modifiedAccounts.get(accountId) : account;
+        });
+        
+        return {
+          rows: visibleRows,
+          total: serverData?.total || 0
+        };
+      })
+    );
+
+    // React to WebSocket-driven account changes without full reload
+    this.actions$
+      .pipe(ofActionDispatched(Accounts.RemoveAccount))
+      .subscribe((action: Accounts.RemoveAccount) => {
+        this.log.msg('1', '🔔 WS Account removed → updating table locally', 'accounts', { accountId: action.account_id });
+        
+        // Track locally to hide row instantly
+        if (action && action.account_id !== undefined && action.account_id !== null) {
+          this.locallyRemovedAccountIds.add(String(action.account_id));
+          // emit new reference so UI updates without triggering network
+          this.removedAccountIdsSubject.next(new Set(this.locallyRemovedAccountIds));
+        }
+
+        // Update total count and trigger change detection
+        this.totalAccounts = Math.max(0, this.totalAccounts - 1);
+        this.cdr.detectChanges();
+      });
+
+    this.actions$
+      .pipe(ofActionDispatched(Accounts.AddAccount))
+      .subscribe((action: Accounts.AddAccount) => {
+        this.log.msg('1', '🔔 WS Account added → updating table locally', 'accounts', { account: action.account });
+        
+        // Update total count and trigger change detection
+        this.totalAccounts += 1;
+        this.cdr.detectChanges();
+      });
+
+    this.actions$
+      .pipe(ofActionDispatched(Accounts.ModifyAccount))
+      .subscribe((action: Accounts.ModifyAccount) => {
+        this.log.msg('1', '🔔 WS Account modified → updating table locally', 'accounts', { account: action.account });
+        
+        // Track locally to update row instantly
+        if (action.account && action.account.user_id !== undefined && action.account.user_id !== null) {
+          this.locallyModifiedAccounts.set(String(action.account.user_id), action.account);
+          // emit new reference so UI updates without triggering network
+          this.modifiedAccountsSubject.next(new Map(this.locallyModifiedAccounts));
+        }
+        
+        this.cdr.detectChanges();
+      });
   }
 
   // Cached page size options to avoid recalculation
@@ -252,94 +343,7 @@ export class AccountsComponent implements OnInit {
   private _lastTotalAccounts = 0;
 
 
-  // Filter accounts based on search term (frontend filtering)
-  private filterAccounts(accountsList: any[], searchTerm: any): any[] {
-    this.log.msg('4', 'Filtering accounts with searchTerm:', 'accounts', searchTerm);
-    this.log.msg('4', 'SearchTerm type:', 'accounts', typeof searchTerm);
-    
-    // Convert searchTerm to string safely
-    let normalizedSearchTerm = '';
-    try {
-      if (typeof searchTerm === 'string') {
-        normalizedSearchTerm = searchTerm;
-      } else if (searchTerm && typeof searchTerm === 'object') {
-        if (Array.isArray(searchTerm) && searchTerm.length > 0) {
-          normalizedSearchTerm = String(searchTerm[0]);
-        } else if (searchTerm.value) {
-          normalizedSearchTerm = String(searchTerm.value);
-        } else {
-          normalizedSearchTerm = JSON.stringify(searchTerm);
-        }
-      } else {
-        normalizedSearchTerm = String(searchTerm || '');
-      }
-    } catch (error) {
-      this.log.msg('0', 'Error converting searchTerm:', 'accounts', error);
-      normalizedSearchTerm = '';
-    }
-    
-    this.log.msg('4', 'Converted searchString:', 'accounts', normalizedSearchTerm);
-    
-    if (!normalizedSearchTerm || !normalizedSearchTerm.trim()) {
-      this.log.msg('4', 'No search term, returning all accounts:', 'accounts', accountsList.length);
-      return accountsList;
-    }
-    
-    const searchQuery = normalizedSearchTerm.toLowerCase().trim();
-    const filteredAccounts = accountsList.filter(account => 
-      account.name?.toLowerCase().includes(searchQuery) ||
-      account.email?.toLowerCase().includes(searchQuery) ||
-      account.permission_name?.toLowerCase().includes(searchQuery)
-    );
-    
-    this.log.msg('4', 'Filtered results:', 'accounts', filteredAccounts.length);
-    return filteredAccounts;
-  }
 
-  // Set optimal page size based on total accounts
-  private setOptimalPageSize() {
-    if (this.totalAccounts <= 0) return;
-
-    // Check if there's already a saved page size in localStorage
-    const savedPageSize = parseInt(localStorage.getItem('co_accounts_pagination') || '0');
-    
-    // Respect any saved value, including 25. Only calculate if nothing is saved.
-    if (savedPageSize > 0) {
-      this.log.msg('4', 'Using saved page size:', 'accounts', savedPageSize);
-      this.pageSizeSubject.next(savedPageSize);
-      return;
-    }
-
-    let optimalPageSize: number;
-
-    if (this.totalAccounts <= 100) {
-      // For small datasets, show all
-      optimalPageSize = this.totalAccounts;
-    } else if (this.totalAccounts <= 500) {
-      // For medium datasets, round up to nearest 50
-      optimalPageSize = Math.ceil(this.totalAccounts / 50) * 50;
-    } else if (this.totalAccounts <= 1000) {
-      // For larger datasets, round up to nearest 100
-      optimalPageSize = Math.ceil(this.totalAccounts / 100) * 100;
-    } else if (this.totalAccounts <= 2000) {
-      // For large datasets, round up to nearest 200
-      optimalPageSize = Math.ceil(this.totalAccounts / 200) * 200;
-    } else {
-      // For very large datasets, round up to nearest 500
-      optimalPageSize = Math.ceil(this.totalAccounts / 500) * 500;
-    }
-
-    // Cap at 2000 to avoid performance issues
-    optimalPageSize = Math.min(optimalPageSize, 2000);
-
-    this.log.msg('4', 'Setting optimal page size:', 'accounts', optimalPageSize);
-    
-    // Update the local page size subject
-    this.pageSizeSubject.next(optimalPageSize);
-    
-    // Save to localStorage
-    localStorage.setItem('co_accounts_pagination', optimalPageSize.toString());
-  }
 
   // Calculate dynamic page size options based on total accounts
   getPageSizeOptions() {
@@ -383,178 +387,10 @@ export class AccountsComponent implements OnInit {
     return this._cachedPageSizeOptions;
   }
 
-  // Function to get all accounts for frontend sorting (like l1-feature-list)
-  private loadAllAccounts() {
-    const startTime = performance.now();
-    this.log.msg('4', '🚀 Loading all accounts for frontend sorting...', 'accounts');
-
-    this.isLoading$.next(true);
-
-    // First, get the first page to know the total count
-    const params: any = {
-      page: 1,
-      page_size: 200 // Backend limit
-    };
-
-    if (this.currentSearch && this.currentSearch.trim()) {
-      params.search = this.currentSearch;
-    }
-
-    this.log.msg('4', 'First page API params:', 'accounts', params);
-
-    return this._http.get<any>(`${this._api.api}accounts/`, { params }).pipe(
-      switchMap(firstPage => {
-        this.log.msg('4', 'First page count:', 'accounts', firstPage.count);
-        this.log.msg('4', 'First page results:', 'accounts', firstPage.results?.length || 0);
-
-        if (!firstPage.next) {
-          // Only one page, return immediately
-          this.isLoading$.next(false);
-          this.totalAccounts = firstPage.count || 0;
-          this.setOptimalPageSize();
-          
-          return of({
-            rows: firstPage.results || [],
-            total: firstPage.count || 0
-          });
-        }
-
-        // Calculate total pages needed
-        const actualPageSize = firstPage.results?.length || 200;
-        const totalPages = Math.ceil(firstPage.count / actualPageSize);
-        this.log.msg('4', 'Total pages needed:', 'accounts', totalPages);
-
-        // Create array of page requests for remaining pages
-        const pageRequests: Observable<any>[] = [];
-        for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
-          const currentPageParams = { ...params, page: currentPage };
-          pageRequests.push(
-            this._http.get<any>(`${this._api.api}accounts/`, { params: currentPageParams })
-          );
-        }
-
-        // Fetch all remaining pages in parallel
-        return forkJoin(pageRequests).pipe(
-          map(additionalPages => {
-            const loadTime = performance.now();
-            this.log.msg('4', '⏱️ All pages loaded in:', 'accounts', `${(loadTime - startTime).toFixed(2)}ms`);
-
-            // Combine all results
-            let allResults = [...(firstPage.results || [])];
-            additionalPages.forEach(page => {
-              allResults = allResults.concat(page.results || []);
-            });
-
-            this.log.msg('4', 'Total results combined:', 'accounts', allResults.length);
-            this.log.msg('4', 'Expected total:', 'accounts', firstPage.count);
-
-            this.isLoading$.next(false);
-            this.totalAccounts = firstPage.count || 0;
-            this.setOptimalPageSize();
-
-            return {
-              rows: allResults,
-              total: firstPage.count || 0
-            };
-          }),
-          catchError(error => {
-            this.log.msg('0', 'Load additional pages error:', 'accounts', error);
-            this.isLoading$.next(false);
-            return of({ rows: [], total: 0 });
-          })
-        );
-      }),
-      catchError(error => {
-        this.log.msg('0', 'Load first page error:', 'accounts', error);
-        this.isLoading$.next(false);
-        return of({ rows: [], total: 0 });
-      })
-    );
-  }
-
-  // Server-side: fetch one page with proper pagination handling
-  private fetchAccountsPageWithPagination(params: { page: number; size: number; search: string; ordering: string }) {
-    const { page, size, search, ordering } = params;
-    
-    this.log.msg('1', '🔄 FETCHING PAGE WITH PAGINATION', 'accounts', { page, size, search, ordering });
-    
-    // First, get the first page to know the total count
-    return this.fetchAccountsPage({ page: 1, size: 200, search, ordering }).pipe(
-      switchMap(firstPageResponse => {
-        const totalCount = firstPageResponse.count || 0;
-        const backendPageSize = 200; // Backend's fixed page size
-        const totalPages = Math.ceil(totalCount / backendPageSize);
-        
-        this.log.msg('1', '📊 PAGINATION CALCULATION', 'accounts', {
-          totalCount,
-          backendPageSize,
-          totalPages,
-          requestedPage: page,
-          requestedSize: size
-        });
-        
-        // Calculate which backend pages we need to fetch
-        const startIndex = (page - 1) * size;
-        const endIndex = startIndex + size;
-        const startBackendPage = Math.floor(startIndex / backendPageSize) + 1;
-        const endBackendPage = Math.floor((endIndex - 1) / backendPageSize) + 1;
-        
-        this.log.msg('1', '📄 BACKEND PAGES NEEDED', 'accounts', {
-          startIndex,
-          endIndex,
-          startBackendPage,
-          endBackendPage
-        });
-        
-        // If we only need the first page, return it directly
-        if (startBackendPage === 1 && endBackendPage === 1) {
-          const startOffset = startIndex % backendPageSize;
-          const endOffset = Math.min(endIndex, backendPageSize);
-          const slicedResults = firstPageResponse.results?.slice(startOffset, endOffset) || [];
-          
-          return of({
-            rows: slicedResults,
-            total: totalCount
-          });
-        }
-        
-        // We need multiple backend pages
-        const backendPagesToFetch: Observable<any>[] = [];
-        for (let backendPage = startBackendPage; backendPage <= endBackendPage; backendPage++) {
-          backendPagesToFetch.push(
-            this.fetchAccountsPage({ page: backendPage, size: backendPageSize, search, ordering })
-          );
-        }
-        
-        return forkJoin(backendPagesToFetch).pipe(
-          map(backendPages => {
-            // Combine all results from backend pages
-            const allBackendResults = [].concat(...backendPages.map((pageResponse: any) => pageResponse.results || []));
-            
-            // Slice to get the exact page we need
-            const startOffset = startIndex % backendPageSize;
-            const endOffset = startOffset + size;
-            const finalResults = allBackendResults.slice(startOffset, endOffset);
-            
-            this.log.msg('1', '✅ PAGINATION COMPLETE', 'accounts', {
-              totalBackendResults: allBackendResults.length,
-              finalResultsLength: finalResults.length,
-              requestedSize: size
-            });
-            
-            return {
-              rows: finalResults,
-              total: totalCount
-            };
-          })
-        );
-      })
-    );
-  }
 
   // Server-side: fetch one page
   private fetchAccountsPage(params: { page: number; size: number; search: string; ordering: string }) {
-    const apiQueryParams: any = { page: params.page, page_size: params.size };
+    const apiQueryParams: any = { page: params.page, size: params.size };
     if (params.search && params.search.trim()) apiQueryParams.search = params.search.trim();
     if (params.ordering && params.ordering.trim()) apiQueryParams.ordering = params.ordering.trim();
     this.log.msg('1', '🔗 API CALL - Final query params:', 'accounts', apiQueryParams);
@@ -573,104 +409,6 @@ export class AccountsComponent implements OnInit {
           isPageSizeRespected: response.results?.length === params.size
         });
       })
-    );
-  }
-
-  // Function to get all accounts by fetching all pages (DEPRECATED - keeping for compatibility)
-  private getAllAccounts() {
-    const startTime = performance.now();
-    this.log.msg('4', '🚀 Starting accounts load...', 'accounts');
-    
-    return this._http.get<any>(`${this._api.api}accounts/?page_size=200`).pipe(
-      switchMap(firstPage => {
-        const firstPageTime = performance.now();
-        this.log.msg('4', '⏱️ First page loaded in:', 'accounts', `${(firstPageTime - startTime).toFixed(2)}ms`);
-        this.log.msg('4', 'First page count:', 'accounts', firstPage.count);  
-        this.log.msg('4', 'First page results:', 'accounts', firstPage.results.length);
-        
-        if (!firstPage.next) {
-          // Only one page, return immediately
-          const totalTime = performance.now();
-          this.log.msg('4', '✅ Single page load completed in:', 'accounts', `${(totalTime - startTime).toFixed(2)}ms`);
-          return of({
-            rows: firstPage.results,
-            total: firstPage.count
-          });
-        }
-
-        // Calculate total pages needed based on the ACTUAL page size returned by the backend (200)
-        const actualPageSize = firstPage.results && firstPage.results.length > 0 ? firstPage.results.length : 200;
-        const totalPages = Math.ceil(firstPage.count / actualPageSize);
-        this.log.msg('4', 'Actual page size:', 'accounts', actualPageSize);
-        this.log.msg('4', 'Total pages needed:', 'accounts', totalPages);
-
-        // Create array of page requests
-        const pageRequests: Observable<any>[] = [];
-        for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
-          pageRequests.push(
-            this._http.get<any>(`${this._api.api}accounts/?page=${currentPage}&page_size=${actualPageSize}`)
-          );
-        }
-
-        // Fetch all remaining pages
-        const additionalPagesStartTime = performance.now();
-        this.log.msg('4', '🔄 Fetching additional pages...', 'accounts');
-        
-        return forkJoin(pageRequests).pipe(
-          map(additionalPagesResponse => {
-            const additionalPagesTime = performance.now();
-            this.log.msg('4', '⏱️ Additional pages loaded in:', 'accounts', `${(additionalPagesTime - additionalPagesStartTime).toFixed(2)}ms`);
-            this.log.msg('4', 'Additional pages fetched:', 'accounts', additionalPagesResponse.length);
-            
-            // Combine all results
-            let allAccountsCombined = [...firstPage.results];
-            additionalPagesResponse.forEach((pageResponse: any) => {
-              allAccountsCombined = [...allAccountsCombined, ...pageResponse.results];
-            });
-
-            const totalTime = performance.now();
-            this.log.msg('4', '✅ All accounts loaded in:', 'accounts', `${(totalTime - startTime).toFixed(2)}ms`);
-            this.log.msg('4', 'Total accounts loaded:', 'accounts', allAccountsCombined.length);
-            
-            return {
-              rows: allAccountsCombined,
-              total: firstPage.count
-            };
-          })
-        );
-      })
-    );
-
-    // Keep the original URL stream for compatibility
-    this.accountsUrl$ = this.search.valueChanges.pipe(
-      startWith(this.search.value),
-      debounce(searchEvent => {
-        this.log.msg('4', 'Debounce triggered with value:', 'accounts', searchEvent);
-        return searchEvent ? timer(300) : timer(0);
-      }),
-      map(search => {
-        this.log.msg('4', 'Map triggered with search:', 'accounts', search);
-        if (search) {
-          const url = `accounts/?search=${search}`;
-          this.log.msg('4', 'Search URL:', 'accounts', url);
-          return url;
-        } else {
-          const url = `accounts/`;
-          this.log.msg('4', 'Default URL:', 'accounts', url);
-          return url;
-        }
-      })
-    );
-
-    // Test the API directly
-    this.log.msg('4', 'Testing API directly...', 'accounts');
-    this._api.getAccounts().subscribe(
-      (response) => {
-        this.log.msg('1', 'Direct API test successful', 'accounts', { count: response?.length || 0 });
-      },
-      (error) => {
-        this.log.msg('0', 'Direct API test failed', 'accounts', error);
-      }
     );
   }
 
@@ -695,7 +433,7 @@ export class AccountsComponent implements OnInit {
       { 
         oldPageSize: this.currentPageSize, 
         newPageSize: event.pageSize, 
-        oldPageIndex: this.pageIndex,
+        oldPageIndex: this.currentPageIndex,
         newPageIndex: event.pageIndex 
       }
     );
@@ -706,12 +444,12 @@ export class AccountsComponent implements OnInit {
     localStorage.setItem('co_accounts_pagination', String(event.pageSize));
     
     // Reset to first page when page size changes
-    this.pageIndex = 0;
+    this.currentPageIndex = 0;
     this.pageIndexSubject.next(0);
-    this.pageChange$.next({ pageIndex: 0, pageSize: event.pageSize });
+    this.pageChangeSubject$.next({ pageIndex: 0, pageSize: event.pageSize });
     
     this.log.msg('1', '📊 AFTER UPDATE - currentPageSize:', 'accounts', this.currentPageSize);
-    this.log.msg('1', '📊 AFTER UPDATE - pageIndex:', 'accounts', this.pageIndex);
+    this.log.msg('1', '📊 AFTER UPDATE - currentPageIndex:', 'accounts', this.currentPageIndex);
     
     // Force data refresh by triggering the data stream
     this.refreshTrigger$.next();
@@ -785,6 +523,13 @@ export class AccountsComponent implements OnInit {
         // Show success message immediately
         this._snack.open('Account updated successfully!', 'OK');
         
+        // Update table locally immediately (optimistic update)
+        if (updatedAccount && updatedAccount.user_id !== undefined && updatedAccount.user_id !== null) {
+          this.locallyModifiedAccounts.set(String(updatedAccount.user_id), updatedAccount);
+          // emit new reference so UI updates immediately
+          this.modifiedAccountsSubject.next(new Map(this.locallyModifiedAccounts));
+        }
+        
         // Make API call in background
         this._store.dispatch(new Accounts.ModifyAccount(updatedAccount));
         
@@ -815,6 +560,12 @@ export class AccountsComponent implements OnInit {
           
           // Update store data immediately (optimistic update)
           this.removeFromStoreData(account.user_id);
+          // Hide row instantly
+          if (account && account.user_id !== undefined && account.user_id !== null) {
+            this.locallyRemovedAccountIds.add(String(account.user_id));
+            // emit new reference so UI updates immediately
+            this.removedAccountIdsSubject.next(new Set(this.locallyRemovedAccountIds));
+          }
           
           // Make API call in background
           this._api.deleteAccount(account.user_id).subscribe(
@@ -855,7 +606,7 @@ export class AccountsComponent implements OnInit {
     });
   }
 
-  // Remove account from store data
+  // Remove account from store data and update table locally
   private removeFromStoreData(userId: number) {
     this.accountsData$.pipe(take(1)).subscribe(storeData => {
       if (storeData && storeData.length > 0) {
@@ -868,6 +619,10 @@ export class AccountsComponent implements OnInit {
             true
           )
         );
+        
+        // Update total count and trigger change detection
+        this.totalAccounts = Math.max(0, this.totalAccounts - 1);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -880,10 +635,10 @@ export class AccountsComponent implements OnInit {
     this.log.msg('1', 'Saving chosen sort in localstorage...', 'accounts', event);
     localStorage.setItem('co_accounts_table_sort', JSON.stringify(event));
     // Update server-side sort state, avoid spinner flash
-    this.isSorting = true;
-    this.sortChange$.next({ active: event.active, direction: event.direction || 'asc' });
+    this.isCurrentlySorting = true;
+    this.sortChangeSubject$.next({ active: event.active, direction: event.direction || 'asc' });
     // small timeout to re-enable spinner if needed for subsequent actions
-    setTimeout(() => (this.isSorting = false), 200);
+    setTimeout(() => (this.isCurrentlySorting = false), 200);
   }
 
   // Handle sort change from mtx-grid (frontend sort)
