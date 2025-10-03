@@ -174,6 +174,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   currentFilePathStepIndex: number | null = null;
 
   @ViewChild('filePathAutocompletePanel') filePathAutocompletePanel: ElementRef;
+  @ViewChild('basicMenu') basicContextMenu: any; // Context menu reference
   
   // Track which step is currently focused for the shared autocomplete
   currentFocusedStepIndex: number | null = null;
@@ -3903,11 +3904,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // File-path autocomplete panel
     const filePanelEl = this.filePathAutocompletePanel?.nativeElement as (HTMLElement | undefined);
     
+    // Context menu panel
+    const contextMenuEl = document.querySelector('.ngx-contextmenu.step-contect-menu') as HTMLElement | null;
+
     // LOGIC to check if the pointer is inside the dropdown panels
     const insideAuto = !!(pointerTarget && autoPanelEl && autoPanelEl.contains(pointerTarget));
     const insideFile = !!(pointerTarget && filePanelEl && filePanelEl.contains(pointerTarget));
+    const insideContextMenu = !!(pointerTarget && contextMenuEl && contextMenuEl.contains(pointerTarget));
     
-    if (insideAuto || insideFile) {
+    if (insideAuto || insideFile || insideContextMenu) {
       return; 
     }
 
@@ -3919,6 +3924,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     if (this.showFilePathAutocomplete) {
       this.showFilePathAutocomplete = false;
       this._cdr.detectChanges();
+    }
+
+    // Close context menu by hiding it
+    if (contextMenuEl) {
+      (contextMenuEl as HTMLElement).style.display = 'none';
     }
 
   }
