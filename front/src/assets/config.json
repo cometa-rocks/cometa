@@ -249,8 +249,13 @@
         {
           "title": "Accounts table improvements - #6937",
           "description": "Modified Table, add column headers(Sortable), add reactivity to the table, add reactive UI to the table."
+        },
+        {
+          "title": "Filter mobile list to display only Android emulators - #6943",
+          "description": "Filter mobile list to display only Android emulators."
         }
-      ]
+      ],
+      "bugfixes":["Fixed and added logic to close dialogs when scrolling on step editor."]
     },
     {
       "version": "3.0.106",

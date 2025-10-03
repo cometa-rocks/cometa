@@ -646,7 +646,7 @@
   <div class="custom-autocomplete-options">
     <!-- All mobiles in one loop -->
     <div *ngFor="let mobile of getAllMobiles(); let i = index" class="mobile-group">
-      <div 
+      <div
         class="custom-autocomplete-option"
         [class.disabled]="!isMobileInteractive(mobile)"
         [class.active]="i === dropdownActiveIndex && isMobileInteractive(mobile)"
@@ -654,7 +654,8 @@
         [matTooltip]="mobile.service_status !== 'Running' && !isSharedMobile(mobile) ? 'Start the mobile in Mobile section' : ''"
         [matTooltipPosition]="'above'"
         [matTooltipDisabled]="mobile.service_status === 'Running'"
-        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = i)">
+        (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = i)"
+        (click)="isMobileInteractive(mobile) && onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
         <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
         =&nbsp;&nbsp;
         <span class="var_value">{{ mobile.hostname }}</span>
