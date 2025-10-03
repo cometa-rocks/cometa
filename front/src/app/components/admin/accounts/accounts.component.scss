@@ -24,13 +24,13 @@
   max-width: 300px;
   width: 300px;
   font-size: 16px;
-  background-color: #e5b355;
+  background-color: $accounts-table-golden-bg;
 }
 
 // Mtx-grid header styles
 :host ::ng-deep .mtx-grid .mat-mdc-cell {
   font-size: 16px;
-  background-color: #e5b355;
+  background-color: $accounts-table-golden-bg;
 }
 
 // Mtx-grid header styles
@@ -41,7 +41,7 @@
 
 
 :host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+2) {
-  background-color: #0000000d;
+  background-color: $accounts-table-row-border;
   border-radius: 5px;
 }
 
@@ -52,12 +52,12 @@
 }
 
 :host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+1) {
-  background-color: #e5b355;
+  background-color: $accounts-table-golden-bg;
   border-radius: 5px;
 }
 
 :host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+2) {
-  background-color: darken(#e5b355, 5%);
+  background-color: $accounts-table-golden-bg-darker;
   border-radius: 5px;
 }
 
@@ -66,7 +66,7 @@
 }
 
 :host ::ng-deep .mtx-grid .mat-mdc-paginator-container {
-  background-color: #e5b355;
+  background-color: $accounts-table-golden-bg;
 }
 
 
@@ -115,7 +115,7 @@ h2 {
   flex-direction: row;
   margin-bottom: 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.18);
-  background-color: #e5b355;
+  background-color: $accounts-table-golden-bg;
   padding: 0 25px 0 25px;
   height: 90px;
 
@@ -138,8 +138,8 @@ h2 {
 :host ::ng-deep mtx-grid {
   .mtx-grid {
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px $accounts-table-shadow;
+    border: 1px solid $accounts-table-border;
     overflow: hidden;
   }
   
@@ -212,26 +212,14 @@ h2 {
     height: 18px;
     line-height: 18px;
   }
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
 }
 
 .edit-button {
   color: $blue;
-  
-  &:hover {
-    background-color: rgba(25, 118, 210, 0.08);
-  }
 }
 
 .delete-button {
   color: $red;
-  
-  &:hover {
-    background-color: rgba(211, 47, 47, 0.08);
-  }
 }
 
 .name-text {
