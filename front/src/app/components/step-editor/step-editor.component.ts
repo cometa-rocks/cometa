@@ -2946,6 +2946,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Also listen on the component root element
     this.subs.sink = fromEvent(this._elementRef.nativeElement, 'scroll', { capture: true } as any)
       .subscribe(() => this._ngZone.run(() => this.closeAllOnScroll()));
+    
+    // Track mouse movement to update lastPointer
+    this.subs.sink = fromEvent(document, 'mousemove', { capture: true } as any)
+      .subscribe((event: any) => {
+        this.lastPointer = {
+          x: event.clientX,
+          y: event.clientY,
+          target: event.target
+        };
+        console.log('Mouse moved - lastPointer updated:', this.lastPointer);
+      });
   }
 
 
@@ -3903,7 +3914,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
     // File-path autocomplete panel
     const filePanelEl = this.filePathAutocompletePanel?.nativeElement as (HTMLElement | undefined);
-    
+
+    // Variable dialog - look for the visible one, not the hidden one
+    const variablePanelEl = document.querySelector('.custom-variable-autocomplete-panel.visible') as HTMLElement | null;
+
     // Context menu panel
     const contextMenuEl = document.querySelector('.ngx-contextmenu.step-contect-menu') as HTMLElement | null;
 
@@ -3911,10 +3925,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const insideAuto = !!(pointerTarget && autoPanelEl && autoPanelEl.contains(pointerTarget));
     const insideFile = !!(pointerTarget && filePanelEl && filePanelEl.contains(pointerTarget));
     const insideContextMenu = !!(pointerTarget && contextMenuEl && contextMenuEl.contains(pointerTarget));
+    const insideVariable = !!(pointerTarget && variablePanelEl && variablePanelEl.contains(pointerTarget));
     
-    if (insideAuto || insideFile || insideContextMenu) {
+    console.log('insideAuto:', insideAuto);
+    console.log('insideFile:', insideFile);
+    console.log('insideContextMenu:', insideContextMenu);
+    console.log('insideVariable:', insideVariable);
+    
+    if (insideAuto || insideFile || insideContextMenu || insideVariable) {
+      console.log('NOT closing panels - pointer is inside');
       return; 
     }
+    
+    console.log('CLOSING panels - pointer is outside');
 
     // Close any open Material autocomplete panels across all triggers (handles newly added steps)
     const triggers = this.autocompleteTriggers?.toArray() || [];
@@ -3929,6 +3952,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Close context menu by hiding it
     if (contextMenuEl) {
       (contextMenuEl as HTMLElement).style.display = 'none';
+    }
+
+    // Close variable dialog by resetting Angular state
+    if (this.displayedVariables.length > 0) {
+      this.closeVariableDropdown();
     }
 
   }
