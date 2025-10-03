@@ -656,7 +656,6 @@ class ServiceManager(service_manager):
         )
         return False
 
-
     def remove_all_service(self, container_services):
         try:
             def remove_services():
