@@ -608,6 +608,56 @@ class ServiceManager(service_manager):
             logger.debug(f"Waiting for Selenium Hub to be available... (retrying in {interval} seconds)")
             time.sleep(interval)
 
+    def wait_for_video_recording_ready(self, session_id, timeout=15):
+        """
+        Wait for video recording to be ready by checking if the video file has been created.
+        The video is created inside the browser container but is accessible from behave
+        container through the shared /data/videos volume.
+
+        Args:
+            session_id: The browser session ID (with dashes)
+            timeout: Maximum time to wait in seconds (default 15)
+
+        Returns:
+            bool: True if video recording is ready, False if timeout
+        """
+        import os
+        import time
+
+        start_time = time.time()
+        interval = 0.5
+
+        # Remove dashes from session_id to match the video file naming convention
+        session_id_no_dash = session_id.replace('-', '')
+
+        # Video files are stored in /data/videos inside the behave container
+        # This path is consistent with other parts of the codebase (housekeeping, cleanup_videos)
+        video_path = f"/data/videos/{session_id_no_dash}.mp4"
+
+        logger.debug(f"Waiting for video recording to start for session {session_id_no_dash}")
+        logger.debug(f"Expected video path: {video_path}")
+
+        while True:
+            elapsed_time = time.time() - start_time
+
+            # Check if video file exists (even if it's just created)
+            if os.path.exists(video_path):
+                logger.debug(f"Video file created at {video_path}")
+                # Give it a bit more time to ensure ffmpeg is fully initialized
+                time.sleep(0.5)
+                return True
+
+            # Check timeout
+            if elapsed_time >= timeout:
+                logger.warning(
+                    f"Timeout reached. Video recording may not be ready after {timeout} seconds. "
+                    f"This is expected for very fast tests (< 3 seconds)."
+                )
+                return False
+
+            logger.debug(f"Video file not yet available... (elapsed: {elapsed_time:.1f}s, retrying in {interval}s)")
+            time.sleep(interval)
+
 
     def remove_all_service(self, container_services):
         try:
