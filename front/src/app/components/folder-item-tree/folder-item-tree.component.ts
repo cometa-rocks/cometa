@@ -26,6 +26,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 
 @Component({
   selector: 'cometa-folder-item-tree',
@@ -43,6 +44,7 @@ import { LetDirective } from '../../directives/ng-let.directive';
     NgFor,
     forwardRef(() => FolderItemTreeComponent),
     AsyncPipe,
+    StopPropagationDirective,
   ],
 })
 export class FolderItemTreeComponent implements OnInit {
@@ -50,7 +52,6 @@ export class FolderItemTreeComponent implements OnInit {
   folderState = {};
   // Local state for sorted folders
   sortedFolders: Folder[] = [];
-  disableRowRipple = false;
   departmentMenuOpen = false;
 
   constructor(
@@ -181,23 +182,8 @@ export class FolderItemTreeComponent implements OnInit {
     this.expanded$.next(status);
   }
 
-  onRowClick(event: MouseEvent) {
-    const target = event.target as HTMLElement | null;
-    if (target && target.closest('.department-actions')) {
-      return;
-    }
+  onRowClick(_event: MouseEvent) {
     this.toggleExpand();
-  }
-
-  onRowMouseDown(event: MouseEvent) {
-    const target = event.target as HTMLElement | null;
-    if (target && target.closest('.department-actions')) {
-      event.stopPropagation();
-      this.disableRowRipple = true;
-      setTimeout(() => (this.disableRowRipple = false));
-      return;
-    }
-    this.disableRowRipple = false;
   }
 
   onDepartmentMenuOpened() {
@@ -206,6 +192,14 @@ export class FolderItemTreeComponent implements OnInit {
 
   onDepartmentMenuClosed() {
     this.departmentMenuOpen = false;
+  }
+
+  onDepartmentExport(department: Folder) {
+    this._sharedActions.exportDepartmentFeatures(department);
+  }
+
+  onDepartmentImport(department: Folder) {
+    this._sharedActions.importDepartmentFeatures(department);
   }
 
   // toggles clicked department/folder

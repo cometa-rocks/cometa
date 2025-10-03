@@ -18,6 +18,13 @@
   box-sizing: border-box;
   cursor: pointer;
   position: relative;
+  .row-surface {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex: 1 1 auto;
+    cursor: inherit;
+  }
   .item {
     width: 100%;
     display: grid;

@@ -1,0 +1,80 @@
+<h2 mat-dialog-title>Export Features</h2>
+<div mat-dialog-content class="content" *ngIf="!loading && !error; else stateBlock">
+  <div class="summary">
+    <div class="title">Select which folders and features to include in the export.</div>
+    <div class="counts">{{ selectedCount }} of {{ totalCount }} feature{{ totalCount === 1 ? '' : 's' }} selected</div>
+  </div>
+
+  <ng-container *ngIf="rootNode as root">
+    <div class="tree">
+      <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: root }"></ng-container>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #stateBlock>
+  <div class="state" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Loading export data…</span>
+  </div>
+  <div class="state error" *ngIf="!loading && error">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+</ng-template>
+
+<ng-template #folderNode let-folder>
+  <div class="node folder" [style.margin-left.px]="folder.depth * 18">
+    <button
+      type="button"
+      class="collapse-toggle"
+      *ngIf="folder.features.length || folder.folders.length"
+      mat-icon-button
+      (click)="toggleCollapse(folder, $event)"
+    >
+      <mat-icon>{{ folder.collapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+    </button>
+    <div class="collapse-spacer" *ngIf="!(folder.features.length || folder.folders.length)"></div>
+    <mat-checkbox
+      color="primary"
+      [checked]="folder.checked"
+      [indeterminate]="folder.indeterminate"
+      (change)="toggleFolder(folder, $event.checked)"
+    >
+      <span class="label">
+        <mat-icon class="icon" *ngIf="folder.depth === 0">account_tree</mat-icon>
+        <mat-icon class="icon" *ngIf="folder.depth > 0">folder</mat-icon>
+        <span class="name">{{ folder.name }}</span>
+      </span>
+    </mat-checkbox>
+  </div>
+  <div class="children" *ngIf="!folder.collapsed">
+    <div
+      class="node feature"
+      *ngFor="let feature of folder.features"
+      [style.margin-left.px]="(folder.depth + 1) * 18"
+    >
+      <mat-checkbox
+        color="primary"
+        [checked]="feature.checked"
+        (change)="toggleFeature(feature, $event.checked)"
+      >
+        <span class="label">
+          <mat-icon class="icon">fact_check</mat-icon>
+          <span class="name">{{ feature.name }}</span>
+          <span class="feature-id" *ngIf="feature.featureId">#{{ feature.featureId }}</span>
+        </span>
+      </mat-checkbox>
+    </div>
+    <ng-container *ngFor="let child of folder.folders">
+      <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: child }"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>
+
+<div mat-dialog-actions>
+  <button mat-stroked-button color="warn" (click)="close()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="loading || !!error" (click)="exportSelection()">
+    Export
+  </button>
+</div>

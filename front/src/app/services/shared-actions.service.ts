@@ -15,6 +15,7 @@ import {
   EditIntegrationDialog,
   IntegrationDialogData,
 } from '@dialogs/edit-integration/edit-integration.component';
+import { ImportFeaturesDialogComponent } from '@dialogs/import-features/import-features.component';
 import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 import { HtmlDiffDialog } from '@dialogs/html-diff/html-diff.component';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
@@ -27,7 +28,7 @@ import { WebSockets } from '@store/actions/results.actions';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { FeaturesState } from '@store/features.state';
 import { LoadingActions } from '@store/loadings.state';
-import { deepClone, exportToJSONFile } from 'ngx-amvara-toolbox';
+import { deepClone } from 'ngx-amvara-toolbox';
 import { from, Observable, of, BehaviorSubject, combineLatest, Subject } from 'rxjs';
 
 import {
@@ -48,6 +49,7 @@ import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { StarredService } from '@services/starred.service';
 import { take } from 'rxjs/operators';
 import { FeatureHistoryComponent } from '@components/feature-history/feature-history.component';
+import { ExportFolderDialogComponent } from '@dialogs/export-folder/export-folder.component';
 
 
 /**
@@ -196,35 +198,47 @@ export class SharedActionsService {
       return;
     }
 
-    const folderName = folder.name || 'folder';
-    const sanitizedName = folderName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-    const exportName = sanitizedName ? `folder_${sanitizedName}_export` : 'folder_export';
-
-    const request$ = this._api.getFolderFeatureExport(folder.folder_id).pipe(
-      map(response => {
-        if (!response?.success) {
-          throw new Error(response?.error || 'Unable to export folder features');
-        }
-        return response;
-      })
-    );
-
-    this.loadingObservable(request$, `Exporting ${folderName}...`).subscribe({
-      next: response => {
-        exportToJSONFile(exportName, response);
-        const featureCount = response.feature_count ?? 0;
-        const message =
-          featureCount === 1
-            ? 'Exported 1 feature'
-            : `Exported ${featureCount} features`;
-        this._snackBar.open(message, 'OK');
+    this._dialog.open(ExportFolderDialogComponent, {
+      width: '720px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: {
+        mode: 'folder',
+        folder,
       },
-      error: err => {
-        const message = err?.message || 'Unable to export folder features. Please try again.';
-        this._snackBar.open(message, 'OK');
+    });
+  }
+
+  exportDepartmentFeatures(department: Folder) {
+    const departmentId = department?.department ?? department?.folder_id;
+    if (!departmentId) {
+      return;
+    }
+
+    this._dialog.open(ExportFolderDialogComponent, {
+      width: '720px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: {
+        mode: 'department',
+        department,
+      },
+    });
+  }
+
+  importDepartmentFeatures(department: Folder) {
+    const departmentId = department?.department ?? department?.folder_id;
+    if (!departmentId) {
+      return;
+    }
+
+    this._dialog.open(ImportFeaturesDialogComponent, {
+      panelClass: 'no-resize-dialog',
+      width: '900px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      data: {
+        departmentId,
       },
     });
   }

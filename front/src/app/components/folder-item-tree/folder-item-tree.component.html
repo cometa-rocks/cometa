@@ -8,76 +8,71 @@ Author: dph000
 <ng-container *ngLet="expanded$ | async as expanded">
   <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and adapt arrow icon's direction depending on value-->
   <div
-    (mousedown)="onRowMouseDown($event)"
-    (click)="onRowClick($event)"
     [class.opened]="folderState[folder.name]?.open"
     [style.paddingLeft.px]="level * 25"
-    matRipple
-    [matRippleDisabled]="disableRowRipple"
     class="row"
     *ngLet="lastFolder$ | async as lastFolder"
     [class.selected]="lastFolder === folder.folder_id"
     [class.has-department-actions]="department === true"
     [class.menu-open]="departmentMenuOpen">
-    <!-- Arrow to show / hide the folder -->
-    <mat-icon class="arrow" [class.hidden]="getFolders().length === 0">
-      keyboard_arrow_right</mat-icon
-    >
-    <!-- Folder icon and name -->
-    <div
-      class="item"
-      [style.--itemMinWidth]="level * 25 + 'px'"
-      [style.--folderNameWidth]="level === 1 ? '0px' : (level - 1) * 25 + 'px'">
-      <!-- Show different depending if the item is a folder or department -->
-      <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
-      <ng-template #folderIcon>
-        <div class="icon-relative">
-          <ng-container *ngIf="folder.features.length > 0 && getFolders().length === 0; else checkFolders">
-            <mat-icon class="material-icons">folder</mat-icon>
-            <span class="feature-run-text">Run</span>
-            <div class="feature-run"></div>
-            <div class="feature-sheet"></div>
-            <div class="feature-sheet-line"></div>
-            <div class="feature-sheet-line-two"></div>
-            <div class="folder-line"></div>
-            <div class="folder-line-two"></div>
-          </ng-container>
-      
-          <ng-template #checkFolders>
-            <ng-container *ngIf="getFolders().length > 0 && folder.features.length === 0; else checkFeatAndFold">
+    <div class="row-surface" matRipple (click)="onRowClick($event)">
+      <mat-icon class="arrow" [class.hidden]="getFolders().length === 0">
+        keyboard_arrow_right</mat-icon
+      >
+      <div
+        class="item"
+        [style.--itemMinWidth]="level * 25 + 'px'"
+        [style.--folderNameWidth]="level === 1 ? '0px' : (level - 1) * 25 + 'px'">
+        <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
+        <ng-template #folderIcon>
+          <div class="icon-relative">
+            <ng-container *ngIf="folder.features.length > 0 && getFolders().length === 0; else checkFolders">
               <mat-icon class="material-icons">folder</mat-icon>
-              <mat-icon class="little-folder material-icons">folder</mat-icon>
-              <mat-icon class="second-little-folder material-icons">folder</mat-icon>
-              <div class="sec-folder-title"></div>
-              <div class="sec-folder-line"></div>
-              <div class="sec-folder-line-two"></div>
+              <span class="feature-run-text">Run</span>
+              <div class="feature-run"></div>
+              <div class="feature-sheet"></div>
+              <div class="feature-sheet-line"></div>
+              <div class="feature-sheet-line-two"></div>
+              <div class="folder-line"></div>
+              <div class="folder-line-two"></div>
             </ng-container>
-          </ng-template>
-      
-          <ng-template #checkFeatAndFold>
-            <ng-container *ngIf="getFolders().length > 0 && folder.features.length > 0; else emptyTemplate">
+
+            <ng-template #checkFolders>
+              <ng-container *ngIf="getFolders().length > 0 && folder.features.length === 0; else checkFeatAndFold">
+                <mat-icon class="material-icons">folder</mat-icon>
+                <mat-icon class="little-folder material-icons">folder</mat-icon>
+                <mat-icon class="second-little-folder material-icons">folder</mat-icon>
+                <div class="sec-folder-title"></div>
+                <div class="sec-folder-line"></div>
+                <div class="sec-folder-line-two"></div>
+              </ng-container>
+            </ng-template>
+
+            <ng-template #checkFeatAndFold>
+              <ng-container *ngIf="getFolders().length > 0 && folder.features.length > 0; else emptyTemplate">
+                <mat-icon class="material-icons">folder</mat-icon>
+                <span class="both-feature-run-text">Run</span>
+                <div class="both-feature-run"></div>
+                <div class="both-feature-sheet"></div>
+                <div class="both-feature-sheet-line"></div>
+                <div class="both-feature-sheet-line-two"></div>
+                <mat-icon class="both-little-folder material-icons">folder</mat-icon>
+                <mat-icon class="both-second-little-folder material-icons">folder</mat-icon>
+                <div class="both-sec-folder-title"></div>
+                <div class="both-sec-folder-line"></div>
+                <div class="both-sec-folder-line-two"></div>
+              </ng-container>
+            </ng-template>
+
+            <ng-template #emptyTemplate>
               <mat-icon class="material-icons">folder</mat-icon>
-              <span class="both-feature-run-text">Run</span>
-              <div class="both-feature-run"></div>
-              <div class="both-feature-sheet"></div>
-              <div class="both-feature-sheet-line"></div>
-              <div class="both-feature-sheet-line-two"></div>
-              <mat-icon class="both-little-folder material-icons">folder</mat-icon>
-              <mat-icon class="both-second-little-folder material-icons">folder</mat-icon>
-              <div class="both-sec-folder-title"></div>
               <div class="both-sec-folder-line"></div>
               <div class="both-sec-folder-line-two"></div>
-            </ng-container>
-          </ng-template>
-      
-          <ng-template #emptyTemplate>
-            <mat-icon class="material-icons">folder</mat-icon>
-            <div class="both-sec-folder-line"></div>
-            <div class="both-sec-folder-line-two"></div>
-          </ng-template>
-        </div>
-      </ng-template>
-      <div class="folderName">{{ folder.name }}</div>
+            </ng-template>
+          </div>
+        </ng-template>
+        <div class="folderName">{{ folder.name }}</div>
+      </div>
     </div>
     <button
       *ngIf="department === true"
@@ -99,12 +94,20 @@ Author: dph000
       [panelClass]="['feature-options', 'folderOptionsMenu']"
       #departmentMenu="matMenu"
     >
-      <button type="button" mat-menu-item (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        mat-menu-item
+        (click)="onDepartmentExport(folder)"
+      >
         <mat-icon>file_download</mat-icon>
         <span>Export features</span>
       </button>
       <mat-divider></mat-divider>
-      <button type="button" mat-menu-item (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        mat-menu-item
+        (click)="onDepartmentImport(folder)"
+      >
         <mat-icon>file_upload</mat-icon>
         <span>Import features</span>
       </button>

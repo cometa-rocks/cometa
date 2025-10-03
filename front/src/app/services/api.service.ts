@@ -659,6 +659,10 @@ export class ApiService {
     return this._http.get<any>(`${this.base}getFolderJson/${folder_id}/`);
   }
 
+  getDepartmentFeatureExport(department_id: number) {
+    return this._http.get<any>(`${this.base}getDepartmentJson/${department_id}/`);
+  }
+
   // Manage Environment Variables
 
   /**

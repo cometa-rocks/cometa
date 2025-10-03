@@ -100,6 +100,7 @@ urlpatterns = [
     url(r'^updateTask/', views.UpdateTask),
     url(r'^getJson/(?P<feature_id>[0-9]+)/', views.GetJsonFile),
     url(r'^getFolderJson/(?P<folder_id>[0-9]+)/', views.GetFolderJson),
+    url(r'^getDepartmentJson/(?P<department_id>[0-9]+)/', views.GetDepartmentJson),
     url(r'^killTask/(?P<feature_id>[0-9]+)/', views.KillTask),
     url(r'^killTaskPID/(?P<pid>[0-9]+)/', views.KillTaskPID),
     url(r'^stepsByName/', views.GetStepsByName),

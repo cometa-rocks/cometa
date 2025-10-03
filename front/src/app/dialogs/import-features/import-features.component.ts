@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, NgZone, ChangeDetectorRef, Inject, Optional } from '@angular/core';
 import {
   MatLegacyDialogModule,
   MatLegacyDialogRef as MatDialogRef,
   MatLegacyDialog as MatDialog,
+  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
 } from '@angular/material/legacy-dialog';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
@@ -45,6 +46,10 @@ const DEFAULT_BROWSER = {
   browser_version: 'latest',
 };
 
+interface ImportFeaturesDialogData {
+  departmentId?: number;
+}
+
 @UntilDestroy()
 @Component({
   selector: 'cometa-import-features-dialog',
@@ -77,6 +82,7 @@ export class ImportFeaturesDialogComponent {
     private store: Store,
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
+    @Optional() @Inject(MAT_DIALOG_DATA) private dialogData: ImportFeaturesDialogData | null,
   ) {
     combineLatest([
       this.store.select(UserState.RetrieveUserDepartments),
@@ -87,9 +93,18 @@ export class ImportFeaturesDialogComponent {
         this.departments = departments || [];
         this.departmentTrees = trees || [];
 
+        if (this.dialogData?.departmentId) {
+          const exists = this.departments.some(
+            dept => dept.department_id === this.dialogData?.departmentId
+          );
+          if (exists) {
+            this.selectedDepartmentId = this.dialogData.departmentId;
+          }
+        }
+
         if (
-          this.departments.length > 0 &&
-          !this.departments.some(dept => dept.department_id === this.selectedDepartmentId)
+          this.selectedDepartmentId == null &&
+          this.departments.length > 0
         ) {
           this.selectedDepartmentId = this.departments[0].department_id;
         }

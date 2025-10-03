@@ -1,0 +1,99 @@
+@import 'color';
+
+.content {
+  max-height: 60vh;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.summary {
+  margin-bottom: 16px;
+
+  .title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .counts {
+    font-size: 13px;
+    color: #666;
+  }
+}
+
+.tree {
+  display: block;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.node.folder {
+  mat-checkbox {
+    flex: 1 1 auto;
+  }
+
+  .collapse-toggle {
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+  }
+
+  .collapse-spacer {
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+  }
+}
+
+.node.folder mat-checkbox span,
+.node.feature mat-checkbox span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.node.feature mat-checkbox {
+  flex: 1 1 auto;
+}
+
+.icon {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+.feature-id {
+  font-size: 12px;
+  margin-left: 8px;
+  color: #888;
+}
+
+.children {
+  display: block;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+  gap: 12px;
+  color: #444;
+}
+
+.state.error {
+  color: #c62828;
+}
+
+[mat-dialog-actions] {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

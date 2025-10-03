@@ -4032,6 +4032,72 @@ def _load_feature_steps_safe(feature):
         return None, warning
 
 
+def _serialize_feature_export_entry(feature_obj, metadata):
+    steps_payload, warning = _load_feature_steps_safe(feature_obj)
+
+    if steps_payload is None:
+        step_records = list(
+            Step.objects.filter(feature_id=feature_obj.feature_id)
+            .order_by('id')
+            .values(
+                'step_keyword',
+                'step_content',
+                'step_action',
+                'enabled',
+                'step_type',
+                'screenshot',
+                'compare',
+                'continue_on_failure',
+                'timeout',
+                'belongs_to'
+            )
+        )
+        steps_payload = step_records
+
+    feature_entry = {
+        "metadata": metadata,
+        "steps": steps_payload,
+    }
+
+    if warning:
+        feature_entry["error"] = warning
+
+    return feature_entry
+
+
+def build_export_payload(root_folder, child_folders, features_qs):
+    folder_payload = {
+        "id": root_folder.folder_id,
+        "name": root_folder.name,
+        "parent_id": root_folder.parent_id_id if hasattr(root_folder, 'parent_id_id') else getattr(root_folder, 'parent_id', None),
+        "created_on": root_folder.created_on.isoformat() if getattr(root_folder, 'created_on', None) else None,
+        "department": root_folder.department,
+        "features": [],
+        "folders": [],
+    }
+
+    metadata_by_id = {}
+    if features_qs:
+        serialized_features = FeatureSerializer(features_qs, many=True).data
+        metadata_by_id = {item['feature_id']: item for item in serialized_features}
+
+        for feature_obj in features_qs:
+            metadata = metadata_by_id.get(feature_obj.feature_id)
+            if metadata is None:
+                continue
+            feature_entry = _serialize_feature_export_entry(feature_obj, metadata)
+            folder_payload["features"].append(feature_entry)
+
+    feature_count = len(folder_payload["features"])
+
+    for folder in child_folders:
+        child_payload, child_count = _build_folder_export_tree(folder)
+        folder_payload["folders"].append(child_payload)
+        feature_count += child_count
+
+    return folder_payload, feature_count
+
+
 def _build_folder_export_tree(folder):
     department_data = None
     if folder.department_id:
@@ -4074,34 +4140,7 @@ def _build_folder_export_tree(folder):
         if metadata is None:
             continue
 
-        steps_payload, warning = _load_feature_steps_safe(feature_obj)
-
-        if steps_payload is None:
-            step_records = list(
-                Step.objects.filter(feature_id=feature_obj.feature_id)
-                .order_by('id')
-                .values(
-                    'step_keyword',
-                    'step_content',
-                    'step_action',
-                    'enabled',
-                    'step_type',
-                    'screenshot',
-                    'compare',
-                    'continue_on_failure',
-                    'timeout',
-                    'belongs_to'
-                )
-            )
-            steps_payload = step_records
-
-        feature_entry = {
-            "metadata": metadata,
-            "steps": steps_payload,
-        }
-        if warning:
-            feature_entry["error"] = warning
-
+        feature_entry = _serialize_feature_export_entry(feature_obj, metadata)
         folder_payload["features"].append(feature_entry)
         feature_count += 1
 
@@ -4140,6 +4179,72 @@ def GetFolderJson(request, folder_id):
         "exported_at": timezone.now().isoformat(),
         "feature_count": feature_count,
         "folder": folder_payload,
+    }
+
+    return JsonResponse(response_payload, status=200)
+
+
+@csrf_exempt
+def GetDepartmentJson(request, department_id):
+    try:
+        department = Department.objects.get(department_id=department_id)
+    except Department.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": f"Department {department_id} not found"
+        }, status=404)
+
+    feature_count = 0
+
+    assigned_feature_ids = set(
+        Folder_Feature.objects.filter(folder__department=department)
+        .values_list('feature_id', flat=True)
+    )
+
+    department_features = Feature.objects.filter(department_id=department.department_id)
+    if assigned_feature_ids:
+        department_features = department_features.exclude(feature_id__in=assigned_feature_ids)
+
+    top_level_folders = (
+        Folder.objects.filter(department=department, parent_id__isnull=True)
+        .select_related('department')
+        .order_by('name')
+    )
+
+    class ExportRoot:
+        def __init__(self, folder_id, name, department_data):
+            self.folder_id = folder_id
+            self.name = name
+            self.parent_id = None
+            self.parent_id_id = None
+            self.created_on = None
+            self.department = department_data
+
+    synthetic_root = ExportRoot(
+        department.department_id,
+        department.department_name,
+        {
+            "id": department.department_id,
+            "name": department.department_name,
+        }
+    )
+
+    features_list = []
+    if department_features.exists():
+        features_qs = FeatureSerializer.fast_loader(department_features)
+        features_list = list(features_qs)
+
+    root_payload, feature_count = build_export_payload(
+        synthetic_root,
+        top_level_folders,
+        features_list
+    )
+
+    response_payload = {
+        "success": True,
+        "exported_at": timezone.now().isoformat(),
+        "feature_count": feature_count,
+        "folder": root_payload,
     }
 
     return JsonResponse(response_payload, status=200)
