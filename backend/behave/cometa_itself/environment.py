@@ -694,6 +694,18 @@ def before_all(context):
     context.connection_url = connection_url
     logger.debug("Session id: %s" % context.browser.session_id)
 
+    # Wait for video recording to start if video is enabled
+    if context.record_video and USE_COMETA_BROWSER_IMAGES:
+        logger.info("Waiting for video recording to start...")
+        video_ready = context.service_manager.wait_for_video_recording_ready(
+            context.browser.session_id,
+            timeout=15
+        )
+        if video_ready:
+            logger.info("Video recording is ready")
+        else:
+            logger.warning("Video recording may not have started properly, but continuing with test execution")
+
     # set headers for the request
     headers = {"Content-type": "application/json", "Host": "cometa.local"}
     # set payload for the request
