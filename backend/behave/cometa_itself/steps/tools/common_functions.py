@@ -956,7 +956,7 @@ def _async_process_screen_shot(
 # add timestamp to the image using the imagemagic cli
 def addTimestampToImage(image, path=None):
     logger.debug(f"Adding timestamp to: {path}/{image}")
-    cmd = f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
+    cmd = f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -box 'RGBA(0,0,0,0.7)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
     status = subprocess.call(cmd, shell=True, env={})
     if status != 0:
         logger.error("Something happend during the timestamp watermark.")
