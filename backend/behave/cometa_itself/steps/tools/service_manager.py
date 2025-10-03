@@ -637,9 +637,7 @@ class ServiceManager(service_manager):
         logger.debug(f"Waiting for video recording to start for session {session_id_no_dash}")
         logger.debug(f"Expected video path: {video_path}")
 
-        while True:
-            elapsed_time = time.time() - start_time
-
+        while time.time() - start_time < timeout:
             # Check if video file exists (even if it's just created)
             if os.path.exists(video_path):
                 logger.debug(f"Video file created at {video_path}")
@@ -647,16 +645,16 @@ class ServiceManager(service_manager):
                 time.sleep(0.5)
                 return True
 
-            # Check timeout
-            if elapsed_time >= timeout:
-                logger.warning(
-                    f"Timeout reached. Video recording may not be ready after {timeout} seconds. "
-                    f"This is expected for very fast tests (< 3 seconds)."
-                )
-                return False
-
+            elapsed_time = time.time() - start_time
             logger.debug(f"Video file not yet available... (elapsed: {elapsed_time:.1f}s, retrying in {interval}s)")
             time.sleep(interval)
+
+        # If we exit the loop, it means timeout was reached
+        logger.warning(
+            f"Timeout reached. Video recording may not be ready after {timeout} seconds. "
+            f"This is expected for very fast tests (< 3 seconds)."
+        )
+        return False
 
 
     def remove_all_service(self, container_services):
