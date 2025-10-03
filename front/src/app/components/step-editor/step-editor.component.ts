@@ -1011,6 +1011,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.dropdownActiveIndex = 0;
     this.initialDropdownPosition = null;
     this.mobileDropdownLeft = 0;
+    this._cdr.detectChanges();
   }
 
   /**
@@ -2955,7 +2956,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
           y: event.clientY,
           target: event.target
         };
-        console.log('Mouse moved - lastPointer updated:', this.lastPointer);
       });
   }
 
@@ -3921,23 +3921,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Context menu panel
     const contextMenuEl = document.querySelector('.ngx-contextmenu.step-contect-menu') as HTMLElement | null;
 
+    // Mobile dropdown panel
+    const mobilePanelEl = document.querySelector('.custom-mobile-autocomplete-panel.visible') as HTMLElement | null;
+
     // LOGIC to check if the pointer is inside the dropdown panels
     const insideAuto = !!(pointerTarget && autoPanelEl && autoPanelEl.contains(pointerTarget));
     const insideFile = !!(pointerTarget && filePanelEl && filePanelEl.contains(pointerTarget));
     const insideContextMenu = !!(pointerTarget && contextMenuEl && contextMenuEl.contains(pointerTarget));
     const insideVariable = !!(pointerTarget && variablePanelEl && variablePanelEl.contains(pointerTarget));
+    // Check if mobile dropdown is open and pointer is inside it
+    const insideMobile = !!(pointerTarget && mobilePanelEl && mobilePanelEl.contains(pointerTarget));
     
-    console.log('insideAuto:', insideAuto);
-    console.log('insideFile:', insideFile);
-    console.log('insideContextMenu:', insideContextMenu);
-    console.log('insideVariable:', insideVariable);
-    
-    if (insideAuto || insideFile || insideContextMenu || insideVariable) {
-      console.log('NOT closing panels - pointer is inside');
+    if (insideAuto || insideFile || insideContextMenu || insideVariable || insideMobile) {
       return; 
     }
-    
-    console.log('CLOSING panels - pointer is outside');
 
     // Close any open Material autocomplete panels across all triggers (handles newly added steps)
     const triggers = this.autocompleteTriggers?.toArray() || [];
@@ -3957,6 +3954,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     // Close variable dialog by resetting Angular state
     if (this.displayedVariables.length > 0) {
       this.closeVariableDropdown();
+    }
+
+    // Close mobile dropdown by resetting Angular state
+    if (this.showMobileDropdown) {
+      this.closeMobileDropdown();
     }
 
   }
