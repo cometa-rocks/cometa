@@ -59,13 +59,18 @@
     *ngIf="hasItems"
     [items]="currentItems"
     [allSelected]="currentAllSelected"
+    [maintainStructure]="maintainStructure"
     [browsersLabel]="browsersLabel.bind(this)"
     [requiresBrowsers]="requiresBrowsers.bind(this)"
     [browserTooltip]="browserTooltip.bind(this)"
+    [treeRoot]="treeRoot"
     (selectAllChange)="toggleSelectAll($event)"
+    (maintainStructureChange)="onMaintainStructureChange($event)"
     (selectionChange)="onItemSelectionChange($event.item, $event.selected)"
     (nameChange)="onNameChange($event.item, $event.name)"
-    (addDefaultBrowsers)="setDefaultBrowsers($event)">
+    (addDefaultBrowsers)="setDefaultBrowsers($event)"
+    (folderSelectionChange)="onFolderSelectionChange($event)"
+    (folderCollapseChange)="onFolderCollapseChange($event)">
   </cometa-import-features-table>
 </div>
 <mat-dialog-actions>

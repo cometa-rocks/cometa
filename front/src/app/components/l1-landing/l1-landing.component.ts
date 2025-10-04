@@ -31,7 +31,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, filter, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { User } from '@store/actions/user.actions';
@@ -163,12 +163,22 @@ export class L1LandingComponent implements OnInit {
   }
 
   openImportFeatures() {
-    this._dialog.open(ImportFeaturesDialogComponent, {
+    const ref = this._dialog.open(ImportFeaturesDialogComponent, {
       panelClass: 'no-resize-dialog',
       width: '900px',
       maxWidth: '95vw',
       autoFocus: false,
     });
+
+    ref.afterClosed()
+      .pipe(
+        filter(result => !!result?.imported),
+        switchMap(() =>
+          this._store.dispatch([new Features.GetFolders(), new Features.GetFeatures()])
+        ),
+        untilDestroyed(this)
+      )
+      .subscribe();
   }
 
   // Contains all the features and folders data

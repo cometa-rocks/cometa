@@ -3152,7 +3152,23 @@ class FeatureViewSet(viewsets.ModelViewSet):
         """
         Save feature object into DB while also saving new steps
         """
-        newFeature.save(steps=request.data['steps']['steps_content'])
+        save_result = newFeature.save(steps=request.data['steps']['steps_content'])
+
+        if not isinstance(save_result, dict) or not save_result.get('success'):
+            error_payload = {
+                'success': False,
+                'error': save_result.get('error') if isinstance(save_result, dict) else None,
+                'message': save_result.get('message') if isinstance(save_result, dict) else None,
+                'handled': True,
+            }
+            error_message = error_payload.get('error') or error_payload.get('message') or 'Feature creation failed.'
+            logger.warning(
+                'Feature creation aborted for %s (department %s): %s',
+                newFeature.feature_name,
+                newFeature.department_id,
+                error_message,
+            )
+            return Response(error_payload, status=status.HTTP_200_OK)
 
         # Handle telegram options if provided
         if 'telegram_options' in request.data:
@@ -3721,9 +3737,17 @@ class FolderViewset(viewsets.ModelViewSet):
                 except Exception as err:
                     print("Failed to get the folder....")
         try:
-            Folder.objects.create(**payload)
+            folder = Folder.objects.create(**payload)
             requests.post(f'{get_cometa_socket_url()}/updatedObjects/folders')
-            return Response({"success": True})
+            return Response({
+                "success": True,
+                "folder": {
+                    "folder_id": folder.folder_id,
+                    "name": folder.name,
+                    "department_id": folder.department.department_id if folder.department else payload.get('department_id'),
+                    "parent_id": folder.parent_id.folder_id if folder.parent_id else None,
+                },
+            })
         except Exception as err:
             return Response({"success": False, "error": str(err)})
 

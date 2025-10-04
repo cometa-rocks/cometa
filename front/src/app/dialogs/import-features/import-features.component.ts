@@ -26,15 +26,35 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { combineLatest } from 'rxjs';
 import { Features } from '@store/actions/features.actions';
+import { FeaturesState } from '@store/features.state';
+import {
+  AreYouSureDialog,
+  AreYouSureData,
+} from '@dialogs/are-you-sure/are-you-sure.component';
 
 type ImportMode = 'file' | 'paste';
 type RawExport = any;
+
+interface FolderPathEntry {
+  name: string;
+  id: string | number | null;
+}
 
 export interface ImportItem {
   original: any;
   selected: boolean;
   name: string;
   error: string | null;
+  folderPath: FolderPathEntry[];
+}
+
+export interface ImportStructureNode {
+  id: string;
+  name: string;
+  features: ImportItem[];
+  folders: ImportStructureNode[];
+  collapsed: boolean;
+  path: FolderPathEntry[];
 }
 
 const DEFAULT_BROWSER = {
@@ -131,6 +151,7 @@ export class ImportFeaturesDialogComponent {
   selectedDepartmentId: number | null = null;
   folderOptions: FolderOption[] = [];
   selectedFolderId = 0;
+  maintainStructure = false;
 
   private fileItems: ImportItem[] = [];
   private pasteItems: ImportItem[] = [];
@@ -138,6 +159,9 @@ export class ImportFeaturesDialogComponent {
   private pasteAllSelected = false;
   private fileParseError: string | null = null;
   private pasteParseError: string | null = null;
+  treeRoot: ImportStructureNode | null = null;
+  private folderIdCounter = 0;
+  private featureKeyCounter = 0;
 
   get currentItems(): ImportItem[] {
     return this.mode === 'file' ? this.fileItems : this.pasteItems;
@@ -234,6 +258,9 @@ export class ImportFeaturesDialogComponent {
   clear() {
     this.setItems(this.mode, []);
     this.setParseError(this.mode, null);
+    this.treeRoot = null;
+    this.folderIdCounter = 0;
+    this.featureKeyCounter = 0;
     if (this.mode === 'file') {
       this.lastFileName = null;
     }
@@ -243,12 +270,48 @@ export class ImportFeaturesDialogComponent {
   toggleSelectAll(checked: boolean) {
     this.setAllSelected(this.mode, checked);
     this.currentItems.forEach(item => (item.selected = checked));
+    if (this.treeRoot) {
+      this.setFolderSelection(this.treeRoot, checked);
+      this.treeRoot = this.cloneTree(this.treeRoot);
+    }
+    this.refreshSelectAllState();
+    this.cdr.markForCheck();
   }
 
   // Keeps the master checkbox in sync with row-level changes
   onItemSelectionChange(item: ImportItem, selected: boolean) {
     item.selected = selected;
     this.setAllSelected(this.mode, this.currentItems.every(i => i.selected));
+    this.refreshSelectAllState();
+    if (this.treeRoot) {
+      this.treeRoot = this.cloneTree(this.treeRoot);
+    }
+    this.cdr.markForCheck();
+  }
+
+  onFolderSelectionChange(event: { node: ImportStructureNode; checked: boolean }) {
+    if (!event?.node) {
+      return;
+    }
+    this.setFolderSelection(event.node, event.checked);
+    if (this.treeRoot) {
+      this.treeRoot = this.cloneTree(this.treeRoot);
+    }
+    this.refreshSelectAllState();
+    this.cdr.markForCheck();
+  }
+
+  onFolderCollapseChange(node: ImportStructureNode) {
+    node.collapsed = !node.collapsed;
+    if (this.treeRoot) {
+      this.treeRoot = this.cloneTree(this.treeRoot);
+    }
+    this.cdr.markForCheck();
+  }
+
+  onMaintainStructureChange(enabled: boolean) {
+    this.maintainStructure = enabled;
+    this.cdr.markForCheck();
   }
 
   // Updates the feature name inline and triggers revalidation
@@ -268,6 +331,83 @@ export class ImportFeaturesDialogComponent {
   setDefaultBrowsers(item: ImportItem) {
     item.original.browsers = [DEFAULT_BROWSER];
     item.error = this.validate(item.original);
+  }
+
+  private async confirmDuplicateImports(
+    items: ImportItem[],
+    departmentId: number,
+    departmentName?: string,
+  ): Promise<boolean> {
+    let department = this.departments.find(
+      dept => dept.department_id === departmentId
+    );
+
+    if (!department) {
+      const snapshotDepartments =
+        this.store.selectSnapshot(UserState.RetrieveUserDepartments) || [];
+      department = snapshotDepartments.find(
+        dept => dept.department_id === departmentId
+      );
+    }
+
+    const shouldValidate =
+      department?.settings?.validate_duplicate_feature_names !== false;
+
+    if (!shouldValidate) {
+      return true;
+    }
+
+    const existingFeatures =
+      this.store.selectSnapshot(FeaturesState.GetFeaturesAsArray) || [];
+    const existingNames = new Set(
+      existingFeatures
+        .filter(feature => feature.department_id === departmentId)
+        .map(feature => (feature.feature_name || '').trim().toLowerCase())
+        .filter(name => !!name)
+    );
+
+    if (!existingNames.size) {
+      return true;
+    }
+
+    const duplicates = new Map<string, string>();
+
+    for (const item of items) {
+      const rawName = (item.original?.feature_name || item.name || '').trim();
+      if (!rawName) {
+        continue;
+      }
+      const lowerName = rawName.toLowerCase();
+      if (existingNames.has(lowerName) && !duplicates.has(lowerName)) {
+        duplicates.set(lowerName, rawName);
+      }
+    }
+
+    if (duplicates.size === 0) {
+      return true;
+    }
+
+    const names = Array.from(duplicates.values());
+    const deptLabel = department?.department_name || departmentName || 'this department';
+    const description =
+      names.length === 1
+        ? `A feature named "${names[0]}" already exists in "${deptLabel}". Do you want to import it anyway?`
+        : `The following feature names already exist in "${deptLabel}": ${names.join(', ')}. Do you want to import them anyway?`;
+
+    const dialogRef = this.dialog.open<AreYouSureDialog, AreYouSureData, boolean>(
+      AreYouSureDialog,
+      {
+        data: {
+          title: 'Duplicate Feature Name',
+          description,
+        },
+        autoFocus: true,
+        minWidth: '420px',
+      }
+    );
+
+    const result = await dialogRef.afterClosed().toPromise();
+    return !!result;
   }
 
   // Saves the selected features; rolls back the batch if any create fails
@@ -290,11 +430,41 @@ export class ImportFeaturesDialogComponent {
     }
 
     const targetDepartmentId = this.selectedDepartmentId;
+    const targetDepartment = this.departments.find(
+      dept => dept.department_id === targetDepartmentId
+    );
     const targetDepartmentName =
-      this.departments.find(dept => dept.department_id === targetDepartmentId)?.department_name ||
+      targetDepartment?.department_name ||
       selected[0].original?.department_name;
 
+    let folderLookup: FolderLookupContext | null = null;
+    const baseFolderId = this.selectedFolderId > 0 ? this.selectedFolderId : null;
+
+    if (this.maintainStructure) {
+      try {
+        await this.store.dispatch(new Features.GetFolders()).toPromise();
+      } catch (_) {}
+      folderLookup = this.buildFolderLookup(targetDepartmentId);
+      if (baseFolderId && (!folderLookup.byId.has(baseFolderId))) {
+        try {
+          await this.store.dispatch(new Features.GetFolders()).toPromise();
+        } catch (_) {}
+        folderLookup = this.buildFolderLookup(targetDepartmentId);
+      }
+    }
+
+    const proceed = await this.confirmDuplicateImports(
+      selected,
+      targetDepartmentId,
+      targetDepartmentName,
+    );
+
+    if (!proceed) {
+      return;
+    }
+
     this.busy = true;
+    this.cdr.markForCheck();
     const createdIds: number[] = [];
     const createdFeatures: any[] = [];
     try {
@@ -304,15 +474,42 @@ export class ImportFeaturesDialogComponent {
           targetDepartmentId,
           targetDepartmentName
         );
-        const created = await this.api.createFeature(payload as any).toPromise();
-        if (!created || !created.feature_id) {
+        const created = (await this.api.createFeature(payload as any).toPromise()) as any;
+
+        if (created?.success === false) {
+          const message = created?.error || created?.message || 'Feature import failed.';
+          this.snack.open(message, 'OK');
+          throw new Error(message);
+        }
+
+        if (!created || created.feature_id == null) {
           throw new Error('Unexpected response while creating feature');
         }
+
         createdIds.push(created.feature_id);
         createdFeatures.push(created);
-        if (this.selectedFolderId) {
+        let destinationFolderId: number | null = null;
+
+        if (this.maintainStructure) {
+          if (!folderLookup) {
+            folderLookup = this.buildFolderLookup(targetDepartmentId);
+          }
+          const ensureResult = await this.ensureFolderPath(
+            it.folderPath,
+            targetDepartmentId,
+            baseFolderId,
+            folderLookup,
+            it.original?.department_name,
+          );
+          destinationFolderId = ensureResult.folderId;
+          folderLookup = ensureResult.lookup;
+        } else if (baseFolderId) {
+          destinationFolderId = baseFolderId;
+        }
+
+        if (destinationFolderId) {
           await this.api
-            .moveFeatureFolder(0, this.selectedFolderId, created.feature_id, targetDepartmentId)
+            .moveFeatureFolder(0, destinationFolderId, created.feature_id, targetDepartmentId)
             .toPromise();
         }
       }
@@ -320,6 +517,24 @@ export class ImportFeaturesDialogComponent {
         await this.store.dispatch(new Features.SetFeatureInfo(createdFeatures)).toPromise();
       }
       await this.store.dispatch(new Features.GetFolders()).toPromise();
+      try {
+        await this.store.dispatch(new Features.GetFeatures()).toPromise();
+      } catch (_) {}
+
+      try {
+        const currentRoute = this.store.snapshot().features.currentRouteNew || [];
+        if (Array.isArray(currentRoute) && currentRoute.length > 0) {
+          const clonedRoute = currentRoute.map(folder => {
+            const entry: any = { ...folder };
+            if ('route' in entry) {
+              delete entry.route;
+            }
+            return entry;
+          });
+          await this.store.dispatch(new Features.SetFolderRoute(clonedRoute)).toPromise();
+        }
+      } catch (_) {}
+
       this.snack.open(`Imported ${createdIds.length} feature(s)`, 'OK');
       this.dialogRef.close({ imported: createdIds.length });
       return;
@@ -376,6 +591,9 @@ export class ImportFeaturesDialogComponent {
   // Normalises the JSON export and stores it for the chosen mode
   private populateFromJson(json: RawExport, target: ImportMode) {
     this.setParseError(target, null);
+    this.treeRoot = null;
+
+    const structure = this.extractStructure(json);
     const flat = this.flatten(json);
     if (flat.length === 0) {
       this.setParseError(target, 'No features found in the file');
@@ -388,9 +606,63 @@ export class ImportFeaturesDialogComponent {
       selected: true,
       name: this.getName(feat),
       error: this.validate(feat),
+      folderPath: [],
     }));
 
     this.setItems(target, items);
+
+    let root: ImportStructureNode | null = null;
+
+    if (structure) {
+      const idBuckets = new Map<string, ImportItem[]>();
+      const signatureBuckets = new Map<string, ImportItem[]>();
+
+      items.forEach(item => {
+        const idKey = this.getFeatureIdKey(item.original);
+        if (idKey) {
+          const bucket = idBuckets.get(idKey) || [];
+          bucket.push(item);
+          idBuckets.set(idKey, bucket);
+        } else {
+          const signature = this.buildFeatureSignature(item.original);
+          const bucket = signatureBuckets.get(signature) || [];
+          bucket.push(item);
+          signatureBuckets.set(signature, bucket);
+        }
+      });
+
+      this.folderIdCounter = 0;
+      this.featureKeyCounter = 0;
+      const initialEntry = this.toPathEntry(structure);
+      root = this.buildStructureTree(
+        structure,
+        idBuckets,
+        signatureBuckets,
+        0,
+        initialEntry ? [initialEntry] : [],
+      );
+
+      const leftovers: ImportItem[] = [];
+      idBuckets.forEach(bucket => leftovers.push(...bucket));
+      signatureBuckets.forEach(bucket => leftovers.push(...bucket));
+      if (leftovers.length) {
+        if (root) {
+          const fallbackPath = root.path ? root.path.map(entry => ({ ...entry })) : [];
+          leftovers.forEach(item => {
+            item.folderPath = fallbackPath.map(entry => ({ ...entry }));
+          });
+          root.features = [...root.features, ...leftovers];
+        } else {
+          root = this.buildFlatRoot(leftovers);
+        }
+      }
+    }
+
+    const finalRoot = root ?? this.buildFlatRoot(items);
+    this.treeRoot = this.cloneTree(finalRoot);
+    this.refreshSelectAllState();
+    this.syncMaintainStructureFlag();
+    this.cdr.markForCheck();
   }
 
   // Extracts a display name whether the export is flat or nested
@@ -416,6 +688,307 @@ export class ImportFeaturesDialogComponent {
     };
     if (json && json.folder) walk(json.folder);
     return rels;
+  }
+
+  private extractStructure(json: RawExport): any | null {
+    if (!json || Array.isArray(json)) {
+      return null;
+    }
+    if (json.folder) {
+      try {
+        return JSON.parse(JSON.stringify(json.folder));
+      } catch (_) {
+        return json.folder;
+      }
+    }
+    return null;
+  }
+
+  private setFolderSelection(node: ImportStructureNode, checked: boolean) {
+    (node.features || []).forEach(item => {
+      item.selected = checked;
+    });
+    (node.folders || []).forEach(child => this.setFolderSelection(child, checked));
+  }
+
+  private refreshSelectAllState() {
+    this.fileAllSelected = this.fileItems.length > 0 && this.fileItems.every(i => i.selected);
+    this.pasteAllSelected = this.pasteItems.length > 0 && this.pasteItems.every(i => i.selected);
+    this.syncMaintainStructureFlag();
+  }
+
+  private buildStructureTree(
+    folder: any,
+    idBuckets: Map<string, ImportItem[]>,
+    signatureBuckets: Map<string, ImportItem[]>,
+    depth: number,
+    path: FolderPathEntry[]
+  ): ImportStructureNode {
+    const currentPath = path.map(entry => ({ ...entry }));
+    const idValue =
+      folder?.id ??
+      folder?.folder_id ??
+      (folder?.name ? `folder-${folder.name}` : this.nextFolderId());
+
+    const features: ImportItem[] = [];
+    const rawFeatures = Array.isArray(folder?.features) ? folder.features : [];
+    for (const feat of rawFeatures) {
+      const item = this.takeFeatureFromBuckets(feat?.metadata ?? feat, idBuckets, signatureBuckets);
+      if (item) {
+        item.folderPath = currentPath.map(entry => ({ ...entry }));
+        features.push(item);
+      }
+    }
+
+    const childFolders = Array.isArray(folder?.folders) ? folder.folders : [];
+
+    return {
+      id: String(idValue),
+      name: folder?.name || 'Unnamed folder',
+      features,
+      folders: childFolders.map((child: any) => {
+        const entry = this.toPathEntry(child);
+        const nextPath = [...currentPath];
+        if (entry) {
+          nextPath.push(entry);
+        }
+        return this.buildStructureTree(child, idBuckets, signatureBuckets, depth + 1, nextPath);
+      }),
+      collapsed: false,
+      path: currentPath,
+    };
+  }
+
+  private getFeatureIdKey(meta: any): string | null {
+    const source = meta?.metadata ?? meta;
+    if (!source) return null;
+    const id = source.feature_id ?? source.id;
+    if (id === undefined || id === null) {
+      return null;
+    }
+    return String(id);
+  }
+
+  private buildFeatureSignature(meta: any): string {
+    const source = meta?.metadata ?? meta;
+    const name = source?.feature_name ?? source?.name ?? 'feature';
+    const app = source?.app_id ?? source?.app ?? '';
+    const env = source?.environment_id ?? source?.environment ?? '';
+    const stepCount = Array.isArray(source?.steps) ? source.steps.length : 0;
+    return `${name}|app:${app}|env:${env}|steps:${stepCount}`;
+  }
+
+  private takeFeatureFromBuckets(
+    meta: any,
+    idBuckets: Map<string, ImportItem[]>,
+    signatureBuckets: Map<string, ImportItem[]>
+  ): ImportItem | null {
+    const idKey = this.getFeatureIdKey(meta);
+    if (idKey && idBuckets.has(idKey)) {
+      const bucket = idBuckets.get(idKey)!;
+      const item = bucket.shift() || null;
+      if (!bucket.length) {
+        idBuckets.delete(idKey);
+      }
+      if (item) {
+        return item;
+      }
+    }
+
+    const signature = this.buildFeatureSignature(meta);
+    if (signatureBuckets.has(signature)) {
+      const bucket = signatureBuckets.get(signature)!;
+      const item = bucket.shift() || null;
+      if (!bucket.length) {
+        signatureBuckets.delete(signature);
+      }
+      if (item) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
+  private buildFlatRoot(items: ImportItem[]): ImportStructureNode {
+    items.forEach(item => {
+      item.folderPath = [];
+    });
+
+    return {
+      id: 'root',
+      name: 'Imported features',
+      collapsed: false,
+      features: items,
+      folders: [],
+      path: [],
+    };
+  }
+
+  private cloneTree(node: ImportStructureNode): ImportStructureNode {
+    return {
+      id: node.id,
+      name: node.name,
+      collapsed: node.collapsed,
+      features: [...node.features],
+      folders: node.folders.map(child => this.cloneTree(child)),
+      path: node.path.map(entry => ({ ...entry })),
+    };
+  }
+
+  private toPathEntry(source: any): FolderPathEntry | null {
+    if (!source) {
+      return null;
+    }
+    const name = typeof source.name === 'string' ? source.name : null;
+    if (!name) {
+      return null;
+    }
+    const idValue = source.id ?? source.folder_id;
+    return {
+      name,
+      id: idValue !== undefined ? idValue : null,
+    };
+  }
+
+  private buildFolderLookup(departmentId: number): FolderLookupContext {
+    const byParentAndName = new Map<string, FolderCacheEntry>();
+    const byId = new Map<number, FolderCacheEntry>();
+
+    const tree = this.departmentTrees.find(node => node.department === departmentId);
+    const visit = (folders: FolderTreeNode[] | undefined, parentId: number | null) => {
+      if (!Array.isArray(folders)) {
+        return;
+      }
+      for (const folder of folders) {
+        if (!folder) {
+          continue;
+        }
+        const entry: FolderCacheEntry = {
+          id: folder.folder_id,
+          name: folder.name || 'Unnamed folder',
+          parentId,
+          departmentId,
+        };
+        byId.set(entry.id, entry);
+        byParentAndName.set(this.folderKey(parentId, entry.name), entry);
+        visit(folder.folders, entry.id);
+      }
+    };
+
+    visit(tree?.folders, null);
+
+    return {
+      byParentAndName,
+      byId,
+    };
+  }
+
+  private folderKey(parentId: number | null, name: string): string {
+    return `${parentId ?? 0}::${name.trim().toLowerCase()}`;
+  }
+
+  private normalizePathForBase(
+    path: FolderPathEntry[],
+    baseFolderId: number | null,
+    lookup: FolderLookupContext,
+    sourceDepartmentName?: string,
+  ): FolderPathEntry[] {
+    const cleaned = path
+      .filter(segment => segment && typeof segment.name === 'string' && segment.name.trim().length)
+      .map(segment => ({
+        name: segment.name.trim(),
+        id: segment.id ?? null,
+      }));
+
+    if (!baseFolderId) {
+      if (
+        cleaned.length > 0 &&
+        sourceDepartmentName &&
+        cleaned[0].name.trim().toLowerCase() === sourceDepartmentName.trim().toLowerCase()
+      ) {
+        cleaned.shift();
+      }
+      return cleaned;
+    }
+
+    const baseEntry = lookup.byId.get(baseFolderId);
+    if (!baseEntry) {
+      return cleaned;
+    }
+
+    const baseName = baseEntry.name.trim().toLowerCase();
+    const index = cleaned.findIndex(segment => segment.name.trim().toLowerCase() === baseName);
+    if (index >= 0) {
+      return cleaned.slice(index + 1);
+    }
+
+    return cleaned;
+  }
+
+  private async ensureFolderPath(
+    path: FolderPathEntry[],
+    departmentId: number,
+    baseFolderId: number | null,
+    lookup: FolderLookupContext,
+    sourceDepartmentName?: string,
+  ): Promise<{ folderId: number | null; lookup: FolderLookupContext }> {
+    const normalizedPath = this.normalizePathForBase(
+      path,
+      baseFolderId,
+      lookup,
+      sourceDepartmentName,
+    );
+    if (normalizedPath.length === 0) {
+      return { folderId: baseFolderId, lookup };
+    }
+
+    let currentParent = baseFolderId;
+    let currentLookup = lookup;
+
+    for (const segment of normalizedPath) {
+      const key = this.folderKey(currentParent, segment.name);
+      let entry = currentLookup.byParentAndName.get(key);
+
+      if (!entry) {
+        const response = await this.api
+          .createFolder(segment.name, departmentId, currentParent ?? 0)
+          .toPromise();
+
+        if (!response?.success) {
+          throw new Error(response?.error || `Unable to create folder "${segment.name}"`);
+        }
+
+        const createdFolder = response.folder;
+        if (!createdFolder?.folder_id) {
+          try {
+            await this.store.dispatch(new Features.GetFolders()).toPromise();
+          } catch (_) {}
+          currentLookup = this.buildFolderLookup(departmentId);
+          entry = currentLookup.byParentAndName.get(key);
+          if (!entry) {
+            throw new Error(`Folder "${segment.name}" could not be located after creation.`);
+          }
+        } else {
+          entry = {
+            id: createdFolder.folder_id,
+            name: createdFolder.name,
+            parentId: createdFolder.parent_id,
+            departmentId: createdFolder.department_id,
+          };
+          currentLookup.byId.set(entry.id, entry);
+          currentLookup.byParentAndName.set(key, entry);
+        }
+      }
+
+      currentParent = entry.id;
+    }
+
+    return { folderId: currentParent, lookup: currentLookup };
+  }
+
+  private nextFolderId(): string {
+    return `folder-${this.folderIdCounter++}`;
   }
 
   // Performs validation checks and returns a short error string when needed
@@ -535,6 +1108,7 @@ export class ImportFeaturesDialogComponent {
       this.pasteItems = items;
       this.pasteAllSelected = items.every(i => i.selected);
     }
+    this.refreshSelectAllState();
   }
 
   // Persists validation errors for the correct import mode
@@ -575,6 +1149,17 @@ export class ImportFeaturesDialogComponent {
     this.cdr.markForCheck();
   }
 
+  private syncMaintainStructureFlag() {
+    const hasStructure = !!this.treeRoot && (
+      (Array.isArray(this.treeRoot.folders) && this.treeRoot.folders.length > 0) ||
+      (Array.isArray(this.treeRoot.features) && this.treeRoot.features.some(item => item.folderPath.length > 0))
+    );
+
+    if (!hasStructure && this.maintainStructure) {
+      this.maintainStructure = false;
+    }
+  }
+
   private flattenFolderTree(folders: FolderTreeNode[], parentPath: string = ''): FolderOption[] {
     if (!folders || folders.length === 0) {
       return [];
@@ -600,6 +1185,7 @@ export class ImportFeaturesDialogComponent {
 interface DepartmentSummary {
   department_id: number;
   department_name: string;
+  settings?: any;
 }
 
 interface FolderTreeNode {
@@ -612,4 +1198,16 @@ interface FolderTreeNode {
 interface FolderOption {
   id: number;
   label: string;
+}
+
+interface FolderLookupContext {
+  byParentAndName: Map<string, FolderCacheEntry>;
+  byId: Map<number, FolderCacheEntry>;
+}
+
+interface FolderCacheEntry {
+  id: number;
+  name: string;
+  parentId: number | null;
+  departmentId: number;
 }

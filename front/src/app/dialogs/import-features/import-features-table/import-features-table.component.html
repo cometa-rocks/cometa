@@ -1,6 +1,15 @@
-<div class="items mat-elevation-z1" *ngIf="items.length > 0">
+<div class="items mat-elevation-z1" *ngIf="rows.length > 0">
   <div class="controls">
     <mat-checkbox color="primary" [checked]="allSelected" (change)="onSelectAll($event.checked)">Select all</mat-checkbox>
+    <span class="controls-spacer"></span>
+    <mat-checkbox
+      class="maintain-structure"
+      color="primary"
+      [checked]="maintainStructure"
+      [disabled]="!structureAvailable"
+      (change)="onMaintainStructureToggle($event.checked)">
+      Maintain folder structure
+    </mat-checkbox>
   </div>
   <div class="list">
     <div class="row header">
@@ -10,50 +19,110 @@
       <div class="col steps">Steps</div>
       <div class="col status">Status</div>
     </div>
-    <div class="row" *ngFor="let item of items; trackBy: trackByIndex" [class.invalid]="item.error">
+    <div
+      class="row"
+      *ngFor="let row of rows; trackBy: trackByRowIndex"
+      [class.folder]="row.type === 'folder'"
+      [class.feature]="row.type === 'feature'"
+      [class.invalid]="row.type === 'feature' && row.item.error">
       <div class="col sel">
-        <mat-checkbox
-          color="primary"
-          [checked]="item.selected"
-          (change)="onItemSelection(item, $event.checked)">
-        </mat-checkbox>
+        <ng-container [ngSwitch]="row.type">
+          <ng-container *ngSwitchCase="'folder'">
+            <mat-checkbox
+              color="primary"
+              [checked]="row.checked"
+              [indeterminate]="row.indeterminate"
+              [disabled]="row.featureCount === 0"
+              (change)="onFolderSelectionClick(row, $event.checked)">
+            </mat-checkbox>
+          </ng-container>
+          <ng-container *ngSwitchCase="'feature'">
+            <mat-checkbox
+              color="primary"
+              [checked]="row.item.selected"
+              (change)="onItemSelection(row.item, $event.checked)">
+            </mat-checkbox>
+          </ng-container>
+        </ng-container>
       </div>
       <div class="col name">
-        <input
-          matInput
-          placeholder="Feature name"
-          [ngModel]="item.name"
-          (ngModelChange)="onNameChange(item, $event)" />
+        <ng-container [ngSwitch]="row.type">
+          <div
+            class="name-folder"
+            *ngSwitchCase="'folder'"
+            [style.padding-left.px]="row.depth * 24">
+            <button
+              type="button"
+              mat-icon-button
+              class="collapse-button"
+              (click)="onFolderToggle(row)">
+              <mat-icon>{{ row.collapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
+            </button>
+            <mat-icon class="folder-icon">{{ row.depth === 0 ? 'domain' : 'folder' }}</mat-icon>
+            <span class="folder-name">{{ row.node.name }}</span>
+          </div>
+          <div
+            class="name-feature"
+            *ngSwitchCase="'feature'"
+            [style.padding-left.px]="row.depth * 24">
+            <input
+              matInput
+              placeholder="Feature name"
+              [ngModel]="row.item.name"
+              (ngModelChange)="onNameChange(row.item, $event)" />
+          </div>
+        </ng-container>
       </div>
       <div class="col browsers">
-        <span
-          class="browser-chip"
-          *ngIf="!requiresBrowsers(item.original)"
-          [matTooltip]="browserTooltip ? browserTooltip(item) : null"
-          [matTooltipDisabled]="!(browserTooltip && browserTooltip(item))"
-        >{{ browsersLabel(item) }}</span>
-        <span
-          class="browser-chip"
-          *ngIf="requiresBrowsers(item.original) && (item.original?.browsers?.length || 0) > 0"
-          [matTooltip]="browserTooltip ? browserTooltip(item) : null"
-          [matTooltipDisabled]="!(browserTooltip && browserTooltip(item))"
-        >{{ browsersLabel(item) }}</span>
-        <button
-          mat-stroked-button
-          color="primary"
-          class="add-browser"
-          *ngIf="requiresBrowsers(item.original) && (item.original?.browsers?.length || 0) === 0"
-          (click)="onAddDefault(item)">
-          <mat-icon>add</mat-icon>
-          Add default
-        </button>
+        <ng-container [ngSwitch]="row.type">
+          <ng-container *ngSwitchCase="'folder'">
+            <span class="folder-summary">
+              {{ row.selectedCount }}/{{ row.featureCount }} feature(s) selected
+            </span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'feature'">
+            <span
+              class="browser-chip"
+              *ngIf="!requiresBrowsers(row.item.original)"
+              [matTooltip]="browserTooltip ? browserTooltip(row.item) : null"
+              [matTooltipDisabled]="!(browserTooltip && browserTooltip(row.item))"
+            >{{ browsersLabel(row.item) }}</span>
+            <span
+              class="browser-chip"
+              *ngIf="
+                requiresBrowsers(row.item.original) &&
+                (row.item.original?.browsers?.length || 0) > 0
+              "
+              [matTooltip]="browserTooltip ? browserTooltip(row.item) : null"
+              [matTooltipDisabled]="!(browserTooltip && browserTooltip(row.item))"
+            >{{ browsersLabel(row.item) }}</span>
+            <button
+              mat-stroked-button
+              color="primary"
+              class="add-browser"
+              *ngIf="
+                requiresBrowsers(row.item.original) &&
+                (row.item.original?.browsers?.length || 0) === 0
+              "
+              (click)="onAddDefault(row.item)">
+              <mat-icon>add</mat-icon>
+              Add default
+            </button>
+          </ng-container>
+        </ng-container>
       </div>
       <div class="col steps">
-        {{ getStepCount(item) }}
+        <ng-container [ngSwitch]="row.type">
+          <ng-container *ngSwitchCase="'feature'">{{ row.stepCount }}</ng-container>
+        </ng-container>
       </div>
       <div class="col status">
-        <span class="ok" *ngIf="!item.error">Ready</span>
-        <span class="error" *ngIf="item.error">{{ item.error }}</span>
+        <ng-container [ngSwitch]="row.type">
+          <ng-container *ngSwitchCase="'feature'">
+            <span class="ok" *ngIf="!row.item.error">Ready</span>
+            <span class="error" *ngIf="row.item.error">{{ row.item.error }}</span>
+          </ng-container>
+        </ng-container>
       </div>
     </div>
   </div>

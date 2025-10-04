@@ -70,7 +70,10 @@ export class ApiService {
     if (parent_id !== 0 && parent_id !== null) {
       params.parent_id = parent_id;
     }
-    return this._http.post<Success>(`${this.api}folders/`, params);
+    return this._http.post<Success & { folder?: { folder_id: number; name: string; department_id: number; parent_id: number | null } }>(
+      `${this.api}folders/`,
+      params
+    );
   }
 
   // Rename Folder on the backend for the current logged user
