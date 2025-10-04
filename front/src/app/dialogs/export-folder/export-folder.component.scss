@@ -16,7 +16,7 @@
 
   .counts {
     font-size: 13px;
-    color: #666;
+    color: rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -28,50 +28,33 @@
   display: flex;
   align-items: center;
   padding: 4px 0;
+  gap: 8px;
 }
 
-.node.folder {
-  mat-checkbox {
-    flex: 1 1 auto;
-  }
-
-  .collapse-toggle {
-    width: 32px;
-    height: 32px;
-    margin-right: 4px;
-  }
-
-  .collapse-spacer {
-    width: 32px;
-    height: 32px;
-    margin-right: 4px;
-  }
-}
-
-.node.folder mat-checkbox span,
-.node.feature mat-checkbox span {
+.node mat-checkbox {
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
 }
+
 
 .label {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
 }
 
-.node.feature mat-checkbox {
-  flex: 1 1 auto;
-}
-
-.icon {
-  font-size: 18px;
-  margin-right: 6px;
+.label .icon {
+  font-size: 20px;
+  color: $darker-step;
+  display: inline-flex;
+  align-items: center;
 }
 
 .feature-id {
   font-size: 12px;
   margin-left: 8px;
-  color: #888;
+  color: rgba(0, 0, 0, 0.54);
 }
 
 .children {
@@ -85,15 +68,38 @@
   justify-content: center;
   padding: 32px 0;
   gap: 12px;
-  color: #444;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .state.error {
-  color: #c62828;
+  color: $remove;
 }
 
 [mat-dialog-actions] {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.collapse-indicator {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  color: $darker-step;
+}
+
+.collapse-indicator.mat-icon-button {
+  padding: 0;
+}
+
+.collapse-placeholder {
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -12,7 +12,7 @@
   .list {
     .row {
       display: grid;
-      grid-template-columns: 64px 1fr 160px 200px;
+      grid-template-columns: 64px 1fr 160px 80px 200px;
       align-items: center;
       padding: 12px 16px;
       column-gap: 16px;
@@ -33,13 +33,6 @@
         width: 100%;
       }
 
-      .feature-id {
-        display: inline-block;
-        margin-right: 8px;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.6);
-      }
-
       .browser-chip {
         display: inline-flex;
         align-items: center;
@@ -54,6 +47,11 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+      }
+
+      .col.steps {
+        justify-self: center;
+        font-variant-numeric: tabular-nums;
       }
 
       .ok {

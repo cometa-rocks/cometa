@@ -7,6 +7,7 @@
       <div class="col sel">Sel</div>
       <div class="col name">Name</div>
       <div class="col browsers">Browsers</div>
+      <div class="col steps">Steps</div>
       <div class="col status">Status</div>
     </div>
     <div class="row" *ngFor="let item of items; trackBy: trackByIndex" [class.invalid]="item.error">
@@ -18,7 +19,6 @@
         </mat-checkbox>
       </div>
       <div class="col name">
-        <span class="feature-id">#{{ item.original?.metadata?.feature_id || item.original?.feature_id || 'n/a' }}</span>
         <input
           matInput
           placeholder="Feature name"
@@ -26,8 +26,18 @@
           (ngModelChange)="onNameChange(item, $event)" />
       </div>
       <div class="col browsers">
-        <span class="browser-chip" *ngIf="!requiresBrowsers(item.original)">{{ browsersLabel(item) }}</span>
-        <span class="browser-chip" *ngIf="requiresBrowsers(item.original) && (item.original?.browsers?.length || 0) > 0">{{ browsersLabel(item) }}</span>
+        <span
+          class="browser-chip"
+          *ngIf="!requiresBrowsers(item.original)"
+          [matTooltip]="browserTooltip ? browserTooltip(item) : null"
+          [matTooltipDisabled]="!(browserTooltip && browserTooltip(item))"
+        >{{ browsersLabel(item) }}</span>
+        <span
+          class="browser-chip"
+          *ngIf="requiresBrowsers(item.original) && (item.original?.browsers?.length || 0) > 0"
+          [matTooltip]="browserTooltip ? browserTooltip(item) : null"
+          [matTooltipDisabled]="!(browserTooltip && browserTooltip(item))"
+        >{{ browsersLabel(item) }}</span>
         <button
           mat-stroked-button
           color="primary"
@@ -37,6 +47,9 @@
           <mat-icon>add</mat-icon>
           Add default
         </button>
+      </div>
+      <div class="col steps">
+        {{ getStepCount(item) }}
       </div>
       <div class="col status">
         <span class="ok" *ngIf="!item.error">Ready</span>

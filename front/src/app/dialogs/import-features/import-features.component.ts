@@ -86,13 +86,20 @@ export class ImportFeaturesDialogComponent {
     @Optional() @Inject(MAT_DIALOG_DATA) private dialogData: ImportFeaturesDialogData | null,
   ) {
     combineLatest([
-      this.store.select(UserState.RetrieveUserDepartments),
-      this.store.select(CustomSelectors.GetDepartmentFolders()),
+      this.store.select<DepartmentSummary[] | null>(
+        UserState.RetrieveUserDepartments
+      ),
+      this.store.select<FolderTreeNode[] | null>(
+        CustomSelectors.GetDepartmentFolders()
+      ),
     ])
       .pipe(untilDestroyed(this))
-      .subscribe(([departments, trees]) => {
-        this.departments = departments || [];
-        this.departmentTrees = trees || [];
+      .subscribe(([departments, trees]: [
+        DepartmentSummary[] | null,
+        FolderTreeNode[] | null,
+      ]) => {
+        this.departments = Array.isArray(departments) ? departments : [];
+        this.departmentTrees = Array.isArray(trees) ? trees : [];
 
         if (this.dialogData?.departmentId) {
           const exists = this.departments.some(
@@ -193,19 +200,24 @@ export class ImportFeaturesDialogComponent {
 
   // Opens the raw JSON dialog so users can paste exports from the clipboard
   openPasteDialog() {
-    const ref = this.dialog.open(ImportJSONComponent, {
-      width: '620px',
-      autoFocus: true,
-    });
+    const ref = this.dialog.open<ImportJSONComponent, undefined, boolean | undefined>(
+      ImportJSONComponent,
+      {
+        width: '620px',
+        autoFocus: true,
+      }
+    );
+
+    const instance = ref.componentInstance;
 
     ref.afterClosed().subscribe(success => {
-      if (!success) {
+      if (!success || !instance) {
         return;
       }
       try {
-        const json = JSON.parse(ref.componentInstance.json || '');
+        const json = JSON.parse(instance.json || '');
         this.populateFromJson(json, 'paste');
-        ref.componentInstance.json = '';
+        instance.json = '';
         this.lastFileName = null;
         this.mode = 'paste';
         this.cdr.markForCheck();
@@ -346,6 +358,19 @@ export class ImportFeaturesDialogComponent {
     const first = browsers[0];
     const label = first.browser || 'Unknown';
     return browsers.length > 1 ? `${label} +${browsers.length - 1}` : label;
+  }
+
+  browserTooltip(item: ImportItem): string | null {
+    const list = item.original?.browsers;
+    if (!Array.isArray(list) || list.length <= 1) {
+      return null;
+    }
+    const formatted = list.map(browser => {
+      const name = browser?.browser || 'Unknown';
+      const version = browser?.browser_version;
+      return version ? `${name} (${version})` : name;
+    });
+    return formatted.join('\n');
   }
 
   // Normalises the JSON export and stores it for the chosen mode

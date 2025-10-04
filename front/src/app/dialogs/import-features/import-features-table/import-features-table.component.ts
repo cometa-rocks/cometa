@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { NgIf, NgFor } from '@angular/common';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ImportItem } from '../import-features.component';
 
@@ -19,6 +20,7 @@ import { ImportItem } from '../import-features.component';
     MatLegacyInputModule,
     MatLegacyButtonModule,
     MatIconModule,
+    MatTooltipModule,
     FormsModule,
     NgIf,
     NgFor,
@@ -29,6 +31,7 @@ export class ImportFeaturesTableComponent {
   @Input() allSelected = false;
   @Input() browsersLabel!: (item: ImportItem) => string;
   @Input() requiresBrowsers!: (original: any) => boolean;
+  @Input() browserTooltip!: (item: ImportItem) => string | null;
 
   @Output() selectAllChange = new EventEmitter<boolean>();
   @Output() selectionChange = new EventEmitter<{ item: ImportItem; selected: boolean }>();
@@ -36,6 +39,11 @@ export class ImportFeaturesTableComponent {
   @Output() addDefaultBrowsers = new EventEmitter<ImportItem>();
 
   trackByIndex = (index: number) => index;
+
+  getStepCount(item: ImportItem): number {
+    const steps = (item.original as any)?.steps;
+    return Array.isArray(steps) ? steps.length : 0;
+  }
 
   // Emits when the master checkbox toggles
   onSelectAll(checked: boolean) {

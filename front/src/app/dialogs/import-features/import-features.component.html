@@ -61,6 +61,7 @@
     [allSelected]="currentAllSelected"
     [browsersLabel]="browsersLabel.bind(this)"
     [requiresBrowsers]="requiresBrowsers.bind(this)"
+    [browserTooltip]="browserTooltip.bind(this)"
     (selectAllChange)="toggleSelectAll($event)"
     (selectionChange)="onItemSelectionChange($event.item, $event.selected)"
     (nameChange)="onNameChange($event.item, $event.name)"

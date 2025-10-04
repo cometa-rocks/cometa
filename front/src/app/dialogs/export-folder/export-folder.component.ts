@@ -70,7 +70,7 @@ export class ExportFolderDialogComponent implements OnInit {
   loading = true;
   error: string | null = null;
   rootNode: FolderNode | null = null;
-  originalPayload: any;
+  originalPayload: ExportPayload | null = null;
   exportFileName = 'folder_export.json';
 
   constructor(
@@ -143,8 +143,9 @@ export class ExportFolderDialogComponent implements OnInit {
       return;
     }
 
-    const payload = {
-      ...this.originalPayload,
+    const basePayload = this.originalPayload as ExportPayload;
+    const payload: ExportPayload = {
+      ...basePayload,
       feature_count: count,
       folder,
     };
@@ -156,15 +157,15 @@ export class ExportFolderDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  private handlePayload(response: any) {
+  private handlePayload(response: ExportPayload) {
     this.originalPayload = response;
     this.rootNode = this.buildFolderNode(response.folder, null, 0);
     this.loading = false;
     this.cdr.markForCheck();
   }
 
-  private handleError(err: any) {
-    this.error = err?.message || 'Unable to load export data';
+  private handleError(err: unknown) {
+    this.error = err instanceof Error ? err.message : 'Unable to load export data';
     this.loading = false;
     this.cdr.markForCheck();
   }

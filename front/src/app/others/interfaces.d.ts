@@ -780,6 +780,13 @@ interface FoldersResponse {
   features: number[];
 }
 
+declare interface ExportPayload {
+  success: boolean;
+  exported_at: string;
+  feature_count: number;
+  folder: any;
+}
+
 /**
  * 21/11/09 - Added two new variables as they are needed to know the destination department
  */

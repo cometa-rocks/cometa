@@ -24,17 +24,17 @@
 </ng-template>
 
 <ng-template #folderNode let-folder>
-  <div class="node folder" [style.margin-left.px]="folder.depth * 18">
+  <div class="node folder" [style.padding-left.px]="folder.depth === 0 ? 0 : folder.depth * 24">
     <button
       type="button"
-      class="collapse-toggle"
+      class="collapse-indicator mat-icon-button"
       *ngIf="folder.features.length || folder.folders.length"
       mat-icon-button
       (click)="toggleCollapse(folder, $event)"
     >
       <mat-icon>{{ folder.collapsed ? 'chevron_right' : 'expand_more' }}</mat-icon>
     </button>
-    <div class="collapse-spacer" *ngIf="!(folder.features.length || folder.folders.length)"></div>
+    <span class="collapse-placeholder" *ngIf="!(folder.features.length || folder.folders.length)"></span>
     <mat-checkbox
       color="primary"
       [checked]="folder.checked"
@@ -42,8 +42,7 @@
       (change)="toggleFolder(folder, $event.checked)"
     >
       <span class="label">
-        <mat-icon class="icon" *ngIf="folder.depth === 0">account_tree</mat-icon>
-        <mat-icon class="icon" *ngIf="folder.depth > 0">folder</mat-icon>
+        <mat-icon class="icon">{{ folder.depth === 0 ? 'domain' : 'folder' }}</mat-icon>
         <span class="name">{{ folder.name }}</span>
       </span>
     </mat-checkbox>
@@ -52,15 +51,15 @@
     <div
       class="node feature"
       *ngFor="let feature of folder.features"
-      [style.margin-left.px]="(folder.depth + 1) * 18"
+      [style.padding-left.px]="(folder.depth + 1) * 24"
     >
+      <span class="collapse-placeholder"></span>
       <mat-checkbox
         color="primary"
         [checked]="feature.checked"
         (change)="toggleFeature(feature, $event.checked)"
       >
         <span class="label">
-          <mat-icon class="icon">fact_check</mat-icon>
           <span class="name">{{ feature.name }}</span>
           <span class="feature-id" *ngIf="feature.featureId">#{{ feature.featureId }}</span>
         </span>
