@@ -1,5 +1,5 @@
 {
-  "version": "3.0.107",
+  "version": "3.0.108",
   "stable_version": "3.0.107",
   "language": "en",
   "appTitle": "co.meta",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.108",
+      "date": "2025-10-04",
+      "features": [
+        {
+          "title": "Exporting - Importing features and structure functionality added",
+          "description": "Department content such as folders structure (optional) and features can now be migrated into another department or folder within Co.Meta"
+        }
+      ]
+    },
     {
       "version": "3.0.107",
       "date": "2025-10-03",

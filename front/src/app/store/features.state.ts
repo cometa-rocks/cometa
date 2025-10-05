@@ -959,9 +959,10 @@ export class FeaturesState {
         folders.folders = folders.folders.filter(
           val => val.department == department_id
         );
-        folders.features = folders.features.filter(
-          val => state.details[val].department_id == department_id
-        );
+        folders.features = folders.features.filter(val => {
+          const detail = state.details[val];
+          return detail ? detail.department_id == department_id : false;
+        });
       } else {
         currentDirectory.shift(); // Removes the first position of the selectedFolders array corresponding to the department
         // Navigates recursively within the folders until arriving to the current folder and get the data from there
@@ -969,7 +970,10 @@ export class FeaturesState {
           const index = folders.folders.findIndex(
             folder => folder.folder_id === value.folder_id
           );
-          folders = folders.folders[index];
+          const next = index >= 0 ? folders.folders[index] : null;
+          if (next) {
+            folders = next;
+          }
         });
       }
     }

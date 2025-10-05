@@ -531,7 +531,12 @@ export class ImportFeaturesDialogComponent {
             }
             return entry;
           });
-          await this.store.dispatch(new Features.SetFolderRoute(clonedRoute)).toPromise();
+          await this.store
+            .dispatch(new Features.ReturnToFolderRoute(0))
+            .toPromise();
+          await this.store
+            .dispatch(new Features.SetFolderRoute(clonedRoute))
+            .toPromise();
         }
       } catch (_) {}
 
