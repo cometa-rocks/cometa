@@ -2678,8 +2678,20 @@ class StepResultViewSet(viewsets.ModelViewSet):
             failed_steps = [step for step in step_results if
                             (step.status and step.status == 'Failed') or (not step.status and not step.success)]
             success = len(failed_steps) == 0
+            
+            # Get current feature result to preserve status
+            current_feature_result = self.queryset.get(feature_result_id=feature_result_id)
+            current_status = current_feature_result.status
+            
+            # Only update success field, preserve the status
+            update_data = {'success': success}
+            if current_status == 'Canceled':
+                # If status is Canceled, keep it as Canceled and set success to False
+                update_data['status'] = 'Canceled'
+                update_data['success'] = False
+            
             # Update feature result
-            self.queryset.filter(feature_result_id=feature_result_id).update(success=success)
+            self.queryset.filter(feature_result_id=feature_result_id).update(**update_data)
             return JsonResponse({'success': True}, status=202)
         return JsonResponse({'success': False, 'error': 'No step_result_id specified'}, status=406)
 

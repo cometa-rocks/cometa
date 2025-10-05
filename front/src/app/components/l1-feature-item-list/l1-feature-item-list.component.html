@@ -227,28 +227,33 @@ Author: dph000
         *ngIf="item.reference?.send_mail || item.reference?.send_telegram_notification || true">
         
         <!-- edit-feature-button -->
-        <button stopPropagation mat-icon-button (click)="_sharedActions.openEditFeature(item.id, 'edit')" matTooltip="Edit {{ item.name }}" matTooltipPosition="above" class="edit-feature-button">
-          <mat-icon class="edit-feature-icon">edit</mat-icon>
+        <button 
+          class="edit-feature-button" 
+          stopPropagation mat-icon-button 
+          (click)="_sharedActions.openEditFeature(item.id, 'edit')" 
+          matTooltip="Edit {{ item.name }}" 
+          matTooltipPosition="above">
+          <i class="material-icons">edit</i>
         </button>
         
         <!-- Email notification icon -->
         <div
+          class="notification-icon"
           stopPropagation
           *ngIf="item.reference?.send_mail && item.reference?.email_address && item.reference?.email_address.length > 0"
-          class="notification-icon email-notification"
           [matTooltip]="getEmailTooltip()"
           matTooltipPosition="above">
-          <mat-icon class="notification-icon-material">email</mat-icon>
+          <i class="material-icons">email</i>
         </div>
         
         <!-- Telegram notification icon -->
         <div
+          class="notification-icon"
           stopPropagation
           *ngIf="item.reference?.send_telegram_notification"
-          class="notification-icon telegram-notification"
           [matTooltip]="getTelegramTooltip()"
           matTooltipPosition="above">
-          <mat-icon class="notification-icon-material">chat</mat-icon>
+          <i class="material-icons">chat</i>
         </div>
       </div>
 

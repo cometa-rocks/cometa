@@ -424,6 +424,14 @@ def done(*_args, **_kwargs):
 
             # run the step inside try/except syntax to avoid crashes
             try:
+                # Check if feature was aborted before executing step
+                # Import the global variable from environment
+                from environment import _feature_aborted
+                if _feature_aborted:
+                    logger.warn("Feature was aborted during step execution, raising 'aborted' exception")
+                    logger.debug(f"Feature aborted status: {_feature_aborted}")
+                    raise Exception("'aborted'")
+                
                 # reset the step_error field in context
                 if hasattr(args[0], "step_error"):
                     del args[0].step_error
@@ -602,7 +610,9 @@ def done(*_args, **_kwargs):
 
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
-                logger.debug("Checking if feature was aborted: " + str(aborted))
+                if aborted:
+                    logger.warn("Feature was aborted, this should result in Canceled status")
+                    raise err
 
                 # check the continue on failure hierarchy
                 continue_on_failure = False  # default value
@@ -946,7 +956,7 @@ def _async_process_screen_shot(
 # add timestamp to the image using the imagemagic cli
 def addTimestampToImage(image, path=None):
     logger.debug(f"Adding timestamp to: {path}/{image}")
-    cmd = f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
+    cmd = f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -box 'RGBA(0,0,0,0.7)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
     status = subprocess.call(cmd, shell=True, env={})
     if status != 0:
         logger.error("Something happend during the timestamp watermark.")

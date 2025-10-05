@@ -11,16 +11,100 @@
     (blur)="onInputBlur()"/>
   </mat-form-field>
 </div>
-<network-paginated-list
-  listId="admin_accounts"
-  [endpointUrl]="accountsUrl$ | async"
-  [noItemsTemplate]="noItemsFound"
-  [injectIndex]="true"
-  [itemTemplate]="listItem"
-  [showToolbar]="false">
-  <ng-template #listItem let-item>
-    <account [account]="item"></account>
-  </ng-template>
-  <ng-template #noItemsFound>No accounts found with this term.</ng-template>
-</network-paginated-list>
+
+<!-- Use mtx-grid directly with data from API -->
+<ng-container *ngLet="(data$ | async) as table">
+  <div class="table_container">
+    <!-- Loading spinner: keep visible until there are rows -->
+    <div *ngIf="(isLoading$ | async) || !(table?.rows?.length)" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p class="loading-text">Loading accounts...</p>
+    </div>
+    
+    <!-- Table content -->
+    <mtx-grid
+      *ngIf="!(isLoading$ | async) && (table?.rows?.length)"
+      [data]="table?.rows || []"
+      [columns]="columns"
+      [showToolbar]="true"
+      [sortOnFront]="true"
+      [sortDisableClear]="true"
+      [sortDisabled]="false"
+      [pageIndex]="currentPageIndex"
+      [pageSize]="currentPageSize"
+      [sortActive]="getSavedSort('active')"
+      [sortDirection]="getSavedSort('direction')"
+      [multiSelectable]="multiSelectable"
+      [rowSelectable]="rowSelectable"
+      [columnHideable]="columnHideable"
+      [columnHideableChecked]="columnHideableChecked"
+      [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+      [columnMovable]="columnMovable"
+      [showColumnMenuHeader]="true"
+      [columnMenuHeaderText]="'Columns Settings'"
+      (columnChange)="saveColumnSettings($event)"
+      sortStart="asc"
+      [pageOnFront]="false"
+      [length]="table?.total || 0"
+      (page)="storePagination($event)"
+      (sortChange)="onSortChange($event)"
+      [cellTemplate]="{
+        actions: actionsTpl,
+        name: nameTpl,
+        email: emailTpl,
+        permission_name: permissionTpl,
+        created_on: createdTpl,
+        last_login: lastLoginTpl
+      }"
+      [pageSizeOptions]="getPageSizeOptions()"
+      >
+    </mtx-grid>
+  </div>
+</ng-container>
+
+
+<!-- Cell templates for mtx-grid -->
+<ng-template #actionsTpl let-row let-index="index" let-col="colDef" class="actions">
+  <div class="actions-cell">
+    <button 
+      *ngIf="canEditAccount$ | async"
+      mat-icon-button 
+      matTooltip="Edit user"
+      matTooltipPosition="above"
+      (click)="editAccount(row)"
+      class="edit-button">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button 
+      *ngIf="canDeleteAccount$ | async"
+      mat-icon-button 
+      matTooltip="Delete user"
+      matTooltipPosition="above"
+      (click)="deleteAccount(row)"
+      class="delete-button">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #nameTpl let-row let-index="index" let-col="colDef" class="name">
+  <span class="name-text">{{ row.name }}</span>
+</ng-template>
+
+<ng-template #emailTpl let-row let-index="index" let-col="colDef">
+  <span class="email-text">{{ row.email }}</span>
+</ng-template>
+
+<ng-template #permissionTpl let-row let-index="index" let-col="colDef">
+  <span class="permission-text">{{ row.permission_name }}</span>
+</ng-template>
+
+<ng-template #createdTpl let-row let-index="index" let-col="colDef">
+  <span class="date-text">{{ row.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</span>
+</ng-template>
+
+<ng-template #lastLoginTpl let-row let-index="index" let-col="colDef">
+  <span class="date-text">{{ row.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</span>
+</ng-template>
+
 <br /><br /><br /><br />
