@@ -243,6 +243,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.108",
+      "date": "2025-10-06",
+      "improved": [
+        {
+          "title": "Feature actions improvements - #6949",
+          "description": "Feature actions improvements, now it's more responsive."
+        }
+      ]
+    },
+    {
       "version": "3.0.107",
       "date": "2025-10-03",
       "features": [
