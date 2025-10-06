@@ -338,19 +338,38 @@
       background-color: rgba($blue, 0.75);
     }
   }
+  .header.version { margin-left: 0; }
+  .header.version .title .version-pill {
+    display: inline-block;
+    background-color: $version-pill-color;
+    color: $triple-f-white;
+    padding: 8px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
   ul {
     display: block;
     padding-left: 20px;
     li {
       list-style-type: none;
-      margin: 10px 0;
+      margin: 20px 0;
       line-height: 25px;
       strong {
         color: $blue;
       }
-      &:before {
-        content: '• ';
-        color: $blue;
+      .badge {
+        display: inline-block;
+        margin-right: 6px;
+        color: $triple-f-white;
+        padding: 1px 6px;
+        border-radius: 5px;
+        width: 90px;
+        text-align: center;
+        &.feature { background-color: $blue; }
+        &.bugfix { background-color: $red; }
+        &.improved { background-color: $success; }
+        &.security { background-color: $security-color; }
+        &.breaking { background-color: $orange; }
       }
     }
   }

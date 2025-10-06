@@ -112,6 +112,15 @@
     "latest_browser": "Se utilizará automáticamente la última versión estable de este navegador",
     "invalid_edit_form": "Hemos encontrado errores en el formulario, por favor, corríjalos antes de guardar"
   },
+  "whats_new": {
+    "title": "WHAT'S NEW",
+    "new_features": "New features",
+    "bugfixes": "Bugfixes",
+    "improved": "Mejoras",
+    "security": "Seguridad",
+    "breaking_changes": "Breaking",
+    "close": "Cerrar"
+  },
   "paginator": {
     "items": "Elementos por página",
     "next": "Siguiente página",

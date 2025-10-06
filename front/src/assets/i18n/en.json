@@ -250,4 +250,14 @@
   "changelog": {
     "close": "To close dialog press: ESC"
   }
+  ,
+  "whats_new": {
+    "title": "WHAT'S NEW",
+    "new_features": "New features",
+    "bugfixes": "Bugfixes",
+    "improved": "Improved",
+    "security": "Security",
+    "breaking_changes": "Breaking",
+    "close": "Close"
+  }
 }

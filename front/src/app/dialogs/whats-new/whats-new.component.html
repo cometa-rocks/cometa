@@ -8,31 +8,92 @@
 <mat-dialog-content>
   <img class="poster" [src]="poster" />
   <div class="body">
-    <!-- New Features -->
-    <ng-container *ngIf="changes.feature && changes.feature.length > 0">
-      <div class="header">
-        <div class="title">{{ 'whats_new.new_features' | translate }}</div>
+    <!-- Iterate versions to show -->
+    <div *ngFor="let v of versionsToShow">
+      <div class="header version">
+        <div class="title"><span class="version-pill">{{ v.version }}</span> — {{ v.date | date: 'MMMM d, y' }}</div>
         <div class="bar"></div>
       </div>
-      <ul>
-        <li *ngFor="let change of changes.feature">
-          <strong [innerHTML]="change.title | safeHtml"></strong>:&nbsp;
-          <span [innerHTML]="change.text | safeHtml">{{ change.text }}</span>
-        </li>
-      </ul>
-    </ng-container>
-    <!-- Bugfixes -->
-    <ng-container *ngIf="changes.bugfix && changes.bugfix.length > 0">
-      <div class="header">
-        <div class="title">{{ 'whats_new.bugfixes' | translate }}</div>
-        <div class="bar"></div>
-      </div>
-      <ul>
-        <li *ngFor="let change of changes.bugfix">
-          <span [innerHTML]="change.text | safeHtml"></span>
-        </li>
-      </ul>
-    </ng-container>
+
+      <!-- New Features -->
+      <ng-container *ngIf="v.features && v.features.length > 0">
+        <ul>
+          <li *ngFor="let f of v.features" class="log-item feature">
+            <span class="badge feature" [attr.aria-label]="'whats_new.new_features' | translate">{{ 'whats_new.new_features' | translate }}</span>
+            <strong [innerHTML]="f.title | safeHtml"></strong>:&nbsp;
+            <span [innerHTML]="(f.description || f.text) | safeHtml"></span>
+          </li>
+        </ul>
+      </ng-container>
+
+      <!-- Improved -->
+      <ng-container *ngIf="v.improved && v.improved.length > 0">
+        <ul>
+          <li *ngFor="let imp of v.improved" class="log-item improved">
+            <span class="badge improved" [attr.aria-label]="'whats_new.improved' | translate">{{ 'whats_new.improved' | translate }}</span>
+            <ng-container *ngIf="imp && (imp.title || imp.description || imp.text); else improvedString">
+              <strong *ngIf="imp.title" [innerHTML]="imp.title | safeHtml"></strong><span *ngIf="imp.title">:&nbsp;</span>
+              <span [innerHTML]="(imp.description || imp.text) | safeHtml"></span>
+            </ng-container>
+            <ng-template #improvedString>
+              <span [innerHTML]="imp | safeHtml"></span>
+            </ng-template>
+          </li>
+        </ul>
+      </ng-container>
+
+      <!-- Bugfixes and legacy text entries -->
+      <ng-container *ngIf="(v.bugfixes && v.bugfixes.length > 0) || (v.text && v.text.length > 0)">
+        <ul>
+          <li *ngFor="let b of v.bugfixes" class="log-item bugfix">
+            <span class="badge bugfix" [attr.aria-label]="'whats_new.bugfixes' | translate">{{ 'whats_new.bugfixes' | translate }}</span>
+            <ng-container *ngIf="b && (b.title || b.description || b.text); else bugfixString">
+              <strong *ngIf="b.title" [innerHTML]="b.title | safeHtml"></strong><span *ngIf="b.title">:&nbsp;</span>
+              <span [innerHTML]="(b.description || b.text) | safeHtml"></span>
+            </ng-container>
+            <ng-template #bugfixString>
+              <span [innerHTML]="b | safeHtml"></span>
+            </ng-template>
+          </li>
+          <li *ngFor="let t of v.text" class="log-item bugfix">
+            <span class="badge bugfix" [attr.aria-label]="'whats_new.bugfixes' | translate">{{ 'whats_new.bugfixes' | translate }}</span>
+            <span [innerHTML]="t | safeHtml"></span>
+          </li>
+        </ul>
+      </ng-container>
+
+      <!-- Security -->
+      <ng-container *ngIf="v.security && v.security.length > 0">
+        <ul>
+          <li *ngFor="let sec of v.security" class="log-item security">
+            <span class="badge security" [attr.aria-label]="'whats_new.security' | translate">{{ 'whats_new.security' | translate }}</span>
+            <ng-container *ngIf="sec && (sec.title || sec.description || sec.text); else securityString">
+              <strong *ngIf="sec.title" [innerHTML]="sec.title | safeHtml"></strong><span *ngIf="sec.title">:&nbsp;</span>
+              <span [innerHTML]="(sec.description || sec.text) | safeHtml"></span>
+            </ng-container>
+            <ng-template #securityString>
+              <span [innerHTML]="sec | safeHtml"></span>
+            </ng-template>
+          </li>
+        </ul>
+      </ng-container>
+
+      <!-- Breaking changes -->
+      <ng-container *ngIf="v.breaking && v.breaking.length > 0">
+        <ul>
+          <li *ngFor="let br of v.breaking" class="log-item breaking">
+            <span class="badge breaking" [attr.aria-label]="'whats_new.breaking_changes' | translate">{{ 'whats_new.breaking_changes' | translate }}</span>
+            <ng-container *ngIf="br && (br.title || br.description || br.text); else breakingString">
+              <strong *ngIf="br.title" [innerHTML]="br.title | safeHtml"></strong><span *ngIf="br.title">:&nbsp;</span>
+              <span [innerHTML]="(br.description || br.text) | safeHtml"></span>
+            </ng-container>
+            <ng-template #breakingString>
+              <span [innerHTML]="br | safeHtml"></span>
+            </ng-template>
+          </li>
+        </ul>
+      </ng-container>
+    </div>
   </div>
 </mat-dialog-content>
 <!-- Bottom buttons -->

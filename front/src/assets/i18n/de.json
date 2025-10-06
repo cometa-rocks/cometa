@@ -88,6 +88,15 @@
     "latest_browser": "Es wird automatisch die neueste stabile Version dieses Browsers verwendet",
     "invalid_edit_form": "Wir haben Fehler im Formular gefunden, bitte beheben Sie diese vor dem Speichern"
   },
+  "whats_new": {
+    "title": "WHAT'S NEW",
+    "new_features": "New features",
+    "bugfixes": "Bugfixes",
+    "improved": "Verbessert",
+    "security": "Sicherheit",
+    "breaking_changes": "Breaking",
+    "close": "Schließen"
+  },
   "paginator": {
     "items": "Zeilen pro Seite",
     "next": "Nächste Seite",

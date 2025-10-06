@@ -24,9 +24,10 @@ import { Tour, TourExtended, Tours } from '@services/tours';
 import { UserState } from '@store/user.state';
 import { map, Observable } from 'rxjs';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { NgIf, AsyncPipe } from '@angular/common';
+import { NgIf, AsyncPipe, DatePipe } from '@angular/common';
 import { WhatsNewService } from '@services/whats-new.service';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ConfigState } from '@store/config.state';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -37,7 +38,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   styleUrls: ['./welcome.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, LetDirective, AsyncPipe, CommonModule, MatDialogModule],
+  imports: [NgIf, LetDirective, AsyncPipe, CommonModule, MatDialogModule, DatePipe, TranslateModule],
 })
 export class WelcomeComponent {
   constructor(
@@ -80,11 +81,14 @@ export class WelcomeComponent {
   changes: LogChange[] = [];
   features: LogChange[] = [];
   bugfixes: LogChange[] = [];
+  /** Full changelog from config */
+  @ViewSelectSnapshot((state: any) => state.config.changelog) changelog: any[];
+  /** Versions to render (grouped) */
+  versionsToShow: any[] = [];
 
   ngOnInit(){
-    this.changes = this.whatsNewService.collectAllChanges();
-    this.features = this.changes.filter(change => change.type === 'feature');
-    this.bugfixes = this.changes.filter(change => change.type === 'bugfix');
+    // Show entire changelog grouped by version
+    this.versionsToShow = Array.isArray(this.changelog) ? this.changelog : [];
   }
 
   // Gets the name of the current user
