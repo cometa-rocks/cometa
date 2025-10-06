@@ -15,10 +15,8 @@
 .feature-history-container {
   position: relative;
   padding: 24px;
-  padding-bottom: 80px; // Space for fixed footer button
   max-width: 1200px;
   margin: 0 auto;
-  min-height: 100%;
 
   .header {
     margin-bottom: 32px;
@@ -93,8 +91,9 @@
   .history-timeline {
     position: relative;
     padding: 0 20px;
-    height: 725px;
-    overflow: auto;
+    max-height: calc(80vh - 160px); // 80vh minus header and padding space
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .history-entry {
       position: relative;
