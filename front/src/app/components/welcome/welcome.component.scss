@@ -320,6 +320,26 @@
   max-height: 300px;
   overflow-y: auto;
   padding-right: 15px; 
+  .filters {
+    margin: 5px 0 15px 0;
+    mat-chip-listbox {
+      ::ng-deep .mat-chip {
+        background-color: rgba($blue, 0.08);
+        color: $primary-color;
+      }
+      ::ng-deep .mat-chip.mat-chip-selected {
+        background-color: $blue;
+        color: $triple-f-white;
+      }
+    }
+  }
+  .no-filters {
+    padding: 12px 0;
+    color: $primary-color;
+    text-align: center;
+    align-content: center;
+    height: 30vh;
+  }
   .header {
     display: flex;
     align-items: center;

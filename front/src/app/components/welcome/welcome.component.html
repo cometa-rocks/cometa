@@ -39,8 +39,18 @@
       <!-- Content -->
       <div class="what-new-content">
         <div class="body">
-          <!-- Iterate changelog grouped by version (all entries) -->
-          <div *ngFor="let v of versionsToShow">
+          <div class="filters">
+            <mat-chip-listbox aria-label="Change type filters" [multiple]="true">
+              <mat-chip-option *ngFor="let f of filterTypes" [selected]="isEnabled(f.key)" (selectionChange)="onSelectionChange(f.key, $event.selected)">
+                {{ f.labelKey | translate }}
+              </mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+          <div class="no-filters" *ngIf="noFiltersSelected">
+            {{ 'whats_new.select_filter_hint' | translate }}
+          </div>
+          <!-- Iterate changelog grouped by version (filtered) -->
+          <div *ngFor="let v of filteredVersions">
             <div class="header version">
               <div class="title"><span class="version-pill">{{ v.version }}</span> — {{ v.date | date: 'MMMM d, y' }}</div>
               <div class="bar"></div>

@@ -27,6 +27,7 @@ import { LetDirective } from '../../directives/ng-let.directive';
 import { NgIf, AsyncPipe, DatePipe } from '@angular/common';
 import { WhatsNewService } from '@services/whats-new.service';
 import { CommonModule } from '@angular/common';
+import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ConfigState } from '@store/config.state';
@@ -38,7 +39,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   styleUrls: ['./welcome.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, LetDirective, AsyncPipe, CommonModule, MatDialogModule, DatePipe, TranslateModule],
+  imports: [NgIf, LetDirective, AsyncPipe, CommonModule, MatDialogModule, DatePipe, TranslateModule, MatChipsModule],
 })
 export class WelcomeComponent {
   constructor(
@@ -86,9 +87,56 @@ export class WelcomeComponent {
   /** Versions to render (grouped) */
   versionsToShow: any[] = [];
 
+  /** Filter chips */
+  readonly filterTypes = [
+    { key: 'feature', labelKey: 'whats_new.new_features' },
+    { key: 'improved', labelKey: 'whats_new.improved' },
+    { key: 'bugfix', labelKey: 'whats_new.bugfixes' },
+    { key: 'security', labelKey: 'whats_new.security' },
+    { key: 'breaking', labelKey: 'whats_new.breaking_changes' },
+  ] as const;
+
+  private readonly defaultTypes: string[] = [
+    'feature',
+    'improved',
+    'bugfix',
+    'security',
+    'breaking',
+  ];
+  selectedTypes = new Set<string>(this.defaultTypes);
+
   ngOnInit(){
     // Show entire changelog grouped by version
     this.versionsToShow = Array.isArray(this.changelog) ? this.changelog : [];
+  }
+
+  isEnabled(type: string): boolean {
+    return this.selectedTypes.has(type);
+  }
+
+  onSelectionChange(type: string, selected: boolean) {
+    if (selected) this.selectedTypes.add(type);
+    else this.selectedTypes.delete(type);
+  }
+
+  get filteredVersions(): any[] {
+    const enabled = this.selectedTypes;
+    return (this.versionsToShow || []).filter(v => {
+      if (enabled.has('feature') && Array.isArray(v.features) && v.features.length > 0) return true;
+      if (enabled.has('improved') && Array.isArray(v.improved) && v.improved.length > 0) return true;
+      if (enabled.has('bugfix')) {
+        const hasBugfixes = Array.isArray(v.bugfixes) && v.bugfixes.length > 0;
+        const hasText = Array.isArray(v.text) && v.text.length > 0;
+        if (hasBugfixes || hasText) return true;
+      }
+      if (enabled.has('security') && Array.isArray(v.security) && v.security.length > 0) return true;
+      if (enabled.has('breaking') && Array.isArray(v.breaking) && v.breaking.length > 0) return true;
+      return false;
+    });
+  }
+
+  get noFiltersSelected(): boolean {
+    return this.selectedTypes.size === 0;
   }
 
   // Gets the name of the current user
