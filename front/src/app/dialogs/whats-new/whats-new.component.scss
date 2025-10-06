@@ -83,6 +83,27 @@
 .body {
   padding: 15px;
   box-sizing: border-box;
+  min-height: 39vh;
+  .filters {
+    margin: 5px 0 15px 0;
+    mat-chip-listbox {
+      ::ng-deep .mat-chip {
+        background-color: rgba($blue, 0.08);
+        color: $primary-color;
+      }
+      ::ng-deep .mat-chip.mat-chip-selected {
+        background-color: $blue;
+        color: $triple-f-white;
+      }
+    }
+  }
+  .no-filters {
+    padding: 12px 0;
+    color: $primary-color;
+    text-align: center;
+    align-content: center;
+    height: 30vh;
+  }
   .header {
     display: flex;
     align-items: center;
@@ -154,10 +175,15 @@
 ::ng-deep .whats-new-panel .mat-dialog-container {
   padding: 0;
   border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   .mat-dialog-content {
     padding: 0;
     margin: 0;
     overflow-x: hidden;
+    flex: 1 1 auto; // grow to fill space
+    overflow-y: auto;
     @include for-tablet-portrait-up {
       max-height: 64vh;
     }
@@ -194,5 +220,7 @@
     padding: 15px;
     box-sizing: border-box;
     box-shadow: 0 0 7px rgba(black, 0.15);
+    margin-top: auto; // push to bottom of flex container
+    background: $pure-white;
   }
 }

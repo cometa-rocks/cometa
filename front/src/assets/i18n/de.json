@@ -38,8 +38,12 @@
   },
   "whats_new": {
     "title": "Neuigkeiten",
+    "select_filter_hint": "Wähle mindestens eine Kategorie aus, um Einträge zu sehen.",
     "new_features": "Neue Funktionen",
     "bugfixes": "Fehlerbeseitigung",
+    "improved": "Verbessert",
+    "security": "Sicherheit",
+    "breaking_changes": "Breaking",
     "close": "Schliessen"
   },
   "user": {

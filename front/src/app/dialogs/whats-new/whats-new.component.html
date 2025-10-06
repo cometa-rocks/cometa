@@ -8,15 +8,26 @@
 <mat-dialog-content>
   <img class="poster" [src]="poster" />
   <div class="body">
-    <!-- Iterate versions to show -->
-    <div *ngFor="let v of versionsToShow">
+    <div class="filters">
+      <mat-chip-listbox aria-label="Change type filters" [multiple]="true">
+        <mat-chip-option *ngFor="let f of filterTypes" [selected]="isEnabled(f.key)" (selectionChange)="onSelectionChange(f.key, $event.selected)">
+          {{ f.labelKey | translate }}
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+    <!-- No filters selected feedback -->
+    <div class="no-filters" *ngIf="noFiltersSelected">
+      {{ 'whats_new.select_filter_hint' | translate }}
+    </div>
+    <!-- Iterate versions to show (filtered by chips) -->
+    <div *ngFor="let v of filteredVersions">
       <div class="header version">
         <div class="title"><span class="version-pill">{{ v.version }}</span> — {{ v.date | date: 'MMMM d, y' }}</div>
         <div class="bar"></div>
       </div>
 
       <!-- New Features -->
-      <ng-container *ngIf="v.features && v.features.length > 0">
+      <ng-container *ngIf="isEnabled('feature') && v.features && v.features.length > 0">
         <ul>
           <li *ngFor="let f of v.features" class="log-item feature">
             <span class="badge feature" [attr.aria-label]="'whats_new.new_features' | translate">{{ 'whats_new.new_features' | translate }}</span>
@@ -27,7 +38,7 @@
       </ng-container>
 
       <!-- Improved -->
-      <ng-container *ngIf="v.improved && v.improved.length > 0">
+      <ng-container *ngIf="isEnabled('improved') && v.improved && v.improved.length > 0">
         <ul>
           <li *ngFor="let imp of v.improved" class="log-item improved">
             <span class="badge improved" [attr.aria-label]="'whats_new.improved' | translate">{{ 'whats_new.improved' | translate }}</span>
@@ -43,7 +54,7 @@
       </ng-container>
 
       <!-- Bugfixes and legacy text entries -->
-      <ng-container *ngIf="(v.bugfixes && v.bugfixes.length > 0) || (v.text && v.text.length > 0)">
+      <ng-container *ngIf="isEnabled('bugfix') && ((v.bugfixes && v.bugfixes.length > 0) || (v.text && v.text.length > 0))">
         <ul>
           <li *ngFor="let b of v.bugfixes" class="log-item bugfix">
             <span class="badge bugfix" [attr.aria-label]="'whats_new.bugfixes' | translate">{{ 'whats_new.bugfixes' | translate }}</span>
@@ -63,7 +74,7 @@
       </ng-container>
 
       <!-- Security -->
-      <ng-container *ngIf="v.security && v.security.length > 0">
+      <ng-container *ngIf="isEnabled('security') && v.security && v.security.length > 0">
         <ul>
           <li *ngFor="let sec of v.security" class="log-item security">
             <span class="badge security" [attr.aria-label]="'whats_new.security' | translate">{{ 'whats_new.security' | translate }}</span>
@@ -79,7 +90,7 @@
       </ng-container>
 
       <!-- Breaking changes -->
-      <ng-container *ngIf="v.breaking && v.breaking.length > 0">
+      <ng-container *ngIf="isEnabled('breaking') && v.breaking && v.breaking.length > 0">
         <ul>
           <li *ngFor="let br of v.breaking" class="log-item breaking">
             <span class="badge breaking" [attr.aria-label]="'whats_new.breaking_changes' | translate">{{ 'whats_new.breaking_changes' | translate }}</span>

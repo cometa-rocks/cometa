@@ -1,6 +1,6 @@
 {
-  "version": "3.0.107",
-  "stable_version": "3.0.107",
+  "version": "3.0.108",
+  "stable_version": "3.0.108",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.108",
+      "date": "2025-10-06",
+      "improved": [
+        {
+          "title": "Whats new dialog improvements - #6949",
+          "description": "Whats new dialog improvements, grouped by version, added improved, security and breaking changes."
+        }
+      ]
+    },
     {
       "version": "3.0.107",
       "date": "2025-10-03",

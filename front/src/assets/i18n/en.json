@@ -249,9 +249,9 @@
   },
   "changelog": {
     "close": "To close dialog press: ESC"
-  }
-  ,
+  },
   "whats_new": {
+    "select_filter_hint": "Select at least one category to display entries.",
     "title": "WHAT'S NEW",
     "new_features": "New features",
     "bugfixes": "Bugfixes",

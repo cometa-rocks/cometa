@@ -51,9 +51,13 @@
   },
   "whats_new": {
     "title": "Novedades",
+    "select_filter_hint": "Selecciona al menos una categoría para ver resultados.",
     "new_features": "Nuevas características",
     "bugfixes": "Parches de error",
-    "close": "CERRAR"
+    "improved": "Mejoras",
+    "security": "Seguridad",
+    "breaking_changes": "Cambios incompatibles",
+    "close": "Cerrar"
   },
   "websockets": {
     "Initializing": "Inicializando feature",
@@ -111,15 +115,6 @@
     "deleting_feature": "Eliminando feature",
     "latest_browser": "Se utilizará automáticamente la última versión estable de este navegador",
     "invalid_edit_form": "Hemos encontrado errores en el formulario, por favor, corríjalos antes de guardar"
-  },
-  "whats_new": {
-    "title": "WHAT'S NEW",
-    "new_features": "New features",
-    "bugfixes": "Bugfixes",
-    "improved": "Mejoras",
-    "security": "Seguridad",
-    "breaking_changes": "Breaking",
-    "close": "Cerrar"
   },
   "paginator": {
     "items": "Elementos por página",
