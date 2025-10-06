@@ -89,52 +89,58 @@ class Command(BaseCommand):
             
         # Step 2: Check embedding model using Ollama API directly
         logger.info("2. Checking embedding model...")
-        try:
-            # Get Ollama host from environment variable or use default
-            ollama_host = "http://localhost:8083"
-            diagnostics["embedding_model"]["name"] = RAG_MODEL
-            diagnostics["embedding_model"]["host"] = ollama_host
-            
-            logger.info(f"Using embedding model: {RAG_MODEL}")
-            logger.info(f"Model host: {ollama_host}")
-            
-            # Generate test embedding directly from Ollama API
-            logger.info(f"Generating test embedding for query: '{test_query}'")
-            
+        if not RAG_MODEL:
+            diagnostics["embedding_model"]["name"] = None
+            diagnostics["embedding_model"]["skipped"] = "RAG_MODEL not configured (using Chroma default embeddings)"
+            logger.info("Embedding model check skipped: using ChromaDB default embeddings.")
+            test_embedding = None
+        else:
             try:
-                response = requests.post(
-                    f"{ollama_host}/api/embeddings",
-                    json={"model": RAG_MODEL, "prompt": test_query}
-                )
+                # Get Ollama host from environment variable or use default
+                ollama_host = "http://localhost:8083"
+                diagnostics["embedding_model"]["name"] = RAG_MODEL
+                diagnostics["embedding_model"]["host"] = ollama_host
                 
-                if response.status_code != 200:
-                    raise Exception(f"Failed to get embedding: {response.text}")
+                logger.info(f"Using embedding model: {RAG_MODEL}")
+                logger.info(f"Model host: {ollama_host}")
+                
+                # Generate test embedding directly from Ollama API
+                logger.info(f"Generating test embedding for query: '{test_query}'")
+                
+                try:
+                    response = requests.post(
+                        f"{ollama_host}/api/embeddings",
+                        json={"model": RAG_MODEL, "prompt": test_query}
+                    )
                     
-                data = response.json()
-                test_embedding = data.get('embedding', [])
-                
-                # Convert to numerical array for stats
-                import numpy as np
-                test_embedding = np.array(test_embedding, dtype=np.float32)
-                
-                embedding_dim = len(test_embedding)
-                diagnostics["embedding_model"]["embedding_dimension"] = embedding_dim
-                diagnostics["embedding_model"]["embedding_stats"] = {
-                    "min": float(test_embedding.min()),
-                    "max": float(test_embedding.max()),
-                    "mean": float(test_embedding.mean())
-                }
-                
-                logger.info(f"Generated embedding with dimension: {embedding_dim}")
-                logger.info(f"Embedding stats - Min: {test_embedding.min():.4f}, Max: {test_embedding.max():.4f}, Mean: {test_embedding.mean():.4f}")
+                    if response.status_code != 200:
+                        raise Exception(f"Failed to get embedding: {response.text}")
+                        
+                    data = response.json()
+                    test_embedding = data.get('embedding', [])
+                    
+                    # Convert to numerical array for stats
+                    import numpy as np
+                    test_embedding = np.array(test_embedding, dtype=np.float32)
+                    
+                    embedding_dim = len(test_embedding)
+                    diagnostics["embedding_model"]["embedding_dimension"] = embedding_dim
+                    diagnostics["embedding_model"]["embedding_stats"] = {
+                        "min": float(test_embedding.min()),
+                        "max": float(test_embedding.max()),
+                        "mean": float(test_embedding.mean())
+                    }
+                    
+                    logger.info(f"Generated embedding with dimension: {embedding_dim}")
+                    logger.info(f"Embedding stats - Min: {test_embedding.min():.4f}, Max: {test_embedding.max():.4f}, Mean: {test_embedding.mean():.4f}")
+                    
+                except Exception as e:
+                    raise Exception(f"Error connecting to Ollama API: {str(e)}")
                 
             except Exception as e:
-                raise Exception(f"Error connecting to Ollama API: {str(e)}")
-            
-        except Exception as e:
-            diagnostics["embedding_model"]["error"] = str(e)
-            logger.error(f"Error with embedding model: {e}")
-            return
+                diagnostics["embedding_model"]["error"] = str(e)
+                logger.error(f"Error with embedding model: {e}")
+                return
             
         # Step 3: Check database
         logger.info("3. Checking database...")
