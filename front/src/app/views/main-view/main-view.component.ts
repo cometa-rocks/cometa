@@ -279,6 +279,7 @@ export class MainViewComponent implements OnInit {
   selectMobile: { [key: number]: any } = {};
   showingFiltered: boolean = false;
   buttonDisabled: boolean = false;
+  visibleColumns: MtxGridColumn[] = [];
 
   query = {
     page: 0,
@@ -509,6 +510,7 @@ export class MainViewComponent implements OnInit {
         this.getResults();
       });
       this.extractButtons();
+      this.initializeVisibleColumns();
   }
 
   // Extract buttons from mtxgridCoumns
@@ -546,6 +548,30 @@ export class MainViewComponent implements OnInit {
   checkIfThereAreFailedSteps() {
     // Disable the button if no failed steps exist, enable if there are any
     this.buttonDisabled = !this.results.some(result => result.status === 'Failed');
+  }
+
+  // Initialize visible columns for the custom column menu
+  initializeVisibleColumns() {
+    this.visibleColumns = this.columns.filter(column => 
+      column.field !== 'options' // Exclude the options column from the menu
+    );
+  }
+
+  // Toggles column visibility
+  toggleColumn(column: MtxGridColumn, event: MatCheckboxChange) {
+    // Update the column's hide property
+    column.hide = !event.checked;
+    
+    // Create a completely new columns array to force grid update
+    this.columns = this.columns.map(col => {
+      if (col.field === column.field) {
+        return { ...col, hide: !event.checked };
+      }
+      return { ...col };
+    });
+    
+    // Force change detection for OnPush strategy
+    this.cdRef.detectChanges();
   }
 
   
