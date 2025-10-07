@@ -247,7 +247,7 @@
       "date": "2025-10-07",
       "improved": [
         {
-          "title": "Improve Step View responsiveness - #6948",
+          "title": "Improve L1 and L2 View responsiveness in mobile - #6948",
           "description": "Enhanced Step View layout for better mobile responsiveness, applying a mobile-first approach to both Level 1 and Level 2 steps."
         }
       ]
