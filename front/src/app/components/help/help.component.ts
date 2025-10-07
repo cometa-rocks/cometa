@@ -73,13 +73,9 @@ export class HelpComponent {
   // Create Edit Feature
 
   ShortCreateEditFeature: Shortcut[] = [
-    { position: 1, description: 'Checkbox: Depends on other feature.', key: 'D', windows: true, mac: false },
+    // add escape
+    { position: 0, description: 'Escape: Close the dialog.', key: 'ESC', windows: true, mac: false },
     { position: 2, description: 'Checkbox: Continue on failure.', key: 'F', windows: true, mac: false },
-    { position: 3, description: 'Checkbox: Generate dataset.', key: 'G', windows: true, mac: false },
-    { position: 4, description: 'Checkbox: Ask for help.', key: 'H',  windows: true, mac: false },
-    { position: 5, description: 'Checkbox: Send mail on finish.', key: 'M', windows: true, mac: false },
-    { position: 6, description: 'Checkbox: Network logging.', key: 'N', windows: true, mac: false },
-    { position: 7, description: 'Checkbox: Record video.', key: 'R', windows: true, mac: false },
     { position: 8, description: 'Button: Edit Variables.', key: 'V', windows: true, mac: false },
     { position: 9, description: 'Button: Open Mobiles.', key: 'S', windows: true, mac: false },
     { position: 10, description: 'Button: CREATE/SAVE.', key: 'CTRL+ENTER', windows: true, mac: false },
