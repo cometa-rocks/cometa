@@ -190,7 +190,7 @@
       align-items: center;
       justify-content: center;
       line-height: 40px;
-      position: fixed;
+      position: fixed; // default: follow while scrolling
       bottom: 0;
       width: 100%;
       background-color: $table-footer-bg;
@@ -218,6 +218,13 @@
       font-weight: normal;
     }
   }
+}
+
+// Stronger selector to win specificity within mtx-grid context
+:host::ng-deep .mtx-grid.paginator-at-top .mat-mdc-paginator-container {
+  position: sticky; // at top we switch to sticky so it stops following
+  bottom: 0;
+  box-shadow: none; // remove shadow when it meets the header
 }
 
 .no-chart {

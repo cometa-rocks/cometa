@@ -310,6 +310,10 @@ export class MainViewComponent implements OnInit {
 
   featureId$: Observable<number>;
   originalResults: any[] = [];
+  // When true, paginator should switch to sticky and remove shadow
+  isPaginatorAtTop: boolean = false;
+  // Only enable sticky behavior on mobile viewports
+  isMobile: boolean = false;
 
   openContent(feature_result: FeatureResult) {
     // this.log.msg("1", "CO-featResult", "main-view", feature_result);
@@ -511,6 +515,51 @@ export class MainViewComponent implements OnInit {
       });
       this.extractButtons();
       this.initializeVisibleColumns();
+      // Initialize scroll listener to toggle paginator behavior
+      this.initPaginatorScrollToggle();
+  }
+
+  /**
+   * Toggle paginator mode: fixed with shadow when scrolling; sticky without shadow when at top
+   */
+  private initPaginatorScrollToggle() {
+    const host: HTMLElement = this.elementRef.nativeElement;
+    const updateIsMobile = () => {
+      this.isMobile = window.innerWidth <= 750; // match CSS breakpoint
+    };
+
+    updateIsMobile();
+
+    const updateState = () => {
+      // Find the table header inside mtx-grid
+      const thead: HTMLElement | null = host.querySelector('.mtx-grid table thead');
+      if (!thead) {
+        return;
+      }
+      const hostTop = host.getBoundingClientRect().top;
+      const theadTop = thead.getBoundingClientRect().top;
+      // When the table header is visible (at or below host top), switch to sticky/no shadow
+      const atTop = theadTop >= hostTop - 1;
+      const nextState = this.isMobile && atTop;
+      if (this.isPaginatorAtTop !== nextState) {
+        this.isPaginatorAtTop = nextState;
+        this.cdRef.detectChanges();
+      }
+    };
+
+    fromEvent(host, 'scroll')
+      .pipe(untilDestroyed(this))
+      .subscribe(updateState);
+
+    fromEvent(window, 'resize')
+      .pipe(untilDestroyed(this))
+      .subscribe(() => {
+        updateIsMobile();
+        updateState();
+      });
+
+    // initialize state after view paints
+    setTimeout(updateState, 0);
   }
 
   // Extract buttons from mtxgridCoumns

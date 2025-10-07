@@ -50,6 +50,7 @@
 </div>
 
 <mtx-grid
+  [ngClass]="{'paginator-at-top': isPaginatorAtTop}"
   [data]="results"
   [columns]="columns"
   [sortOnFront]="true"
