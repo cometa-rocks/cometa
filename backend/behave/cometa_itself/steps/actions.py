@@ -134,6 +134,26 @@ def step_impl(context):
     context.browser.command_executor._commands['SEND_COMMAND'] = send_command
     context.browser.execute('SEND_COMMAND', dict(cmd='Network.clearBrowserCookies', params={}))
 
+# Sends a custom telegram notification using the backend
+# Example: Send a telegram notification with message "Body text"
+@step(u'Send a telegram notification with message "{message}"')
+@done(u'Send a telegram notification with message "{message}"')
+def step_impl(context, message):
+    send_step_details(context, "Sending custom notification")
+    send_custom_notification_request(context, "telegram", message)
+    send_step_details(context, "Custom notification sent")
+
+
+# Sends a custom email notification using the backend
+# Example: Send an email notification with subject "Status" and message "Body text"
+@step(u'Send an email notification with subject "{subject}" and message "{message}"')
+@done(u'Send an email notification with subject "{subject}" and message "{message}"')
+def step_impl(context, subject, message):
+    send_step_details(context, "Sending custom notification")
+    send_custom_notification_request(context, "email", message, subject=subject)
+    send_step_details(context, "Custom notification sent")
+
+
 # Moves the mouse to the css selector and clicks
 # Example: I move mouse to "//div[contains(@routerlink, '/')]" and click
 @step(u'I move mouse to "{css_selector}" and click')

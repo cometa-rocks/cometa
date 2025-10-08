@@ -83,6 +83,62 @@ def _async_post(url, headers=None, json=None):
     _executor.submit(_task)
 
 
+def send_custom_notification_request(context, channel, message, subject=None, timeout=30):
+    """Send a custom notification (email or telegram) via the backend API."""
+    if message is None or message == "":
+        raise CustomError("Notification message cannot be empty")
+
+    normalized_channel = (channel or "").strip().lower()
+    if normalized_channel not in ("email", "telegram"):
+        raise CustomError(f"Unsupported notification channel: {channel}")
+
+    feature_result_id = os.environ.get("feature_result_id")
+    if not feature_result_id:
+        raise CustomError("Environment variable 'feature_result_id' is not available")
+
+    try:
+        feature_result_id_int = int(feature_result_id)
+    except ValueError as err:
+        raise CustomError(f"Invalid feature_result_id '{feature_result_id}': {err}") from err
+
+    payload = {
+        "feature_result_id": feature_result_id_int,
+        "channel": normalized_channel,
+        "message": message.replace("\\n", "\n") if isinstance(message, str) else message,
+    }
+    if subject:
+        payload["subject"] = subject
+
+    headers = {"Host": "cometa.local"}
+    if normalized_channel == "telegram":
+        telegram_context = getattr(context, "telegram_notification", None)
+        if telegram_context:
+            try:
+                headers["X-Telegram-Notification"] = json.dumps(telegram_context)
+            except (TypeError, ValueError) as err:
+                logger.warning(
+                    "Failed to serialize telegram_notification context: %s", err, exc_info=True
+                )
+
+    url = f"{get_cometa_backend_url()}/send_custom_notification/"
+    logger.debug("Sending custom notification via %s", url)
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
+    except requests.RequestException as err:
+        logger.error("Error while sending custom notification", exc_info=True)
+        raise CustomError(f"Failed to send {normalized_channel} notification: {err}") from err
+
+    if response.status_code != 200:
+        try:
+            response_data = response.json()
+        except ValueError:
+            response_data = response.text
+        raise CustomError(f"Backend rejected {normalized_channel} notification: {response_data}")
+
+    return response
+
+
 def takeScreenshot(device_driver, step_type="BROWSER"):
     if step_type=="BROWSER":
         logger.debug("Taking screenshot from browser")
@@ -1416,5 +1472,3 @@ def inspect_context_complete(context, logger=None, max_depth=2, current_depth=0)
     
     if current_depth == 0:
         logger.info("=== END COMPLETE CONTEXT INSPECTION ===")
-
-

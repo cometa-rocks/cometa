@@ -1,5 +1,5 @@
 {
-    "version": "10.0.14",
+    "version": "10.0.15",
     "stable_version": "10.0.14",
     "version_description": "This is the nightly version of the API. It is the version that is used in the development and staging environment.",
     "stable_version_description": "This is the stable version of the API. It is the version that is used in the production environment, It is the version that is used in the production environment after testing in the development and staging environment."

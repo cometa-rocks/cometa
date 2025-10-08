@@ -97,6 +97,9 @@ class TelegramNotificationManger:
             
             subscriptions = valid_subscriptions
             logger.info(f"After validation: {len(subscriptions)} valid subscriptions")
+
+            # Check if a custom notification payload was attached to the feature_result
+            custom_payload = getattr(feature_result, 'custom_notification', None)
             
             # Check if this was executed from Telegram by looking for telegram notification data
             is_telegram_execution = False
@@ -119,7 +122,7 @@ class TelegramNotificationManger:
                         is_telegram_execution = True
                         logger.info(f"Found telegram execution for feature {feature_result.feature_id.feature_id}, user {telegram_user_id}, chat_id: {telegram_chat_id}")
             
-            if not subscriptions and not is_telegram_execution:
+            if not subscriptions and not is_telegram_execution and not custom_payload:
                 # Fall back to old method - check if feature has Telegram notifications enabled
                 feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
                 logger.debug(f"No subscriptions found. Feature Telegram enabled setting: {feature_telegram_enabled}")
@@ -132,39 +135,39 @@ class TelegramNotificationManger:
             
             # Check maximum notification logic (similar to email implementation)
             should_send_notification = True
-            
-            if telegram_options and telegram_options.check_maximum_notification_on_error_telegram:
-                logger.debug("Checking for maximum Telegram notifications on error")
+            if not custom_payload:
+                if telegram_options and telegram_options.check_maximum_notification_on_error_telegram:
+                    logger.debug("Checking for maximum Telegram notifications on error")
+                    
+                    # Check if current feature_result is successful
+                    if feature_result.success and not telegram_options.send_on_error:
+                        # Test passed and not configured for error-only, send notification and reset counter
+                        should_send_notification = True
+                        telegram_options.number_notification_sent_telegram = 0
+                        
+                    elif feature_result.success:
+                        # Test passed but configured for error-only, don't send and reset counter
+                        should_send_notification = False
+                        telegram_options.number_notification_sent_telegram = 0
+                        
+                    # Test failed, check if we can still send notifications
+                    elif telegram_options.number_notification_sent_telegram < telegram_options.maximum_notification_on_error_telegram:
+                        telegram_options.number_notification_sent_telegram = telegram_options.number_notification_sent_telegram + 1
+                        should_send_notification = True
+                        
+                    elif telegram_options.number_notification_sent_telegram >= telegram_options.maximum_notification_on_error_telegram:
+                        should_send_notification = False
+                elif telegram_options:
+                    # Maximum notification check is disabled, reset counter
+                    telegram_options.number_notification_sent_telegram = 0
                 
-                # Check if current feature_result is successful
-                if feature_result.success and not telegram_options.send_on_error:
-                    # Test passed and not configured for error-only, send notification and reset counter
-                    should_send_notification = True
-                    telegram_options.number_notification_sent_telegram = 0
-                    
-                elif feature_result.success:
-                    # Test passed but configured for error-only, don't send and reset counter
-                    should_send_notification = False
-                    telegram_options.number_notification_sent_telegram = 0
-                    
-                # Test failed, check if we can still send notifications
-                elif telegram_options.number_notification_sent_telegram < telegram_options.maximum_notification_on_error_telegram:
-                    telegram_options.number_notification_sent_telegram = telegram_options.number_notification_sent_telegram + 1
-                    should_send_notification = True
-                    
-                elif telegram_options.number_notification_sent_telegram >= telegram_options.maximum_notification_on_error_telegram:
-                    should_send_notification = False
-            else:
-                # Maximum notification check is disabled, reset counter
-                telegram_options.number_notification_sent_telegram = 0
-            
-            # Save telegram options to persist counter changes (if they exist)
-            if telegram_options:
-                telegram_options.save()
-            
-            if not should_send_notification:
-                logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
-                return True  # Return True because this is expected behavior, not an error
+                # Save telegram options to persist counter changes (if they exist)
+                if telegram_options:
+                    telegram_options.save()
+                
+                if not should_send_notification:
+                    logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
+                    return True  # Return True because this is expected behavior, not an error
             
             # Determine bot token and chat IDs based on override settings
             if telegram_options and telegram_options.override_telegram_settings:
@@ -256,16 +259,30 @@ class TelegramNotificationManger:
             
             # Build message based on feature telegram settings and options
             feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
+            parse_mode = 'Markdown'
+            include_pdf = False
+            include_screenshots = False
             
-            if telegram_options and feature_telegram_enabled:
-                # Feature has telegram enabled AND has options - use configured message
-                logger.debug("Feature has telegram enabled, building message using FeatureTelegramOptions configuration")
-                message = self._build_message(feature_result, telegram_options)
+            if custom_payload:
+                message = custom_payload.get('message', '')
+                parse_mode = custom_payload.get('parse_mode', None)
+                include_pdf = custom_payload.get('attach_pdf', False)
+                include_screenshots = custom_payload.get('attach_screenshots', False)
+                logger.debug("Using custom notification payload for Telegram message")
             else:
-                # Either no options exist OR telegram is disabled for the feature - use default message
-                logger.debug(f"Using default message (telegram_enabled={feature_telegram_enabled}, has_options={telegram_options is not None})")
-                message = self._build_subscription_default_message(feature_result)
-            logger.debug("Message built successfully")
+                if telegram_options and feature_telegram_enabled:
+                    # Feature has telegram enabled AND has options - use configured message
+                    logger.debug("Feature has telegram enabled, building message using FeatureTelegramOptions configuration")
+                    message = self._build_message(feature_result, telegram_options)
+                else:
+                    # Either no options exist OR telegram is disabled for the feature - use default message
+                    logger.debug(f"Using default message (telegram_enabled={feature_telegram_enabled}, has_options={telegram_options is not None})")
+                    message = self._build_subscription_default_message(feature_result)
+                include_pdf = telegram_options.attach_pdf_report if telegram_options else False
+                include_screenshots = telegram_options.attach_screenshots if telegram_options else False
+                logger.debug("Message built successfully")
+            
+            logger.debug("Message prepared for Telegram notification")
             
             # Check if message should be sent (could be None if send_on_error is true and test passed)
             if message is None:
@@ -277,7 +294,7 @@ class TelegramNotificationManger:
             screenshot_files = []
             try:
                 # Check PDF attachment setting from the already fetched telegram_options
-                if telegram_options and telegram_options.attach_pdf_report:
+                if include_pdf:
                     pdf_file_path = self._get_pdf_report()
                     if pdf_file_path:
                         logger.debug(f"PDF report obtained: {pdf_file_path}")
@@ -287,7 +304,7 @@ class TelegramNotificationManger:
                     logger.debug("PDF attachment disabled in telegram options")
                 
                 # Try to get screenshots if feature has screenshot attachment enabled
-                if telegram_options and telegram_options.attach_screenshots:
+                if include_screenshots:
                     screenshot_files = self._get_screenshots(feature_result.feature_result_id)
                     if screenshot_files:
                         logger.debug(f"Screenshots obtained: {len(screenshot_files)} files")
@@ -309,7 +326,7 @@ class TelegramNotificationManger:
                 
                 if has_pdf and has_screenshots:
                     # Send message first, then PDF with simple caption, then screenshots
-                    message_success = self._send_message_to_chat(bot_token, chat_id, message, message_thread_id)
+                    message_success = self._send_message_to_chat(bot_token, chat_id, message, message_thread_id, parse_mode=parse_mode)
                     pdf_caption = f"📄 Test Report - {feature_result.feature_name}"
                     pdf_success = self._send_document_to_chat(bot_token, chat_id, pdf_caption, pdf_file_path, message_thread_id)
                     screenshot_success = self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files, "📸 Test Screenshots", message_thread_id)
@@ -320,7 +337,7 @@ class TelegramNotificationManger:
                         logger.error(f"Failed to send some components to chat ID: {chat_id}")
                 elif has_pdf:
                     # Send message first, then PDF with simple caption
-                    message_success = self._send_message_to_chat(bot_token, chat_id, message, message_thread_id)
+                    message_success = self._send_message_to_chat(bot_token, chat_id, message, message_thread_id, parse_mode=parse_mode)
                     pdf_caption = f"📄 Test Report - {feature_result.feature_name}"
                     pdf_success = self._send_document_to_chat(bot_token, chat_id, pdf_caption, pdf_file_path, message_thread_id)
                     if message_success and pdf_success:
@@ -339,7 +356,7 @@ class TelegramNotificationManger:
                         logger.error(f"Failed to send screenshots to chat ID: {chat_id}")
                 else:
                     # Send text-only message
-                    if self._send_message_to_chat(bot_token, chat_id, message, message_thread_id):
+                    if self._send_message_to_chat(bot_token, chat_id, message, message_thread_id, parse_mode=parse_mode):
                         success_count += 1
                         logger.debug(f"Successfully sent message to chat ID: {chat_id}")
                     else:
@@ -984,7 +1001,7 @@ class TelegramNotificationManger:
             logger.error(f"Unexpected error sending Telegram document to chat ID {chat_id}: {str(e)}")
             return False
 
-    def _send_message_to_chat(self, bot_token, chat_id, message, message_thread_id=None):
+    def _send_message_to_chat(self, bot_token, chat_id, message, message_thread_id=None, parse_mode='Markdown'):
         """
         Send a message to a specific Telegram chat
         
@@ -993,6 +1010,7 @@ class TelegramNotificationManger:
             chat_id (str): Telegram chat ID
             message (str): Message to send
             message_thread_id (int, optional): Thread ID for group chats with topics
+            parse_mode (str, optional): Telegram parse mode ('Markdown', 'HTML', or None)
         
         Returns:
             bool: True if message sent successfully, False otherwise
@@ -1003,8 +1021,9 @@ class TelegramNotificationManger:
         payload = {
             'chat_id': chat_id,
             'text': message,
-            'parse_mode': 'Markdown'
         }
+        if parse_mode:
+            payload['parse_mode'] = parse_mode
 
         # Add message thread ID if provided
         if message_thread_id is not None:
@@ -1170,4 +1189,3 @@ class NotificationManger:
             bool: True if notification sent successfully, False otherwise
         """
         return self.notification_manger.send_message(feature_result)
-
