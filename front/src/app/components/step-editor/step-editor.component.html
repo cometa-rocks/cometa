@@ -16,10 +16,9 @@
     <mat-checkbox
       (change)="selectAllEnable($event)"
       [checked]="isAllEnabled()"
-      [matTooltip]="'step_editor.all_steps' | translate"
-      matTooltipPosition="above"
       color="primary"
-      class="select-all checkbox-blue"></mat-checkbox>
+      class="select-all checkbox-blue amv_custom-tooltip"
+      [attr.data-tooltip]="'step_editor.all_steps' | translate"></mat-checkbox>
   </div>
   <div class="screenshot">
     <span class="desktop">Screenshot</span>
@@ -27,10 +26,9 @@
     <mat-checkbox
       (change)="selectAllScreenshot($event)"
       [checked]="isAllScreenshot()"
-      [matTooltip]="'step_editor.all_screenshots' | translate"
-      matTooltipPosition="above"
       color="primary"
-      class="select-all checkbox-blue"></mat-checkbox>
+      class="select-all checkbox-blue amv_custom-tooltip"
+      [attr.data-tooltip]="'step_editor.all_screenshots' | translate"></mat-checkbox>
   </div>
   <div class="compare">
     <span class="desktop">Compare</span>
@@ -38,10 +36,9 @@
     <mat-checkbox
       (change)="selectAllCompare($event)"
       [checked]="isAllCompare()"
-      [matTooltip]="'step_editor.all_compare' | translate"
-      matTooltipPosition="above"
       color="primary"
-      class="select-all checkbox-blue"></mat-checkbox>
+      class="select-all checkbox-blue amv_custom-tooltip"
+      [attr.data-tooltip]="'step_editor.all_compare' | translate"></mat-checkbox>
   </div>
   <div class="select-step">
     <span class="desktop">Select</span>
@@ -50,10 +47,9 @@
       (change)="toggleSelectAllSteps($event)"
       [checked]="areAllStepsSelected()"
       color="primary"
-      class="select-all checkbox-blue"
+      class="select-all checkbox-blue amv_custom-tooltip"
       aria-label="Select all steps"
-      [matTooltip]="'step_editor.select_all_steps' | translate"
-      matTooltipPosition="above">
+      [attr.data-tooltip]="'step_editor.select_all_steps' | translate">
     </mat-checkbox>
   </div>
   <div class="step">Step Description</div>
@@ -65,9 +61,8 @@
     <div class="desktop">Actions</div>
     <div class="mobile"><i></i></div>
     <i 
-      class="documentation-icon material-icons"
-      [matTooltip]="'Toggle all step documentation'"
-      matTooltipPosition="above"
+      class="documentation-icon material-icons amv_custom-tooltip"
+      [attr.data-tooltip]="'Toggle all step documentation'"
       (click)="toggleAllDocumentation()">
       {{ areAllDocumentationVisible() ? 'visibility_off' : 'visibility' }}
     </i>
@@ -78,7 +73,8 @@
   <ng-template contextMenuItem let-item>
     <div
       (click)="addEmpty(item, true)"
-      [matTooltip]="'step-definition.insert-new-above' | translate" matTooltipPosition="right">
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'step-definition.insert-new-above' | translate">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
     </div>
@@ -86,7 +82,8 @@
   <ng-template contextMenuItem let-item>
     <div
       (click)="addEmpty(item + 1, true)"
-      [matTooltip]="'step-definition.insert-new-below' | translate" matTooltipPosition="right">
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'step-definition.insert-new-below' | translate">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
     </div>
@@ -94,7 +91,8 @@
   <ng-template contextMenuItem let-item>
     <div
       (click)="copyItem(item, 'up')"
-      [matTooltip]="'step-definition.copy-new-above' | translate" matTooltipPosition="right">
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'step-definition.copy-new-above' | translate">
       <mat-icon>unarchive</mat-icon>
       <span>Copy step above</span>
     </div>
@@ -102,7 +100,8 @@
   <ng-template contextMenuItem let-item>
     <div
       (click)="copyItem(item + 1, 'down')"
-      [matTooltip]="'step-definition.copy-new-below' | translate" matTooltipPosition="right">
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'step-definition.copy-new-below' | translate">
       <mat-icon>archive</mat-icon>
       <span>Copy step below</span>
     </div>
@@ -110,17 +109,16 @@
   <ng-template contextMenuItem let-item>
     <div 
       *ngIf="isApiCallStep(item)"
-      [matTooltip]="'Edit current API Call'"
-      matTooltipPosition="right"
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'Edit current API Call'"
       (click)="editApiCall(item)">
       <mat-icon class="edit">edit</mat-icon>
       <span>Edit API Call</span>
     </div>
     <div 
       *ngIf="!isApiCallStep(item)"
-      [matTooltip]="'Only available for API call steps'"
-      matTooltipPosition="right"
-      class="disabled-menu-item">
+      class="amv_custom-tooltip disabled-menu-item"
+      [attr.data-tooltip]="'Only available for API call steps'">
       <mat-icon class="edit">edit</mat-icon>
       <span>Edit API Call</span>
     </div>
@@ -135,16 +133,15 @@
     <div 
       *ngIf="canPasteSteps()"
       (click)="pasteSteps(item)"
-      [matTooltip]="'step_editor.paste_steps_here' | translate" 
-      matTooltipPosition="right">
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'step_editor.paste_steps_here' | translate">
       <mat-icon matBadge="{{ clipboardSteps.length }}" matBadgeColor="primary">archive</mat-icon>
       <span>Paste steps here</span>
     </div>
     <div 
       *ngIf="!canPasteSteps()"
-      [matTooltip]="'No steps in clipboard to paste'"
-      matTooltipPosition="right"
-      class="disabled-menu-item">
+      class="amv_custom-tooltip disabled-menu-item"
+      [attr.data-tooltip]="'No steps in clipboard to paste'">
       <mat-icon>archive</mat-icon>
       <span>Paste steps here</span>
     </div>
@@ -153,16 +150,15 @@
     <div 
       *ngIf="hasSelectedSteps()"
       (click)="deleteSelectedSteps()"
-      [matTooltip]="'step_editor.delete_selected_steps' | translate" 
-      matTooltipPosition="right">
+      class="amv_custom-tooltip"
+      [attr.data-tooltip]="'step_editor.delete_selected_steps' | translate">
       <mat-icon matBadge="{{ getSelectedStepsCount() }}" matBadgeColor="warn" class="delete">delete_sweep</mat-icon>
       <span>Delete selected steps</span>
     </div>
     <div 
       *ngIf="!hasSelectedSteps()"
-      [matTooltip]="'No steps selected to delete'"
-      matTooltipPosition="right"
-      class="disabled-menu-item">
+      class="amv_custom-tooltip disabled-menu-item"
+      [attr.data-tooltip]="'No steps selected to delete'">
       <mat-icon class="delete">delete_sweep</mat-icon>
       <span>Delete selected steps</span>
     </div>
@@ -205,29 +201,26 @@
                 formControlName="screenshot"
                 aria-label="Screenshot"
                 color="primary"
-                class="screenshot checkbox-blue"
+                class="screenshot checkbox-blue amv_custom-tooltip"
                 (click)="onScreenshotCheckboxClick($event, i)"
                 (change)="screenshotChange($event, i)"
-                [matTooltip]="'step_editor.screenshot_disabled' | translate"
-                matTooltipPosition="above"></mat-checkbox>
+                [attr.data-tooltip]="'step_editor.screenshot_disabled' | translate"></mat-checkbox>
               <mat-checkbox
                 formControlName="compare"
                 aria-label="Compare"
                 color="primary"
-                class="compare checkbox-blue"
+                class="compare checkbox-blue amv_custom-tooltip"
                 (click)="onCompareCheckboxClick($event, i)"
                 (change)="onCompareChange($event, i)"
-                [matTooltip]="'step_editor.compare_enabled' | translate"
-                matTooltipPosition="above"></mat-checkbox>
+                [attr.data-tooltip]="'step_editor.compare_enabled' | translate"></mat-checkbox>
               <mat-checkbox
                 formControlName="selected"
                 color="primary"
-                class="select-step checkbox-blue"
+                class="select-step checkbox-blue amv_custom-tooltip"
                 aria-label="Select step"
                 (click)="onSelectCheckboxClick($event, i)"
                 (change)="onSelectStepChange($event, i)"
-                [matTooltip]="'step_editor.select_step_tooltip' | translate"
-                matTooltipPosition="above"></mat-checkbox>
+                [attr.data-tooltip]="'step_editor.select_step_tooltip' | translate"></mat-checkbox>
               <div class="prefix">
                 <mat-select formControlName="step_keyword">
                   <mat-option
@@ -299,10 +292,9 @@
               <div class="custom-autocomplete-header">
                 <span class="custom-autocomplete-title">Variables</span>
                 <button 
-                  class="variable-close-btn" 
+                  class="variable-close-btn amv_custom-tooltip" 
                   (click)="closeVariableDropdown()"
-                  [matTooltip]="'changelog.close' | translate"
-                  matTooltipPosition="above">
+                  [attr.data-tooltip]="'changelog.close' | translate">
                   <i class="material-icons">close</i>
                 </button>
               </div>
@@ -345,18 +337,16 @@
           <div class="status-container">
             <i
               *ngIf="step.get('step_content').errors?.invalidStep"
-              class="invalid-sign"
-              matTooltip="Invalid step definition"
-              matTooltipPosition="above">
+              class="invalid-sign amv_custom-tooltip"
+              [attr.data-tooltip]="'Invalid step definition'">
               <div class="little-icon">
                 <i class="material-icons">error</i>
               </div>
             </i>
             <i
               *ngIf="step.get('timeout').errors?.max"
-              class="invalid-sign"
-              matTooltip="Step timeout is invalid, maximum value for timeout is 7200."
-              matTooltipPosition="above">
+              class="invalid-sign amv_custom-tooltip"
+              [attr.data-tooltip]="'Step timeout is invalid, maximum value for timeout is 7200.'">
               <div class="little-icon">
                 <i class="material-icons">watch_later</i>
               </div>
@@ -367,29 +357,26 @@
                   importedSteps.length > 0 && step.value.step_content
                     | checkDuplicate: importedSteps
                 "
-                class="duplicate-step-sign"
-                matTooltip="This step definition has been found inside an import"
-                matTooltipPosition="above">  
+                class="duplicate-step-sign amv_custom-tooltip"
+                [attr.data-tooltip]="'This step definition has been found inside an import'">  
                 <div class="little-icon">
                   <i class="material-icons">pin</i>
                 </div>
               </i>
             </ng-container>
             <i 
-              class="feature-link-sign material-icons"
+              class="feature-link-sign material-icons amv_custom-tooltip"
               [style.display]="step.get('step_content').value?.includes('Run feature with') ? 'flex' : 'none'"
               [style.opacity]="stepStates[i]?.showLinkIcon && stepStates[i]?.featureId ? '1' : '0.5'"
-              [matTooltip]="(stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? ('step_editor.feature_link_tooltip' | translate) : ('step_editor.feature_link_not_found' | translate)"
-              matTooltipPosition="above"
+              [attr.data-tooltip]="(stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? ('step_editor.feature_link_tooltip' | translate) : ('step_editor.feature_link_not_found' | translate)"
               (click)="navigateToFeature(stepStates[i]?.featureId)">
               link
             </i>
           </div>
           <div class="actions-container">
             <i 
-              class="documentation-icon material-icons"
-              [matTooltip]="'Toggle step documentation'"
-              matTooltipPosition="above"
+              class="documentation-icon material-icons amv_custom-tooltip"
+              [attr.data-tooltip]="'Toggle step documentation'"
               (click)="toggleStepDocumentation(i)">
               {{ stepVisible[i] ? 'visibility_off' : 'visibility' }}
             </i>
@@ -412,11 +399,13 @@
                   [matTooltipDisabled]="!disabled"
                   color="primary"
                   formControlName="continue_on_failure"
+                  class="amv_custom-tooltip"
+                  [attr.data-tooltip]="disabled ? ('continue_on_failure.tooltip' | translate) : ''"
                   >Continue on failure</mat-checkbox
                 >
               </ng-container>
             </button>
-            <button
+            <button 
               type="button"
               class="custom-timeout"
               mat-menu-item
@@ -484,21 +473,19 @@
                 <i
                   (click)="importClipboardStepDoc(stepsDocumentation[i]?.examples)"
                   [ngClass]="{ active: isIconActive[i] }"
-                  class="material-icons copyClipboardIcon"
+                  class="material-icons copyClipboardIcon amv_custom-tooltip"
                   [color]="isIconActive[i] ? 'primary' : ''"
-                  matTooltip="Copy the example"
-                  matTooltipPosition="above">
+                  [attr.data-tooltip]="'Copy the example'">
                   content_copy
                 </i>
               </div>
               <div class="contentCopy">
                 <a
-                  class="linkTo"
+                  class="linkTo amv_custom-tooltip"
                   href="https://github.com/cometa-rocks/cometa_documentation/blob/main/docs/user/cometa_actions.md"
                   target="_blank"
                   rel="Link cometa documentation"
-                  matTooltip="Open Cometa documentation"
-                  matTooltipPosition="above">
+                  [attr.data-tooltip]="'Open Cometa documentation'">
                   <i 
                     class="material-icons linkToSteps">
                     link
@@ -636,10 +623,9 @@
   <div class="custom-autocomplete-header">
     <span class="custom-autocomplete-title">Mobiles</span>
     <button 
-      class="variable-close-btn" 
+      class="variable-close-btn amv_custom-tooltip" 
       (click)="closeMobileDropdown()"
-      [matTooltip]="'changelog.close' | translate"
-      matTooltipPosition="above">
+      [attr.data-tooltip]="'changelog.close' | translate">
       <i class="material-icons">close</i>
     </button>
   </div>
@@ -651,9 +637,8 @@
         [class.disabled]="!isMobileInteractive(mobile)"
         [class.active]="i === dropdownActiveIndex && isMobileInteractive(mobile)"
         [class.inactive]="!isMobileInteractive(mobile)"
-        [matTooltip]="mobile.service_status !== 'Running' && !isSharedMobile(mobile) ? 'Start the mobile in Mobile section' : ''"
-        [matTooltipPosition]="'above'"
-        [matTooltipDisabled]="mobile.service_status === 'Running'"
+        class="amv_custom-tooltip"
+        [attr.data-tooltip]="mobile.service_status !== 'Running' && !isSharedMobile(mobile) ? 'Start the mobile in Mobile section' : ''"
         (mouseenter)="isMobileInteractive(mobile) && (dropdownActiveIndex = i)"
         (click)="isMobileInteractive(mobile) && onMobileDropdownSelect(mobileDropdownType === 'code' ? mobile.hostname : mobile.image_name)">
         <span class="var_name">{{ mobile.image_name || mobile.mobile_image_name }}</span>
@@ -683,10 +668,9 @@
   <div class="custom-autocomplete-header">
     <span class="custom-autocomplete-title">Select File</span>
     <button 
-      class="file-path-close-btn" 
+      class="file-path-close-btn amv_custom-tooltip" 
       (click)="closeFilePathAutocomplete()"
-      [matTooltip]="'changelog.close' | translate"
-      matTooltipPosition="above">
+      [attr.data-tooltip]="'changelog.close' | translate">
       <i class="material-icons">close</i>
     </button>
   </div>
