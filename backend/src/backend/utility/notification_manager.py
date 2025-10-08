@@ -169,8 +169,39 @@ class TelegramNotificationManger:
                     logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
                     return True  # Return True because this is expected behavior, not an error
             
-            # Determine bot token and chat IDs based on override settings
-            if telegram_options and telegram_options.override_telegram_settings:
+            # Check if custom Telegram settings are provided (from custom notification step)
+            custom_bot_token = custom_payload.get('custom_bot_token') if custom_payload else None
+            custom_chat_id = custom_payload.get('custom_chat_id') if custom_payload else None
+            custom_thread_id = custom_payload.get('custom_thread_id') if custom_payload else None
+            
+            # Determine bot token and chat IDs based on custom settings, then override settings, then global
+            if custom_bot_token or custom_chat_id:
+                logger.debug("Using custom Telegram settings from notification step")
+                
+                # Use custom bot token if provided, otherwise fall back to global
+                bot_token = custom_bot_token.strip() if custom_bot_token else global_bot_token
+                if not bot_token:
+                    logger.warning("No bot token available (neither custom nor global)")
+                    return False
+                
+                # Use custom chat ID if provided
+                if not custom_chat_id:
+                    logger.warning("Custom Telegram settings provided but no custom chat ID specified")
+                    return False
+                
+                # Parse custom chat ID (can be single or comma-separated)
+                chat_ids = [chat_id.strip() for chat_id in str(custom_chat_id).split(',') if str(chat_id).strip()]
+                if not chat_ids:
+                    logger.warning("No valid custom Telegram chat IDs found")
+                    return False
+                
+                logger.debug(f"Using custom chat IDs: {chat_ids}")
+                
+                # Use custom thread ID if provided
+                message_thread_id = int(custom_thread_id) if custom_thread_id else None
+                logger.debug(f"Custom message thread ID: {message_thread_id}")
+                
+            elif telegram_options and telegram_options.override_telegram_settings:
                 logger.debug("Using override Telegram settings for this feature")
                 
                 # Use override bot token if provided, otherwise fall back to global

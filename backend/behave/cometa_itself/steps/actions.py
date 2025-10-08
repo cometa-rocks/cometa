@@ -134,8 +134,33 @@ def step_impl(context):
     context.browser.command_executor._commands['SEND_COMMAND'] = send_command
     context.browser.execute('SEND_COMMAND', dict(cmd='Network.clearBrowserCookies', params={}))
 
-# Sends a custom telegram notification using the backend
-# Example: Send a telegram notification with message "Body text"
+# Sends a Telegram message with custom bot token, chat ID, or thread ID. Use this to send notifications to specific Telegram chats or use a different bot than the default.
+# Example:
+#   Send a telegram notification with message "Build status: $result" with settings "bot_token:your_token_here;chat_id:123456789;thread_id:10"
+@step(u'Send a telegram notification with message "{message}" with settings "{settings}"')
+@done(u'Send a telegram notification with message "{message}" with settings "{settings}"')
+def step_impl_with_settings(context, message, settings):
+    send_step_details(context, "Sending custom notification")
+    bot_token = None
+    chat_id = None
+    thread_id = None
+    if settings:
+        setting_parts = settings.split(';')
+        for part in setting_parts:
+            part = part.strip()
+            if part.startswith('bot_token:'):
+                bot_token = part[10:].strip()
+            elif part.startswith('chat_id:'):
+                chat_id = part[8:].strip()
+            elif part.startswith('thread_id:'):
+                thread_id = part[10:].strip()
+    send_custom_notification_request(context, "telegram", message, telegram_bot_token=bot_token, telegram_chat_id=chat_id, telegram_thread_id=thread_id)
+    send_step_details(context, "Custom notification sent")
+
+
+# Sends a Telegram message using the configured bot and subscribers. The message supports variable replacement like $feature_name, $result, $execution_time, etc.
+# Example:
+#   Send a telegram notification with message "Alert: Test failed!\nExecution time: $execution_time", Variable result: $result_var
 @step(u'Send a telegram notification with message "{message}"')
 @done(u'Send a telegram notification with message "{message}"')
 def step_impl(context, message):
@@ -143,18 +168,17 @@ def step_impl(context, message):
     send_custom_notification_request(context, "telegram", message)
     send_step_details(context, "Custom notification sent")
 
-
-def _send_email_notification_impl(context, subject, message, recipients=None):
-    """Helper function for sending email notifications with optional recipients"""
+# Sends an email with custom TO, CC, and BCC recipients. Use this to override the feature's configured email recipients and send to specific addresses.
+# Example:
+#   Send an email notification with subject "Status Update" and message "Test: $feature_name\nResult: $result" with recipients "to:qa@example.com;cc:dev@example.com;bcc:audit@example.com"
+@step(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
+@done(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
+def step_impl_with_recipients(context, subject, message, recipients):
     send_step_details(context, "Sending custom notification")
-    
-    # Parse recipients if provided
     to = None
     cc = None
     bcc = None
-    
     if recipients:
-        # Parse recipients string format: "to:email1,email2;cc:email3;bcc:email4"
         recipient_parts = recipients.split(';')
         for part in recipient_parts:
             part = part.strip()
@@ -164,25 +188,18 @@ def _send_email_notification_impl(context, subject, message, recipients=None):
                 cc = part[3:].strip()
             elif part.startswith('bcc:'):
                 bcc = part[4:].strip()
-    
     send_custom_notification_request(context, "email", message, subject=subject, to=to, cc=cc, bcc=bcc)
     send_step_details(context, "Custom notification sent")
 
-
-# Send an email notification with subject "Status" and message "Body text" with recipients "to:user@test.com;cc:manager@test.com;bcc:audit@test.com"
-# IMPORTANT: Register the more specific pattern FIRST to avoid ambiguous step errors
-@step(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
-@done(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
-def step_impl_with_recipients(context, subject, message, recipients):
-    _send_email_notification_impl(context, subject, message, recipients)
-
-
-# Send an email notification with subject "Status" and message "Body text"
+# Sends an email using the recipients configured in the feature settings. The subject and message support variable replacement like $feature_name, $result, $execution_time, etc.
+# Example:
+#   Send an email notification with subject "Daily Report" and message "Feature: $feature_name\nDepartment: $department_name\nStatus: $result"
 @step(u'Send an email notification with subject "{subject}" and message "{message}"')
 @done(u'Send an email notification with subject "{subject}" and message "{message}"')
-def step_impl(context, subject, message):
-    _send_email_notification_impl(context, subject, message, recipients=None)
-
+def step_impl_email(context, subject, message):
+    send_step_details(context, "Sending custom notification")
+    send_custom_notification_request(context, "email", message, subject=subject)
+    send_step_details(context, "Custom notification sent")
 
 # Moves the mouse to the css selector and clicks
 # Example: I move mouse to "//div[contains(@routerlink, '/')]" and click

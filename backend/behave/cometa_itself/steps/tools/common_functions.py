@@ -83,7 +83,7 @@ def _async_post(url, headers=None, json=None):
     _executor.submit(_task)
 
 
-def send_custom_notification_request(context, channel, message, subject=None, to=None, cc=None, bcc=None, timeout=30):
+def send_custom_notification_request(context, channel, message, subject=None, to=None, cc=None, bcc=None, telegram_bot_token=None, telegram_chat_id=None, telegram_thread_id=None, timeout=30):
     """Send a custom notification (email or telegram) via the backend API.
     
     Args:
@@ -94,6 +94,9 @@ def send_custom_notification_request(context, channel, message, subject=None, to
         to: Custom TO recipients (optional, for email channel) - comma-separated emails
         cc: Custom CC recipients (optional, for email channel) - comma-separated emails
         bcc: Custom BCC recipients (optional, for email channel) - comma-separated emails
+        telegram_bot_token: Custom Telegram bot token (optional, for telegram channel)
+        telegram_chat_id: Custom Telegram chat ID (optional, for telegram channel)
+        telegram_thread_id: Custom Telegram thread ID (optional, for telegram channel)
         timeout: Request timeout in seconds
     """
     if message is None or message == "":
@@ -127,6 +130,14 @@ def send_custom_notification_request(context, channel, message, subject=None, to
         payload["cc"] = cc
     if bcc is not None:
         payload["bcc"] = bcc
+    
+    # Add custom Telegram settings if provided (for telegram channel)
+    if telegram_bot_token is not None:
+        payload["telegram_bot_token"] = telegram_bot_token
+    if telegram_chat_id is not None:
+        payload["telegram_chat_id"] = telegram_chat_id
+    if telegram_thread_id is not None:
+        payload["telegram_thread_id"] = telegram_thread_id
 
     headers = {"Host": "cometa.local"}
     if normalized_channel == "telegram":

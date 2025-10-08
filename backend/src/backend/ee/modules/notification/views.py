@@ -252,11 +252,19 @@ def send_custom_notification(request, **kwargs):
             custom_bcc=custom_bcc
         )
     else:
+        # Extract custom Telegram settings from payload (optional)
+        custom_bot_token = payload.get('telegram_bot_token')
+        custom_chat_id = payload.get('telegram_chat_id')
+        custom_thread_id = payload.get('telegram_thread_id')
+        
         feature_result.custom_notification = {
             "message": message_with_variables,
             "parse_mode": None,
             "attach_pdf": False,
-            "attach_screenshots": False
+            "attach_screenshots": False,
+            "custom_bot_token": custom_bot_token,
+            "custom_chat_id": custom_chat_id,
+            "custom_thread_id": custom_thread_id
         }
         notification_manager = NotificationManger("telegram", pdf_generated=False)
         if not notification_manager.send_message(feature_result):
