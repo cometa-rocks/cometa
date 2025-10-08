@@ -71,7 +71,7 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="fill" class="edit-name" [class.error-highlight]="highlightInput">
+            <mat-form-field appearance="fill" class="edit-name amv_custom-tooltip" [class.error-highlight]="highlightInput" [attr.data-tooltip]="'Please enter a name to create/save the feature'">
               <mat-label>Name</mat-label>
               <input
                 matInput
@@ -79,8 +79,6 @@
                 formControlName="feature_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()"
-                [matTooltip]="'Please enter a name to create/save the feature'"
-                matTooltipPosition="above"
                 />
             </mat-form-field>
             <mat-form-field appearance="fill" class="edit-description">
@@ -212,14 +210,15 @@
                 </div>
                 <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
                   <div class="button-container">
-                    <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                    <span class="edit-variables">
                       <button
                         type="button"
                         color="primary"
                         [disabled]="disableVariables"
                         (click)="editVariables()"
                         mat-stroked-button
-                        [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
+                        class="amv_custom-tooltip"
+                        [attr.data-tooltip]="disableVariables ? ('tooltips.variables_requires' | translate) : ('edit_feature.edit_variable' | translate)">
                         Edit Variables
                       </button>
                     </span>
@@ -229,7 +228,7 @@
                 
                 <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
                   <div class="button-container">
-                    <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
+                    <span class="edit-variables">
                       <div class="button-container">
                         <button
                           type="button"
@@ -237,14 +236,13 @@
                           [disabled]="disableMobile"
                           (click)="openStartEmulatorScreen()"
                           mat-stroked-button
-                          class="start-mobile-btn"
-                          [matTooltip]="'mobile_list.emulator_mobile' | translate"
-                          matTooltipPosition="above">
+                          class="start-mobile-btn amv_custom-tooltip"
+                          [attr.data-tooltip]="disableMobile ? ('tooltips.variables_requires' | translate) : ('mobile_list.emulator_mobile' | translate)">
                           Start Mobile
                         </button>
                         <mat-icon
-                          class="memberShip"
-                          [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
+                          class="memberShip amv_custom-tooltip"
+                          [attr.data-tooltip]="'To use this functionality, you need to purchase a Cometa license.'">
                           card_membership
                         </mat-icon>
                       </div>
@@ -256,60 +254,6 @@
             
             </div>
 
-            <!-- Divider -->
-            <!-- <mat-divider vertical class="section-divider"></mat-divider> -->
-
-            <!-- Buttons Section - Single Column -->
-            <!-- Moved into the Checkboxes Section -->
-            <!-- <div class="buttons-section">
-              <div class="column-header">
-                <mat-icon class="header-icon">play_arrow</mat-icon>
-                <span class="header-title">Actions</span>
-              </div>
-              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
-                <div class="button-container">
-                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                    <button
-                      type="button"
-                      color="primary"
-                      [disabled]="disableVariables"
-                      (click)="editVariables()"
-                      mat-stroked-button
-                      [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
-                      Edit Variables
-                    </button>
-                  </span>
-                  <div class="hover-box-Vshortcut">(V)</div>
-                </div>
-              </ng-container>
-              
-              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
-                <div class="button-container">
-                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
-                    <div class="button-container">
-                      <button
-                        type="button"
-                        color="primary"
-                        [disabled]="disableMobile"
-                        (click)="openStartEmulatorScreen()"
-                        mat-stroked-button
-                        class="start-mobile-btn"
-                        [matTooltip]="'mobile_list.emulator_mobile' | translate"
-                        matTooltipPosition="above">
-                        Start Mobile
-                      </button>
-                      <mat-icon
-                        class="memberShip"
-                        [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
-                        card_membership
-                      </mat-icon>
-                    </div>
-                  </span>
-                  <div class="hover-box-Vshortcut">(S)</div>
-                </div>
-              </ng-container>
-            </div>
-             -->
           </div>
 
         </ng-template>
@@ -441,24 +385,24 @@
               formControlName="check_maximum_notification_on_error"
               aria-label="Screenshot"
               color="primary"
-              [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
-              class="screenshot checkbox-blue maximum-notifications-check"
+              class="screenshot checkbox-blue maximum-notifications-check amv_custom-tooltip"
+              [attr.data-tooltip]="'edit_feature.maximum_notification_on_error' | translate"
               > Set maximum notifications on errors 
             </mat-checkbox>
             <mat-checkbox
               formControlName="do_not_use_default_template"
               aria-label="Screenshot"
               color="primary"
-              [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
-              class="screenshot checkbox-blue default_template"
+              class="screenshot checkbox-blue default_template amv_custom-tooltip"
+              [attr.data-tooltip]="'edit_feature.default_template' | translate"
               > Do not use default template 
             </mat-checkbox>
             <mat-checkbox
               formControlName="attach_pdf_report_to_email"
               aria-label="Screenshot"
               color="primary"
-              [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
-              class="screenshot checkbox-blue report_to_email"
+              class="screenshot checkbox-blue report_to_email amv_custom-tooltip"
+              [attr.data-tooltip]="'edit_feature.attach_pdf' | translate"
               > Attach PDF report to email </mat-checkbox>
             <div class="maximum-notifications-input" *ngIf="featureForm.value.check_maximum_notification_on_error">
               <mat-form-field appearance="fill" class="">
@@ -481,9 +425,8 @@
             type="button"
             (click)="openEmailHelp()"
             stopPropagation
-            [matTooltip]="'menu.help' | translate"
-            matTooltipPosition="left"
-            class="edit-feature-help-icon"
+            class="edit-feature-help-icon amv_custom-tooltip"
+            [attr.data-tooltip]="'menu.help' | translate"
             color="primary"
             mat-icon-button>
             <mat-icon>help_outline</mat-icon>
@@ -518,8 +461,8 @@
                 <mat-checkbox 
                   color="primary" 
                   formControlName="override_telegram_settings"
-                  [matTooltip]="'Override global Telegram settings for this feature only'" 
-                  matTooltipPosition="above">
+                  class="amv_custom-tooltip"
+                  [attr.data-tooltip]="'Override global Telegram settings for this feature only'">
                   Override Telegram Notification Settings
                 </mat-checkbox>
                 
@@ -628,16 +571,16 @@
                   formControlName="check_maximum_notification_on_error_telegram"
                   aria-label="Maximum Telegram notifications"
                   color="primary"
-                  [matTooltip]="'Set maximum number of Telegram notifications when errors occur'" matTooltipPosition="above"
-                  class="screenshot checkbox-blue maximum-notifications-check-telegram"
+                  class="screenshot checkbox-blue maximum-notifications-check-telegram amv_custom-tooltip"
+                  [attr.data-tooltip]="'Set maximum number of Telegram notifications when errors occur'"
                   > Set maximum notifications on errors </mat-checkbox>
 
                 <mat-checkbox
                   formControlName="do_not_use_default_template"
                   aria-label="Do not use default Telegram template"
                   color="primary"
-                  [matTooltip]="'When checked, only the custom message will be sent (no default template)'" matTooltipPosition="above"
-                  class="screenshot checkbox-blue default_template"
+                  class="screenshot checkbox-blue default_template amv_custom-tooltip"
+                  [attr.data-tooltip]="'When checked, only the custom message will be sent (no default template)'"
                   > Do not use default template </mat-checkbox>
 
                 <div class="maximum-notifications-input-telegram" *ngIf="featureForm.value.telegram_options?.check_maximum_notification_on_error_telegram">
@@ -663,9 +606,8 @@
             type="button"
             (click)="openTelegramHelp()"
             stopPropagation
-            [matTooltip]="'Telegram notification help'"
-            matTooltipPosition="left"
-            class="edit-feature-help-icon"
+            class="edit-feature-help-icon amv_custom-tooltip"
+            [attr.data-tooltip]="'Telegram notification help'"
             color="primary"
             mat-icon-button>
             <mat-icon>help_outline</mat-icon>
@@ -977,9 +919,8 @@
 
     </mat-accordion>
     <div
-      class="last-edition"
-      [matTooltip]="edition.email"
-      matTooltipPosition="after"
+      class="last-edition amv_custom-tooltip"
+      [attr.data-tooltip]="edition.email"
       *ngIf="(feature | async)?.last_edited as edition">
       <b>Last edit by:</b> {{ edition.name }} <b> on:</b> {{ (feature | async)?.last_edited_date | date:'medium' }}
     </div>
