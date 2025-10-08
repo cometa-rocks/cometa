@@ -1167,7 +1167,7 @@ mat-dialog-container draggable-window{
   .mat-expansion-panel,
   .mat-expansion-panel-header,
   .mat-expansion-panel-content {
-    overflow: visible !important;
+    overflow: visible;
   }
   
   // Specific fix for step-editor inside expansion panel
@@ -1175,16 +1175,16 @@ mat-dialog-container draggable-window{
   .mat-accordion,
   .mat-expansion-panel-body,
   .mat-expansion-panel-content {
-    overflow: visible !important;
+    overflow: visible;
   }
   
   // Fix for the specific expansion panel that contains step-editor
   .mat-expansion-panel:has(cometa-step-editor) {
-    overflow: visible !important;
+    overflow: visible;
     
     .mat-expansion-panel-body,
     .mat-expansion-panel-content {
-      overflow: visible !important;
+      overflow: visible;
     }
   }
 }
@@ -1202,12 +1202,12 @@ mat-dialog-container draggable-window{
 // Specific fix for step-editor in edit-feature dialog
 .edit-feature-panel cometa-step-editor,
 .edit-feature-panel .step-editor {
-  overflow: visible !important;
+  overflow: visible;
   
   .actions,
   .step-row,
   .mat-expansion-panel {
-    overflow: visible !important;
+    overflow: visible;
   }
 }
 
