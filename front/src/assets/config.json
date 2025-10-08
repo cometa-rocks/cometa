@@ -243,6 +243,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.108",
+      "date": "2025-10-08",
+      "improved": [
+        {
+          "title": "Help page improvements - #6958",
+          "description": "Help page improvements, updated edit-feature dialog, add shortcuts for L1 and L2, add shortcuts for Live Steps and update other ones."
+        }
+      ]
+    },
+    {
       "version": "3.0.107",
       "date": "2025-10-03",
       "features": [
