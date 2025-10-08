@@ -394,29 +394,23 @@
                   user.settings?.continue_on_failure as disabled
                 ">
                 <mat-checkbox
-                  matTooltipPosition="before"
-                  [matTooltip]="'continue_on_failure.tooltip' | translate"
-                  [matTooltipDisabled]="!disabled"
                   color="primary"
                   formControlName="continue_on_failure"
-                  class="amv_custom-tooltip"
-                  [attr.data-tooltip]="disabled ? ('continue_on_failure.tooltip' | translate) : ''"
                   >Continue on failure</mat-checkbox
                 >
               </ng-container>
             </button>
             <button 
               type="button"
-              class="custom-timeout"
+              class="custom-timeout amv_custom-tooltip"
               mat-menu-item
               stopPropagation
-              [matTooltip]="
+              [attr.data-tooltip]="
                 (step.get('step_content').value.match('I (can )?sleep')
                   ? 'tooltips.step_timeout_ignored'
                   : 'tooltips.step_timeout'
-                ) | translate
-              "
-              matTooltipPosition="left">
+                ) | translate"
+              [attr.data-position]="'after'">
               <span>Customize timeout:</span>
               <input
                 formControlName="timeout"
@@ -433,8 +427,9 @@
               type="button"
               mat-menu-item
               (click)="deleteStep(i)"
-              [matTooltip]="'tooltips.step_delete' | translate"
-              matTooltipPosition="left">
+              class="amv_custom-tooltip"
+              [attr.data-tooltip]="'tooltips.step_delete' | translate"
+              [attr.data-position]="'after'">
               <mat-icon color="warn">delete</mat-icon>Delete
             </button>
           </mat-menu>

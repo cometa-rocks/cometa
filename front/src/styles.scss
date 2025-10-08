@@ -750,6 +750,11 @@ h3 {
 
 .mat-menu-panel {
   min-height: 30px !important;
+  overflow: visible !important;
+}
+
+.mat-menu-content {
+  overflow: visible !important;
 }
 
 .mat-expansion-panel-header-description {
@@ -1164,6 +1169,46 @@ mat-dialog-container draggable-window{
   .mat-expansion-panel-content {
     overflow: visible !important;
   }
+  
+  // Specific fix for step-editor inside expansion panel
+  mat-accordion,
+  .mat-accordion,
+  .mat-expansion-panel-body,
+  .mat-expansion-panel-content {
+    overflow: visible !important;
+  }
+  
+  // Fix for the specific expansion panel that contains step-editor
+  .mat-expansion-panel:has(cometa-step-editor) {
+    overflow: visible !important;
+    
+    .mat-expansion-panel-body,
+    .mat-expansion-panel-content {
+      overflow: visible !important;
+    }
+  }
+}
+
+// Global fix for custom tooltips - ensure they can overflow their containers
+.step-editor,
+.actions,
+.step-row,
+.mat-menu-panel,
+.mat-menu-content,
+.cdk-overlay-pane {
+  overflow: visible !important;
+}
+
+// Specific fix for step-editor in edit-feature dialog
+.edit-feature-panel cometa-step-editor,
+.edit-feature-panel .step-editor {
+  overflow: visible !important;
+  
+  .actions,
+  .step-row,
+  .mat-expansion-panel {
+    overflow: visible !important;
+  }
 }
 
 // Custom tooltip styles
@@ -1215,6 +1260,7 @@ mat-dialog-container draggable-window{
 .amv_custom-tooltip:hover::after {
   opacity: 1;
   transform: translate(-50%, 0);
+  overflow: visible !important;
 }
 
 // ########## Position tooltip ##########
@@ -1262,10 +1308,27 @@ mat-dialog-container draggable-window{
 /* RIGHT */
 .amv_custom-tooltip[data-position="after"] {
   &::after {
-    left: 150%;
+    left: 100%;
     top: 50%;
     bottom: auto;
-    transform: translate(-8px, -50%);
+    transform: translate(8px, -50%);
+    white-space: nowrap;
+    max-width: 300px;
+    z-index: 100000;
+  }
+  &:hover::after {
+    transform: translate(0, -50%);
+  }
+}
+
+/* Special positioning for mat-menu items */
+.mat-menu-item.amv_custom-tooltip[data-position="after"] {
+  overflow: visible !important;
+  &::after {
+    left: 105%;
+    top: 50%;
+    bottom: auto;
+    transform: translate(8px, -50%);
   }
   &:hover::after {
     transform: translate(0, -50%);
