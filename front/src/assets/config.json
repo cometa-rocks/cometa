@@ -1,6 +1,6 @@
 {
-  "version": "3.0.107",
-  "stable_version": "3.0.107",
+  "version": "3.0.108",
+  "stable_version": "3.0.108",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.108",
+      "date": "2025-10-08",
+      "improved": [
+        {
+          "title": "Fixed issue with edit-feature dialog - #6958",
+          "description": "Fixed issue with edit-feature dialog, now it doesn't throw an error when creating a new feature."
+        }
+      ]
+    },
     {
       "version": "3.0.107",
       "date": "2025-10-03",
