@@ -83,8 +83,19 @@ def _async_post(url, headers=None, json=None):
     _executor.submit(_task)
 
 
-def send_custom_notification_request(context, channel, message, subject=None, timeout=30):
-    """Send a custom notification (email or telegram) via the backend API."""
+def send_custom_notification_request(context, channel, message, subject=None, to=None, cc=None, bcc=None, timeout=30):
+    """Send a custom notification (email or telegram) via the backend API.
+    
+    Args:
+        context: Behave context
+        channel: 'email' or 'telegram'
+        message: Notification message
+        subject: Email subject (optional, for email channel)
+        to: Custom TO recipients (optional, for email channel) - comma-separated emails
+        cc: Custom CC recipients (optional, for email channel) - comma-separated emails
+        bcc: Custom BCC recipients (optional, for email channel) - comma-separated emails
+        timeout: Request timeout in seconds
+    """
     if message is None or message == "":
         raise CustomError("Notification message cannot be empty")
 
@@ -108,6 +119,14 @@ def send_custom_notification_request(context, channel, message, subject=None, ti
     }
     if subject:
         payload["subject"] = subject
+    
+    # Add custom recipients if provided (for email channel)
+    if to is not None:
+        payload["to"] = to
+    if cc is not None:
+        payload["cc"] = cc
+    if bcc is not None:
+        payload["bcc"] = bcc
 
     headers = {"Host": "cometa.local"}
     if normalized_channel == "telegram":

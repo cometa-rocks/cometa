@@ -64,14 +64,42 @@ def escape_telegram_markdown(text):
     return text
 
 
-def _send_custom_email_notification(feature_result, subject, plain_message, html_message):
+def _send_custom_email_notification(feature_result, subject, plain_message, html_message, custom_to=None, custom_cc=None, custom_bcc=None):
     """
-    Send a custom email notification using the feature's configured recipients.
+    Send a custom email notification using custom or feature's configured recipients.
+    
+    Args:
+        feature_result: Feature result object
+        subject: Email subject
+        plain_message: Plain text message
+        html_message: HTML message
+        custom_to: Custom TO recipients (comma-separated string or list), overrides feature config
+        custom_cc: Custom CC recipients (comma-separated string or list), overrides feature config
+        custom_bcc: Custom BCC recipients (comma-separated string or list), overrides feature config
     """
     feature = feature_result.feature_id
-    to_addresses = feature.email_address or []
-    cc_addresses = feature.email_cc_address or []
-    bcc_addresses = feature.email_bcc_address or []
+    
+    # Helper function to parse recipients (handles both string and list)
+    def parse_recipients(recipients):
+        if recipients is None:
+            return []
+        if isinstance(recipients, list):
+            return [email.strip() for email in recipients if email.strip()]
+        if isinstance(recipients, str):
+            return [email.strip() for email in recipients.split(',') if email.strip()]
+        return []
+    
+    # Use custom recipients if provided, otherwise fall back to feature configuration
+    if custom_to is not None or custom_cc is not None or custom_bcc is not None:
+        # At least one custom recipient was specified
+        to_addresses = parse_recipients(custom_to) if custom_to is not None else []
+        cc_addresses = parse_recipients(custom_cc) if custom_cc is not None else []
+        bcc_addresses = parse_recipients(custom_bcc) if custom_bcc is not None else []
+    else:
+        # No custom recipients, use feature configuration
+        to_addresses = feature.email_address or []
+        cc_addresses = feature.email_cc_address or []
+        bcc_addresses = feature.email_bcc_address or []
 
     if not any([to_addresses, cc_addresses, bcc_addresses]):
         raise ConfigurationError("No email recipients configured for this feature")
@@ -103,6 +131,9 @@ def _send_custom_email_notification(feature_result, subject, plain_message, html
                 "feature_id": feature_result.feature_id.feature_id,
                 "feature_result_id": feature_result.feature_result_id,
                 "recipients": to_addresses,
+                "cc": cc_addresses,
+                "bcc": bcc_addresses,
+                "custom_recipients": custom_to is not None or custom_cc is not None or custom_bcc is not None,
             }
         )
     except Exception as exc:
@@ -205,8 +236,21 @@ def send_custom_notification(request, **kwargs):
     message_with_variables = message_with_variables.replace('\r\n', '\n')
 
     if channel == 'email':
+        # Extract custom recipients from payload (optional)
+        custom_to = payload.get('to')
+        custom_cc = payload.get('cc')
+        custom_bcc = payload.get('bcc')
+        
         html_message = f'<pre style="white-space: pre-wrap;">{escape(message_with_variables)}</pre>'
-        _send_custom_email_notification(feature_result, subject_processed, message_with_variables, html_message)
+        _send_custom_email_notification(
+            feature_result, 
+            subject_processed, 
+            message_with_variables, 
+            html_message,
+            custom_to=custom_to,
+            custom_cc=custom_cc,
+            custom_bcc=custom_bcc
+        )
     else:
         feature_result.custom_notification = {
             "message": message_with_variables,

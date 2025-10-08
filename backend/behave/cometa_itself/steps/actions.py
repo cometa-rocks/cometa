@@ -144,14 +144,44 @@ def step_impl(context, message):
     send_step_details(context, "Custom notification sent")
 
 
-# Sends a custom email notification using the backend
-# Example: Send an email notification with subject "Status" and message "Body text"
+def _send_email_notification_impl(context, subject, message, recipients=None):
+    """Helper function for sending email notifications with optional recipients"""
+    send_step_details(context, "Sending custom notification")
+    
+    # Parse recipients if provided
+    to = None
+    cc = None
+    bcc = None
+    
+    if recipients:
+        # Parse recipients string format: "to:email1,email2;cc:email3;bcc:email4"
+        recipient_parts = recipients.split(';')
+        for part in recipient_parts:
+            part = part.strip()
+            if part.startswith('to:'):
+                to = part[3:].strip()
+            elif part.startswith('cc:'):
+                cc = part[3:].strip()
+            elif part.startswith('bcc:'):
+                bcc = part[4:].strip()
+    
+    send_custom_notification_request(context, "email", message, subject=subject, to=to, cc=cc, bcc=bcc)
+    send_step_details(context, "Custom notification sent")
+
+
+# Send an email notification with subject "Status" and message "Body text" with recipients "to:user@test.com;cc:manager@test.com;bcc:audit@test.com"
+# IMPORTANT: Register the more specific pattern FIRST to avoid ambiguous step errors
+@step(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
+@done(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
+def step_impl_with_recipients(context, subject, message, recipients):
+    _send_email_notification_impl(context, subject, message, recipients)
+
+
+# Send an email notification with subject "Status" and message "Body text"
 @step(u'Send an email notification with subject "{subject}" and message "{message}"')
 @done(u'Send an email notification with subject "{subject}" and message "{message}"')
 def step_impl(context, subject, message):
-    send_step_details(context, "Sending custom notification")
-    send_custom_notification_request(context, "email", message, subject=subject)
-    send_step_details(context, "Custom notification sent")
+    _send_email_notification_impl(context, subject, message, recipients=None)
 
 
 # Moves the mouse to the css selector and clicks
