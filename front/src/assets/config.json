@@ -1,6 +1,6 @@
 {
-  "version": "3.0.107",
-  "stable_version": "3.0.107",
+  "version": "3.0.108",
+  "stable_version": "3.0.108",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.108",
+      "date": "2025-10-10",
+      "improved": [
+        {
+          "title": "Add custom tooltip to edit feature dialog - #6959",
+          "description": "Add custom tooltip to edit feature dialog, now it shows the custom tooltip correctly."
+        }
+      ]
+    },
     {
       "version": "3.0.107",
       "date": "2025-10-03",
