@@ -121,6 +121,20 @@ export class BrowserSelectionComponent implements OnInit {
     return `${key}%${version}`;
   }
 
+  // Returns the number of rows needed when rendering a two-column list
+  // Used to size the selected browsers and favourites containers dynamically
+  getSelectedRows(count: number | null | undefined): number {
+    const safeCount = typeof count === 'number' ? count : 0;
+    return Math.ceil(safeCount / 2);
+  }
+
+  // Returns the number of rows for favourites (single column in mobile, two columns in desktop)
+  getFavouritesRows(count: number | null | undefined): number {
+    const safeCount = typeof count === 'number' ? count : 0;
+    // Use same calculation as selected browsers (two columns)
+    return Math.ceil(safeCount / 2);
+  }
+
   // MAX_CONCURRENCY = 100;
   MIN_CONCURRENCY = 1;
   DEFAULT_CONCURRENCY = 1;

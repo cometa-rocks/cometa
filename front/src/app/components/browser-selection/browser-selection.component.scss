@@ -306,6 +306,8 @@ h4 {
   flex-wrap: wrap;
   justify-content: space-between;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
@@ -322,10 +324,13 @@ h4 {
       margin-bottom: 15px;
       @include for-tablet-portrait-up {
         margin-bottom: 0;
+        overflow: visible;
       }
       justify-content: space-between;
-      max-height: 100px;
-      overflow: auto;
+      // Each row is ~25px element height + 10px vertical spacing
+      // Use CSS var --selected-rows to grow as more items selected
+      max-height: calc((var(--selected-rows, 2) * 25px) + ((var(--selected-rows, 2) - 1) * 10px));
+      // overflow: auto;
       .selected-browser {
         flex: 0 50%;
         max-width: 50%;
@@ -339,18 +344,48 @@ h4 {
   }
   .my-favs {
     flex: 1 100%;
+    position: relative;
+    z-index: 1;
     .favourites-box {
-      max-height: 100px;
-      overflow: auto;
+      // Grow favourites container based on number of rows
+      // Each fav-browser item is approximately 40px height
+      max-height: calc(var(--favs-rows, 2) * 50px);
+      margin-top: 15px;
+      overflow: hidden;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      color: rgba(0, 0, 0, 0.65);
+      @include for-tablet-portrait-up {
+        overflow: visible;
+        // Use same height calculation as selected browsers in desktop
+        max-height: calc((var(--favs-rows, 2) * 25px) + ((var(--favs-rows, 2) - 1) * 10px));
+        // Use same layout as selected browsers in desktop
+        .fav-browser {
+          flex: 0 50%;
+          max-width: 50%;
+        }
+      }
     }
     @include for-tablet-portrait-up {
       flex: 0 50%;
+    }
+  }
+  
+  .timezone-section {
+    position: relative;
+    z-index: 2;
+    margin-top: 20px;
+    @include for-tablet-portrait-up {
+      margin-top: 0;
     }
   }
 }
 
 .browser-selector-box {
   margin-top: 20px;
+  position: relative;
+  z-index: 2;
   .browsers {
     overflow-y: hidden;
     @include for-tablet-portrait-up {

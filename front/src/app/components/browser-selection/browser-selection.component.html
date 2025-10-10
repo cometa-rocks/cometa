@@ -51,12 +51,14 @@
     <div class="selected-and-favs">
       <div class="selected-browsers">
         <h4>Selected browsers</h4>
-        <div class="browsers-box">
+        <div class="browsers-box" 
+             [style.--selected-rows]="getSelectedRows((browsersSelected | async)?.length)"
+             [style.setProperty]="''">
           <div
             (click)="handleCheckbox(browser, false)"
-            class="selected-browser"
-            [matTooltip]="browser | browserComboText"
-            matTooltipPosition="after"
+            class="selected-browser amv_custom-tooltip"
+            [attr.data-tooltip]="browser | browserComboText"
+            [attr.data-position]="'after'"
             *ngFor="let browser of browsersSelected | async">
             <i class="icon" [style.backgroundImage]="browser | browserIcon"></i>
             <span [innerText]="browser | browserComboText"></span>
@@ -71,7 +73,8 @@
       <!-- Favourites -->
       <div class="my-favs">
         <h4>Favourites</h4>
-        <div class="favourites-box">
+        <div class="favourites-box"
+             [style.--favs-rows]="getFavouritesRows(favourites$?.length)">
           <ng-container *ngIf="favourites$.length > 0; else favouritesHint">
             <div
               class="fav-browser"
@@ -79,8 +82,9 @@
               [contextMenuSubject]="fav"
               *ngFor="let fav of favourites$">
               <div
-                [matTooltip]="fav | browserComboText"
-                matTooltipPosition="above">
+                class="amv_custom-tooltip"
+                [attr.data-tooltip]="fav | browserComboText"
+                [attr.data-position]="'above'">
                 <mat-checkbox
                   (change)="handleCheckbox(fav, $event.checked)"
                   [checked]="fav | checkSelectedBrowser | async"
@@ -94,10 +98,11 @@
               </div>
               <button
                 mat-icon-button
-                [matTooltip]="
+                class="amv_custom-tooltip"
+                [attr.data-tooltip]="
                   'Delete \'' + (fav | browserComboText) + '\' from favourites'
                 "
-                matTooltipPosition="above"
+                [attr.data-position]="'above'"
                 aria-label="delete browser from favourites"
                 (click)="deleteFavourite(fav)">
                 <mat-icon>delete</mat-icon>
@@ -120,7 +125,7 @@
         </ng-template>
       </div>
       <!-- Select timezone -->
-      <div class="selected-browsers">
+      <div class="selected-browsers timezone-section">
         <br>
         <h4>Select Browsers Timezone</h4>
         <div class="browsers-box">
@@ -150,9 +155,9 @@
             [style.backgroundImage]="browser.key | browserIcon"></div>
           <div class="versions" [ngClass]="browser.key">
             <div
-              [matTooltip]="'tooltips.latest_browser' | translate"
-              [matTooltipDisabled]="version.browser_version !== 'latest'"
-              class="version"
+              class="version amv_custom-tooltip"
+              [attr.data-tooltip]="'tooltips.latest_browser' | translate"
+              [attr.data-disabled]="version.browser_version !== 'latest' ? 'true' : 'false'"
               *ngFor="let version of browser.value | versionSort |  addLatest">
               <div class="join">
                 <mat-checkbox
