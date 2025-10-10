@@ -162,7 +162,7 @@
   .name {
     color: $blue;
     font-size: 18pt;
-    overflow: hidden;
+    overflow: visible;
     white-space: nowrap;
     text-overflow: ellipsis;
     width: 100%;
@@ -170,6 +170,21 @@
     margin-top: 5px;
     margin-left: 10px;
     box-sizing: border-box;
+    
+    .feature-name-container {
+      overflow: visible;
+      display: inline-block;
+      max-width: calc(100% - 10px);
+      width: auto;
+      
+      .feature-name-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+        width: 100%;
+      }
+    }
   }
   .steps {
     margin-top: 5px;

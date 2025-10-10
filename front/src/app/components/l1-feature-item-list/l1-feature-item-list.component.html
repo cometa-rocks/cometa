@@ -18,9 +18,9 @@ Author: dph000
 
       <!-- Need help box -->
       <div
-        class="top-left-container"
-        [matTooltip]="'need_help.tooltip' | translate"
-        matTooltipPosition="above"
+        class="top-left-container amv_custom-tooltip"
+        [attr.data-tooltip]="'need_help.tooltip' | translate"
+        [attr.data-position]="'above'"
         [ngClass]="{ visible: item.help && !running }">
         <div class="current-step">
           <div class="triangle"></div>
@@ -32,11 +32,11 @@ Author: dph000
       <ng-container *ngLet="featureStatus$ | async as status">
         <!-- Feature status -->
         <div
-          class="top-left-container"
+          class="top-left-container amv_custom-tooltip"
           [ngClass]="{ visible: running }"
-          [matTooltipDisabled]="!status"
-          [matTooltip]="status"
-          matTooltipPosition="above">
+          [attr.data-tooltip]="status"
+          [attr.data-position]="'above'"
+          [attr.data-disabled]="!status ? 'true' : 'false'">
           <div class="current-step">
             <div class="triangle"></div>
             <span>{{ status }}</span>
@@ -132,14 +132,18 @@ Author: dph000
       <!-- Feature name -->
       <div class="name">
         <ng-container *ngIf="item.reference.description; else noDescription">
-          <span [matTooltip]="('Description: ' | translate) + '' + item.reference.description" matTooltipPosition="above">
-            <span>{{ item.name }}</span>
+          <span class="feature-name-container amv_custom-tooltip" 
+            [attr.data-tooltip]="('Description: ' | translate) + '' + item.reference.description" 
+            [attr.data-position]="'above'">
+            <span class="feature-name-text">{{ item.name }}</span>
           </span>
         </ng-container>
 
         <ng-template #noDescription>
-          <span [matTooltip]="'Description: No description available'" matTooltipPosition="above">
-            <span>{{ item.name }}</span>
+          <span class="feature-name-container amv_custom-tooltip" 
+            [attr.data-tooltip]="'Description: No description available'" 
+            [attr.data-position]="'above'">
+            <span class="feature-name-text">{{ item.name }}</span>
           </span>
         </ng-template>
       </div>
@@ -161,17 +165,17 @@ Author: dph000
         <div class="browsers-data">
           <div class="browsers">
             <i
-              class="my-icons"
-              [matTooltip]="getBrowserTooltip(browserType)"
-              matTooltipPosition="above"
+              class="my-icons amv_custom-tooltip"
+              [attr.data-tooltip]="getBrowserTooltip(browserType)"
+              [attr.data-position]="'above'"
               *ngFor="let browserType of getUniqueBrowsers(); trackBy: trackBrowserType"
               [style.backgroundImage]="browserType | browserIcon"
               [attr.data-browser]="browserType"
               [attr.title]="browserType"></i>
             <span 
-              class="browser-total" 
-              [matTooltip]="getBrowsersTooltip()"
-              matTooltipPosition="above">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
+              class="browser-total amv_custom-tooltip" 
+              [attr.data-tooltip]="getBrowsersTooltip()"
+              [attr.data-position]="'above'">{{ item.browsers.length }} {{ 'browsers' | translate }}</span>
           </div>
         </div>
       </div>
@@ -181,8 +185,8 @@ Author: dph000
         <div class="schedule-data">
           <p *ngIf="item.schedule" class="schedule-active">
             <ng-container *ngIf="item.date; else noRuns">
-              <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
-                    matTooltipPosition="above">
+              <span class="amv_custom-tooltip" [attr.data-tooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
+                    [attr.data-position]="'above'">
                 <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
                 <span>{{ item.original_cron || item.schedule }}</span>
@@ -190,8 +194,8 @@ Author: dph000
             </ng-container>
 
             <ng-template #noRuns>
-              <span [matTooltip]="'schedule.no-last-run' | translate"
-              matTooltipPosition="above" class="schedule-active">
+              <span class="amv_custom-tooltip" [attr.data-tooltip]="'schedule.no-last-run' | translate"
+              [attr.data-position]="'above'" class="schedule-active">
                 <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
                 <span>{{ item.original_cron || item.schedule }}</span>
@@ -213,9 +217,9 @@ Author: dph000
       <ng-container>
         <div
           stopPropagation
-          class="star-feature-in-feature"
-          [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
-          matTooltipPosition="above">
+          class="star-feature-in-feature amv_custom-tooltip"
+          [attr.data-tooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
+          [attr.data-position]="'above'">
           <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
         </div>
       </ng-container>
@@ -228,31 +232,31 @@ Author: dph000
         
         <!-- edit-feature-button -->
         <button 
-          class="edit-feature-button" 
+          class="edit-feature-button amv_custom-tooltip" 
           stopPropagation mat-icon-button 
           (click)="_sharedActions.openEditFeature(item.id, 'edit')" 
-          matTooltip="Edit {{ item.name }}" 
-          matTooltipPosition="above">
+          [attr.data-tooltip]="'Edit ' + item.name" 
+          [attr.data-position]="'above'">
           <i class="material-icons">edit</i>
         </button>
         
         <!-- Email notification icon -->
         <div
-          class="notification-icon"
+          class="notification-icon amv_custom-tooltip"
           stopPropagation
           *ngIf="item.reference?.send_mail && item.reference?.email_address && item.reference?.email_address.length > 0"
-          [matTooltip]="getEmailTooltip()"
-          matTooltipPosition="above">
+          [attr.data-tooltip]="getEmailTooltip()"
+          [attr.data-position]="'above'">
           <i class="material-icons">email</i>
         </div>
         
         <!-- Telegram notification icon -->
         <div
-          class="notification-icon"
+          class="notification-icon amv_custom-tooltip"
           stopPropagation
           *ngIf="item.reference?.send_telegram_notification"
-          [matTooltip]="getTelegramTooltip()"
-          matTooltipPosition="above">
+          [attr.data-tooltip]="getTelegramTooltip()"
+          [attr.data-position]="'above'">
           <i class="material-icons">chat</i>
         </div>
       </div>
@@ -275,10 +279,10 @@ Author: dph000
       <!-- Feature options button -->
       <button
         type="button"
-        matTooltip="Feature options"
-        matTooltipPosition="above"
+        class="options amv_custom-tooltip"
+        [attr.data-tooltip]="'Feature options'"
+        [attr.data-position]="'above'"
         stopPropagation
-        class="options"
         mat-icon-button
         [matMenuTriggerFor]="featureOptions"
         (menuOpened)="isMenuOpen = true"
@@ -294,9 +298,9 @@ Author: dph000
           <button
             type="button"
             (click)="_sharedActions.run(item.id)"
-            class="run-feature"
-            [matTooltip]="'tooltips.run_feature' | translate"
-            matTooltipPosition="after"
+            class="run-feature amv_custom-tooltip"
+            [attr.data-tooltip]="'tooltips.run_feature' | translate"
+            [attr.data-position]="'after'"
             mat-menu-item>
             <mat-icon>play_circle_filled</mat-icon>
             <span>Run</span>
@@ -318,9 +322,9 @@ Author: dph000
           type="button"
           *ngIf="canEditFeature$ | async"
           (click)="_sharedActions.openEditFeature(item.id, 'edit')"
-          matTooltip="Edit {{ item.name }} steps"
-          matTooltipPosition="before"
-          class="modify-feature"
+          class="modify-feature amv_custom-tooltip"
+          [attr.data-tooltip]="'Edit ' + item.name + ' steps'"
+          [attr.data-position]="'before'"
           mat-menu-item>
           <mat-icon>edit</mat-icon>
           <span>Modify</span>
@@ -330,9 +334,9 @@ Author: dph000
           type="button"
           *ngIf="canCreateFeature"
           (click)="_sharedActions.openEditFeature(item.id, 'clone')"
-          matTooltip="Clone {{ item.name }}"
-          matTooltipPosition="before"
-          class="modify-feature"
+          class="modify-feature amv_custom-tooltip"
+          [attr.data-tooltip]="'Clone ' + item.name"
+          [attr.data-position]="'before'"
           mat-menu-item>
           <mat-icon>content_copy</mat-icon>
           <span>Clone</span>
@@ -341,9 +345,9 @@ Author: dph000
         <button
           type="button"
           (click)="SAmoveFeature(item.reference)"
-          matTooltip="Move {{ item.name }}"
-          matTooltipPosition="before"
-          class="move-feature"
+          class="move-feature amv_custom-tooltip"
+          [attr.data-tooltip]="'Move ' + item.name"
+          [attr.data-position]="'before'"
           mat-menu-item>
           <mat-icon>folder</mat-icon>
           <span>Move</span>
@@ -372,9 +376,9 @@ Author: dph000
           type="button"
           *ngIf="canDeleteFeature$ | async"
           (click)="_sharedActions.deleteFeature(item.id)"
-          matTooltip="Delete feature {{ item.name }}"
-          matTooltipPosition="before"
-          class="delete-feature"
+          class="delete-feature amv_custom-tooltip"
+          [attr.data-tooltip]="'Delete feature ' + item.name"
+          [attr.data-position]="'before'"
           mat-menu-item>
           <mat-icon>delete</mat-icon>
           <span>Delete</span>
@@ -384,6 +388,9 @@ Author: dph000
       <mat-menu #otherOptions="matMenu" xPosition="after">
         <!-- Ask for Help option -->
         <button
+          class="amv_custom-tooltip"
+          [attr.data-tooltip]="'need_help.explanation' | translate"
+          [attr.data-position]="'after'"
           type="button"
           stopPropagation
           mat-menu-item
@@ -394,8 +401,6 @@ Author: dph000
               _sharedActions.handleSetting(item.id, 'need_help', $event)
             "
             color="primary"
-            [matTooltip]="'need_help.explanation' | translate"
-            matTooltipPosition="after"
             >{{ 'need_help.ask_for' | translate }}</mat-checkbox
           >
         </button>
@@ -436,7 +441,7 @@ Author: dph000
         </div>
       </div>
       <!-- Name of the folder  -->
-      <div class="name" [matTooltip]="item.name" matTooltipPosition="above">
+      <div class="name amv_custom-tooltip" [attr.data-tooltip]="item.name" [attr.data-position]="'above'">
         <span>{{ item.name }}</span>
       </div>
       <!-- Department of the folder -->
@@ -451,10 +456,10 @@ Author: dph000
 
       <button
         type="button"
-        matTooltip="Folder options"
-        matTooltipPosition="above"
+        class="options amv_custom-tooltip"
+        [attr.data-tooltip]="'Folder options'"
+        [attr.data-position]="'above'"
         stopPropagation
-        class="options"
         mat-icon-button
         [matMenuTriggerFor]="folderOptions"
         (menuOpened)="isMenuOpen = true"
@@ -465,9 +470,9 @@ Author: dph000
       <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
         <div
         *ngIf="isAnyFeatureRunning$ | async; else showRunAllButton"
-        class="folder-running"
-        [matTooltip]="'tooltips.run_feature' | translate"
-        matTooltipPosition="after"
+        class="folder-running amv_custom-tooltip"
+        [attr.data-tooltip]="'tooltips.run_feature' | translate"
+        [attr.data-position]="'after'"
         stopPropagation>
         <mat-spinner
           class="item-loader"
@@ -478,9 +483,9 @@ Author: dph000
         <button
           type="button"
           (click)="_sharedActions.runAllFeatures(item.reference)"
-          class="run-feature"
-          [matTooltip]="'tooltips.run_all_features' | translate"
-          matTooltipPosition="after"
+          class="run-feature amv_custom-tooltip"
+          [attr.data-tooltip]="'tooltips.run_all_features' | translate"
+          [attr.data-position]="'after'"
           mat-menu-item>
           <mat-icon>play_circle_filled</mat-icon>
           <span>Run all features</span>

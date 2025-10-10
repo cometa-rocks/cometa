@@ -307,7 +307,7 @@ edit-variables {
   display: flex;
   flex-direction: column;
   flex: 1 100%;
-  overflow-y: scroll;
+  overflow: visible;
   .features_folders_count {
     padding-bottom: 20px;
     padding-left: 10px;
@@ -321,10 +321,7 @@ edit-variables {
 .feature-list {
   flex: 1;
   padding: 25px 10px 0;
-  max-height: calc(
-    100vh - var(--header-height) - var(--new-landing-filters-height)
-  );
-  overflow-x: hidden;
+  overflow: visible;
   box-sizing: border-box;
   @include for-phone-only {
     max-width: 100vw;
@@ -332,6 +329,23 @@ edit-variables {
   }
   &.hide-features {
     display: none;
+  }
+  
+  .scroll-container {
+    height: calc(100vh - 170px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    
+    /* Permitir que los tooltips se vean */
+    .amv_custom-tooltip {
+      position: relative;
+      
+      &::after {
+        z-index: 99999;
+        position: absolute;
+      }
+    }
   }
 }
 
