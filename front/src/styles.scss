@@ -397,6 +397,10 @@ h3 {
   width: 100%;
 }
 
+.mat-dialog-content.editFeatureContent {
+  overflow-x: hidden;
+}
+
 .edit-feature-panel .mat-mdc-dialog-surface {
   padding: 24px;
 }
@@ -1169,24 +1173,7 @@ mat-dialog-container draggable-window{
   .mat-expansion-panel-content {
     overflow: visible;
   }
-  
-  // Specific fix for step-editor inside expansion panel
-  mat-accordion,
-  .mat-accordion,
-  .mat-expansion-panel-body,
-  .mat-expansion-panel-content {
-    overflow: visible;
-  }
-  
-  // Fix for the specific expansion panel that contains step-editor
-  .mat-expansion-panel:has(cometa-step-editor) {
-    overflow: visible;
-    
-    .mat-expansion-panel-body,
-    .mat-expansion-panel-content {
-      overflow: visible;
-    }
-  }
+
 }
 
 // Global fix for custom tooltips - ensure they can overflow their containers
@@ -1194,22 +1181,27 @@ mat-dialog-container draggable-window{
 .actions,
 .step-row,
 .mat-menu-panel,
-.mat-menu-content,
-.cdk-overlay-pane {
-  overflow: visible !important;
+.mat-menu-content {
+  overflow: visible;
 }
 
 // Specific fix for step-editor in edit-feature dialog
 .edit-feature-panel cometa-step-editor,
 .edit-feature-panel .step-editor {
   overflow: visible;
-  
-  .actions,
-  .step-row,
-  .mat-expansion-panel {
-    overflow: visible;
-  }
+
 }
+
+// Tootip custom. Material Design
+/*
+This custom tooltip has been created as a lightweight replacement for Angular Material’s matTooltip.
+It allows you to display a styled tooltip on hover without relying on Angular Material.
+
+Usage:
+1. Add the class .amv_custom-tooltip to any element that should display a tooltip.
+2. Set the tooltip text via the data-tooltip attribute.
+2.1 Use [attr.data-tooltip] instead of data-tooltip if you want to use a translation.
+2.2 Use [attr.data-position] to specify the position of the tooltip.*/
 
 // Custom tooltip styles
 .amv_custom-tooltip {
@@ -1222,25 +1214,20 @@ mat-dialog-container draggable-window{
   bottom: 150%;
   left: 50%;
 
-  // Fix the problem of overlapping (warning: but (fixed) not relative to the parent)
-  // position: fixed;
-  // bottom: 68%;
-  // left: 20%;
   transform: translate(-50%, 8px);
 
   display: block;                    
   text-align: center;                
   
-  font-weight: 700;
-  font-style: normal;
+  font-weight: 500;
   font-family: Roboto, sans-serif;
 
-  background: rgba(97,97,97,0.9);
+  background: $grey;
   color: $pure-white;
   padding: 10px 10px; 
   border-radius: 4px;
-  line-height: 1.2;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.3;
   z-index: 99999;
 
   white-space: normal;               
