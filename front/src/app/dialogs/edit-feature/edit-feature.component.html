@@ -71,7 +71,12 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="fill" class="edit-name amv_custom-tooltip" [class.error-highlight]="highlightInput" [attr.data-tooltip]="'Please enter a name to create/save the feature'">
+            <mat-form-field 
+              appearance="fill" 
+              class="edit-name amv_custom-tooltip" 
+              [class.error-highlight]="highlightInput" 
+              [attr.data-tooltip]="'Please enter a name to create/save the feature'"
+              [attr.data-position]="'above'">
               <mat-label>Name</mat-label>
               <input
                 matInput

@@ -1188,7 +1188,6 @@ mat-dialog-container draggable-window{
 .edit-feature-panel cometa-step-editor,
 .edit-feature-panel .step-editor {
   overflow: visible;
-
 }
 
 // Tootip custom. Material Design
@@ -1274,6 +1273,56 @@ Usage:
   }
   &:hover::after {
     transform: translate(-50%, 0);
+  }
+}
+
+/* Special positioning for mat-form-field tooltips */
+.mat-form-field.amv_custom-tooltip[data-position="below"] {
+  &::after {
+    top: 100%;
+    left: 50%;
+    bottom: auto;
+    transform: translate(-50%, 8px);
+  }
+  &:hover::after {
+    transform: translate(-50%, 0);
+  }
+}
+
+.mat-form-field.amv_custom-tooltip[data-position="above"] {
+  &::after {
+    bottom: 90%;
+    left: 50%;
+    top: auto;
+    transform: translate(-50%, -8px);
+  }
+  &:hover::after {
+    transform: translate(-50%, 0);
+  }
+}
+
+.mat-form-field.amv_custom-tooltip[data-position="after"] {
+  &::after {
+    left: 90%;
+    top: 50%;
+    bottom: auto;
+    transform: translate(8px, -50%);
+  }
+  &:hover::after {
+    transform: translate(0, -50%);
+  }
+}
+
+.mat-form-field.amv_custom-tooltip[data-position="before"] {
+  &::after {
+    right: 100%;
+    top: 50%;
+    left: auto;
+    bottom: auto;
+    transform: translate(-8px, -50%);
+  }
+  &:hover::after {
+    transform: translate(0, -50%);
   }
 }
 
