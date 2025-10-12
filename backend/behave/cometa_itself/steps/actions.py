@@ -3174,6 +3174,8 @@ def step_loop(context, x, index):
     # match regexp to find steps and step descriptions
     steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
     logger.debug(f"list of test_steps : {steps}")
+    # send step details to indicate loop is starting
+    send_step_details(context, f"Starting loop: {x} iterations from index {index}")
     try:
         logger.debug("Steps: {}".format(steps))
         for i in range(int(index), int(x) + int(index)):
@@ -3228,6 +3230,9 @@ def step_loop(context, x, index):
 
     if err:
         raise CustomError(err_msg)
+    
+    # send step details to indicate loop completed successfully
+    send_step_details(context, f"Loop completed: {x} iterations executed successfully")
 
 # Concludes the loop initiated with the step 'Loop "{x}" times starting at "{index}" and do'
 # Example: Concludes the loop initiated with the step 'Loop "{x}" times starting at "{index}" and do'
