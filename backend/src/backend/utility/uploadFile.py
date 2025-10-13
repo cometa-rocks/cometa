@@ -61,7 +61,10 @@ class TempFileUploadHandler(TemporaryFileUploadHandler):
 def decryptFile(source):
     COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
     import tempfile
-    target = "/tmp/%s" % next(tempfile._get_candidate_names())
+    import os
+    # Preserve extension for proper file type detection
+    _, ext = os.path.splitext(source)
+    target = "/tmp/%s%s" % (next(tempfile._get_candidate_names()), ext)
 
     logger.debug(f"Decrypting source {source}")
 
