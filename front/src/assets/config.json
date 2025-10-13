@@ -1,6 +1,6 @@
 {
-  "version": "3.0.107",
-  "stable_version": "3.0.107",
+  "version": "3.0.109",
+  "stable_version": "3.0.109",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.109",
+      "date": "2025-10-13",
+      "improved": [
+        {
+          "title": "Fixed issue with Step Editor - #6978",
+          "description": "Fixed an issue when writing EE (Enterprise Edition) actions — now proper feedback is displayed when an invalid action is entered."
+        }
+      ]
+    },
     {
       "version": "3.0.107",
       "date": "2025-10-03",
