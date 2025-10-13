@@ -1,4 +1,11 @@
-<div class="info-row" *ngLet="status$ | async as status">
+<div class="info-row" *ngLet="status$ | async as status" [ngClass]="{'inside-loop': isInsideLoop}" [attr.data-loop-step]="isLoopStep">
+  <!-- Loop Context Badge -->
+  <div class="loop-context-badge" *ngIf="isInsideLoop && totalLoopIterations">
+    <div class="loop-context">
+      <mat-icon class="loop-context-icon">loop</mat-icon>
+      <span class="loop-context-text">{{ currentLoopIteration }}/{{ totalLoopIterations }}</span>
+    </div>
+  </div>
   <div class="index">{{ index + 1 }}</div>
   <div
     class="icon-status"
@@ -6,13 +13,32 @@
     [matTooltip]="status | titlecase"
     matTooltipPosition="above"></div>
   <div class="text" [matTooltip]="step.step_content" matTooltipPosition="above">
-    <div class="step-content">
+    <div class="step-content" [ngClass]="{'loop-step': isLoopStep}">
       {{ step.step_keyword }} {{ step.step_content | truncateApiBody }}
     </div>
+    
+    
+    <!-- Loop Progress Information -->
+    <div 
+      class="loop-progress-info"
+      *ngIf="(isLoopStep || isInsideLoop) && totalLoopIterations"
+      [@detailAnimation]>
+      <div class="loop-info-content">
+        <mat-icon class="loop-icon">repeat</mat-icon>
+        <span class="loop-info-text">
+          <strong>Loop {{ currentLoopIteration }} of {{ totalLoopIterations }}</strong>
+          <span *ngIf="!isLoopStep" class="current-step-indicator">
+            → Executing: {{ step.step_keyword }} {{ step.step_content | truncateApiBody }}
+          </span>
+        </span>
+      </div>
+    </div>
+    
+    <!-- Regular step detail -->
     <div
       class="step-detail"
       [@detailAnimation]
-      *ngIf="status === 'running' && details$ | async as detail">
+      *ngIf="status === 'running' && !isLoopStep && (details$ | async) as detail">
       <div class="icon-detail"></div>
       {{ detail }}
     </div>

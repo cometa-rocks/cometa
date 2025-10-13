@@ -4,6 +4,24 @@
   display: block;
   width: 100%;
   margin-bottom: 5px;
+  
+  // Styling for steps inside loops
+  &.inside-loop {
+    position: relative;
+    
+    // Add a subtle left border to indicate we're inside a loop
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(to bottom, $blue, lighten($blue, 20%));
+      border-radius: 0 2px 2px 0;
+    }
+  }
+
   .info-row {
     display: flex;
     width: 100%;
@@ -22,12 +40,46 @@
       }
       flex: initial;
     }
+    // Loop context badge - sticky indicator
+    .loop-context-badge {
+      position: absolute;
+      top: 15px;
+      right: 55px;
+      z-index: 10;
+      
+      .loop-context {
+        background: linear-gradient(135deg, $blue, darken($blue, 10%));
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba($blue, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        
+        .loop-context-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+        }
+        
+        .loop-context-text {
+          font-weight: 700;
+        }
+      }
+    }
+
     .index {
       font-weight: bold;
       color: $blue;
       text-align: center;
       flex: 0 25px;
     }
+
+    // Removed sticky loop styling - now behaves like normal steps
     .text {
       line-height: 20px;
       flex: 1 1 50%;
@@ -43,6 +95,63 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         display: block;
+      }
+
+      // Loop step styling
+      .step-content.loop-step {
+        font-weight: 600;
+        color: $blue;
+        
+        .sticky-indicator {
+          background: rgba(255, 255, 255, 0.9);
+          color: $blue;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: 700;
+          margin-left: 8px;
+          border: 1px solid $blue;
+        }
+      }
+
+
+      // Loop progress information
+      .loop-progress-info {
+        background: linear-gradient(135deg, rgba($blue, 0.1), rgba($blue, 0.2));
+        border-left: 4px solid $blue;
+        padding: 10px 14px;
+        margin: 6px 0;
+        border-radius: 6px;
+        
+        .loop-info-content {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          
+          .loop-icon {
+            color: $blue;
+            font-size: 18px;
+          }
+          
+          .loop-info-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            
+            strong {
+              color: darken($blue, 15%);
+              font-weight: 600;
+              font-size: 13px;
+            }
+            
+            .current-step-indicator {
+              color: darken($blue, 10%);
+              font-size: 12px;
+              font-style: italic;
+              opacity: 0.8;
+            }
+          }
+        }
       }
 
       // Browser-use AI agent message styling

@@ -13,7 +13,10 @@ import {
   EventEmitter,
   Input,
   OnInit,
-  Output
+  Output,
+  ElementRef,
+  HostListener,
+  ChangeDetectorRef
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
@@ -27,7 +30,7 @@ import { ApiService } from '@services/api.service';
 import { BrowserUseLogService, BrowserUseLogEntry } from '@services/browser-use-log.service';
 import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, take } from 'rxjs/operators';
 import { LetDirective } from '../../../directives/ng-let.directive';
 import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
 import { DatePipe } from '@angular/common';
@@ -82,12 +85,20 @@ export class LiveStepComponent implements OnInit {
   aiLogs$: Observable<BrowserUseLogEntry[]>;
   showAILogs = true;
 
+  // Loop progress properties
+  isLoopStep = false;
+  isInsideLoop = false;
+  currentLoopIteration = 1;
+  totalLoopIterations = null;
+
   constructor(
     private _store: Store,
     private _dialog: MatDialog,
     private _sanitizer: DomSanitizer,
     private _api: ApiService,
-    private _browserUseLogService: BrowserUseLogService
+    private _browserUseLogService: BrowserUseLogService,
+    private _elementRef: ElementRef,
+    private _cdr: ChangeDetectorRef
   ) {}
 
   @Input() step: FeatureStep;
@@ -103,6 +114,19 @@ export class LiveStepComponent implements OnInit {
 
   details$: Observable<LiveStepSubDetail>;
 
+  // Method to receive loop information from parent component
+  updateLoopInfo(isInLoop: boolean, currentIteration: number, totalIterations: number | null) {
+    console.log(`📝 Step ${this.index} received loop info:`, {
+      isInLoop,
+      currentIteration,
+      totalIterations
+    });
+    this.isInsideLoop = isInLoop;
+    this.currentLoopIteration = currentIteration;
+    this.totalLoopIterations = totalIterations;
+    this._cdr.markForCheck(); // Trigger change detection
+  }
+  
   screenshots;
   vulnerable_headers_count;
   rest_api: number;
@@ -114,6 +138,11 @@ export class LiveStepComponent implements OnInit {
       this.index
     );
 
+    // Check if this is a loop step
+    this.isLoopStep = this.step?.step_content?.includes('Loop') && 
+                     this.step?.step_content?.includes('times starting at') && 
+                     this.step?.step_content?.includes('and do');
+    
     this.details$ = this._store.select(
       CustomSelectors.GetLastFeatureRunDetails(
         this.feature_id,
@@ -122,6 +151,7 @@ export class LiveStepComponent implements OnInit {
         this.index
       )
     );
+
     this._store
       .select(
         CustomSelectors.GetLastFeatureRunSteps(
@@ -160,11 +190,15 @@ export class LiveStepComponent implements OnInit {
             // Check if healing data is nested in info
             this.healingData$.next(steps[this.index].info.healing_data);
           }
+          
+          // Check if we're inside a loop by looking at previous steps
+          this.checkIfInsideLoop(steps);
         } else {
           this.status$.next('waiting');
         }
       });
   }
+
 
   resultSteps: StepStatus[] = [];
 
@@ -265,4 +299,12 @@ Time: +${healingData.healing_duration_ms}ms`;
 
     return this._sanitizer.sanitize(1, formattedMessage); // 1 is SecurityContext.HTML
   }
+
+  // Simplified loop detection - just check if this is a loop step
+  private checkIfInsideLoop(steps: StepStatus[]): void {
+    // Simple check: if this step contains "Loop" in its content, it's a loop step
+    this.isLoopStep = this.step?.step_content?.includes('Loop') || false;
+  }
+  
+  // Removed obsolete iteration calculation functions - now handled by parent component
 }
