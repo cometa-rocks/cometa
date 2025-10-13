@@ -102,6 +102,14 @@ def getFileContent(file: File, sheet_name=None):
         # Set the data-driven ready status in the file extras
         file.extras['ddr'] = result['ddr_status']
         
+        # Update file_type based on DDR status
+        if result['ddr_status'] and result['ddr_status'].get('data-driven-ready', False):
+            file.file_type = 'datadriven'
+            logger.info(f"File {file.name} marked as data-driven ready (file_type='datadriven')")
+        else:
+            file.file_type = 'normal'
+            logger.debug(f"File {file.name} marked as normal file (file_type='normal')")
+        
         # Store original column order for display purposes
         if 'original_column_order' in result['metadata']:
             file.extras['original_column_order'] = result['metadata']['original_column_order']
@@ -135,6 +143,7 @@ def getFileContent(file: File, sheet_name=None):
             'data-driven-ready': False,
             'reason': str(e)
         }
+        file.file_type = 'normal'
         file.save()
         raise Exception(str(e))
 
