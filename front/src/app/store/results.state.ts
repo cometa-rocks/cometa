@@ -10,6 +10,7 @@ import { WebSockets } from './actions/results.actions';
 import { Features } from './actions/features.actions';
 import { timer } from 'rxjs';
 import { ConfigState } from './config.state';
+import { LogService } from '@services/log.service';
 
 /**
  * @description Contains the state of all feature results
@@ -36,7 +37,8 @@ export class ResultsState {
     private _router: Router,
     private _dialog: MatDialog,
     private _ngZone: NgZone,
-    private _store: Store
+    private _store: Store,
+    private log: LogService
   ) {}
 
   /** This variable holds all timeout subscriptions */
@@ -55,6 +57,7 @@ export class ResultsState {
     browser_info: BrowserstackBrowser
   ) {
     const browserKey = getBrowserKey(browser_info);
+    this.log.msg('info', 'Browser -> ', 'feature_id', `${feature_id} ${run_id} ${browserKey}`);
     return `${feature_id}_${run_id}_${browserKey}`;
   }
 

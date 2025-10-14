@@ -22,8 +22,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('json_path', type=str, help='Path to the JSON file containing documents to ingest')
         parser.add_argument('--clear', action='store_true', help='Clear existing RAG data before ingestion')
-        parser.add_argument('--chunk-size', type=int, default=500, help='Size of document chunks')
-        parser.add_argument('--chunk-overlap', type=int, default=100, help='Overlap between chunks')
+        parser.add_argument('--chunk-size', type=int, default=1500, help='Size of document chunks')
+        parser.add_argument('--chunk-overlap', type=int, default=300, help='Overlap between chunks')
 
     def handle(self, *args, **options):
         json_path = Path(options['json_path'])
@@ -107,13 +107,23 @@ class Command(BaseCommand):
                     
                     logger.info(f"Adding {len(chunks)} chunks to vector store...")
                     
-                    # Create metadata
+                    # Create metadata with a simple category derived from URL
+                    if "/docs/user/" in url:
+                        category = "user"
+                    elif "/docs/admin/" in url:
+                        category = "admin"
+                    elif "/docs/developer/" in url or "CONTRIBUTING" in url or "developer/" in url:
+                        category = "developer"
+                    else:
+                        category = "general"
+
                     metadata = [{
                         'document_id': str(document.id),
                         'chunk_id': str(chunk.id),
                         'document_title': document.title,
                         'chunk_index': chunk.chunk_index,
-                        'source': url
+                        'source': url,
+                        'category': category
                     } for chunk in chunks]
                     
                     ids = [str(chunk.id) for chunk in chunks]
