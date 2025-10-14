@@ -249,8 +249,13 @@
         {
           "title": "Whats new dialog improvements - #6949",
           "description": "Whats new dialog improvements, grouped by version, added improved, security and breaking changes."
+        },
+        {
+          "title": "Data-driven ready files - #6881",
+          "description": "Data driven files are now marked as data-driven ready."
         }
-      ]
+      ],
+      "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
     },
     {
       "version": "3.0.107",
