@@ -1,6 +1,6 @@
 {
-  "version": "3.0.107",
-  "stable_version": "3.0.107",
+  "version": "3.0.108",
+  "stable_version": "3.0.108",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -250,7 +250,14 @@
           "title": "Feature actions improvements - #6949",
           "description": "Feature actions improvements, now it's more responsive."
         }
-      ]
+      ],
+      "features": [
+        {
+          "title": "Data-driven ready files - #6881",
+          "description": "Data driven files are now marked as data-driven ready."
+        }
+      ],
+      "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
     },
     {
       "version": "3.0.107",
