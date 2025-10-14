@@ -1,10 +1,8 @@
 <div class="info-row" *ngLet="status$ | async as status" [ngClass]="{'inside-loop': isInsideLoop}" [attr.data-loop-step]="isLoopStep">
-  <!-- Loop Context Badge -->
-  <div class="loop-context-badge" *ngIf="isInsideLoop && totalLoopIterations">
-    <div class="loop-context">
-      <mat-icon class="loop-context-icon">loop</mat-icon>
-      <span class="loop-context-text">{{ currentLoopIteration }}/{{ totalLoopIterations }}</span>
-    </div>
+  <!-- Loop indicator for steps inside loop - only show after loop is completed -->
+  <div class="loop-step-indicator" *ngIf="failedLoopInfo?.wasInLoop && !isLoopStep && !isInsideLoop">
+    <mat-icon class="loop-indicator-icon">repeat</mat-icon>
+    <span class="loop-indicator-text">Loop</span>
   </div>
   <div class="index">{{ index + 1 }}</div>
   <div
@@ -123,7 +121,13 @@
   </ng-template>
 </div>
 <div class="error-row" *ngIf="error$ | async as error">
-  <div class="error-header">Error Details:</div>
+  <div class="error-header">
+    <span>Error Details:</span>
+    <div class="loop-error-context" *ngIf="failedLoopInfo?.wasInLoop && !isInsideLoop && !isLoopStep">
+      <mat-icon class="loop-error-icon">repeat</mat-icon>
+      <span class="loop-error-text">{{ getFailedIterationsText() }}</span>
+    </div>
+  </div>
   <div class="error-message">{{ error }}</div>
 </div>
 <!-- Browser-Use AI Agent Logs for this step -->

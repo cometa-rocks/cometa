@@ -31,6 +31,7 @@ import {
   MatLegacyCheckboxModule,
 } from '@angular/material/legacy-checkbox';
 import { Observable, Subscription, Subject } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { CustomSelectors } from '@others/custom-selectors';
 import { WebSockets } from '@store/actions/results.actions';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
@@ -164,6 +165,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   public loopStartStepIndex: number | null = null;
   public totalIterations: number | null = null;
   public isInLoop: boolean = false;
+  public currentExecutingStepIndex: number | null = null;
 
   // Reference to child step components
   @ViewChildren(LiveStepComponent) stepComponents!: QueryList<LiveStepComponent>;
@@ -183,6 +185,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     private _api: ApiService,
     private _snack: MatSnackBar,
     private logger: LogService,
+    private log: LogService,
     private snack: MatSnackBar,
     private _cdr: ChangeDetectorRef
   ) {
@@ -205,7 +208,17 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       ofActionCompleted(WebSockets.StepStarted),
       filter(action => action.action.feature_id === this.currentFeatureId)
     ).subscribe(action => {
+      this.currentExecutingStepIndex = action.action.step_index;
       this.checkForLoopIteration(action.action.step_index);
+    });
+
+    // Listen for step finished events to detect when End Loop is completed
+    this._actions$.pipe(
+      untilDestroyed(this),
+      ofActionCompleted(WebSockets.StepFinished),
+      filter(action => action.action.feature_id === this.currentFeatureId)
+    ).subscribe(action => {
+      this.checkForLoopEnd(action.action.step_index);
     });
   }
 
@@ -214,7 +227,9 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     this.steps$.pipe(take(1)).subscribe(steps => {
       if (!steps) return;
       
-      // Find loop definition
+      // Find the most recent loop definition that applies to the current step
+      let currentLoopInfo = null;
+      
       for (let i = 0; i < steps.length; i++) {
         const stepContent = steps[i].step_content || '';
         const loopMatch = stepContent.match(/Loop "(\d+)" times starting at "(\d+)" and do/);
@@ -223,35 +238,84 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
           const totalIterations = parseInt(loopMatch[1]);
           const loopStartStepIndex = i + 1; // First step inside loop
           
-          // Check if current step is inside the loop
-          if (stepIndex >= loopStartStepIndex) {
-            // If this is the first step of the loop and we see it again, increment iteration
-            if (stepIndex === loopStartStepIndex) {
-              // If we already know this is the loop start and we see it again, increment iteration
-              if (this.loopStartStepIndex === loopStartStepIndex) {
-                this.loopIterationCounter++;
-                this.isInLoop = true;
-                console.log(`🔄 Loop iteration ${this.loopIterationCounter} of ${this.totalIterations}`);
-                this.updateLoopInfoInChildComponents();
-                this._cdr.markForCheck();
-              } else {
-                // First time seeing this loop
-                this.loopStartStepIndex = loopStartStepIndex;
-                this.totalIterations = totalIterations;
-                this.loopIterationCounter = 1;
-                this.isInLoop = true;
-                console.log(`🔄 Loop started: iteration ${this.loopIterationCounter} of ${this.totalIterations}`);
-                this.updateLoopInfoInChildComponents();
-                this._cdr.markForCheck();
-              }
-            } else {
-              // This is a step inside the loop (not the first step)
-              // Just update the child components with current loop info
-              this.updateLoopInfoInChildComponents();
+          // Find the End Loop step for this loop
+          let loopEndStepIndex = i + 10; // Default fallback
+          for (let j = loopStartStepIndex; j < steps.length; j++) {
+            if (steps[j]?.step_content?.includes('End Loop')) {
+              loopEndStepIndex = j;
+              break;
             }
-            break;
+          }
+          
+          // Check if current step is inside this specific loop
+          if (stepIndex >= loopStartStepIndex && stepIndex <= loopEndStepIndex) {
+            currentLoopInfo = {
+              totalIterations,
+              loopStartStepIndex,
+              loopEndStepIndex,
+              loopDefinitionIndex: i
+            };
+            // Don't break - we want the most recent loop that applies
           }
         }
+      }
+      
+      if (currentLoopInfo) {
+        const { totalIterations, loopStartStepIndex } = currentLoopInfo;
+        
+        // If this is the first step of the loop and we see it again, increment iteration
+        if (stepIndex === loopStartStepIndex) {
+          // Check if this is a new loop (different start index) - reset counter
+          if (this.loopStartStepIndex !== loopStartStepIndex) {
+            // NEW LOOP DETECTED - Reset everything
+            this.loopStartStepIndex = loopStartStepIndex;
+            this.totalIterations = totalIterations;
+            this.loopIterationCounter = 1;
+            this.isInLoop = true;
+            this.log.msg('4', `NEW Loop started at step ${loopStartStepIndex}: iteration ${this.loopIterationCounter} of ${this.totalIterations}`, 'live-steps');
+          } else {
+            // Same loop, increment iteration
+            this.loopIterationCounter++;
+            this.isInLoop = true;
+            this.log.msg('4', `Loop iteration ${this.loopIterationCounter} of ${this.totalIterations} at step ${stepIndex}`, 'live-steps');
+          }
+          this.updateLoopInfoInChildComponents();
+          this._cdr.markForCheck();
+        } else {
+          // This is a step inside the loop (not the first step)
+          // Just update the child components with current loop info
+          this.updateLoopInfoInChildComponents();
+        }
+      } else {
+        // Step is not inside any loop - clear loop state
+        if (this.isInLoop) {
+          this.log.msg('4', `Step ${stepIndex} is outside loop - clearing loop state`, 'live-steps');
+          this.isInLoop = false;
+          this.loopStartStepIndex = null;
+          this.totalIterations = null;
+          this.loopIterationCounter = 1;
+          this.updateLoopInfoInChildComponents();
+          this._cdr.markForCheck();
+        }
+      }
+    });
+  }
+
+  private checkForLoopEnd(stepIndex: number) {
+    // Check if the completed step is an "End Loop" step
+    this.steps$.pipe(take(1)).subscribe(steps => {
+      if (!steps || !steps[stepIndex]) return;
+      
+      const stepContent = steps[stepIndex].step_content || '';
+      if (stepContent.includes('End Loop')) {
+        // End Loop step completed - reset loop state for potential new loop
+        this.log.msg('4', `End Loop completed at step ${stepIndex} - resetting for new loop`, 'live-steps');
+        this.isInLoop = false;
+        this.loopStartStepIndex = null;
+        this.totalIterations = null;
+        this.loopIterationCounter = 1;
+        this.updateLoopInfoInChildComponents();
+        this._cdr.markForCheck();
       }
     });
   }
@@ -266,45 +330,48 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log(`🔄 Updating loop components with info:`, {
+    this.log.msg('4', `Updating loop components with info`, 'live-steps', {
       isInLoop: this.isInLoop,
       iteration: this.loopIterationCounter,
       total: this.totalIterations,
       loopStartIndex: this.loopStartStepIndex
     });
 
-    // Find the end index of the loop (where "End Loop" step is)
+    // Find the end index of the current loop (where "End Loop" step is)
     let loopEndIndex = this.loopStartStepIndex + 10; // Default fallback
     this.steps$.pipe(take(1)).subscribe(steps => {
-      if (steps) {
+      if (steps && this.loopStartStepIndex !== null) {
         for (let i = this.loopStartStepIndex; i < steps.length; i++) {
           if (steps[i]?.step_content?.includes('End Loop')) {
             loopEndIndex = i;
             break;
           }
         }
-      }
-    });
-
-    const isLoopCompleted = this.loopIterationCounter >= this.totalIterations;
-    
-    this.stepComponents?.forEach((stepComponent, index) => {
-      const isEndLoopStep = stepComponent.step?.step_content?.includes('End Loop') || false;
-      const isInsideLoop = index >= this.loopStartStepIndex && index <= loopEndIndex;
-      
-      if (isEndLoopStep) {
-        // Show loop info on "End Loop" step ONLY when all iterations are completed
-        if (isLoopCompleted) {
-          stepComponent.updateLoopInfo(true, this.loopIterationCounter, this.totalIterations);
-        } else {
-          stepComponent.updateLoopInfo(false, 1, null);
-        }
-      } else if (isInsideLoop) {
-        // Show loop info on ALL other steps inside the loop (always)
-        stepComponent.updateLoopInfo(true, this.loopIterationCounter, this.totalIterations);
-      } else {
-        // Clear loop info from steps outside the loop
-        stepComponent.updateLoopInfo(false, 1, null);
+        
+        const isLoopCompleted = this.loopIterationCounter >= this.totalIterations;
+        
+        this.stepComponents?.forEach((stepComponent, index) => {
+          const isEndLoopStep = stepComponent.step?.step_content?.includes('End Loop') || false;
+          const isInsideCurrentLoop = index >= this.loopStartStepIndex && index <= loopEndIndex;
+          const isCurrentlyExecuting = index === this.currentExecutingStepIndex;
+          
+          if (isEndLoopStep && isInsideCurrentLoop) {
+            // Show loop info on "End Loop" step ONLY when:
+            // 1. All iterations are completed AND
+            // 2. This End Loop step is currently executing or has been executed
+            if (isLoopCompleted && (isCurrentlyExecuting || (this.currentExecutingStepIndex !== null && index < this.currentExecutingStepIndex))) {
+              stepComponent.updateLoopInfo(true, this.loopIterationCounter, this.totalIterations);
+            } else {
+              stepComponent.updateLoopInfo(false, 1, null);
+            }
+          } else if (isInsideCurrentLoop) {
+            // Show loop info on ALL other steps inside the current loop (always)
+            stepComponent.updateLoopInfo(true, this.loopIterationCounter, this.totalIterations);
+          } else {
+            // Clear loop info from steps outside the current loop
+            stepComponent.updateLoopInfo(false, 1, null);
+          }
+        });
       }
     });
   }
@@ -512,7 +579,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       .pipe(
         untilDestroyed(this), // Stop emitting events after LiveSteps is closed
         // Filter only by NGXS actions which trigger step index changing
-        ofActionCompleted(WebSockets.StepStarted, WebSockets.StepFinished),
+        ofActionCompleted(WebSockets.StepStarted, WebSockets.StepFinished, WebSockets.FeatureFinished),
         map((event) => event.action),
         filter((action) => action.feature_id === this.feature_id),
         tap(action => {
@@ -526,12 +593,23 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
             }
           }
         }),
-        distinctUntilKeyChanged('step_index'),
+        distinctUntilChanged((prev, curr) => {
+          // Only compare step_index for step-related actions
+          if ('step_index' in prev && 'step_index' in curr) {
+            return prev.step_index === curr.step_index;
+          }
+          return false;
+        }),
         // Switch current observable to scroll option value
         filter((_) => !!this.autoScroll)
       )
       .subscribe(action => {
         this.handleAutoScroll(action);
+        
+        // Process final loop info when feature finishes (for single feature mode)
+        if (action.constructor.name === 'FeatureFinished') {
+          this.processFinalLoopInfoForAllSteps();
+        }
       });
 
       this.status$.subscribe(status => {
@@ -832,7 +910,24 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     } else if (action.constructor.name === 'FeatureFinished') {
       const newStatus = action.success ? 'completed' : 'failed';
       this.updateDDTFeatureStatus(actionFeatureId, newStatus);
+      
+      // Process final loop information when test completes
+      this.processFinalLoopInfoForAllSteps();
     }
+  }
+
+  /**
+   * Process final loop information for all steps when test completes
+   */
+  private processFinalLoopInfoForAllSteps() {
+    this.log.msg('4', 'Test completed - processing final loop information for all steps', 'live-steps');
+    
+    // Call processFinalLoopInfo on all child step components
+    this.stepComponents?.forEach(stepComponent => {
+      stepComponent.processFinalLoopInfo();
+    });
+    
+    this._cdr.markForCheck();
   }
 
   /**

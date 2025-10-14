@@ -28,6 +28,7 @@ import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
 import { BrowserUseLogService, BrowserUseLogEntry } from '@services/browser-use-log.service';
+import { LogService } from '@services/log.service';
 import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
@@ -90,6 +91,14 @@ export class LiveStepComponent implements OnInit {
   isInsideLoop = false;
   currentLoopIteration = 1;
   totalLoopIterations = null;
+  
+  // Simple loop info for failed steps
+  failedLoopInfo: {
+    wasInLoop: boolean;
+    totalIterations: number;
+    failedIterations: number[]; // Array of all iterations that failed
+  } | null = null;
+  
 
   constructor(
     private _store: Store,
@@ -98,7 +107,8 @@ export class LiveStepComponent implements OnInit {
     private _api: ApiService,
     private _browserUseLogService: BrowserUseLogService,
     private _elementRef: ElementRef,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
+    private log: LogService
   ) {}
 
   @Input() step: FeatureStep;
@@ -116,15 +126,63 @@ export class LiveStepComponent implements OnInit {
 
   // Method to receive loop information from parent component
   updateLoopInfo(isInLoop: boolean, currentIteration: number, totalIterations: number | null) {
-    console.log(`📝 Step ${this.index} received loop info:`, {
-      isInLoop,
-      currentIteration,
-      totalIterations
-    });
     this.isInsideLoop = isInLoop;
     this.currentLoopIteration = currentIteration;
     this.totalLoopIterations = totalIterations;
-    this._cdr.markForCheck(); // Trigger change detection
+    
+    // Initialize failure tracking as soon as we enter the loop so we can
+    // accumulate every failed iteration instead of only the last one.
+    if (isInLoop && totalIterations && !this.failedLoopInfo) {
+      this.failedLoopInfo = {
+        wasInLoop: true,
+        totalIterations: totalIterations,
+        failedIterations: [] // Will be populated as iterations fail
+      };
+      this.log.msg('4', `Step ${this.index} - created failedLoopInfo`, 'live-step', this.failedLoopInfo);
+    }
+    
+    this._cdr.markForCheck();
+  }
+
+  // Method to process final loop information when test completes
+  processFinalLoopInfo() {
+    // Just trigger change detection to show the captured iteration info
+    if (this.status$.getValue() === 'failed' && this.failedLoopInfo) {
+      this.log.msg('4', `FINAL: Step ${this.index} showing captured failures`, 'live-step', this.failedLoopInfo.failedIterations);
+      this._cdr.markForCheck();
+    }
+  }
+
+  // Format failed iterations for display (concise and smart)
+  getFailedIterationsText(): string {
+    this.log.msg('4', `getFailedIterationsText called for step ${this.index}`, 'live-step', {
+      failedLoopInfo: this.failedLoopInfo,
+      hasFailedIterations: this.failedLoopInfo?.failedIterations?.length
+    });
+    
+    if (!this.failedLoopInfo || !this.failedLoopInfo.failedIterations.length) {
+      this.log.msg('4', `No failed iterations for step ${this.index}`, 'live-step');
+      return '';
+    }
+    
+    const iterations = this.failedLoopInfo.failedIterations;
+    const total = this.failedLoopInfo.totalIterations;
+    
+    let result = '';
+    if (iterations.length === 1) {
+      result = `Failed in Loop ${iterations[0]} of ${total}`;
+    } else if (iterations.length <= 5) {
+      // Show individual iterations: "Failed in Loops 76, 150, 300 of 1000"
+      result = `Failed in Loops ${iterations.join(', ')} of ${total}`;
+    } else {
+      // For many failures, show range: "Failed in Loops 76-300 (15 failures) of 1000"
+      const first = iterations[0];
+      const last = iterations[iterations.length - 1];
+      result = `Failed in Loops ${first}-${last} (${iterations.length} failures) of ${total}`;
+    }
+    
+    this.log.msg('4', `Generated feedback text for step ${this.index}: ${result}`, 'live-step');
+    return result;
   }
   
   screenshots;
@@ -169,9 +227,20 @@ export class LiveStepComponent implements OnInit {
           if (steps[this.index].running) {
             this.status$.next('running');
           } else {
-            this.status$.next(
-              steps[this.index].info.success ? 'success' : 'failed'
-            );
+            const isFailed = !steps[this.index].info.success;
+            const wasNotFailed = this.status$.getValue() !== 'failed';
+            this.status$.next(isFailed ? 'failed' : 'success');
+            
+            // Capture the iteration when this specific step fails
+            if (isFailed && this.isInsideLoop && this.totalLoopIterations && this.failedLoopInfo) {
+              // Add to failed iterations if not already present
+              if (!this.failedLoopInfo.failedIterations.includes(this.currentLoopIteration)) {
+                this.failedLoopInfo.failedIterations.push(this.currentLoopIteration);
+                this.failedLoopInfo.failedIterations.sort((a, b) => a - b);
+                this.log.msg('2', `Step ${this.index} failed in iteration ${this.currentLoopIteration} - total failures:`, 'live-step', this.failedLoopInfo.failedIterations);
+              }
+            }
+            
             this.rest_api = steps[this.index].info.rest_api;
             const mobiles_info = JSON.parse(JSON.stringify(steps[this.index].mobiles_info));
             this.updateMobiles.emit({
