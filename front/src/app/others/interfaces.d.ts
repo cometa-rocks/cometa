@@ -1234,6 +1234,16 @@ interface FeatureHistoryEntry {
   description: string;
   steps_count: number;
   steps: FeatureHistoryStep[];
+  // Additional feature data from backup
+  browsers?: any[];
+  schedule?: string;
+  send_mail?: boolean;
+  send_mail_on_error?: boolean;
+  network_logging?: boolean;
+  generate_dataset?: boolean;
+  continue_on_failure?: boolean;
+  send_telegram_notification?: boolean;
+  [key: string]: any; // Allow for additional properties
 }
 
 interface FeatureHistoryStep {

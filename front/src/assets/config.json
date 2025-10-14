@@ -1,6 +1,6 @@
 {
   "version": "3.0.108",
-  "stable_version": "3.0.107",
+  "stable_version": "3.0.108",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -244,13 +244,18 @@
   "changelog": [
     {
       "version": "3.0.108",
-      "date": "2025-10-04",
+      "date": "2025-10-12",
       "features": [
         {
           "title": "Exporting - Importing features and structure functionality added",
           "description": "Department content such as folders structure (optional) and features can now be migrated into another department or folder within Co.Meta"
+        },
+        {
+          "title": "Data-driven ready files - #6881",
+          "description": "Data driven files are now marked as data-driven ready."
         }
-      ]
+      ],
+      "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
     },
     {
       "version": "3.0.107",
