@@ -116,6 +116,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Departments } from '@store/actions/departments.actions';
 import { TelegramNotificationHelp } from './telegram-notification-help/telegram-notification-help.component';
 import { User } from '@store/actions/user.actions';
+import { SharedActionsService } from '@services/shared-actions.service';
 
 
 @Component({
@@ -450,6 +451,7 @@ export class EditFeature implements OnInit, OnDestroy {
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
     private logger: LogService,
+    private _sharedActions: SharedActionsService,
   ) {
 
 
@@ -3402,5 +3404,169 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     
     return result || 'ignore';
+  }
+
+  openFeatureHistory() {
+    this._sharedActions.openFeatureHistory(this.featureId, true).afterClosed().subscribe(result => {
+      if (result && result.action === 'restore') {
+        this.logger.msg('1', 'Restoring feature from backup data', 'edit-feature');
+        this.restoreFeatureFromBackup(result.backupData);
+      }
+    });
+  }
+
+  /**
+   * Restore feature data from backup
+   */
+  private restoreFeatureFromBackup(backupData: any): void {
+    try {
+      // Restore feature form data
+      if (backupData.feature) {
+        this.logger.msg('4', 'Restoring feature data from backup', 'edit-feature');
+        
+        // Update feature form with backup data - restore ALL fields
+        this.featureForm.patchValue({
+          // Basic feature information
+          feature_name: backupData.feature.feature_name,
+          description: backupData.feature.description,
+          
+          // Schedule
+          schedule: backupData.feature.schedule || '',
+          
+          // Email options
+          send_mail: backupData.feature.send_mail || false,
+          send_mail_on_error: backupData.feature.send_mail_on_error || false,
+          email_address: backupData.feature.email_address || [],
+          email_subject: backupData.feature.email_subject || '',
+          email_cc_address: backupData.feature.email_cc_address || [],
+          email_bcc_address: backupData.feature.email_bcc_address || [],
+          email_body: backupData.feature.email_body || '',
+          
+          // Recording options
+          network_logging: backupData.feature.network_logging || false,
+          generate_dataset: backupData.feature.generate_dataset || false,
+          video: backupData.feature.video !== undefined ? backupData.feature.video : true,
+          
+          // Advanced options
+          continue_on_failure: backupData.feature.continue_on_failure !== undefined ? backupData.feature.continue_on_failure : true,
+          depends_on_others: backupData.feature.depends_on_others || false,
+          need_help: backupData.feature.need_help || false,
+          
+          // Notifications
+          send_notification: backupData.feature.send_notification || false,
+          send_telegram_notification: backupData.feature.send_telegram_notification || false,
+          
+          // Email notification settings
+          check_maximum_notification_on_error: backupData.feature.check_maximum_notification_on_error || false,
+          maximum_notification_on_error: backupData.feature.maximum_notification_on_error || '3',
+          attach_pdf_report_to_email: backupData.feature.attach_pdf_report_to_email !== undefined ? backupData.feature.attach_pdf_report_to_email : true,
+          do_not_use_default_template: backupData.feature.do_not_use_default_template || false,
+          
+          // Schedule fields (cron expression components)
+          minute: backupData.feature.minute || '0',
+          hour: backupData.feature.hour || '0',
+          day_month: backupData.feature.day_month || '1',
+          month: backupData.feature.month || '*',
+          day_week: backupData.feature.day_week || '*',
+          
+          // Files
+          uploaded_files: backupData.feature.uploaded_files || [],
+          
+          // Telegram options (if available)
+          telegram_options: backupData.feature.telegram_options || {
+            include_department: false,
+            include_application: false,
+            include_environment: false,
+            include_feature_name: false,
+            include_datetime: false,
+            include_execution_time: false,
+            include_browser_timezone: false,
+            include_browser: false,
+            include_overall_status: false,
+            include_step_results: false,
+            include_pixel_diff: false,
+            include_feature_url: false,
+            include_failed_step_details: false,
+            attach_pdf_report: false,
+            attach_screenshots: false,
+            custom_message: '',
+            send_on_error: false,
+            do_not_use_default_template: false,
+            check_maximum_notification_on_error_telegram: false,
+            maximum_notification_on_error_telegram: '3',
+            override_telegram_settings: false,
+            override_bot_token: '',
+            override_chat_ids: '',
+            override_message_thread_id: ''
+          }
+        }, { emitEvent: false });
+        
+        // Restore browsers separately as they need special handling
+        if (backupData.feature.browsers && Array.isArray(backupData.feature.browsers)) {
+          this.logger.msg('4', `Restoring ${backupData.feature.browsers.length} browsers from backup`, 'edit-feature');
+          // Update the browser selection component
+          if (this._browserSelection) {
+            this._browserSelection.browsersSelected.next(backupData.feature.browsers);
+            this._browserSelection.selectionChange.emit(backupData.feature.browsers);
+          }
+        }
+      }
+
+      // Restore steps data
+      if (backupData.steps && Array.isArray(backupData.steps)) {
+        this.logger.msg('4', `Restoring ${backupData.steps.length} steps from backup`, 'edit-feature');
+        
+        // Update steps in the step editor
+        if (this.stepEditor && this.stepEditor.stepsForm) {
+          // Clear existing steps
+          while (this.stepEditor.stepsForm.controls.length > 0) {
+            this.stepEditor.stepsForm.removeAt(0);
+          }
+          
+          // Add backup steps
+          backupData.steps.forEach((step: any, index: number) => {
+            if (this.stepEditor && typeof this.stepEditor.addStepFromBackup === 'function') {
+              this.stepEditor.addStepFromBackup(step, index);
+            } else {
+              // Fallback: use addEmpty method if addStepFromBackup is not available
+              this.stepEditor.addEmpty(index);
+              // Set the step content manually
+              const stepControl = this.stepEditor.stepsForm.at(index);
+              if (stepControl) {
+                stepControl.patchValue({
+                  step_content: step.step_content || '',
+                  step_keyword: step.step_keyword || 'Given',
+                  enabled: step.enabled !== undefined ? step.enabled : true,
+                  screenshot: step.screenshot || false,
+                  compare: step.compare || false,
+                  step_action: step.step_action || '',
+                  step_type: step.step_type || '',
+                  continue_on_failure: step.continue_on_failure || false,
+                  timeout: step.timeout || this.department?.settings?.step_timeout || 60
+                });
+              }
+            }
+          });
+        }
+      }
+
+      // Show success message
+      this._snackBar.open(
+        'Feature data restored from backup successfully. You can now save the changes.',
+        'OK',
+        { duration: 5000 }
+      );
+
+      // Mark form as dirty to indicate changes
+      this.featureForm.markAsDirty();
+      
+    } catch (error) {
+      this.logger.msg('3', `Error restoring feature from backup: ${error}`, 'edit-feature');
+      this._snackBar.open(
+        'Error restoring feature from backup. Please try again.',
+        'OK',
+        { duration: 5000 }
+      );
+    }
   }
 }

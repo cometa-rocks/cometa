@@ -227,6 +227,25 @@
                   </div>
                 </ng-container>
                 
+                <!-- Open Feature History dialog - Only visible when editing an existing feature -->
+                <ng-container *ngIf="data.mode === 'edit'">
+                  <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableFeatureHistory">
+                    <div class="button-container">
+                      <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                        <button
+                          type="button"
+                          color="primary"
+                          [disabled]="disableFeatureHistory"
+                          (click)="openFeatureHistory()"
+                          mat-stroked-button
+                          [matTooltip]="'edit_feature.feature_history' | translate" matTooltipPosition="above">
+                          Feature History
+                        </button>
+                      </span>
+                    </div>
+                  </ng-container>
+                </ng-container>
+
                 <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableMobile">
                   <div class="button-container">
                     <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableMobile">
@@ -695,7 +714,7 @@
             [showPagination]="true"
             [fileColumns]="fileColumns"
             [showPanel]="false"
-            [file_type]="'normal'"
+            [file_type]="undefined"
             (fileUploaded)="onFilesUploaded($event)"
             (fileDeleted)="onFileDeleted($event)"
             (fileDownloaded)="onFileDownloaded($event)"
