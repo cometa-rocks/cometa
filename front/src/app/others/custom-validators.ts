@@ -18,9 +18,7 @@ export class CustomValidators {
     const _this: StepEditorComponent = this as any;
     const { actions } = _this;
     
-
     // Check step validity if it has been touched
-    if (control.touched || control.dirty) {
       let valid = true;
       // Check if isn't a comment
       if (!control.value.startsWith('#')) {
@@ -56,7 +54,6 @@ export class CustomValidators {
       }
       // Return error with name invalidStep
       if (!valid) return { invalidStep: true };
-    }
     // No error detected, is valid
     return null;
   }
