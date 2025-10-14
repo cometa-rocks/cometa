@@ -1,6 +1,6 @@
 {
-  "version": "3.0.104",
-  "stable_version": "3.0.104",
+  "version": "3.0.108",
+  "stable_version": "3.0.107",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -21,6 +21,7 @@
   "payment_enabled": false,
   "co_active_list": "recent",
   "co_features_pagination": 10,
+    "co_accounts_pagination": 100,
   "co_first_time_cometa": true,
   "openedSidenav": false,
   "openedSearch": false,
@@ -242,6 +243,96 @@
   ],
   "changelog": [
     {
+      "version": "3.0.108",
+      "date": "2025-10-12",
+      "features": [
+        {
+          "title": "Data-driven ready files - #6881",
+          "description": "Data driven files are now marked as data-driven ready."
+        }
+      ],
+      "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
+    },
+    {
+      "version": "3.0.107",
+      "date": "2025-10-03",
+      "features": [
+        {
+          "title": "Accounts table improvements - #6937",
+          "description": "Modified Table, add column headers(Sortable), add reactivity to the table, add reactive UI to the table."
+        },
+        {
+          "title": "Filter mobile list to display only Android emulators - #6943",
+          "description": "Filter mobile list to display only Android emulators."
+        }
+      ],
+      "bugfixes":["Fixed and added logic to close dialogs when scrolling on step editor."]
+    },
+    {
+      "version": "3.0.106",
+      "date": "2025-09-30",
+      "features": [
+        {
+          "title": "Missing spinner transitions for mobile - #6922",
+          "description": "Show spinner when stopping or restarting mobile, and save the state in localStorage."
+        },
+        {
+          "title": "Step editor mobile first - #6920",
+          "description": "Step editor mobile first, now it's mobile first, it's more responsive and easier to use on mobile."
+        },
+        {
+          "title": "Fixed mobile-video icon visibility",
+          "description": "Now conditionally displays it if there's an actual video of test execution"
+        },
+        {
+          "title": "Align copyclipboard icon - #5981",
+          "description": "Align copyclipboard icon in browser selection component."
+        },
+        {
+          "title": "Fixed issue with file path autocomplete - #6921",
+          "description": "Add text when no files found, now it shows correct position and height, add close button."
+        },
+        {
+          "title": "Mobile websocket improvements - #6860",
+          "description": "Mobile websocket improvements, fixed issue with shared containers, now it shows the shared containers in the list and tiles."
+        },
+        {
+          "title": "Tooltip improvements - #6919",
+          "description": "Tooltip improvements, add position and disabled attributes to the tooltip, did expansion panel overflow visible."
+        }
+      ]
+    },
+    {
+      "version": "3.0.105",
+      "date": "2025-09-24",
+      "features": [
+        {
+          "title": "Enhance feature metrics component with empty state - #6802",
+          "description": "Added conditional rendering to hide zero values and display a user-friendly message when no data is available. Updated styles for the empty state to improve UI presentation."
+        },
+        {
+          "title": "Refactor API service to filter out 'error' field in patch requests - #6891",
+          "description": "Refactor API service to filter out 'error' field in patch requests and enhance logging in ResultsState. Updated getBrowserKey function comments for clarity."
+        },
+        {
+          "title": "Visual and context update for chatbot",
+          "description": "Chatbot responses are now properly formatted and contains more processed data for context"
+        },
+        {
+          "title": "Fixed issue with dialogs - #6441",
+          "description": "Fixed issue with autocomplete, now it closes when doing scroll."
+        },
+        {
+            "title": "Add mobile dialog - #5981",
+          "description": "Add mobile dialog, which can be used to select a mobile from the list giving feedback (status, shared, etc)."
+        },
+        {
+          "title": "Fixed issue with notification icons - #6884",
+          "description": "Fixed issue with notification icons, now it shows correctly the notification icons in the feature list."
+        }
+      ]
+    },
+    {
       "version": "3.0.104",
       "date": "2025-09-22",
       "features": [
@@ -284,6 +375,10 @@
         {
           "title": "Fixed issue with Step Make an api call - #6824",
           "description": "Fixed issue with Step Make an api call, now it doesn't show 2 times the same step."
+        },
+        {
+          "title": "Fixed issue with Step Editor - #6824",
+          "description": "Fixed issue with Step Editor, now it doesn't check if steps have changed when they belong to other features."
         }
       ]
     },
