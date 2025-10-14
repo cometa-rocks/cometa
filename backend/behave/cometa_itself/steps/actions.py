@@ -2204,9 +2204,9 @@ def downloadFileFromURL(url, dest_folder, filename):
                     f.flush()
                     os.fsync(f.fileno())
 
-        # we copy the very same file also to a generic filename "last_downloaded_file" maintaining suffix for convinience reasons in the same folder
+        # we copy the very same file also to a generic filename "last_downloaded_file" maintaining suffix for convenience reasons in the same folder
         file_path2 = os.path.join(dest_folder, "last_downloaded_file"+Path(file_path).suffix)
-        logger.debug("Copying file also to last_downloaded_file for convinience %s", file_path2)
+        logger.debug("Copying file also to last_downloaded_file for convenience %s", file_path2)
         shutil.copy(file_path,file_path2)
 
         # sleep some time to gives discs time to sync

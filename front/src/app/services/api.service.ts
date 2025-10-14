@@ -258,9 +258,14 @@ export class ApiService {
     patches: Partial<FeatureResult>,
     params?
   ) {
+
+    // Filter out the 'error' field as it doesn't exist in the backend model
+    const filteredPatches = { ...patches };
+    delete (filteredPatches as any).error;
+
     return this._http.patch<Success>(
       `${this.api}feature_results/${featureResultId}/`,
-      patches,
+      filteredPatches,
       {
         params: params,
       }

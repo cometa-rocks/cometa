@@ -522,7 +522,7 @@ export class L1FeatureRecentListComponent implements OnChanges {
   }
 
   /**
- * Function to get preselected Department for user convinience
+ * Function to get preselected Department for user convenience
  * 1. localstorage
  * 2. preselected in Userpreferences
  * 3. First Item in List

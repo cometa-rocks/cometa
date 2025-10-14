@@ -149,6 +149,26 @@ $edit-feature-button-bg-color:  linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%
 
 // END - edit-feature #####################################
 
+// ACCOUNTS #############################################
+
+/* Accounts table colors */
+$accounts-table-golden-bg: #e5b355; // Golden background for accounts table
+$accounts-table-golden-bg-light: #f0c566; // Lighter variation for alternating rows (lighten 15%)
+$accounts-table-golden-bg-hover: #e8b85a; // Hover state for table rows (lighten 8%)
+$accounts-table-golden-bg-darker: #d4a04a; // Darker variation for alternating rows (darken 5%)
+
+/* Accounts button hover colors */
+$accounts-edit-button-hover: #e3f2fd; // Light blue hover for edit button (rgba(25, 118, 210, 0.08))
+$accounts-delete-button-hover: #ffebee; // Light red hover for delete button (rgba(211, 47, 47, 0.08))
+$accounts-button-hover: #f5f5f5; // General button hover (rgba(0, 0, 0, 0.04))
+
+/* Accounts table borders and shadows */
+$accounts-table-border: #e0e0e0; // Table border color
+$accounts-table-shadow: #0000001a; // Table box shadow (rgba(0, 0, 0, 0.1))
+$accounts-table-row-border: #0000000d; // Row border color (rgba(0, 0, 0, 0.05))
+
+// END - ACCOUNTS #######################################
+
 /* Option Pages */
 $opt-bg-color: #e5b355;
 
