@@ -1,6 +1,6 @@
 {
-  "version": "3.0.107",
-  "stable_version": "3.0.107",
+  "version": "3.0.109",
+  "stable_version": "3.0.109",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -245,7 +245,7 @@
     {
       "version": "3.0.109",
       "date": "2025-10-15",
-      "features": [
+      "improved": [
         {
           "title": "Loop step indicator improvements - #6977",
           "description": "Loop step indicator improvements, now it shows feedback about the loop in the step editor."
