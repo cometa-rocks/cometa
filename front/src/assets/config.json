@@ -248,7 +248,7 @@
       "improved": [
         {
           "title": "Fixed issue with Step Editor - #6978",
-          "description": "Fixed an issue when writing EE (Enterprise Edition) actions — now proper feedback is displayed when an invalid action is entered."
+          "description": "Fixed issue with Step Editor, now detects correctly error in step content."
         }
       ]
     },

@@ -2306,7 +2306,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       screenshot: [false],
       step_keyword: ['Given'],
       compare: [false],
-      step_content: ['', [Validators.required]],
+      step_content: ['', [Validators.required, CustomValidators.StepAction.bind(this)]],
       step_action: [''],
       step_type: [''],
       continue_on_failure: [false],

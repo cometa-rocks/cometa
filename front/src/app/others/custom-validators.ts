@@ -19,44 +19,39 @@ export class CustomValidators {
     const { actions } = _this;
     
 
-    // Check step validity if it has been touched
-    if (control.touched || control.dirty) {
+    // Commented because it is not needed to check if the step has been touched or dirty
+    // if (control.touched || control.dirty) {
       let valid = true;
       // Check if isn't a comment
       if (!control.value.startsWith('#')) {
         // Check coincidences
         valid = actions
-          .map(action => action.action_name)
-          .some(action => {
-            // Remove any possible left or right spaces
-            let name = action.trim();
-            // Remove prefixes only at the beginning of the string
-            name = action.replace(/^(then|when|given|and|if)\s+/i, '');
-            // Transform action values to regex
-            name = name.replace(/".*?"/gi, '"(.+)"');
-            // Removed 'i' flag to enforce strict capitalization matching
-            const regex = new RegExp(`^${name}$`, 'gs');
-            return regex.test(control.value);
-          });
+        .map(action => action.action_name)
+        .some(action => {
+          // this.logger.msg('4', '=== StepAction() === Action:', 'custom-validators', action);
+          // Remove any possible left or right spaces
+          let name = action.trim();
+          // this.logger.msg('4', '=== StepAction() === Name:', 'custom-validators', name);
+          // Remove prefixes only at the beginning of the string
+          name = action.replace(/^(then|when|given|and)\s+/i, '');
+          // this.logger.msg('4', '=== StepAction() === Name replaced:', 'custom-validators', name);
+          // Transform action values to regex
+          name = name.replace(/".*?"/gi, '"(.+)"');
+          // this.logger.msg('4', '=== StepAction() === Name replaced 2:', 'custom-validators', name);
+          // Removed 'i' flag to enforce strict capitalization matching
+          const regex = new RegExp(`^${name}$`, 'gs');
+          this.logger.msg('4', '=== StepAction() === Control value:', 'custom-validators', control.value);
+          this.logger.msg('4', '=== StepAction() === Regex:', 'custom-validators', regex);
+          return regex.test(control.value);
+        });
 
-        // Debug: Log if step was found in DB
-        this.logger.msg('4', `Step "${control.value}" ${valid ? 'Found in DB' : 'NOT found in DB'}`, 'custom-validators');
+        // Debug: Log if step was found in PRELOAD DATA
+        this.logger.msg('4', `Step "${control.value}" ${valid ? 'Found in PRELOAD DATA' : 'NOT found in PRELOAD DATA'}`, 'custom-validators');
 
-        // Special handling for Enterprise Edition actions that might not be in the database
-        // Add new EE action patterns here as needed
-        if (!valid) {
-          const trimmedValue = control.value.trim();
-          const eeActionPatterns = [
-            /^If\s+"(.+?)"\s+"(.+?)"\s+"(.+?)"$/,  // If "{value1}" "{condition}" "{value2}"
-            /^Else$/,     // Else
-            /^End\s+If$/,  // End If
-          ];
-          valid = eeActionPatterns.some(pattern => pattern.test(trimmedValue));
-        }
       }
       // Return error with name invalidStep
       if (!valid) return { invalidStep: true };
-    }
+    // }
     // No error detected, is valid
     return null;
   }
