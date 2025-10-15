@@ -9,17 +9,7 @@
   &.inside-loop {
     position: relative;
     
-    // Add a subtle left border to indicate we're inside a loop
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: linear-gradient(to bottom, $blue, lighten($blue, 20%));
-      border-radius: 0 2px 2px 0;
-    }
+    // Removed left border and any indentation - steps should align normally
   }
 
   .info-row {
@@ -187,6 +177,10 @@
         background-image: url(^assets/Google-loader.gif);
         background-image: url(^assets/Google-loader.svg);
       }
+      &.skipped {
+        background-image: url(^assets/radio_button_unchecked.svg);
+        opacity: 0.6;
+      }
     }
     .screen-image {
       display: block;
@@ -206,6 +200,10 @@
       &.running {
         background-image: url(^assets/Google-loader.gif);
         background-image: url(^assets/Google-loader.svg);
+      }
+      &.skipped {
+        background-image: url(^assets/radio_button_unchecked.svg);
+        opacity: 0.6;
       }
     }
     

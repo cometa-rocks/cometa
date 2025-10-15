@@ -219,6 +219,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       filter(action => action.action.feature_id === this.currentFeatureId)
     ).subscribe(action => {
       this.checkForLoopEnd(action.action.step_index);
+      this.checkForContinueLoop(action.action.step_index);
     });
   }
 
@@ -226,6 +227,9 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     // First, detect if we're in a loop by looking at the step definitions
     this.steps$.pipe(take(1)).subscribe(steps => {
       if (!steps) return;
+      
+      // Note: Continue Loop detection moved to checkForContinueLoop method
+      // which is called when StepFinished event occurs
       
       // Find the most recent loop definition that applies to the current step
       let currentLoopInfo = null;
@@ -315,6 +319,30 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         this.totalIterations = null;
         this.loopIterationCounter = 1;
         this.updateLoopInfoInChildComponents();
+        this._cdr.markForCheck();
+      }
+    });
+  }
+
+  private checkForContinueLoop(stepIndex: number) {
+    // Check if the completed step is a "Continue Loop" step
+    this.steps$.pipe(take(1)).subscribe(steps => {
+      if (!steps || !steps[stepIndex]) return;
+      
+      const stepContent = steps[stepIndex].step_content || '';
+      const isContinueLoop = stepContent.includes('Continue Loop');
+      
+      // Debug logging to see ALL StepFinished events
+      this.log.msg('4', `StepFinished - Checking step ${stepIndex}: content="${stepContent}", isContinueLoop=${isContinueLoop}`, 'live-steps');
+      
+      if (isContinueLoop) {
+        this.log.msg('4', `Continue Loop completed at step ${stepIndex} - updating skipped steps`, 'live-steps');
+        this.log.msg('4', `Found ${this.stepComponents?.length} child components to update`, 'live-steps');
+        // Call handleContinueLoop on all child components to update skipped steps
+        this.stepComponents?.forEach((stepComponent, index) => {
+          this.log.msg('4', `Calling handleContinueLoop on step component ${index}`, 'live-steps');
+          stepComponent.handleContinueLoop();
+        });
         this._cdr.markForCheck();
       }
     });
