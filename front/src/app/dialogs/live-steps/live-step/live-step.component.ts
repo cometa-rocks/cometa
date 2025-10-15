@@ -256,8 +256,11 @@ export class LiveStepComponent implements OnInit {
       this.index
     );
 
-    // Check if this is a loop step (continue, break, or end)
-    this.isLoopStep = this.step?.step_content?.includes('Continue Loop') ||
+    // Check if this is a loop step (definition, continue, break, or end)
+    this.isLoopStep = (this.step?.step_content?.includes('Loop') && 
+                      this.step?.step_content?.includes('times starting at') && 
+                      this.step?.step_content?.includes('and do')) ||
+                     this.step?.step_content?.includes('Continue Loop') ||
                      this.step?.step_content?.includes('Break Loop') ||
                      this.step?.step_content?.includes('End Loop');
     
@@ -449,7 +452,10 @@ Time: +${healingData.healing_duration_ms}ms`;
   // Simplified loop detection - just check if this is a loop step
   private checkIfInsideLoop(steps: StepStatus[]): void {
     // Simple check: if this step contains "Loop" in its content, it's a loop step
-    this.isLoopStep = this.step?.step_content?.includes('Continue Loop') ||
+    this.isLoopStep = (this.step?.step_content?.includes('Loop') && 
+                      this.step?.step_content?.includes('times starting at') && 
+                      this.step?.step_content?.includes('and do')) ||
+                     this.step?.step_content?.includes('Continue Loop') ||
                      this.step?.step_content?.includes('Break Loop') ||
                      this.step?.step_content?.includes('End Loop');
   }

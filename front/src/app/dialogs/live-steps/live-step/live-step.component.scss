@@ -36,7 +36,7 @@
     // Loop step indicator - very small blue badge centered above the step
     .loop-step-indicator {
       position: absolute;
-      top: -10px;
+      top: -12px;
       left: 10.5%;
       transform: translateX(-50%);
       color: $blue;
@@ -104,58 +104,63 @@
           border: 1px solid $blue;
         }
       }
+    }
 
+    // Only loop control steps should have blue text color (Loop definition, Continue Loop, Break Loop, End Loop)
+    &[data-loop-step="true"] .text .step-content {
+      color: $blue;
+      font-weight: 600;
+    }
 
-      // Loop progress information
-      .loop-progress-info {
-        background: linear-gradient(135deg, rgba($blue, 0.1), rgba($blue, 0.2));
-        border-left: 4px solid $blue;
-        padding: 10px 14px;
-        margin: 6px 0;
-        border-radius: 6px;
+    // Loop progress information
+    .loop-progress-info {
+      background: linear-gradient(135deg, rgba($blue, 0.1), rgba($blue, 0.2));
+      border-left: 4px solid $blue;
+      padding: 10px 14px;
+      margin: 6px 0;
+      border-radius: 6px;
+      
+      .loop-info-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         
-        .loop-info-content {
+        .loop-icon {
+          color: $blue;
+          font-size: 18px;
+        }
+        
+        .loop-info-text {
           display: flex;
-          align-items: center;
-          gap: 10px;
+          flex-direction: column;
+          gap: 4px;
           
-          .loop-icon {
-            color: $blue;
-            font-size: 18px;
+          strong {
+            color: darken($blue, 15%);
+            font-weight: 600;
+            font-size: 13px;
           }
           
-          .loop-info-text {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            
-            strong {
-              color: darken($blue, 15%);
-              font-weight: 600;
-              font-size: 13px;
-            }
-            
-            .current-step-indicator {
-              color: darken($blue, 10%);
-              font-size: 12px;
-              font-style: italic;
-              opacity: 0.8;
-            }
+          .current-step-indicator {
+            color: darken($blue, 10%);
+            font-size: 12px;
+            font-style: italic;
+            opacity: 0.8;
           }
         }
       }
+    }
 
-      // Browser-use AI agent message styling
-      .step-detail {
-        &[title*="🤖"] {
-          background: linear-gradient(135deg, $info-background-feature-item, #f3e5f5);
-          border-left: 4px solid $mobile-information-color;
-          padding: 5px 10px;
-          border-radius: 4px;
-          white-space: normal; // Allow browser-use messages to wrap
-          max-height: 100px;
-          overflow-y: auto;
-        }
+    // Browser-use AI agent message styling
+    .step-detail {
+      &[title*="🤖"] {
+        background: linear-gradient(135deg, $info-background-feature-item, #f3e5f5);
+        border-left: 4px solid $mobile-information-color;
+        padding: 5px 10px;
+        border-radius: 4px;
+        white-space: normal; // Allow browser-use messages to wrap
+        max-height: 100px;
+        overflow-y: auto;
       }
     }
     .icon-status {
