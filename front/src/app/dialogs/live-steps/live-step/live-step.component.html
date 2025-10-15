@@ -1,6 +1,6 @@
 <div class="info-row" *ngLet="status$ | async as status" [ngClass]="{'inside-loop': isInsideLoop || wasInsideLoop || isLoopControlStep}" [attr.data-loop-step]="isLoopStep">
-  <!-- Loop indicator - show for steps within a loop or that were in a loop, but NOT for loop definition and End Loop -->
-  <div class="loop-step-indicator" *ngIf="(isInsideLoop || wasInsideLoop) && !isLoopControlStep">
+  <!-- Loop indicator - show for steps within a loop or that were in a loop, but NOT when loop-progress-info is showing -->
+  <div class="loop-step-indicator" *ngIf="(isInsideLoop || wasInsideLoop) && !isLoopControlStep && !((isLoopStep || isInsideLoop) && totalLoopIterations)">
     <mat-icon class="loop-indicator-icon">repeat</mat-icon>
     <span class="loop-indicator-text">Loop</span>
   </div>
