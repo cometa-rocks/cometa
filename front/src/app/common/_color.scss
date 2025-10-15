@@ -131,14 +131,6 @@ $live-steps-spinner-color: #f44336 ;
 
 // END - LIVE-STEPS ######################################
 
-// LIVE-STEP ERROR COLORS (centralized hex values)
-// Moved below Accounts section to ensure dependencies are defined
-$healing-orange: #ffa726; // Used for healing icon
-$error-red: $bad; // Primary error/red text
-$error-red-border: $live-steps-spinner-color; // Reuse existing color (#f44336)
-$error-red-bg: $accounts-delete-button-hover; // Light error background
-$error-red-badge-bg: #ffcdd2; // Badge background for loop error context
-
 // starred ###############################################
 
 $starred-color-deparment: #5F6368;
@@ -176,6 +168,13 @@ $accounts-table-shadow: #0000001a; // Table box shadow (rgba(0, 0, 0, 0.1))
 $accounts-table-row-border: #0000000d; // Row border color (rgba(0, 0, 0, 0.05))
 
 // END - ACCOUNTS #######################################
+
+// LIVE-STEP ERROR COLORS (centralized hex values)
+// Moved below Accounts section to ensure dependencies are defined
+$error-red: $bad; // Primary error/red text
+$error-red-border: $live-steps-spinner-color; // Reuse existing color (#f44336)
+$error-red-bg: $accounts-delete-button-hover; // Light error background
+$error-red-badge-bg: darken($accounts-delete-button-hover, 10%); // Badge background for loop error context (10% darker)
 
 /* Option Pages */
 $opt-bg-color: #e5b355;
