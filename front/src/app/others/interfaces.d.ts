@@ -716,7 +716,6 @@ interface OIDCUserData {
 }
 
 interface BrowserstackBrowser {
-  key?: string;
   os: string;
   os_version: string;
   browser: string;
