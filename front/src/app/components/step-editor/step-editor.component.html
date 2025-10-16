@@ -249,12 +249,7 @@
                 (click)="expandApiCall(i)">
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
-            <!-- Textarea with autocomplete enabled -->
-             <!-- MAC ShortCuts
-              (keydown.alt.arrowup)="insertStep($event, i)"
-              (keydown.alt.arrowdown)="insertStep($event, i)"
-              (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
-             -->
+
             <textarea
               [style.display]="(isApiCallStep(i) && !isEditingApiCall(i)) ? 'none' : 'unset'"
               [style.resize]="(isApiCallStep(i)) ? 'vertical' : 'null'"
@@ -275,12 +270,14 @@
               (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)"
               (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
               class="code"
+              [class.has-error]="step.get('step_content').errors?.invalidStep"
               spellcheck="false"
               autocomplete="off"
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
               #stepHelpTrigger="matAutocompleteTrigger"
               placeholder="Step Code"
+              [value]="getDisplayValueWithMissingChar(i)"
               (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
 
@@ -346,7 +343,7 @@
             <i
               *ngIf="step.get('step_content').errors?.invalidStep"
               class="invalid-sign"
-              matTooltip="Invalid step definition"
+              [matTooltip]="'step_editor.invalid_step_tooltip' | translate"
               matTooltipPosition="above">
               <div class="little-icon">
                 <i class="material-icons">error</i>

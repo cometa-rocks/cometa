@@ -2058,6 +2058,171 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   }
 
+  /**
+   * Returns the display value with the missing character inserted directly in the text
+   */
+  getDisplayValueWithMissingChar(index: number): string {
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const value: string = stepFormGroup?.get('step_content')?.value || '';
+    if (!value) return '';
+
+    // If step is valid, return original value
+    if (!stepFormGroup?.get('step_content')?.errors?.invalidStep) {
+      return value;
+    }
+
+    // Find the missing character using regex - much simpler approach
+    const missingCharInfo = this.getMissingCharInfoSimple(value);
+    if (!missingCharInfo) return value;
+
+    // Insert the missing character at the correct position
+    const { position, missingChar } = missingCharInfo;
+    const beforeMissing = value.substring(0, position);
+    const afterMissing = value.substring(position);
+    
+    // Set CSS custom properties for highlighting
+    this.setMissingCharHighlight(index, position, missingChar.length);
+    
+    // Return the text with the missing character inserted
+    return beforeMissing + missingChar + afterMissing;
+  }
+
+
+  /**
+   * Escapes HTML special characters to prevent XSS
+   */
+  private escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Simple method to find missing character using regex patterns
+   */
+  getMissingCharInfoSimple(value: string): { position: number; missingChar: string } | null {
+    // Common patterns for missing characters
+    const patterns = [
+      { regex: /continuin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /runnin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /startin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /stoppin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /waitin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /loadin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /savin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /openin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /closin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /clickin(?!g)/, missingChar: 'g', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /typ(?!in)/, missingChar: 'in', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /writ(?!in)/, missingChar: 'in', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /read(?!in)/, missingChar: 'in', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /delet(?!in)/, missingChar: 'in', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+      { regex: /creat(?!in)/, missingChar: 'in', position: (match: RegExpMatchArray) => match.index! + match[0].length },
+    ];
+
+    for (const pattern of patterns) {
+      const match = value.match(pattern.regex);
+      if (match) {
+        return {
+          position: pattern.position(match),
+          missingChar: pattern.missingChar
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Sets CSS custom properties to highlight the missing character position
+   */
+  setMissingCharHighlight(index: number, position: number, charWidth: number): void {
+    // Use setTimeout to ensure DOM is updated
+    setTimeout(() => {
+      const textareas = this.stepTextareas?.toArray();
+      if (!textareas || !textareas[index]) return;
+
+      const textarea = textareas[index].nativeElement;
+      
+      // Set CSS custom properties for character position and width
+      textarea.style.setProperty('--char-position', position.toString());
+      textarea.style.setProperty('--char-width', charWidth.toString());
+    }, 0);
+  }
+
+  /**
+   * Returns information about the missing character for an invalid step
+   */
+  getMissingCharInfo(index: number): { position: number; missingChar: string } | null {
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const value: string = stepFormGroup?.get('step_content')?.value || '';
+    if (!value) return null;
+
+    // Build a mask that marks quoted regions
+    const quotedRanges: Array<[number, number]> = [];
+    const quoteRegex = /".*?"/g;
+    let m: RegExpExecArray | null;
+    while ((m = quoteRegex.exec(value)) !== null) {
+      quotedRanges.push([m.index, m.index + m[0].length]);
+    }
+
+    // Helper to check if position is inside quotes
+    const isInQuotes = (pos: number) => quotedRanges.some(([s, e]) => pos >= s && pos < e);
+
+    const sanitizedStep = value.replace(/".*?"/g, '').trim();
+    if (!sanitizedStep) return null;
+
+    // Prepare action candidates: remove prefixes and quoted parts to compare outside of quotes
+    const candidates = (this.actions || []).map(a => {
+      let name = a.action_name.trim();
+      name = name.replace(/^(then|when|given|and|if)\s+/i, '');
+      name = name.replace(/".*?"/g, '');
+      return name.trim();
+    }).filter(t => !!t);
+
+    if (candidates.length === 0) return null;
+
+    // Find best candidate by longest common prefix with sanitized step (case-sensitive)
+    let best: { candidate: string; common: number } = { candidate: '', common: -1 };
+    for (const c of candidates) {
+      const common = this.getCommonPrefixLength(sanitizedStep, c);
+      if (common > best.common) {
+        best = { candidate: c, common };
+      }
+    }
+
+    const mismatchIndex = best.common;
+    if (mismatchIndex < 0 || mismatchIndex >= best.candidate.length) return null;
+
+    // Get the expected character from the best matching action
+    const expectedChar = best.candidate.charAt(mismatchIndex);
+    if (!expectedChar || expectedChar === ' ') return null;
+
+    // Map mismatch index back to the original string
+    let realIndex = 0;
+    let outsideCount = 0;
+    for (let i = 0; i < value.length; i++) {
+      if (!isInQuotes(i)) {
+        if (outsideCount === mismatchIndex) { 
+          realIndex = i; 
+          break; 
+        }
+        outsideCount++;
+      }
+    }
+
+    return { position: realIndex, missingChar: expectedChar };
+  }
+
+  private getCommonPrefixLength(a: string, b: string): number {
+    const len = Math.min(a.length, b.length);
+    for (let i = 0; i < len; i++) {
+      if (a[i] !== b[i]) return i;
+    }
+    return len;
+  }
+
+
   isIconActive: { [key: string]: boolean } = {};
 
   importClipboardStepDoc(stepsDocumentationExample: string) {

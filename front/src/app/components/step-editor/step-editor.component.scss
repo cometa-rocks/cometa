@@ -33,6 +33,10 @@
         font-size: 17px;
       }
     }
+    // Show blinking red letter only on hover
+    .blink-letter {
+      opacity: 1;
+    }
   }
   will-change: transform;
   animation: scaleIn 0.25s cubic-bezier(0.205, -0.305, 0.34, 1.65);
@@ -44,6 +48,47 @@
   }
   to {
     transform: scale(1);
+  }
+}
+
+// Textarea with error highlighting - show missing character in text
+.code.has-error {
+  position: relative;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    transparent calc(var(--char-position, 0) * 1ch), 
+    rgba(212, 20, 90, 0.3) calc(var(--char-position, 0) * 1ch), 
+    rgba(212, 20, 90, 0.3) calc((var(--char-position, 0) + var(--char-width, 1)) * 1ch), 
+    transparent calc((var(--char-position, 0) + var(--char-width, 1)) * 1ch)
+  );
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  animation: highlightMissingChar 1s ease-in-out infinite;
+}
+
+@keyframes highlightMissingChar {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(212, 20, 90, 0.1);
+  }
+}
+
+// Blinking red letter for missing character
+::ng-deep .missing-char-blink {
+  color: $bad;
+  font-weight: bold;
+  animation: blinkChar 1s ease-in-out infinite;
+}
+
+// Keyframe animation for blinking effect
+@keyframes blinkChar {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
   }
 }
 
@@ -451,6 +496,7 @@
           height: 100px;
         }
       }
+
     }
     .code.multi-line {
       resize: none !important;
