@@ -177,6 +177,7 @@
         class="step-row"
         [class.invalid-step]="step.get('step_content').errors?.invalidStep"
         [class.disabled]="!step.controls.enabled.value"
+        [attr.data-step-index]="i"
         cdkDrag
         cdkDragLockAxis="y"
         [contextMenu]="basicMenu"
@@ -250,36 +251,37 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
 
-            <textarea
-              [style.display]="(isApiCallStep(i) && !isEditingApiCall(i)) ? 'none' : 'unset'"
-              [style.resize]="(isApiCallStep(i)) ? 'vertical' : 'null'"
-              #stepTextarea
-              (input)="onStepChange($event, i); autoGrowTextarea($event)"
-              (blur)="fixStep($event, i); sendTextareaFocusToParent(false, i)"
-              (click)="onStepTextareaClick($event, i, 0)"
-              (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
-              (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
-              (keydown.enter)="onTextareaEnter($event, i)"
-              (keydown.Tab)="onTextareaTab($event, i)"
-              (keydown.control.arrowup)="insertStep($event, i)"
-              (keydown.alt.arrowup)="insertStep($event, i)"
-              (keydown.control.arrowdown)="insertStep($event, i)"
-              (keydown.alt.arrowdown)="insertStep($event, i)"
-              (keydown.alt.control.arrowup)="copyStep($event, i)"
-              (keydown.alt.control.arrowdown)="copyStep($event, i)"
-              (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)"
-              (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
-              class="code"
-              [class.has-error]="step.get('step_content').errors?.invalidStep"
-              spellcheck="false"
-              autocomplete="off"
-              formControlName="step_content"
-              [matAutocomplete]="stepHelp"
-              #stepHelpTrigger="matAutocompleteTrigger"
-              placeholder="Step Code"
-              [value]="getDisplayValueWithMissingChar(i)"
-              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
-            </textarea>
+            <div class="textarea-container" [class.has-error]="step.get('step_content').errors?.invalidStep">
+              <textarea
+                [style.display]="(isApiCallStep(i) && !isEditingApiCall(i)) ? 'none' : 'unset'"
+                [style.resize]="(isApiCallStep(i)) ? 'vertical' : 'null'"
+                #stepTextarea
+                (input)="onStepChange($event, i); autoGrowTextarea($event)"
+                (blur)="fixStep($event, i); sendTextareaFocusToParent(false, i)"
+                (click)="onStepTextareaClick($event, i, 0)"
+                (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
+                (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+                (keydown.enter)="onTextareaEnter($event, i)"
+                (keydown.Tab)="onTextareaTab($event, i)"
+                (keydown.control.arrowup)="insertStep($event, i)"
+                (keydown.alt.arrowup)="insertStep($event, i)"
+                (keydown.control.arrowdown)="insertStep($event, i)"
+                (keydown.alt.arrowdown)="insertStep($event, i)"
+                (keydown.alt.control.arrowup)="copyStep($event, i)"
+                (keydown.alt.control.arrowdown)="copyStep($event, i)"
+                (keydown.alt.shift.f)="createFilePathAutocomplete($event, i)"
+                (keydown.meta.shift.f)="createFilePathAutocomplete($event, i)"
+                class="code"
+                spellcheck="false"
+                autocomplete="off"
+                formControlName="step_content"
+                [matAutocomplete]="stepHelp"
+                #stepHelpTrigger="matAutocompleteTrigger"
+                placeholder="Step Code"
+                (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
+              </textarea>
+              
+            </div>
 
             <div 
               #variableAutocompletePanel
@@ -343,12 +345,36 @@
             <i
               *ngIf="step.get('step_content').errors?.invalidStep"
               class="invalid-sign"
-              [matTooltip]="'step_editor.invalid_step_tooltip' | translate"
-              matTooltipPosition="above">
+              [matTooltip]="getStepErrorTooltip(step)"
+              matTooltipPosition="above"
+              matTooltipClass="step-error-tooltip"
+              (mouseenter)="showSuggestionOverlay($event, i, step)"
+              (mouseleave)="hideSuggestionOverlay(i)"
+              (keydown.tab)="autocompleteStep(i, step, $event)"
+              tabindex="0">
               <div class="little-icon">
                 <i class="material-icons">error</i>
               </div>
             </i>
+            <!-- Suggestion overlay with missing characters -->
+            <div 
+              *ngIf="suggestionOverlayVisible[i]"
+              class="suggestion-overlay"
+              [style.top]="suggestionPosition[i]?.top + 'px'"
+              [style.left]="suggestionPosition[i]?.left + 'px'">
+              <div class="suggestion-content">
+                <div class="suggestion-text">
+                  <span *ngFor="let char of getSuggestionChars(step); let i = index" 
+                        [class.missing-char]="char.isMissing"
+                        [class.correct-char]="!char.isMissing"
+                        [class.blinking]="char.isMissing">
+                    {{ char.char }}
+                  </span>
+                </div>
+                <div class="suggestion-hint">Press TAB to autocomplete</div>
+              </div>
+            </div>
+         
             <i
               *ngIf="step.get('timeout').errors?.max"
               class="invalid-sign"

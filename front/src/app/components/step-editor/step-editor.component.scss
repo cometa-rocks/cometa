@@ -51,47 +51,6 @@
   }
 }
 
-// Textarea with error highlighting - show missing character in text
-.code.has-error {
-  position: relative;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    transparent calc(var(--char-position, 0) * 1ch), 
-    rgba(212, 20, 90, 0.3) calc(var(--char-position, 0) * 1ch), 
-    rgba(212, 20, 90, 0.3) calc((var(--char-position, 0) + var(--char-width, 1)) * 1ch), 
-    transparent calc((var(--char-position, 0) + var(--char-width, 1)) * 1ch)
-  );
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  animation: highlightMissingChar 1s ease-in-out infinite;
-}
-
-@keyframes highlightMissingChar {
-  0%, 100% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(212, 20, 90, 0.1);
-  }
-}
-
-// Blinking red letter for missing character
-::ng-deep .missing-char-blink {
-  color: $bad;
-  font-weight: bold;
-  animation: blinkChar 1s ease-in-out infinite;
-}
-
-// Keyframe animation for blinking effect
-@keyframes blinkChar {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
-}
-
 ::ng-deep .step-options-menu .mat-menu-item {
   height: 38px !important;
   line-height: 38px !important;
@@ -1657,6 +1616,141 @@ Usage:
           font-weight: 500;
         }
       }
+    }
+  }
+}
+
+// Custom tooltip class for step error messages with multiple lines
+::ng-deep .step-error-tooltip {
+  white-space: pre-line;
+  max-width: 400px;
+  line-height: 1.5;
+  background-color: $red;
+  font-size: 12px;
+  padding: 8px 12px;
+  
+  .mdc-tooltip__surface {
+    white-space: pre-line;
+    max-width: 400px;
+    line-height: 1.5;
+    background-color: $red;
+  }
+}
+
+// Textarea container with suggestion overlay
+.textarea-container {
+  position: relative;
+  
+  &.has-error {
+    .textarea-suggestion-overlay {
+      display: block;
+    }
+  }
+}
+
+// Suggestion overlay directly in textarea
+.textarea-suggestion-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 8px 12px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  
+  .correct-char {
+    color: transparent; // Make correct chars invisible
+  }
+  
+  .missing-char-blinking {
+    color: #F44336;
+    font-weight: bold;
+    background-color: rgba(244, 67, 54, 0.1);
+    border-radius: 2px;
+    animation: blink 1s infinite;
+  }
+}
+
+// Blinking animation for missing characters
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+// Make error icon focusable and add hover effects
+.invalid-sign {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+  
+  &:focus {
+    outline: 2px solid $red;
+    outline-offset: 2px;
+  }
+}
+
+// Floating suggestion overlay styles (hover on error icon)
+.suggestion-overlay {
+  position: fixed;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.35;
+  max-width: 420px;
+  pointer-events: none;
+  color: #fff;
+
+  .suggestion-content {
+    .suggestion-text {
+      margin-bottom: 6px;
+
+      span {
+        display: inline-block;
+        padding: 1px 3px;
+        margin: 0 1px;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+
+        &.correct-char {
+          background-color: rgba(76, 175, 80, 0.18);
+          color: #c8e6c9;
+          border: 1px solid rgba(76, 175, 80, 0.35);
+        }
+
+        &.missing-char {
+          background-color: rgba(244, 67, 54, 0.18);
+          color: #ffcdd2;
+          border: 1px solid rgba(244, 67, 54, 0.35);
+
+          &.blinking {
+            animation: blink 1s infinite;
+          }
+        }
+      }
+    }
+
+    .suggestion-hint {
+      font-size: 11px;
+      color: #bdbdbd;
+      text-align: center;
+      font-style: italic;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 4px;
     }
   }
 }

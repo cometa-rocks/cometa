@@ -8,56 +8,135 @@ import { StepEditorComponent } from '@components/step-editor/step-editor.compone
 
 export class CustomValidators {
   static logger: any;
+
   /**
-   * Uses to validate steps against actions
-   * Steps untouched, pristine or commented are not checked
-   * @returns ValidatorFn
+   * Compute Levenshtein distance between two strings
+   */
+  static levenshteinDistance(str1: string, str2: string): number {
+    const a = str1 ?? '';
+    const b = str2 ?? '';
+    const len1 = a.length;
+    const len2 = b.length;
+    if (len1 === 0) return len2;
+    if (len2 === 0) return len1;
+
+    const matrix: number[][] = Array.from({ length: len1 + 1 }, () => new Array(len2 + 1).fill(0));
+
+    for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+    for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1, // deletion
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        );
+      }
+    }
+    return matrix[len1][len2];
+  }
+
+  /**
+   * Find the first index where two strings differ.
+   */
+  static findFirstDifference(userInput: string, correctStep: string): { index: number; userChar: string; expectedChar: string } | null {
+    const minLength = Math.min(userInput.length, correctStep.length);
+    for (let i = 0; i < minLength; i++) {
+      if (userInput[i] !== correctStep[i]) {
+        return { index: i, userChar: userInput[i] ?? '', expectedChar: correctStep[i] ?? '' };
+      }
+    }
+    if (userInput.length !== correctStep.length) {
+      // First difference is at end if lengths differ
+      return { index: minLength, userChar: userInput[minLength] ?? '', expectedChar: correctStep[minLength] ?? '' };
+    }
+    return null;
+  }
+
+  /**
+   * Remove quoted parts from a step to compare only static text outside quotes
+   */
+  static removeQuotedParts(step: string): string {
+    if (!step) return '';
+    return step.replace(/".*?"/g, '');
+  }
+
+  /**
+   * Validate steps against actions and return detailed error info when invalid
    */
   static StepAction(control: AbstractControl): ValidationErrors | null {
-    this.logger.msg('4', '=== StepAction() === EXECUTED for:', 'custom-validators', control.value);
-    const _this: StepEditorComponent = this as any;
-    const { actions } = _this;
-    
+    try {
+      const _this: StepEditorComponent = this as any;
+      const { actions } = _this || { actions: [] };
+      const value: string = control?.value ?? '';
 
-    // Check step validity if it has been touched
-    if (control.touched || control.dirty) {
-      let valid = true;
-      // Check if isn't a comment
-      if (!control.value.startsWith('#')) {
-        // Check coincidences
+      // Skip if untouched or blank
+      if (!control || (!control.touched && !control.dirty)) return null;
+
+      // Comments are always valid
+      if (value.startsWith('#')) return null;
+
+      // Exact match check with existing behavior
+      let valid = false;
+      if (actions && Array.isArray(actions) && actions.length > 0) {
         valid = actions
-          .map(action => action.action_name)
+          .map(a => a.action_name)
           .some(action => {
-            // Remove any possible left or right spaces
             let name = action.trim();
-            // Remove prefixes only at the beginning of the string
-            name = action.replace(/^(then|when|given|and|if)\s+/i, '');
-            // Transform action values to regex
+            name = name.replace(/^(then|when|given|and|if)\s+/i, '');
             name = name.replace(/".*?"/gi, '"(.+)"');
-            // Removed 'i' flag to enforce strict capitalization matching
             const regex = new RegExp(`^${name}$`, 'gs');
-            return regex.test(control.value);
+            return regex.test(value);
           });
+      } else {
+        // If we don't have actions, don't block the user
+        valid = true;
+      }
 
-        // Debug: Log if step was found in DB
-        this.logger.msg('4', `Step "${control.value}" ${valid ? 'Found in DB' : 'NOT found in DB'}`, 'custom-validators');
+      if (valid) return null;
 
-        // Special handling for Enterprise Edition actions that might not be in the database
-        // Add new EE action patterns here as needed
-        if (!valid) {
-          const trimmedValue = control.value.trim();
-          const eeActionPatterns = [
-            /^If\s+"(.+?)"\s+"(.+?)"\s+"(.+?)"$/,  // If "{value1}" "{condition}" "{value2}"
-            /^Else$/,     // Else
-            /^End\s+If$/,  // End If
-          ];
-          valid = eeActionPatterns.some(pattern => pattern.test(trimmedValue));
+      // Build detailed error using closest match logic (ignore quoted parts)
+      if (!actions || actions.length === 0) {
+        return { invalidStep: true, errorDetails: 'No actions available to validate', closestMatch: null, distance: null } as any;
+      }
+
+      const userClean = CustomValidators.removeQuotedParts(value).toLowerCase();
+      let minDistance = Number.POSITIVE_INFINITY;
+      let bestOriginal = '';
+      let bestClean = '';
+
+      for (const a of actions) {
+        let name = a.action_name?.trim() ?? '';
+        name = name.replace(/^(then|when|given|and|if)\s+/i, '');
+        const clean = CustomValidators.removeQuotedParts(name).toLowerCase();
+        const d = CustomValidators.levenshteinDistance(userClean, clean);
+        if (d < minDistance) {
+          minDistance = d;
+          bestOriginal = name;
+          bestClean = clean;
         }
       }
-      // Return error with name invalidStep
-      if (!valid) return { invalidStep: true };
+
+      let suggestion = 'No similar step found';
+      if (bestOriginal) {
+        const diff = CustomValidators.findFirstDifference(CustomValidators.removeQuotedParts(value), CustomValidators.removeQuotedParts(bestOriginal));
+        suggestion = diff
+          ? `Character at position ${diff.index + 1}: found '${diff.userChar || '∅'}', expected '${diff.expectedChar || '∅'}'`
+          : `Length mismatch: input has ${CustomValidators.removeQuotedParts(value).length} chars, expected ${CustomValidators.removeQuotedParts(bestOriginal).length} chars`;
+      }
+
+      return {
+        invalidStep: true,
+        closestMatch: bestOriginal || null,
+        errorDetails: suggestion,
+        distance: isFinite(minDistance) ? minDistance : null,
+      } as any;
+    } catch (e) {
+      // In case of unexpected errors, do not block the form; log if logger available
+      try { CustomValidators.logger?.msg?.('1', 'Validator error', 'custom-validators', e); } catch {}
+      return null;
     }
-    // No error detected, is valid
-    return null;
   }
 }

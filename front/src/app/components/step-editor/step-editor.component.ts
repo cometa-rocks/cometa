@@ -393,7 +393,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   // ... existing code ...
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
-    if (clear) this.stepsForm.clear();
     steps.forEach((step, index) => {
       const formGroup = this._fb.group({
         enabled: step.enabled,
@@ -491,6 +490,218 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   getSteps(): FeatureStep[] {
     return this.stepsForm.controls.map(control => control.getRawValue());
+  }
+
+  /**
+   * Get detailed error tooltip message for invalid step
+   * @param step FormGroup containing the step
+   * @returns Detailed error message with location and suggestion
+   */
+  getStepErrorTooltip(step: FormGroup): string {
+    const errors = step.get('step_content')?.errors;
+    
+    if (!errors || !errors['invalidStep']) {
+      return 'Invalid step definition';
+    }
+
+    const closestMatch = errors['closestMatch'];
+    const errorDetails = errors['errorDetails'];
+    
+    if (closestMatch) {
+      return `Invalid step definition.\n${errorDetails}\nDid you mean: "${closestMatch}"?\n\nHover to see missing characters.\nPress TAB to autocomplete.`;
+    }
+    
+    return `Invalid step definition.\n${errorDetails}\n\nHover to see missing characters.\nPress TAB to autocomplete.`;
+  }
+
+  /**
+   * Show floating suggestion overlay near error icon
+   */
+  showSuggestionOverlay(evt: MouseEvent, index: number, step: FormGroup): void {
+    const errors = step.get('step_content')?.errors;
+    if (!errors || !errors['invalidStep']) return;
+
+    const target = (evt.currentTarget || evt.target) as HTMLElement | null;
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      const top = rect.bottom + 6 + window.scrollY;
+      const left = rect.left + window.scrollX;
+      this.suggestionPosition[index] = { top, left };
+    } else {
+      // fallback by query
+      const icon = document.querySelector(`[data-step-index="${index}"] .invalid-sign`) as HTMLElement | null;
+      if (icon) {
+        const rect = icon.getBoundingClientRect();
+        this.suggestionPosition[index] = { top: rect.bottom + 6 + window.scrollY, left: rect.left + window.scrollX };
+      }
+    }
+    this.suggestionOverlayVisible[index] = true;
+    this._cdr.detectChanges();
+  }
+
+  /** Hide floating suggestion overlay */
+  hideSuggestionOverlay(index: number): void {
+    this.suggestionOverlayVisible[index] = false;
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Get suggestion characters for overlay, showing only missing characters
+   */
+  getSuggestionChars(step: FormGroup): { char: string; isMissing: boolean }[] {
+    const errors = step.get('step_content')?.errors;
+    if (!errors || !errors['closestMatch']) return [];
+ 
+    const userInput = step.get('step_content')?.value || '';
+    const correctStep = errors['closestMatch'];
+    
+    const chars: { char: string; isMissing: boolean }[] = [];
+    
+    // Parse both strings to identify quoted and non-quoted sections
+    const userSections = this.parseStringSections(userInput);
+    const correctSections = this.parseStringSections(correctStep);
+    
+    // Extract only non-quoted parts for comparison
+    const userNonQuoted = this.extractNonQuotedParts(userInput, userSections);
+    const correctNonQuoted = this.extractNonQuotedParts(correctStep, correctSections);
+    
+    // Find missing characters using a simple alignment algorithm
+    const missingPositions = this.findMissingCharacters(userNonQuoted, correctNonQuoted);
+    
+    // Build character array, marking missing characters as red
+    let nonQuotedIndex = 0;
+    
+    for (let i = 0; i < correctStep.length; i++) {
+      const section = this.getSectionAt(correctSections, i);
+      
+      if (section.isQuoted) {
+        // Quoted content is always green
+        chars.push({ char: correctStep[i], isMissing: false });
+      } else {
+        // Non-quoted content: check if this character is missing
+        const isMissing = missingPositions.includes(nonQuotedIndex);
+        chars.push({ char: correctStep[i], isMissing });
+        nonQuotedIndex++;
+      }
+    }
+
+    return chars;
+  }
+
+  /**
+   * Extract non-quoted parts from a string
+   */
+  private extractNonQuotedParts(str: string, sections: { start: number; end: number; isQuoted: boolean }[]): string {
+    let result = '';
+    for (let i = 0; i < str.length; i++) {
+      const section = this.getSectionAt(sections, i);
+      if (!section.isQuoted) {
+        result += str[i];
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find missing characters by comparing user input with correct step
+   */
+  private findMissingCharacters(userInput: string, correctStep: string): number[] {
+    const missing: number[] = [];
+    let userIndex = 0;
+    let correctIndex = 0;
+    
+    while (correctIndex < correctStep.length) {
+      if (userIndex >= userInput.length) {
+        // User input is shorter, remaining characters are missing
+        missing.push(correctIndex);
+        correctIndex++;
+      } else if (userInput[userIndex] === correctStep[correctIndex]) {
+        // Characters match, move both pointers
+        userIndex++;
+        correctIndex++;
+      } else {
+        // Characters don't match, this character is missing
+        missing.push(correctIndex);
+        correctIndex++;
+      }
+    }
+    
+    return missing;
+  }
+
+  /**
+   * Parse string into sections (quoted vs non-quoted)
+   */
+  private parseStringSections(str: string): { start: number; end: number; isQuoted: boolean }[] {
+    const sections: { start: number; end: number; isQuoted: boolean }[] = [];
+    let inQuotes = false;
+    let start = 0;
+    
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
+        if (inQuotes) {
+          // End of quoted section
+          sections.push({ start, end: i, isQuoted: true });
+          inQuotes = false;
+        } else {
+          // Start of quoted section
+          if (i > start) {
+            sections.push({ start, end: i, isQuoted: false });
+          }
+          start = i;
+          inQuotes = true;
+        }
+      }
+    }
+    
+    // Add final section
+    if (start < str.length) {
+      sections.push({ start, end: str.length, isQuoted: inQuotes });
+    }
+    
+    return sections;
+  }
+
+  /**
+   * Get section at specific character index
+   */
+  private getSectionAt(sections: { start: number; end: number; isQuoted: boolean }[], charIndex: number): { start: number; end: number; isQuoted: boolean } {
+    for (const section of sections) {
+      if (charIndex >= section.start && charIndex < section.end) {
+        return section;
+      }
+    }
+    return { start: charIndex, end: charIndex + 1, isQuoted: false };
+  }
+
+  /**
+   * Autocomplete the step with the suggested correction
+   * @param index Step index
+   * @param step FormGroup containing the step
+   * @param event Keyboard event
+   */
+  autocompleteStep(index: number, step: FormGroup, event: KeyboardEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const errors = step.get('step_content')?.errors;
+    if (!errors || !errors['closestMatch']) {
+      return;
+    }
+
+    const correctStep = errors['closestMatch'];
+    step.get('step_content')?.setValue(correctStep);
+    
+    // Hide floating overlay
+    this.hideSuggestionOverlay(index);
+    
+    // Focus on the textarea
+    const textarea = document.querySelector(`[data-step-index="${index}"] textarea`) as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.focus();
+    }
+
+    this._cdr.detectChanges();
   }
 
   ngOnInit() {
@@ -2033,6 +2244,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   focusedIndex: number | null = null;
   stepVisible: boolean[] = [];
+  
+  // Suggestion overlay (floating) state
+  suggestionOverlayVisible: boolean[] = [];
+  suggestionPosition: { top: number; left: number }[] = [];
+
 
   closeAutocomplete(index?: number) {
     this.logger.msg('4', '=== closeAutocomplete() === Close Mat Autocomplete Step Index:', 'step-editor', index);
@@ -2471,7 +2687,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       screenshot: [false],
       step_keyword: ['Given'],
       compare: [false],
-      step_content: ['', [Validators.required]],
+      step_content: ['', [Validators.required, CustomValidators.StepAction.bind(this)]],
       step_action: [''],
       step_type: [''],
       continue_on_failure: [false],
