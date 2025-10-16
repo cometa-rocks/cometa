@@ -690,7 +690,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
 
     const correctStep = errors['closestMatch'];
-    step.get('step_content')?.setValue(correctStep);
+    const userValue = step.get('step_content')?.value || '';
+    const merged = this.mergePreservingQuotedContent(userValue, correctStep);
+    step.get('step_content')?.setValue(merged);
     
     // Hide floating overlay
     this.hideSuggestionOverlay(index);
@@ -702,6 +704,29 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     }
 
     this._cdr.detectChanges();
+  }
+
+  /**
+   * Merge suggested step with user's value preserving text inside quotes from user input.
+   * Example: user: Start ... "631" ... ; suggestion: Start ... "{url}" ...
+   * Result keeps "631".
+   */
+  private mergePreservingQuotedContent(userValue: string, suggested: string): string {
+    // Extract quoted contents in order of appearance from user input
+    const userQuotedContents: string[] = [];
+    const userRegex = /"([^"]*)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = userRegex.exec(userValue)) !== null) {
+      userQuotedContents.push(m[1]);
+    }
+
+    // Replace each quoted block in suggested with corresponding user content (if available)
+    let userIndex = 0;
+    const result = suggested.replace(/"([^"]*)"/g, (_match: string, _p1: string) => {
+      const replacement = userQuotedContents[userIndex++] ?? _p1;
+      return `"${replacement}"`;
+    });
+    return result;
   }
 
   ngOnInit() {
