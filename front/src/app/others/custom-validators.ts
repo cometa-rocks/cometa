@@ -62,30 +62,27 @@ export class CustomValidators {
   static removeQuotedParts(step: string): string {
     if (!step) return '';
     
-    console.log('🔍 DEBUG removeQuotedParts - Input:', step);
+    // Count total quotes to determine if we have properly closed quotes
+    const quoteCount = (step.match(/"/g) || []).length;
     
-    // Find the first and last quote positions
+    if (quoteCount === 0) {
+      // No quotes found, return the whole string
+      return step;
+    }
+    
+    if (quoteCount % 2 === 1) {
+      // Odd number of quotes means unclosed quote - be conservative and return the whole string
+      // This prevents the system from thinking it's a different step when quotes are incomplete
+      return step;
+    }
+    
+    // Even number of quotes - extract the part before the first quote and after the last quote
     const firstQuoteIndex = step.indexOf('"');
     const lastQuoteIndex = step.lastIndexOf('"');
-    
-    if (firstQuoteIndex === -1) {
-      // No quotes found, return the whole string
-      console.log('🔍 DEBUG removeQuotedParts - No quotes found, returning whole string');
-      return step;
-    }
-    
-    if (firstQuoteIndex === lastQuoteIndex) {
-      // Only one quote found, treat as unclosed quote
-      console.log('🔍 DEBUG removeQuotedParts - Only one quote found, returning whole string');
-      return step;
-    }
-    
-    // Extract the part before the first quote and after the last quote
     const beforeQuotes = step.substring(0, firstQuoteIndex);
     const afterQuotes = step.substring(lastQuoteIndex + 1);
     const result = beforeQuotes + afterQuotes;
     
-    console.log('🔍 DEBUG removeQuotedParts - Result:', result);
     return result;
   }
 
@@ -135,8 +132,6 @@ export class CustomValidators {
       }
 
       const userClean = CustomValidators.removeQuotedParts(value).toLowerCase();
-      console.log('🔍 VALIDATOR - Input:', value);
-      console.log('🔍 VALIDATOR - After removing quotes:', userClean);
       
       let minDistance = Number.POSITIVE_INFINITY;
       let bestOriginal = '';
@@ -153,8 +148,6 @@ export class CustomValidators {
           bestClean = clean;
         }
       }
-      
-      console.log('🔍 VALIDATOR - Best match:', bestOriginal);
 
       let suggestion = 'No similar step found';
       if (bestOriginal) {

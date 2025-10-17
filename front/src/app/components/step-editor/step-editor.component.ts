@@ -562,11 +562,32 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const userInput = step.get('step_content')?.value || '';
     const correctStep = errors['closestMatch'];
     
-    console.log('🔍 SUGGESTION - User input:', userInput);
-    console.log('🔍 SUGGESTION - Correct step:', correctStep);
-    
     const chars: { char: string; isMissing: boolean }[] = [];
     
+    // Check if user input has different number of quotes than correct step
+    const userQuoteCount = (userInput.match(/"/g) || []).length;
+    const correctQuoteCount = (correctStep.match(/"/g) || []).length;
+    
+    console.log('🔍 QUOTE DEBUG - User input:', userInput);
+    console.log('🔍 QUOTE DEBUG - Correct step:', correctStep);
+    console.log('🔍 QUOTE DEBUG - User quotes:', userQuoteCount, 'Correct quotes:', correctQuoteCount);
+    
+    // Use special logic if there's any difference in quote count
+    // This handles both missing quotes and nested quotes scenarios
+    if (userQuoteCount !== correctQuoteCount) {
+      console.log('🔍 QUOTE DEBUG - Using special logic for different quote counts');
+      // Special case: different number of quotes - use special logic
+      const specialResult = this.handleUnclosedQuoteSuggestion(userInput, correctStep);
+      if (specialResult.length > 0) {
+        return specialResult;
+      }
+      // If special logic returns empty array, fall through to normal logic
+      console.log('🔍 QUOTE DEBUG - Special logic returned empty, falling back to normal logic');
+    }
+    
+    console.log('🔍 QUOTE DEBUG - Using normal logic');
+    
+    // Normal case: both have properly closed quotes or both have unclosed quotes
     // Parse both strings to identify quoted and non-quoted sections
     const userSections = this.parseStringSections(userInput);
     const correctSections = this.parseStringSections(correctStep);
@@ -575,13 +596,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const userNonQuoted = this.extractNonQuotedParts(userInput, userSections);
     const correctNonQuoted = this.extractNonQuotedParts(correctStep, correctSections);
     
-    console.log('🔍 SUGGESTION - User non-quoted:', userNonQuoted);
-    console.log('🔍 SUGGESTION - Correct non-quoted:', correctNonQuoted);
+    console.log('🔍 NORMAL DEBUG - userNonQuoted:', userNonQuoted);
+    console.log('🔍 NORMAL DEBUG - correctNonQuoted:', correctNonQuoted);
     
     // Find missing characters using a simple alignment algorithm
     const missingPositions = this.findMissingCharacters(userNonQuoted, correctNonQuoted);
     
-    console.log('🔍 SUGGESTION - Missing positions:', missingPositions);
+    console.log('🔍 NORMAL DEBUG - missingPositions:', missingPositions);
     
     // Build character array, marking missing characters as red
     let nonQuotedIndex = 0;
@@ -604,27 +625,105 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   /**
+   * Handle suggestion for unclosed quotes - find where the missing quote should be
+   */
+  private handleUnclosedQuoteSuggestion(userInput: string, correctStep: string): { char: string; isMissing: boolean }[] {
+    const chars: { char: string; isMissing: boolean }[] = [];
+    
+    // Simple approach: just check if quotes exist in user input
+    const userHasOpeningQuote = userInput.includes('"');
+    const userQuoteCount = (userInput.match(/"/g) || []).length;
+    
+    console.log('🔍 HANDLE DEBUG - userHasOpeningQuote:', userHasOpeningQuote);
+    console.log('🔍 HANDLE DEBUG - userQuoteCount:', userQuoteCount);
+    
+    for (let i = 0; i < correctStep.length; i++) {
+      if (correctStep[i] === '"') {
+        // This is a quote character
+        if (userQuoteCount === 0) {
+          // User has no quotes at all - mark all quotes as missing
+          chars.push({ char: correctStep[i], isMissing: true });
+        } else if (userQuoteCount === 1) {
+          // User has one quote - need to figure out which one they have
+          const correctFirstQuoteIndex = correctStep.indexOf('"');
+          const correctLastQuoteIndex = correctStep.lastIndexOf('"');
+          
+          // Check if user's quote is closer to the beginning or end of the string
+          const userQuoteIndex = userInput.indexOf('"');
+          
+          // Calculate relative positions (as percentage of string length)
+          const userQuoteRelative = userQuoteIndex / userInput.length;
+          const correctFirstRelative = correctFirstQuoteIndex / correctStep.length;
+          const correctLastRelative = correctLastQuoteIndex / correctStep.length;
+          
+          const distanceToFirst = Math.abs(userQuoteRelative - correctFirstRelative);
+          const distanceToLast = Math.abs(userQuoteRelative - correctLastRelative);
+          
+          console.log('🔍 DISTANCE DEBUG - userQuoteRelative:', userQuoteRelative.toFixed(3));
+          console.log('🔍 DISTANCE DEBUG - correctFirstRelative:', correctFirstRelative.toFixed(3));
+          console.log('🔍 DISTANCE DEBUG - correctLastRelative:', correctLastRelative.toFixed(3));
+          console.log('🔍 DISTANCE DEBUG - distanceToFirst:', distanceToFirst.toFixed(3));
+          console.log('🔍 DISTANCE DEBUG - distanceToLast:', distanceToLast.toFixed(3));
+          
+          if (i === correctFirstQuoteIndex) {
+            // This is the first quote - check if user has it
+            const isMissing = distanceToFirst > distanceToLast;
+            console.log('🔍 DISTANCE DEBUG - First quote missing:', isMissing);
+            chars.push({ char: correctStep[i], isMissing });
+          } else if (i === correctLastQuoteIndex) {
+            // This is the second quote - check if user has it
+            const isMissing = distanceToLast > distanceToFirst;
+            console.log('🔍 DISTANCE DEBUG - Last quote missing:', isMissing);
+            chars.push({ char: correctStep[i], isMissing });
+          }
+        } else {
+          // User has 2+ quotes - this might be nested quotes scenario
+          // For nested quotes, we should fall back to normal logic
+          console.log('🔍 HANDLE DEBUG - User has 2+ quotes, falling back to normal logic');
+          // Don't handle this case here, let it fall through to normal logic
+          // We'll return empty array to trigger fallback
+          return [];
+        }
+      } else {
+        // This is not a quote - always mark as present
+        chars.push({ char: correctStep[i], isMissing: false });
+      }
+    }
+    
+    console.log('🔍 HANDLE DEBUG - Final chars:', chars.length, 'items');
+    console.log('🔍 HANDLE DEBUG - Missing chars:', chars.filter(c => c.isMissing).length);
+    
+    return chars;
+  }
+
+  /**
    * Extract non-quoted parts from a string
    */
   private extractNonQuotedParts(str: string, sections: { start: number; end: number; isQuoted: boolean }[]): string {
-    // Find the first and last quote positions
-    const firstQuoteIndex = str.indexOf('"');
-    const lastQuoteIndex = str.lastIndexOf('"');
-    
-    if (firstQuoteIndex === -1) {
+    // Count total quotes to determine if we have properly closed quotes
+    const quoteCount = (str.match(/"/g) || []).length;
+
+    if (quoteCount === 0) {
       // No quotes found, return the whole string
       return str;
     }
-    
-    if (firstQuoteIndex === lastQuoteIndex) {
-      // Only one quote found, treat as unclosed quote
+
+    if (quoteCount % 2 === 1) {
+      // Odd number of quotes means unclosed quote - be conservative and return the whole string
+      // This prevents the system from thinking it's a different step when quotes are incomplete
       return str;
     }
+
+    // Even number of quotes - use sections to extract all non-quoted parts
+    let result = '';
     
-    // Extract the part before the first quote and after the last quote
-    const beforeQuotes = str.substring(0, firstQuoteIndex);
-    const afterQuotes = str.substring(lastQuoteIndex + 1);
-    return beforeQuotes + afterQuotes;
+    for (const section of sections) {
+      if (!section.isQuoted) {
+        result += str.substring(section.start, section.end);
+      }
+    }
+    
+    return result;
   }
 
   /**
@@ -660,31 +759,35 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    */
   private parseStringSections(str: string): { start: number; end: number; isQuoted: boolean }[] {
     const sections: { start: number; end: number; isQuoted: boolean }[] = [];
-    let start = 0;
-    let inQuotes = false;
     
+    // For nested quotes, we need to be smarter about which quotes are the "outer" quotes
+    // We'll find pairs of quotes and treat everything between the first and last quote as quoted
+    const quotePositions: number[] = [];
     for (let i = 0; i < str.length; i++) {
-      // Check for unescaped quote
       if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
-        if (inQuotes) {
-          // We're inside quotes, this is the closing quote
-          sections.push({ start, end: i + 1, isQuoted: true });
-          inQuotes = false;
-          start = i + 1;
-        } else {
-          // We're outside quotes, this starts the quoted section
-          if (i > start) {
-            sections.push({ start, end: i, isQuoted: false });
-          }
-          start = i;
-          inQuotes = true;
-        }
+        quotePositions.push(i);
       }
     }
     
-    // Add final section
-    if (start < str.length) {
-      sections.push({ start, end: str.length, isQuoted: inQuotes });
+    if (quotePositions.length === 0) {
+      // No quotes, entire string is non-quoted
+      sections.push({ start: 0, end: str.length, isQuoted: false });
+      return sections;
+    }
+    
+    let currentIndex = 0;
+    
+    // Add section before first quote
+    if (quotePositions[0] > 0) {
+      sections.push({ start: 0, end: quotePositions[0], isQuoted: false });
+    }
+    
+    // Add quoted section from first to last quote
+    sections.push({ start: quotePositions[0], end: quotePositions[quotePositions.length - 1] + 1, isQuoted: true });
+    
+    // Add section after last quote
+    if (quotePositions[quotePositions.length - 1] + 1 < str.length) {
+      sections.push({ start: quotePositions[quotePositions.length - 1] + 1, end: str.length, isQuoted: false });
     }
     
     return sections;
