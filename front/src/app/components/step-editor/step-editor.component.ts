@@ -111,6 +111,11 @@ interface StepState {
   featureId: number | null;
 }
 
+interface QuoteIndexes {
+  prev: number | undefined;
+  next: number | undefined;
+}
+
 @Component({
   selector: 'cometa-step-editor',
   templateUrl: './step-editor.component.html',
@@ -550,10 +555,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    */
   getSuggestionChars(step: FormGroup): { char: string; isMissing: boolean }[] {
     const errors = step.get('step_content')?.errors;
-    if (!errors || !errors['closestMatch']) return [];
+    if (!errors || !errors['closestMatch']) {
+      return [];
+    }
  
     const userInput = step.get('step_content')?.value || '';
     const correctStep = errors['closestMatch'];
+    
+    console.log('🔍 SUGGESTION - User input:', userInput);
+    console.log('🔍 SUGGESTION - Correct step:', correctStep);
     
     const chars: { char: string; isMissing: boolean }[] = [];
     
@@ -565,8 +575,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const userNonQuoted = this.extractNonQuotedParts(userInput, userSections);
     const correctNonQuoted = this.extractNonQuotedParts(correctStep, correctSections);
     
+    console.log('🔍 SUGGESTION - User non-quoted:', userNonQuoted);
+    console.log('🔍 SUGGESTION - Correct non-quoted:', correctNonQuoted);
+    
     // Find missing characters using a simple alignment algorithm
     const missingPositions = this.findMissingCharacters(userNonQuoted, correctNonQuoted);
+    
+    console.log('🔍 SUGGESTION - Missing positions:', missingPositions);
     
     // Build character array, marking missing characters as red
     let nonQuotedIndex = 0;
@@ -592,14 +607,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
    * Extract non-quoted parts from a string
    */
   private extractNonQuotedParts(str: string, sections: { start: number; end: number; isQuoted: boolean }[]): string {
-    let result = '';
-    for (let i = 0; i < str.length; i++) {
-      const section = this.getSectionAt(sections, i);
-      if (!section.isQuoted) {
-        result += str[i];
-      }
+    // Find the first and last quote positions
+    const firstQuoteIndex = str.indexOf('"');
+    const lastQuoteIndex = str.lastIndexOf('"');
+    
+    if (firstQuoteIndex === -1) {
+      // No quotes found, return the whole string
+      return str;
     }
-    return result;
+    
+    if (firstQuoteIndex === lastQuoteIndex) {
+      // Only one quote found, treat as unclosed quote
+      return str;
+    }
+    
+    // Extract the part before the first quote and after the last quote
+    const beforeQuotes = str.substring(0, firstQuoteIndex);
+    const afterQuotes = str.substring(lastQuoteIndex + 1);
+    return beforeQuotes + afterQuotes;
   }
 
   /**
@@ -631,20 +656,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
 
   /**
    * Parse string into sections (quoted vs non-quoted)
+   * Handles nested quotes by tracking quote depth
    */
   private parseStringSections(str: string): { start: number; end: number; isQuoted: boolean }[] {
     const sections: { start: number; end: number; isQuoted: boolean }[] = [];
-    let inQuotes = false;
     let start = 0;
+    let inQuotes = false;
     
     for (let i = 0; i < str.length; i++) {
+      // Check for unescaped quote
       if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
         if (inQuotes) {
-          // End of quoted section
-          sections.push({ start, end: i, isQuoted: true });
+          // We're inside quotes, this is the closing quote
+          sections.push({ start, end: i + 1, isQuoted: true });
           inQuotes = false;
+          start = i + 1;
         } else {
-          // Start of quoted section
+          // We're outside quotes, this starts the quoted section
           if (i > start) {
             sections.push({ start, end: i, isQuoted: false });
           }
@@ -672,6 +700,47 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
       }
     }
     return { start: charIndex, end: charIndex + 1, isQuoted: false };
+  }
+
+  /**
+   * Find all quoted sections in a string, handling nested quotes properly
+   * Returns array of objects with start, end, and content of each quoted section
+   */
+  private findQuotedSections(str: string): Array<{ start: number; end: number; content: string }> {
+    const sections: Array<{ start: number; end: number; content: string }> = [];
+    let quoteDepth = 0;
+    let start = 0;
+    let inQuotes = false;
+    
+    for (let i = 0; i < str.length; i++) {
+      // Check for unescaped quote
+      if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
+        if (inQuotes) {
+          // We're inside quotes, this could be ending the first level or nested quote
+          quoteDepth--;
+          if (quoteDepth === 0) {
+            // Ending first level of quotes
+            const content = str.substring(start + 1, i); // Exclude the quotes themselves
+            sections.push({ start, end: i + 1, content });
+            inQuotes = false;
+            start = i + 1;
+          }
+        } else {
+          // We're outside quotes, this starts the first level
+          start = i;
+          quoteDepth = 1;
+          inQuotes = true;
+        }
+      }
+    }
+    
+    // Handle case where string ends while still in quotes
+    if (inQuotes && start < str.length) {
+      const content = str.substring(start + 1); // Exclude the opening quote
+      sections.push({ start, end: str.length, content });
+    }
+    
+    return sections;
   }
 
   /**
@@ -889,32 +958,29 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
     const stepAction = stepFormGroup.get('step_action')?.value || '';
 
-    // Regex to find all quoted substrings
-    const regex = /"([^"]*)"/g;
-    let match;
+    // Use the new nested quotes logic to find all quoted sections
+    const quotedSections = this.findQuotedSections(value);
     let found = false;
 
     // Loop through all quoted substrings to find the one where the cursor is inside
-    while ((match = regex.exec(value)) !== null) {
-      const start = match.index + 1; // after first quote
-      const end = start + match[1].length;
+    for (const section of quotedSections) {
+      const start = section.start + 1; // after first quote
+      const end = section.end - 1; // before last quote
       
       if (cursorPos >= start && cursorPos <= end) {
         // Cursor is inside these quotes
-        const insideText = match[1];
+        const insideText = section.content;
         
-        // Find all quoted substrings to determine parameter position using exec loop
+        // Find all quoted substrings to determine parameter position
         const allMatches: Array<{index: number, text: string, start: number, end: number}> = [];
-        const quoteRegex = /"([^"]*)"/g;
-        let quoteMatch;
-        while ((quoteMatch = quoteRegex.exec(value)) !== null) {
+        quotedSections.forEach((sect, idx) => {
           allMatches.push({
-            index: quoteMatch.index,
-            text: quoteMatch[1],
-            start: quoteMatch.index + 1,
-            end: quoteMatch.index + 1 + quoteMatch[1].length
+            index: sect.start,
+            text: sect.content,
+            start: sect.start + 1,
+            end: sect.end - 1
           });
-        }
+        });
         
         let paramIndex = -1;
         for (let mi = 0; mi < allMatches.length; mi++) {
@@ -1909,24 +1975,76 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
+  // Handles nested quotes by tracking quote depth
   getIndexes(str, startIndex): QuoteIndexes {
-    // First try to find quotes (for normal cases like "$variable")
-    let prevQuoteIndex = getPrevQuote();
-    let nextQuoteIndex = getNextQuote();
+    // First try to find quotes (for normal cases like "$variable") using nested quote logic
+    let prevQuoteIndex = getPrevQuoteWithDepth();
+    let nextQuoteIndex = getNextQuoteWithDepth();
 
-    // returns the index of the nearest " that is positioned after received index
-    function getNextQuote(): number | undefined {
+    // returns the index of the nearest " that is positioned after received index, considering nested quotes
+    function getNextQuoteWithDepth(): number | undefined {
+      let quoteDepth = 0;
+      let inQuotes = false;
+      
+      // First, determine if we're inside quotes by scanning from the beginning
+      for (let i = 0; i < startIndex; i++) {
+        if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
+          if (inQuotes) {
+            quoteDepth--;
+            if (quoteDepth === 0) {
+              inQuotes = false;
+            }
+          } else {
+            quoteDepth = 1;
+            inQuotes = true;
+          }
+        }
+      }
+      
+      // Now find the closing quote from startIndex
       for (let i = startIndex; i < str.length; i++) {
-        if (str[i] === '"') return i + 1;
+        if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
+          if (inQuotes) {
+            quoteDepth--;
+            if (quoteDepth === 0) {
+              return i + 1; // Return position after the closing quote
+            }
+          } else {
+            quoteDepth = 1;
+            inQuotes = true;
+          }
+        }
       }
       return undefined;
     }
 
-    // returns the index of the nearest " that is positioned before received index
-    function getPrevQuote(): number | undefined {
-      for (let i = startIndex - 1; i >= 0; i--) {
-        if (str[i] === '"') return i;
+    // returns the index of the nearest " that is positioned before received index, considering nested quotes
+    function getPrevQuoteWithDepth(): number | undefined {
+      let quoteDepth = 0;
+      let inQuotes = false;
+      let lastOpeningQuote = -1;
+      
+      // Scan from beginning to find the opening quote that contains our position
+      for (let i = 0; i < startIndex; i++) {
+        if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
+          if (inQuotes) {
+            quoteDepth--;
+            if (quoteDepth === 0) {
+              inQuotes = false;
+            }
+          } else {
+            quoteDepth = 1;
+            inQuotes = true;
+            lastOpeningQuote = i;
+          }
+        }
       }
+      
+      // If we're inside quotes, return the opening quote position
+      if (inQuotes && lastOpeningQuote !== -1) {
+        return lastOpeningQuote;
+      }
+      
       return undefined;
     }
 

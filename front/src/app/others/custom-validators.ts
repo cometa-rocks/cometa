@@ -57,10 +57,36 @@ export class CustomValidators {
 
   /**
    * Remove quoted parts from a step to compare only static text outside quotes
+   * Handles nested quotes by tracking quote depth
    */
   static removeQuotedParts(step: string): string {
     if (!step) return '';
-    return step.replace(/".*?"/g, '');
+    
+    console.log('🔍 DEBUG removeQuotedParts - Input:', step);
+    
+    // Find the first and last quote positions
+    const firstQuoteIndex = step.indexOf('"');
+    const lastQuoteIndex = step.lastIndexOf('"');
+    
+    if (firstQuoteIndex === -1) {
+      // No quotes found, return the whole string
+      console.log('🔍 DEBUG removeQuotedParts - No quotes found, returning whole string');
+      return step;
+    }
+    
+    if (firstQuoteIndex === lastQuoteIndex) {
+      // Only one quote found, treat as unclosed quote
+      console.log('🔍 DEBUG removeQuotedParts - Only one quote found, returning whole string');
+      return step;
+    }
+    
+    // Extract the part before the first quote and after the last quote
+    const beforeQuotes = step.substring(0, firstQuoteIndex);
+    const afterQuotes = step.substring(lastQuoteIndex + 1);
+    const result = beforeQuotes + afterQuotes;
+    
+    console.log('🔍 DEBUG removeQuotedParts - Result:', result);
+    return result;
   }
 
   /**
@@ -73,10 +99,14 @@ export class CustomValidators {
       const value: string = control?.value ?? '';
 
       // Skip if untouched or blank
-      if (!control || (!control.touched && !control.dirty)) return null;
+      if (!control || (!control.touched && !control.dirty)) {
+        return null;
+      }
 
       // Comments are always valid
-      if (value.startsWith('#')) return null;
+      if (value.startsWith('#')) {
+        return null;
+      }
 
       // Exact match check with existing behavior
       let valid = false;
@@ -85,7 +115,7 @@ export class CustomValidators {
           .map(a => a.action_name)
           .some(action => {
             let name = action.trim();
-            name = name.replace(/^(then|when|given|and|if)\s+/i, '');
+            name = name.replace(/^(then|when|given|and)\s+/i, '');
             name = name.replace(/".*?"/gi, '"(.+)"');
             const regex = new RegExp(`^${name}$`, 'gs');
             return regex.test(value);
@@ -95,7 +125,9 @@ export class CustomValidators {
         valid = true;
       }
 
-      if (valid) return null;
+      if (valid) {
+        return null;
+      }
 
       // Build detailed error using closest match logic (ignore quoted parts)
       if (!actions || actions.length === 0) {
@@ -103,13 +135,16 @@ export class CustomValidators {
       }
 
       const userClean = CustomValidators.removeQuotedParts(value).toLowerCase();
+      console.log('🔍 VALIDATOR - Input:', value);
+      console.log('🔍 VALIDATOR - After removing quotes:', userClean);
+      
       let minDistance = Number.POSITIVE_INFINITY;
       let bestOriginal = '';
       let bestClean = '';
 
       for (const a of actions) {
         let name = a.action_name?.trim() ?? '';
-        name = name.replace(/^(then|when|given|and|if)\s+/i, '');
+        name = name.replace(/^(then|when|given|and)\s+/i, '');
         const clean = CustomValidators.removeQuotedParts(name).toLowerCase();
         const d = CustomValidators.levenshteinDistance(userClean, clean);
         if (d < minDistance) {
@@ -118,6 +153,8 @@ export class CustomValidators {
           bestClean = clean;
         }
       }
+      
+      console.log('🔍 VALIDATOR - Best match:', bestOriginal);
 
       let suggestion = 'No similar step found';
       if (bestOriginal) {
