@@ -141,7 +141,19 @@ export class CustomValidators {
         let name = a.action_name?.trim() ?? '';
         name = name.replace(/^(then|when|given|and)\s+/i, '');
         const clean = CustomValidators.removeQuotedParts(name).toLowerCase();
-        const d = CustomValidators.levenshteinDistance(userClean, clean);
+        
+        // Use a hybrid approach for distance calculation
+        let d = CustomValidators.levenshteinDistance(userClean, clean);
+        
+        // If the user input has unclosed quotes, also try comparing with the original string
+        const userQuoteCount = (value.match(/"/g) || []).length;
+        if (userQuoteCount % 2 === 1) {
+          // User has unclosed quotes, also compare with original strings
+          const originalDistance = CustomValidators.levenshteinDistance(value.toLowerCase(), name.toLowerCase());
+          // Use the better (smaller) distance
+          d = Math.min(d, originalDistance);
+        }
+        
         if (d < minDistance) {
           minDistance = d;
           bestOriginal = name;
