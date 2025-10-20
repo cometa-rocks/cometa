@@ -141,6 +141,70 @@ export class CustomValidators {
   }
 
   /**
+   * Match quotes between user and correct step intelligently
+   * Returns a map of correct quote positions to whether they exist in user
+   */
+  private static matchQuotes(userInput: string, correctStep: string, correctStaticParts: { text: string, startPos: number, endPos: number }[]): Map<number, boolean> {
+    const mapping = new Map<number, boolean>();
+    
+    // Get all quote positions in correct step (only from static parts)
+    const correctQuotePositions: number[] = [];
+    for (const part of correctStaticParts) {
+      if (part.text === '"') {
+        correctQuotePositions.push(part.startPos);
+      }
+    }
+    
+    // Get all quote positions in user input
+    const userQuotePositions: number[] = [];
+    for (let i = 0; i < userInput.length; i++) {
+      if (userInput[i] === '"') {
+        userQuotePositions.push(i);
+      }
+    }
+    
+    console.log('  Matching quotes:');
+    console.log('    Correct positions:', correctQuotePositions);
+    console.log('    User positions:', userQuotePositions);
+    
+    // Strategy: Search for text around each correct quote to determine if user has it
+    for (const correctPos of correctQuotePositions) {
+      // Get context before and after the quote
+      const beforeContext = correctStep.substring(Math.max(0, correctPos - 5), correctPos);
+      const afterContext = correctStep.substring(correctPos + 1, Math.min(correctStep.length, correctPos + 6));
+      
+      // Search for this context in user input
+      const contextInUser = userInput.indexOf(beforeContext);
+      if (contextInUser !== -1) {
+        // Found before context - check if there's a quote right after
+        const expectedQuotePos = contextInUser + beforeContext.length;
+        if (userInput[expectedQuotePos] === '"') {
+          mapping.set(correctPos, true);
+          console.log(`    Quote at correct[${correctPos}] found at user[${expectedQuotePos}] (via before context: "${beforeContext}")`);
+          continue;
+        }
+      }
+      
+      // Try after context
+      const afterInUser = userInput.indexOf(afterContext);
+      if (afterInUser !== -1 && afterInUser > 0) {
+        // Found after context - check if there's a quote right before
+        if (userInput[afterInUser - 1] === '"') {
+          mapping.set(correctPos, true);
+          console.log(`    Quote at correct[${correctPos}] found at user[${afterInUser - 1}] (via after context: "${afterContext}")`);
+          continue;
+        }
+      }
+      
+      // Quote not found
+      mapping.set(correctPos, false);
+      console.log(`    Quote at correct[${correctPos}] NOT found`);
+    }
+    
+    return mapping;
+  }
+
+  /**
    * Compare user input with correct step and return detailed character-by-character info
    * Uses pre-calculated ranges to know exactly what's static vs dynamic
    */
@@ -176,28 +240,42 @@ export class CustomValidators {
     
     console.log(`  Quotes - User: ${userQuoteCount}, Correct: ${correctQuoteCount}, Unbalanced: ${hasUnbalancedQuotes}`);
     
+    // If quotes are unbalanced, use smarter quote matching
+    let quoteMapping: Map<number, boolean> | null = null;
+    if (hasUnbalancedQuotes) {
+      quoteMapping = this.matchQuotes(userInput, correctStep, correctStaticParts);
+      console.log('  Quote mapping:', Array.from(quoteMapping.entries()));
+    }
+    
     // Strategy: Search for each static part in user input (in order)
     // This handles missing characters correctly by finding where each part actually appears
     const missingPositions = new Set<number>();
     let searchFrom = 0;
-    let stopComparison = false;  // Stop when we hit unbalanced quote zone
     
     for (const part of correctStaticParts) {
-      // If we've entered an unbalanced quote zone, only mark remaining quotes as missing
-      if (stopComparison) {
-        console.log(`  Skipping part [${part.startPos}-${part.endPos}] - in unbalanced zone`);
-        if (part.text === '"') {
-          missingPositions.add(part.startPos);
-          console.log(`    Missing quote at pos ${part.startPos}`);
-        }
-        continue;
-      }
-      
       console.log(`  Searching for static part [${part.startPos}-${part.endPos}]: "${part.text}"`);
       console.log(`    Searching from user index ${searchFrom}`);
       
       // Special handling for quote characters
       if (part.text === '"') {
+        // If we have quote mapping, use it
+        if (quoteMapping !== null) {
+          const hasQuote = quoteMapping.get(part.startPos) || false;
+          if (!hasQuote) {
+            missingPositions.add(part.startPos);
+            console.log(`    Missing quote at pos ${part.startPos} (via mapping)`);
+          } else {
+            console.log(`    Quote at pos ${part.startPos} found (via mapping)`);
+            // Find next quote in user to advance searchFrom
+            const nextQuote = userInput.indexOf('"', searchFrom);
+            if (nextQuote !== -1) {
+              searchFrom = nextQuote + 1;
+            }
+          }
+          continue;
+        }
+        
+        // No mapping - use proximity search
         const quotePos = userInput.indexOf('"', searchFrom);
         if (quotePos !== -1 && quotePos - searchFrom <= 10) {  // Allow small gap for dynamic content
           console.log(`    Found quote at user index ${quotePos}`);
@@ -206,11 +284,6 @@ export class CustomValidators {
           // Quote not found
           missingPositions.add(part.startPos);
           console.log(`    Missing quote at pos ${part.startPos}`);
-          
-          if (hasUnbalancedQuotes) {
-            stopComparison = true;
-            console.log(`    ⚠️  Stopping comparison - unbalanced quote zone detected`);
-          }
         }
         continue;
       }
