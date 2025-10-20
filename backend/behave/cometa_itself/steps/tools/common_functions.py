@@ -83,6 +83,26 @@ def _async_post(url, headers=None, json=None):
     _executor.submit(_task)
 
 
+def parse_json_object(raw_value, context_label):
+    """Parse JSON provided to Behave steps, enforcing object structure."""
+    if raw_value is None:
+        return {}
+    if isinstance(raw_value, dict):
+        return raw_value
+    if isinstance(raw_value, str):
+        raw_value = raw_value.strip()
+        if raw_value == "":
+            return {}
+        try:
+            parsed = json.loads(raw_value)
+        except json.JSONDecodeError as err:
+            raise CustomError(f"Invalid JSON provided for {context_label}: {err}")
+        if not isinstance(parsed, dict):
+            raise CustomError(f"{context_label} must be a JSON object")
+        return parsed
+    raise CustomError(f"Unsupported data type for {context_label}: {type(raw_value).__name__}")
+
+
 def send_custom_notification_request(context, channel, message, subject=None, to=None, cc=None, bcc=None, telegram_bot_token=None, telegram_chat_id=None, telegram_thread_id=None, timeout=30):
     """Send a custom notification (email or telegram) via the backend API.
     

@@ -136,24 +136,20 @@ def step_impl(context):
 
 # Sends a Telegram message with custom bot token, chat ID, or thread ID. Use this to send notifications to specific Telegram chats or use a different bot than the default.
 # Example:
-#   Send a telegram notification with message "Build status: $result" with settings "bot_token:your_token_here;chat_id:123456789;thread_id:10"
+#   Send a telegram notification with message "Build status: $result" with settings:
+#   {
+#     "bot_token": "your_token",
+#     "chat_id": "123456789",
+#     "thread_id": 10
+#   }
 @step(u'Send a telegram notification with message "{message}" with settings "{settings}"')
 @done(u'Send a telegram notification with message "{message}" with settings "{settings}"')
 def step_impl_with_settings(context, message, settings):
     send_step_details(context, "Sending custom notification")
-    bot_token = None
-    chat_id = None
-    thread_id = None
-    if settings:
-        setting_parts = settings.split(';')
-        for part in setting_parts:
-            part = part.strip()
-            if part.startswith('bot_token:'):
-                bot_token = part[10:].strip()
-            elif part.startswith('chat_id:'):
-                chat_id = part[8:].strip()
-            elif part.startswith('thread_id:'):
-                thread_id = part[10:].strip()
+    parsed_settings = parse_json_object(settings, "telegram notification settings")
+    bot_token = parsed_settings.get('bot_token')
+    chat_id = parsed_settings.get('chat_id')
+    thread_id = parsed_settings.get('thread_id')
     send_custom_notification_request(context, "telegram", message, telegram_bot_token=bot_token, telegram_chat_id=chat_id, telegram_thread_id=thread_id)
     send_step_details(context, "Custom notification sent")
 
@@ -170,24 +166,20 @@ def step_impl(context, message):
 
 # Sends an email with custom TO, CC, and BCC recipients. Use this to override the feature's configured email recipients and send to specific addresses.
 # Example:
-#   Send an email notification with subject "Status Update" and message "Test: $feature_name\nResult: $result" with recipients "to:qa@example.com;cc:dev@example.com;bcc:audit@example.com"
+#   Send an email notification with subject "Status Update" and message "Test: $feature_name\nResult: $result" with recipients:
+#   {
+#     "to": ["qa@example.com"],
+#     "cc": "dev@example.com",
+#     "bcc": "audit@example.com"
+#   }
 @step(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
 @done(u'Send an email notification with subject "{subject}" and message "{message}" with recipients "{recipients}"')
 def step_impl_with_recipients(context, subject, message, recipients):
     send_step_details(context, "Sending custom notification")
-    to = None
-    cc = None
-    bcc = None
-    if recipients:
-        recipient_parts = recipients.split(';')
-        for part in recipient_parts:
-            part = part.strip()
-            if part.startswith('to:'):
-                to = part[3:].strip()
-            elif part.startswith('cc:'):
-                cc = part[3:].strip()
-            elif part.startswith('bcc:'):
-                bcc = part[4:].strip()
+    parsed_recipients = parse_json_object(recipients, "email recipients")
+    to = parsed_recipients.get('to')
+    cc = parsed_recipients.get('cc')
+    bcc = parsed_recipients.get('bcc')
     send_custom_notification_request(context, "email", message, subject=subject, to=to, cc=cc, bcc=bcc)
     send_step_details(context, "Custom notification sent")
 
