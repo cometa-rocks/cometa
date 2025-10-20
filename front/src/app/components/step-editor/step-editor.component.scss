@@ -1620,26 +1620,17 @@ Usage:
   }
 }
 
-// Custom tooltip class for step error messages with multiple lines
-::ng-deep .step-error-tooltip {
-  white-space: pre-line;
-  max-width: 400px;
-  line-height: 1.5;
-  background-color: $red;
-  font-size: 12px;
-  padding: 8px 12px;
-  
-  .mdc-tooltip__surface {
-    white-space: pre-line;
-    max-width: 400px;
-    line-height: 1.5;
-    background-color: $red;
-  }
-}
 
 // Textarea container with suggestion overlay
 .textarea-container {
   position: relative;
+  display: block;
+  width: 100%;
+  
+  textarea {
+    width: 100%;
+    display: block;
+  }
   
   &.has-error {
     .textarea-suggestion-overlay {
@@ -1708,34 +1699,56 @@ Usage:
   border-radius: 8px;
   padding: 10px 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  font-family: 'Roboto Mono', monospace;
   font-size: 13px;
   line-height: 1.35;
   max-width: 420px;
   pointer-events: none;
-  color: #fff;
+  color: $pure-white;
 
   .suggestion-content {
+    .suggestion-error-message {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      line-height: 1.5;
+
+      .error-found-char {
+        color: $red;
+        font-weight: 600;
+      }
+
+      .error-expected-char {
+        color: $success;
+        font-weight: 600;
+      }
+
+      .closest-match {
+        color: $success;
+        font-weight: 600;
+      }
+    }
+
     .suggestion-text {
       margin-bottom: 6px;
 
       span {
         display: inline-block;
         padding: 1px 3px;
-        margin: 0 1px;
+        margin: 3px 1px;
         border-radius: 3px;
         transition: all 0.2s ease;
 
         &.correct-char {
-          background-color: rgba(76, 175, 80, 0.18);
-          color: #c8e6c9;
-          border: 1px solid rgba(76, 175, 80, 0.35);
+          background-color: $overlay-success-color;
+          color: $success;
+          border: 1px solid $overlay-success-border-color;
         }
 
         &.missing-char {
-          background-color: rgba(244, 67, 54, 0.18);
-          color: #ffcdd2;
-          border: 1px solid rgba(244, 67, 54, 0.35);
+          background-color: $overlay-bad-color;
+          color: $red;
+          border: 1px solid $overlay-bad-border-color;
 
           &.blinking {
             animation: blink 1s infinite;
@@ -1746,11 +1759,15 @@ Usage:
 
     .suggestion-hint {
       font-size: 11px;
-      color: #bdbdbd;
+      color: $semi-white;
       text-align: center;
       font-style: italic;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding-top: 4px;
+      .keyboard-key {
+        color: $success;
+      }
     }
+
   }
 }

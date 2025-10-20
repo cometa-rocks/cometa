@@ -56,6 +56,42 @@ export class CustomValidators {
   }
 
   /**
+   * Find the first difference for error messages, preserving quoted parts for better context
+   * This version doesn't remove quoted parts to give more meaningful error messages
+   */
+  static findFirstDifferenceForError(userInput: string, correctStep: string): { index: number; userChar: string; expectedChar: string } | null {
+    if (!userInput || !correctStep) return null;
+    
+    const minLength = Math.min(userInput.length, correctStep.length);
+    
+    // Compare character by character
+    for (let i = 0; i < minLength; i++) {
+      if (userInput[i] !== correctStep[i]) {
+        return { 
+          index: i, 
+          userChar: userInput[i] ?? '', 
+          expectedChar: correctStep[i] ?? '' 
+        };
+      }
+    }
+    
+    // If lengths differ, the difference is at the end
+    if (userInput.length !== correctStep.length) {
+      const longerString = userInput.length > correctStep.length ? userInput : correctStep;
+      const shorterString = userInput.length > correctStep.length ? correctStep : userInput;
+      const diffIndex = shorterString.length;
+      
+      return { 
+        index: diffIndex, 
+        userChar: userInput[diffIndex] ?? '', 
+        expectedChar: correctStep[diffIndex] ?? '' 
+      };
+    }
+    
+    return null;
+  }
+
+  /**
    * Remove quoted parts from a step to compare only static text outside quotes
    * Handles nested quotes by tracking quote depth
    */
@@ -440,17 +476,28 @@ export class CustomValidators {
         }
       }
 
+      // Set a very strict threshold for similarity (max 20% different, minimum 1 char)
+      const maxAllowedDistance = Math.max(1, Math.floor(userClean.length * 0.2));
+      const isSimilarEnough = isFinite(minDistance) && minDistance <= maxAllowedDistance;
+      
       let suggestion = 'No similar step found';
-      if (bestOriginal) {
-        const diff = CustomValidators.findFirstDifference(CustomValidators.removeQuotedParts(value), CustomValidators.removeQuotedParts(bestOriginal));
+      let closestMatch = null;
+      
+      if (bestOriginal && isSimilarEnough) {
+        // Use the new error comparison function that preserves quoted parts for better context
+        const diff = CustomValidators.findFirstDifferenceForError(value, bestOriginal);
         suggestion = diff
           ? `Character at position ${diff.index + 1}: found '${diff.userChar || '∅'}', expected '${diff.expectedChar || '∅'}'`
-          : `Length mismatch: input has ${CustomValidators.removeQuotedParts(value).length} chars, expected ${CustomValidators.removeQuotedParts(bestOriginal).length} chars`;
+          : `Length mismatch: input has ${value.length} chars, expected ${bestOriginal.length} chars`;
+        closestMatch = bestOriginal;
+      } else {
+        // Input is too different from any known step
+        suggestion = `No similar step found. Input "${value}" doesn't match any known step definition.`;
       }
 
       return {
         invalidStep: true,
-        closestMatch: bestOriginal || null,
+        closestMatch: closestMatch || null,
         errorDetails: suggestion,
         distance: isFinite(minDistance) ? minDistance : null,
       } as any;

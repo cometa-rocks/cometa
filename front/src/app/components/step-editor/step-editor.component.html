@@ -345,9 +345,6 @@
             <i
               *ngIf="step.get('step_content').errors?.invalidStep"
               class="invalid-sign"
-              [matTooltip]="getStepErrorTooltip(step)"
-              matTooltipPosition="above"
-              matTooltipClass="step-error-tooltip"
               (mouseenter)="showSuggestionOverlay($event, i, step)"
               (mouseleave)="hideSuggestionOverlay(i)"
               (keydown.tab)="autocompleteStep(i, step, $event)"
@@ -363,6 +360,17 @@
               [style.top]="suggestionPosition[i]?.top + 'px'"
               [style.left]="suggestionPosition[i]?.left + 'px'">
               <div class="suggestion-content">
+                <div class="suggestion-error-message">
+                  <div>Invalid step definition.</div>
+                  <div>
+                    <span *ngFor="let part of parseErrorDetails(getStepErrorData(step).errorDetails)"
+                          [class.error-found-char]="part.isFoundChar"
+                          [class.error-expected-char]="part.isExpectedChar">{{ part.text }}</span>
+                  </div>
+                  <div *ngIf="getStepErrorData(step).closestMatch">
+                    Did you mean: "<span class="closest-match">{{ getStepErrorData(step).closestMatch }}</span>"?
+                  </div>
+                </div>
                 <div class="suggestion-text">
                   <span *ngFor="let char of getSuggestionChars(step); let i = index" 
                         [class.missing-char]="char.isMissing"
@@ -371,7 +379,7 @@
                     {{ char.char }}
                   </span>
                 </div>
-                <div class="suggestion-hint">Press TAB to autocomplete</div>
+                <div class="suggestion-hint">Press <span class="keyboard-key">TAB</span> to autocomplete</div>
               </div>
             </div>
          

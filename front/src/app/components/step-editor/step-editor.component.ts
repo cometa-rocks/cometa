@@ -494,25 +494,97 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   }
 
   /**
-   * Get detailed error tooltip message for invalid step
+   * Get error data for overlay display
    * @param step FormGroup containing the step
-   * @returns Detailed error message with location and suggestion
+   * @returns Object with error details and closest match for template rendering
    */
-  getStepErrorTooltip(step: FormGroup): string {
+  getStepErrorData(step: FormGroup): { errorDetails: string; closestMatch: string | null } {
     const errors = step.get('step_content')?.errors;
     
     if (!errors || !errors['invalidStep']) {
-      return 'Invalid step definition';
+      return { errorDetails: '', closestMatch: null };
     }
 
-    const closestMatch = errors['closestMatch'];
-    const errorDetails = errors['errorDetails'];
+    return { 
+      errorDetails: errors['errorDetails'] || '', 
+      closestMatch: errors['closestMatch'] || null 
+    };
+  }
+
+  /**
+   * Parse error details text to highlight quoted characters
+   * Returns array of text segments with flags for found/expected quoted content
+   */
+  parseErrorDetails(errorDetails: string): { text: string; isFoundChar: boolean; isExpectedChar: boolean }[] {
+    if (!errorDetails) return [];
     
-    if (closestMatch) {
-      return `Invalid step definition.\n${errorDetails}\nDid you mean: "${closestMatch}"?\n\nHover to see missing characters.\nPress TAB to autocomplete.`;
+    const parts: { text: string; isFoundChar: boolean; isExpectedChar: boolean }[] = [];
+    
+    // Regex to match: found 'X' and expected 'Y' patterns
+    const regex = /found\s+'([^']*)'\s*,\s*expected\s+'([^']*)'/gi;
+    const match = regex.exec(errorDetails);
+    
+    if (match) {
+      const beforeMatch = errorDetails.substring(0, match.index);
+      const afterMatch = errorDetails.substring(regex.lastIndex);
+      const foundChar = match[1];
+      const expectedChar = match[2];
+      
+      // Add text before the match
+      if (beforeMatch) {
+        parts.push({ 
+          text: beforeMatch, 
+          isFoundChar: false, 
+          isExpectedChar: false 
+        });
+      }
+      
+      // Add "found" text
+      parts.push({ 
+        text: 'found ', 
+        isFoundChar: false, 
+        isExpectedChar: false 
+      });
+      
+      // Add found character in quotes (red)
+      parts.push({ 
+        text: `'${foundChar}'`, 
+        isFoundChar: true, 
+        isExpectedChar: false 
+      });
+      
+      // Add middle text
+      parts.push({ 
+        text: ', expected ', 
+        isFoundChar: false, 
+        isExpectedChar: false 
+      });
+      
+      // Add expected character in quotes (green)
+      parts.push({ 
+        text: `'${expectedChar}'`, 
+        isFoundChar: false, 
+        isExpectedChar: true 
+      });
+      
+      // Add remaining text
+      if (afterMatch) {
+        parts.push({ 
+          text: afterMatch, 
+          isFoundChar: false, 
+          isExpectedChar: false 
+        });
+      }
+    } else {
+      // Fallback: if pattern doesn't match, return original text
+      parts.push({ 
+        text: errorDetails, 
+        isFoundChar: false, 
+        isExpectedChar: false 
+      });
     }
     
-    return `Invalid step definition.\n${errorDetails}\n\nHover to see missing characters.\nPress TAB to autocomplete.`;
+    return parts;
   }
 
   /**
@@ -522,18 +594,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const errors = step.get('step_content')?.errors;
     if (!errors || !errors['invalidStep']) return;
 
+    // Exception: Don't show overlay for API call step (too many parameters, confusing)
+    const stepContent = step.get('step_content')?.value || '';
+    if (stepContent.toLowerCase().includes('make an api call') && 
+        stepContent.includes('params:') && 
+        stepContent.includes('headers:')) {
+      return;
+    }
+
     const target = (evt.currentTarget || evt.target) as HTMLElement | null;
     if (target) {
       const rect = target.getBoundingClientRect();
       const top = rect.bottom + 6 + window.scrollY;
-      const left = rect.left + window.scrollX;
-      this.suggestionPosition[index] = { top, left };
+      const right = rect.right + window.scrollX - 125;
+      this.suggestionPosition[index] = { top, right };
     } else {
       // fallback by query
       const icon = document.querySelector(`[data-step-index="${index}"] .invalid-sign`) as HTMLElement | null;
       if (icon) {
         const rect = icon.getBoundingClientRect();
-        this.suggestionPosition[index] = { top: rect.bottom + 6 + window.scrollY, left: rect.left + window.scrollX };
+        this.suggestionPosition[index] = { top: rect.bottom + 6 + window.scrollY, right: rect.right + window.scrollX - 120 };
       }
     }
     this.suggestionOverlayVisible[index] = true;
@@ -580,10 +660,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     const correctStep = errors['closestMatch'];
     const userValue = step.get('step_content')?.value || '';
     const merged = this.mergePreservingQuotedContent(userValue, correctStep);
+    
+    // Hide floating overlay immediately and prevent it from showing again
+    this.hideSuggestionOverlay(index);
+    
+    // Set a flag to prevent overlay from showing during this update
+    this.suggestionOverlayVisible[index] = false;
+    
+    // Update the step value
     step.get('step_content')?.setValue(merged);
     
-    // Hide floating overlay
-    this.hideSuggestionOverlay(index);
+    // Trigger validation to clear any remaining errors
+    step.get('step_content')?.updateValueAndValidity();
+    
+    // Small delay to ensure validation completes before onStepChange runs
+    setTimeout(() => {
+      // Double-check that overlay is still hidden after validation
+      if (this.suggestionOverlayVisible[index]) {
+        this.hideSuggestionOverlay(index);
+      }
+    }, 10);
     
     // Focus on the textarea
     const textarea = document.querySelector(`[data-step-index="${index}"] textarea`) as HTMLTextAreaElement;
@@ -1488,6 +1584,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this.updateTextareaResize(index);
     const textareaValue = textarea.value.trim();
 
+    // Auto-hide suggestion overlay if step is now valid
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const stepErrors = stepFormGroup?.get('step_content')?.errors;
+    if (this.suggestionOverlayVisible[index] && (!stepErrors || !stepErrors['invalidStep'])) {
+      this.hideSuggestionOverlay(index);
+    }
+    
+    // If overlay is explicitly hidden (e.g., after TAB autocomplete), don't show it again
+    if (!this.suggestionOverlayVisible[index]) {
+      return;
+    }
+
     // Filter actions based on input
     if (textareaValue) {
       const filteredActions = this.actions.filter(action => 
@@ -2198,7 +2306,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
   
   // Suggestion overlay (floating) state
   suggestionOverlayVisible: boolean[] = [];
-  suggestionPosition: { top: number; left: number }[] = [];
+  suggestionPosition: { top: number; right: number }[] = [];
 
 
   closeAutocomplete(index?: number) {
