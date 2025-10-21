@@ -97,12 +97,13 @@ if [ "$ENVIRONMENT" != "dev" ]; then
 #     --max-requests-jitter=200 \
 #     --access-logfile=- \
 #     --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
-    
+
+     # setting timeouts to 15 minutes and 2 minutes (#6986)
      gunicorn cometa_pj.wsgi:application \
         --worker-class=sync \
         --workers=7 \
         --threads=1 \
-        --timeout=180 --graceful-timeout=30 \
+        --timeout=900 --graceful-timeout=120 \
         --max-requests=75 --max-requests-jitter=25 \
         --bind 0.0.0.0:8000 \
         --access-logfile - \
