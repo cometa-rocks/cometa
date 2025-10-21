@@ -1,5 +1,5 @@
 {
-  "version": "3.0.109",
+  "version": "3.0.110",
   "stable_version": "3.0.109",
   "language": "en",
   "appTitle": "co.meta",
@@ -242,6 +242,11 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.110",
+      "date": "2025-10-15",
+      "bugfixes":["Admin > accounts section sidebar was getting overlapped with content"]
+    },
     {
       "version": "3.0.109",
       "date": "2025-10-15",
