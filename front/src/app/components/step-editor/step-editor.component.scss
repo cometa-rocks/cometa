@@ -1639,36 +1639,6 @@ Usage:
   }
 }
 
-// Suggestion overlay directly in textarea
-.textarea-suggestion-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 1;
-  font-family: 'Roboto Mono', monospace;
-  font-size: 14px;
-  line-height: 1.4;
-  padding: 8px 12px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow: hidden;
-  
-  .correct-char {
-    color: transparent; // Make correct chars invisible
-  }
-  
-  .missing-char-blinking {
-    color: #F44336;
-    font-weight: bold;
-    background-color: rgba(244, 67, 54, 0.1);
-    border-radius: 2px;
-    animation: blink 1s infinite;
-  }
-}
-
 // Blinking animation for missing characters
 @keyframes blink {
   0%, 50% { opacity: 1; }
