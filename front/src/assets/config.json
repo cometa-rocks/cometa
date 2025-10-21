@@ -1,6 +1,6 @@
 {
-  "version": "3.0.108",
-  "stable_version": "3.0.108",
+  "version": "3.0.109",
+  "stable_version": "3.0.109",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -243,14 +243,39 @@
   ],
   "changelog": [
     {
-      "version": "3.0.108",
-      "date": "2025-10-07",
+      "version": "3.0.109",
+      "date": "2025-10-13",
       "improved": [
+        {
+          "title": "Fixed issue with Step Editor - #6978",
+          "description": "Fixed an issue when writing EE (Enterprise Edition) actions — now proper feedback is displayed when an invalid action is entered."
+        }
+      ]
+    },
+    {
+      "version": "3.0.108",
+      "date": "2025-10-08",
+      "improved": [
+        {
+          "title": "Help page improvements - #6958",
+          "description": "Help page improvements, updated edit-feature dialog, add shortcuts for L1 and L2, add shortcuts for Live Steps and update other ones."
+        },
+        {
+          "title": "Feature actions improvements - #6949",
+          "description": "Feature actions improvements, now it's more responsive."
+        },
         {
           "title": "Improve L1 and L2 View responsiveness in mobile - #6948",
           "description": "Enhanced Step View layout for better mobile responsiveness, applying a mobile-first approach to both Level 1 and Level 2 steps."
         }
-      ]
+      ],
+      "features": [
+        {
+          "title": "Data-driven ready files - #6881",
+          "description": "Data driven files are now marked as data-driven ready."
+        }
+      ],
+      "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
     },
     {
       "version": "3.0.107",
