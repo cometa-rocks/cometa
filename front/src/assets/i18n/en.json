@@ -228,7 +228,10 @@
   },
   "live_steps": {
     "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
-    "button_when_starting": "Wait until the feature is started"
+    "button_when_starting": "Wait until the feature is started",
+    "loop_starting": "Starting loop: {{iterations}} iterations from index {{startIndex}}",
+    "loop_executing": "Executing step '{{step}}' inside loop",
+    "loop_progress": "Loop iteration {{current}} of {{total}}"
   },
   "step_editor": {
     "all_steps": "Select all steps",

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.109",
+  "version": "3.0.110",
   "stable_version": "3.0.109",
   "language": "en",
   "appTitle": "co.meta",
@@ -243,9 +243,18 @@
   ],
   "changelog": [
     {
+      "version": "3.0.110",
+      "date": "2025-10-15",
+      "bugfixes":["Admin > accounts section sidebar was getting overlapped with content"]
+    },
+    {
       "version": "3.0.109",
-      "date": "2025-10-13",
+      "date": "2025-10-15",
       "improved": [
+        {
+          "title": "Loop step indicator improvements - #6977",
+          "description": "Loop step indicator improvements, now it shows feedback about the loop in the step editor."
+        },
         {
           "title": "Fixed issue with Step Editor - #6978",
           "description": "Fixed an issue when writing EE (Enterprise Edition) actions — now proper feedback is displayed when an invalid action is entered."
@@ -274,6 +283,7 @@
       "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
     },
     {
+      
       "version": "3.0.107",
       "date": "2025-10-03",
       "features": [
