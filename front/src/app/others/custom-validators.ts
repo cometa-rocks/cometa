@@ -363,11 +363,39 @@ export class CustomValidators {
           
           // Check if this is the closing delimiter quote (not inside brackets)
           if (char === '"' && bracketDepth === 0) {
-            // This is the closing quote - replace with marker
-            result.push('●');
-            i++;
-            foundClosing = true;
-            break;
+            // Before treating this as closing quote, verify it's not a new parameter opening
+            // Check what comes before this quote - if it's a keyword, this is likely a new opening
+            const beforeQuote = result.slice(-20).join('').toLowerCase(); // Last 20 chars before quote
+            
+            // Keywords that typically come before a new parameter, not inside one
+            const newParamKeywords = [
+              ' times ', 'starting at ', ' at ', ' on ', 'on element ',
+              ' contains ', 'property ', ' in ', ' to ', ' with ', ' for ', ' if '
+            ];
+            
+            let looksLikeNewOpening = false;
+            for (const keyword of newParamKeywords) {
+              if (beforeQuote.endsWith(keyword.toLowerCase())) {
+                looksLikeNewOpening = true;
+                console.log(`⚠️ Detected new parameter after keyword "${keyword}" - adding missing closing quote`);
+                break;
+              }
+            }
+            
+            if (looksLikeNewOpening) {
+              // This is a new parameter opening, not our closing quote
+              // Just break without adding marker - the closing quote is missing
+              // Don't increment i, let the outer loop handle this as new opening quote
+              console.log('  → Breaking to let outer loop process this as new opening');
+              foundClosing = false; // Mark as not found so we add marker after loop
+              break;
+            } else {
+              // This is the closing quote - replace with marker
+              result.push('●');
+              i++;
+              foundClosing = true;
+              break;
+            }
           }
           
           // Regular character inside parameter
@@ -486,11 +514,28 @@ export class CustomValidators {
       if (part.text === marker) {
         // Look for next marker from current position
         const nextMarkerPos = userInput.indexOf(marker, searchPosition);
-        if (nextMarkerPos !== -1) {
-          console.log(`  ✅ Found marker at position ${nextMarkerPos}`);
+        const maxMarkerDistance = 50; // Maximum reasonable distance for a parameter
+        
+        // Also check if the content before the marker contains keywords (indicates it's a new param)
+        const keywords = [' times ', ' at ', ' on ', ' contains ', ' to ', ' with ', ' in ', ' for ', ' and '];
+        const contentBeforeMarker = nextMarkerPos !== -1 
+          ? userInput.substring(searchPosition, nextMarkerPos).toLowerCase() 
+          : '';
+        const hasKeyword = keywords.some(kw => contentBeforeMarker.includes(kw));
+        
+        if (nextMarkerPos !== -1 && 
+            nextMarkerPos - searchPosition < maxMarkerDistance && 
+            !hasKeyword) {
+          console.log(`  ✅ Found marker at position ${nextMarkerPos} (distance: ${nextMarkerPos - searchPosition})`);
           searchPosition = nextMarkerPos + 1; // Move past the marker
         } else {
-          console.log(`  ⚠️ Marker not found, marking position ${part.position} as missing`);
+          if (nextMarkerPos === -1) {
+            console.log(`  ⚠️ Marker not found at all, marking position ${part.position} as missing`);
+          } else if (hasKeyword) {
+            console.log(`  ⚠️ Marker found but content has keywords (likely new param), marking position ${part.position} as missing`);
+          } else {
+            console.log(`  ⚠️ Marker found but too far (${nextMarkerPos - searchPosition} chars), marking position ${part.position} as missing`);
+          }
           missing.add(part.position);
           
           // Try to resync by finding the next text part
@@ -783,7 +828,11 @@ export class CustomValidators {
       // Use marker-based approach for better comparison with nested quotes
       const MARKER = '●';
       const userWithMarkers = CustomValidators.replaceQuotesWithMarkers(value);
-      const userClean = userWithMarkers.replace(/●[^●]*●/g, '●●').toLowerCase(); // Replace parameters with ●●
+      // Replace both complete (●...●) and incomplete (●...) parameters with ●●
+      const userClean = userWithMarkers
+        .replace(/●[^●]*●/g, '●●')        // Complete parameters: ●content●
+        .replace(/●[^●]+/g, '●●')         // Incomplete parameters: ●content (no closing)
+        .toLowerCase();
       
       let minDistance = Number.POSITIVE_INFINITY;
       let bestOriginal = '';
@@ -798,7 +847,10 @@ export class CustomValidators {
         name = name.replace(/^(then|when|given|and)\s+/i, '');
         
         const actionWithMarkers = CustomValidators.replaceQuotesWithMarkers(name);
-        const clean = actionWithMarkers.replace(/●[^●]*●/g, '●●').toLowerCase();
+        const clean = actionWithMarkers
+          .replace(/●[^●]*●/g, '●●')        // Complete parameters
+          .replace(/●[^●]+/g, '●●')         // Incomplete parameters
+          .toLowerCase();
         
         // Calculate distance on cleaned versions (static text only)
         let d = CustomValidators.levenshteinDistance(userClean, clean);
