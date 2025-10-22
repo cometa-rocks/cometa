@@ -336,6 +336,7 @@ export class CustomValidators {
         
         // Find the matching closing quote, tracking bracket depth for XPath/CSS
         let bracketDepth = 0;
+        let foundClosing = false;
         
         while (i < step.length) {
           const char = step[i];
@@ -365,12 +366,20 @@ export class CustomValidators {
             // This is the closing quote - replace with marker
             result.push('●');
             i++;
+            foundClosing = true;
             break;
           }
           
           // Regular character inside parameter
           result.push(char);
           i++;
+        }
+        
+        // If we didn't find a closing quote, the rest of the string is the parameter content
+        // Don't add a closing marker - let the comparison algorithm detect the missing quote
+        if (!foundClosing) {
+          // Continue without adding closing marker
+          console.log('⚠️ No closing quote found in replaceQuotesWithMarkers');
         }
       } else {
         result.push(step[i]);
@@ -469,7 +478,8 @@ export class CustomValidators {
     
     console.log('  📝 Text parts to search:', staticParts.map(p => `"${p.text}" at ${p.position}`));
     
-    for (const part of staticParts) {
+    for (let partIdx = 0; partIdx < staticParts.length; partIdx++) {
+      const part = staticParts[partIdx];
       console.log(`  🔍 Searching for "${part.text}" from position ${searchPosition}`);
       
       // If this part is just a marker, we need to find it after skipping the parameter content
@@ -482,6 +492,17 @@ export class CustomValidators {
         } else {
           console.log(`  ⚠️ Marker not found, marking position ${part.position} as missing`);
           missing.add(part.position);
+          
+          // Try to resync by finding the next text part
+          const nextTextPart = staticParts.slice(partIdx + 1).find(p => p.text !== marker);
+          if (nextTextPart) {
+            console.log(`  🔄 Trying to resync by finding next text: "${nextTextPart.text}"`);
+            const resyncPos = userInput.indexOf(nextTextPart.text, searchPosition);
+            if (resyncPos !== -1) {
+              console.log(`  ✅ Resynced at position ${resyncPos}`);
+              searchPosition = resyncPos;
+            }
+          }
         }
       } else {
         searchPosition = CustomValidators.checkTextMissing(userInput, part, searchPosition, missing);
@@ -800,7 +821,7 @@ export class CustomValidators {
       // For a 20-char step, allow max 5 chars different
       // For a 40-char step, allow max 10 chars different
       // Min threshold of 3 to handle very short steps
-      const maxAllowedDistance = Math.max(3, Math.floor(userClean.length * 0.90));
+      const maxAllowedDistance = Math.max(3, Math.floor(userClean.length * 0.99));
       const isSimilarEnough = isFinite(minDistance) && minDistance <= maxAllowedDistance;
       
       console.log(`  📊 Distance: ${minDistance}, Max allowed: ${maxAllowedDistance}, Similar enough: ${isSimilarEnough}`);
