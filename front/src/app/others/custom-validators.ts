@@ -280,48 +280,6 @@ export class CustomValidators {
     return { staticRanges, dynamicRanges };
   }
 
-  /**
-   * Match quotes between user and correct step intelligently
-   * Returns a map of correct quote positions to whether they exist in user
-   */
-  private static matchQuotes(userInput: string, correctStep: string, correctStaticParts: { text: string, startPos: number, endPos: number }[]): Map<number, boolean> {
-    const mapping = new Map<number, boolean>();
-    
-    // Get all quote positions in correct step (only from static parts)
-    const correctQuotePositions = correctStaticParts
-      .filter(part => part.text === '"')
-      .map(part => part.startPos);
-    
-    // Search for text around each correct quote to determine if user has it
-    for (const correctPos of correctQuotePositions) {
-      // Get context before and after the quote
-      const beforeContext = correctStep.substring(Math.max(0, correctPos - 5), correctPos);
-      const afterContext = correctStep.substring(correctPos + 1, Math.min(correctStep.length, correctPos + 6));
-      
-      // Search for this context in user input
-      const contextInUser = userInput.indexOf(beforeContext);
-      if (contextInUser !== -1) {
-        // Found before context - check if there's a quote right after
-        const expectedQuotePos = contextInUser + beforeContext.length;
-        if (userInput[expectedQuotePos] === '"') {
-          mapping.set(correctPos, true);
-          continue;
-        }
-      }
-      
-      // Try after context
-      const afterInUser = userInput.indexOf(afterContext);
-      if (afterInUser !== -1 && afterInUser > 0 && userInput[afterInUser - 1] === '"') {
-        mapping.set(correctPos, true);
-        continue;
-      }
-      
-      // Quote not found
-      mapping.set(correctPos, false);
-    }
-    
-    return mapping;
-  }
 
   /**
    * Compare user input with correct step and return detailed character-by-character info
@@ -330,22 +288,214 @@ export class CustomValidators {
   static compareStepsForOverlay(userInput: string, correctStep: string): { char: string; isMissing: boolean }[] {
     if (!userInput || !correctStep) return [];
     
-    // Step 1: Extract what parts are static (text) vs dynamic (parameters in quotes)
-    const { staticRanges, dynamicRanges } = CustomValidators.extractStepRanges(correctStep);
+    // Step 1: Replace quotes with a special marker to simplify parsing
+    const QUOTE_MARKER = '●'; // Special character that won't appear in normal steps
+    const correctWithMarkers = CustomValidators.replaceQuotesWithMarkers(correctStep);
+    const userWithMarkers = CustomValidators.replaceQuotesWithMarkers(userInput);
+    
+    console.log('🔍 Original correct:', correctStep);
+    console.log('🔍 With markers:', correctWithMarkers);
+    console.log('🔍 User input:', userInput);
+    console.log('🔍 User with markers:', userWithMarkers);
+    
+    // Step 2: Extract what parts are static (text) vs dynamic (parameters between markers)
+    const { staticRanges, dynamicRanges } = CustomValidators.extractStepRangesWithMarkers(correctWithMarkers, QUOTE_MARKER);
     const staticParts = staticRanges.map(range => ({
-      text: correctStep.substring(range.start, range.end),
+      text: correctWithMarkers.substring(range.start, range.end),
       position: range.start
     }));
     
-    // Step 2: Find which characters are missing
-    const missingPositions = CustomValidators.findMissingCharacters(userInput, correctStep, staticParts);
+    // Debug: log ranges for multi-parameter steps
+    if (dynamicRanges.length > 1) {
+      console.log('🔍 Multi-parameter step detected');
+      console.log('  Static parts:', staticParts.map(p => `"${p.text}" at ${p.position}`));
+      console.log('  Dynamic ranges:', dynamicRanges.map(r => `[${r.start}-${r.end}]: "${correctWithMarkers.substring(r.start, r.end)}"`));
+    }
     
-    // Step 3: Build result - mark each character as missing or not
+    // Step 3: Find which characters are missing
+    const missingPositions = CustomValidators.findMissingCharactersWithMarkers(userWithMarkers, correctWithMarkers, staticParts, QUOTE_MARKER);
+    
+    // Step 4: Build result - mark each character as missing or not
     return CustomValidators.buildCharacterArray(correctStep, dynamicRanges, missingPositions);
   }
 
   /**
+   * Replace only parameter-delimiting quotes with markers
+   * Keeps quotes inside parameters (like XPath/CSS) unchanged
+   * Example: "//div[@class="error"]" → ●//div[@class="error"]●
+   */
+  private static replaceQuotesWithMarkers(step: string): string {
+    const result: string[] = [];
+    let i = 0;
+    
+    while (i < step.length) {
+      if (step[i] === '"') {
+        // This is a potential opening quote - replace with marker
+        result.push('●');
+        i++;
+        
+        // Find the matching closing quote, tracking bracket depth for XPath/CSS
+        let bracketDepth = 0;
+        
+        while (i < step.length) {
+          const char = step[i];
+          
+          // Track bracket depth
+          if (char === '[') {
+            bracketDepth++;
+            result.push(char);
+            i++;
+            continue;
+          } else if (char === ']') {
+            bracketDepth--;
+            result.push(char);
+            i++;
+            continue;
+          }
+          
+          // If we're inside brackets, keep all quotes as-is (they're part of XPath/CSS)
+          if (bracketDepth > 0 && char === '"') {
+            result.push('"');
+            i++;
+            continue;
+          }
+          
+          // Check if this is the closing delimiter quote (not inside brackets)
+          if (char === '"' && bracketDepth === 0) {
+            // This is the closing quote - replace with marker
+            result.push('●');
+            i++;
+            break;
+          }
+          
+          // Regular character inside parameter
+          result.push(char);
+          i++;
+        }
+      } else {
+        result.push(step[i]);
+        i++;
+      }
+    }
+    
+    return result.join('');
+  }
+
+  /**
+   * Extract static and dynamic ranges using marker character
+   * Much simpler than parsing nested quotes
+   */
+  private static extractStepRangesWithMarkers(step: string, marker: string): { staticRanges: {start: number, end: number}[], dynamicRanges: {start: number, end: number}[] } {
+    const staticRanges: {start: number, end: number}[] = [];
+    const dynamicRanges: {start: number, end: number}[] = [];
+    
+    let i = 0;
+    let lastEnd = 0;
+    
+    while (i < step.length) {
+      if (step[i] === marker) {
+        const openMarker = i;
+        
+        // Add static range before opening marker (including the marker itself)
+        if (openMarker >= lastEnd) {
+          staticRanges.push({
+            start: lastEnd,
+            end: openMarker + 1  // Include the marker
+          });
+        }
+        
+        // Find closing marker
+        let j = openMarker + 1;
+        while (j < step.length && step[j] !== marker) {
+          j++;
+        }
+        
+        if (j < step.length) {
+          // Found closing marker
+          // Add dynamic range (content between markers)
+          if (j > openMarker + 1) {
+            dynamicRanges.push({
+              start: openMarker + 1,
+              end: j
+            });
+          }
+          
+          // Add closing marker to static
+          staticRanges.push({
+            start: j,
+            end: j + 1
+          });
+          
+          lastEnd = j + 1;
+          i = j + 1;
+        } else {
+          // No closing marker found, rest is dynamic
+          if (step.length > openMarker + 1) {
+            dynamicRanges.push({
+              start: openMarker + 1,
+              end: step.length
+            });
+          }
+          lastEnd = step.length;
+          i = step.length;
+        }
+      } else {
+        i++;
+      }
+    }
+    
+    // Add final static range after last marker
+    if (lastEnd < step.length) {
+      staticRanges.push({
+        start: lastEnd,
+        end: step.length
+      });
+    }
+    
+    return { staticRanges, dynamicRanges };
+  }
+
+  /**
+   * Find missing characters using marker-based approach
+   */
+  private static findMissingCharactersWithMarkers(
+    userInput: string,
+    correctStep: string,
+    staticParts: { text: string; position: number }[],
+    marker: string
+  ): Set<number> {
+    const missing = new Set<number>();
+    let searchPosition = 0;
+    
+    console.log('  📝 Text parts to search:', staticParts.map(p => `"${p.text}" at ${p.position}`));
+    
+    for (const part of staticParts) {
+      console.log(`  🔍 Searching for "${part.text}" from position ${searchPosition}`);
+      
+      // If this part is just a marker, we need to find it after skipping the parameter content
+      if (part.text === marker) {
+        // Look for next marker from current position
+        const nextMarkerPos = userInput.indexOf(marker, searchPosition);
+        if (nextMarkerPos !== -1) {
+          console.log(`  ✅ Found marker at position ${nextMarkerPos}`);
+          searchPosition = nextMarkerPos + 1; // Move past the marker
+        } else {
+          console.log(`  ⚠️ Marker not found, marking position ${part.position} as missing`);
+          missing.add(part.position);
+        }
+      } else {
+        searchPosition = CustomValidators.checkTextMissing(userInput, part, searchPosition, missing);
+      }
+      
+      console.log(`  ➡️ After search, searchPosition = ${searchPosition}`);
+    }
+    
+    return missing;
+  }
+
+  /**
    * Find all missing character positions by searching for static parts in user input
+   * Simplified approach: only look for non-quote static text, ignore quote parsing
    */
   private static findMissingCharacters(
     userInput: string, 
@@ -354,97 +504,102 @@ export class CustomValidators {
   ): Set<number> {
     const missing = new Set<number>();
     let searchPosition = 0;
-    let expectingClosingQuote = false;
     
-    // Check if user has different number of quotes (unbalanced)
-    const hasUnbalancedQuotes = CustomValidators.countQuotes(userInput) !== CustomValidators.countQuotes(correctStep);
-    const quoteMapping = hasUnbalancedQuotes
-      ? CustomValidators.matchQuotes(userInput, correctStep, staticParts.map(p => ({ text: p.text, startPos: p.position, endPos: p.position + p.text.length })))
-      : null;
+    // Filter out quote parts - we only care about text between parameters
+    const textParts = staticParts.filter(p => p.text !== '"');
     
-    for (const part of staticParts) {
-      if (part.text === '"') {
-        // Special case: quote character
-        if (!expectingClosingQuote) {
-          // Opening quote - mark it and set flag
-          searchPosition = CustomValidators.checkQuoteMissing(userInput, part.position, searchPosition, quoteMapping, missing);
-          expectingClosingQuote = true;
-        } else {
-          // Closing quote - skip the parameter content in userInput
-          // Use smart quote matching to handle nested quotes like [@class="error"]
-          let j = searchPosition;
-          let insideAttributeValue = false;
-          let foundClosingQuote = false;
-          
-          while (j < userInput.length) {
-            // Check if entering attribute value: [@attr="
-            if (j >= 2 && userInput[j] === '"' && userInput[j - 1] === '=' && 
-                userInput.substring(Math.max(0, j - 10), j).includes('[')) {
-              insideAttributeValue = true;
-              j++;
-              continue;
-            }
-            
-            // Check if exiting attribute value: "]
-            if (insideAttributeValue && j >= 1 && userInput[j] === '"' && j + 1 < userInput.length && userInput[j + 1] === ']') {
-              insideAttributeValue = false;
-              j++;
-              continue;
-            }
-            
-            // Found closing quote (not inside attribute)
-            if (userInput[j] === '"' && !insideAttributeValue) {
-              foundClosingQuote = true;
-              searchPosition = j + 1;
-              break;
-            }
-            j++;
-          }
-          
-          if (!foundClosingQuote) {
-            searchPosition = userInput.length;
-          }
-          expectingClosingQuote = false;
+    console.log('  📝 Text parts to search:', textParts.map(p => `"${p.text}" at ${p.position}`));
+    
+    for (const part of textParts) {
+      console.log(`  🔍 Searching for "${part.text}" from position ${searchPosition}`);
+      
+      // Skip any quoted content before searching for this text part
+      searchPosition = CustomValidators.skipQuotedContent(userInput, searchPosition);
+      console.log(`  📌 After skipping quotes, searchPosition = ${searchPosition}`);
+      
+      searchPosition = CustomValidators.checkTextMissing(userInput, part, searchPosition, missing);
+      console.log(`  ➡️ After search, searchPosition = ${searchPosition}`);
+    }
+    
+    // Now check quotes separately - compare count and mark if different
+    const correctQuoteCount = CustomValidators.countQuotes(correctStep);
+    const userQuoteCount = CustomValidators.countQuotes(userInput);
+    
+    if (correctQuoteCount !== userQuoteCount) {
+      console.log(`  ⚠️ Quote count mismatch: correct=${correctQuoteCount}, user=${userQuoteCount}`);
+      
+      // Find all quote positions in correctStep
+      const quotePositions: number[] = [];
+      for (let i = 0; i < correctStep.length; i++) {
+        if (correctStep[i] === '"') {
+          quotePositions.push(i);
         }
-      } else {
-        // Regular text: check if it exists in user input
-        searchPosition = CustomValidators.checkTextMissing(userInput, part, searchPosition, missing);
+      }
+      
+      // Mark missing quotes based on count difference
+      const missingQuoteCount = Math.abs(correctQuoteCount - userQuoteCount);
+      if (correctQuoteCount > userQuoteCount) {
+        // User has fewer quotes - mark the last N quotes as missing
+        for (let i = quotePositions.length - missingQuoteCount; i < quotePositions.length; i++) {
+          missing.add(quotePositions[i]);
+        }
       }
     }
     
     return missing;
   }
 
+
   /**
-   * Check if a quote character is missing in user input
+   * Skip quoted content in userInput starting from a position
+   * Handles nested quotes like [@class="error"]
+   * If closing quote is missing, only skip a reasonable amount (whitespace/word boundary)
    */
-  private static checkQuoteMissing(
-    userInput: string,
-    quotePosition: number,
-    searchFrom: number,
-    quoteMapping: Map<number, boolean> | null,
-    missing: Set<number>
-  ): number {
-    // Use quote mapping if available (when quotes are unbalanced)
-    if (quoteMapping !== null) {
-      const hasQuote = quoteMapping.get(quotePosition) || false;
-      if (!hasQuote) {
-        missing.add(quotePosition);
-      } else {
-        const nextQuote = userInput.indexOf('"', searchFrom);
-        if (nextQuote !== -1) return nextQuote + 1;
+  private static skipQuotedContent(userInput: string, startPos: number): number {
+    let pos = startPos;
+    
+    // Skip any quotes we encounter
+    while (pos < userInput.length && userInput[pos] === '"') {
+      const openQuotePos = pos;
+      pos++; // Skip opening quote
+      let insideAttributeValue = false;
+      let foundClosing = false;
+      const maxSkip = 200; // Safety limit to avoid skipping too much
+      
+      while (pos < userInput.length && pos - openQuotePos < maxSkip) {
+        // Check if entering attribute value: [@attr="
+        if (pos >= 2 && userInput[pos] === '"' && userInput[pos - 1] === '=' && 
+            userInput.substring(Math.max(0, pos - 10), pos).includes('[')) {
+          insideAttributeValue = true;
+          pos++;
+          continue;
+        }
+        
+        // Check if exiting attribute value: "]
+        if (insideAttributeValue && pos >= 1 && userInput[pos] === '"' && pos + 1 < userInput.length && userInput[pos + 1] === ']') {
+          insideAttributeValue = false;
+          pos++;
+          continue;
+        }
+        
+        // Found closing quote (not inside attribute)
+        if (userInput[pos] === '"' && !insideAttributeValue) {
+          pos++; // Skip closing quote
+          foundClosing = true;
+          break;
+        }
+        pos++;
       }
-      return searchFrom;
+      
+      // If closing quote wasn't found, return to position after opening quote
+      // This allows the search algorithm to continue from there
+      if (!foundClosing) {
+        console.log(`  ⚠️ Closing quote not found, returning to position after opening quote: ${openQuotePos + 1}`);
+        return openQuotePos + 1;
+      }
     }
     
-    // Simple proximity search: is there a quote nearby?
-    const quotePos = userInput.indexOf('"', searchFrom);
-    if (quotePos !== -1 && quotePos - searchFrom <= 10) {
-      return quotePos + 1;
-    }
-    
-    missing.add(quotePosition);
-    return searchFrom;
+    return pos;
   }
 
   /**
@@ -604,63 +759,33 @@ export class CustomValidators {
         return { invalidStep: true, errorDetails: 'No actions available to validate', closestMatch: null, distance: null } as any;
       }
 
-      const userClean = CustomValidators.removeQuotedParts(value).toLowerCase();
-      const hasUnbalancedQuotes = CustomValidators.countQuotes(value) % 2 === 1;
-      
-      // Debug for your specific case
-      if (value.includes('I move mouse to') && value.includes('error')) {
-        console.log('🔍 Debug removeQuotedParts:');
-        console.log('  Original value:', value);
-        console.log('  Quote count:', CustomValidators.countQuotes(value));
-        console.log('  Has unbalanced quotes:', hasUnbalancedQuotes);
-        console.log('  After removeQuotedParts:', userClean);
-        
-        // Debug the parameter detection
-        if (hasUnbalancedQuotes) {
-          const lastQuoteIndex = value.lastIndexOf('"');
-          const beforeLastQuote = value.substring(0, lastQuoteIndex);
-          const afterLastQuote = value.substring(lastQuoteIndex + 1);
-          console.log('  Last quote at position:', lastQuoteIndex);
-          console.log('  Before last quote:', beforeLastQuote);
-          console.log('  After last quote:', afterLastQuote);
-          
-          const stepKeywords = [' to ', ' with ', ' using ', ' for ', ' in ', ' on ', ' at ', ' and '];
-          let parameterStart = -1;
-          for (const keyword of stepKeywords) {
-            const keywordIndex = beforeLastQuote.lastIndexOf(keyword);
-            if (keywordIndex > parameterStart) {
-              parameterStart = keywordIndex + keyword.length;
-            }
-          }
-          console.log('  Parameter start position:', parameterStart);
-        }
-      }
+      // Use marker-based approach for better comparison with nested quotes
+      const MARKER = '●';
+      const userWithMarkers = CustomValidators.replaceQuotesWithMarkers(value);
+      const userClean = userWithMarkers.replace(/●[^●]*●/g, '●●').toLowerCase(); // Replace parameters with ●●
       
       let minDistance = Number.POSITIVE_INFINITY;
       let bestOriginal = '';
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      console.log('🔍 Finding closest match for:', value);
+      console.log('  User with markers:', userWithMarkers);
+      console.log('  User clean (params removed):', userClean);
 
       for (const a of actions) {
         let name = a.action_name?.trim() ?? '';
         name = name.replace(/^(then|when|given|and)\s+/i, '');
-        const clean = CustomValidators.removeQuotedParts(name).toLowerCase();
         
-        // Calculate distance
+        const actionWithMarkers = CustomValidators.replaceQuotesWithMarkers(name);
+        const clean = actionWithMarkers.replace(/●[^●]*●/g, '●●').toLowerCase();
+        
+        // Calculate distance on cleaned versions (static text only)
         let d = CustomValidators.levenshteinDistance(userClean, clean);
         
-        // If user has unclosed quotes, also try comparing with original strings
-        if (hasUnbalancedQuotes) {
-          const originalDistance = CustomValidators.levenshteinDistance(value.toLowerCase(), name.toLowerCase());
-          d = Math.min(d, originalDistance);
-        }
-        
-        // Debug for your specific case
-        if (value.includes('I move mouse to') && value.includes('error') && name.includes('I move mouse to')) {
-          console.log('🔍 Debug comparison:');
-          console.log('  Action name:', name);
-          console.log('  Clean action:', clean);
-          console.log('  User clean:', userClean);
-          console.log('  Distance:', d);
-          console.log('  Original distance:', hasUnbalancedQuotes ? CustomValidators.levenshteinDistance(value.toLowerCase(), name.toLowerCase()) : 'N/A');
+        // Store best match info for debugging
+        if (d < bestDistance) {
+          bestDistance = d;
+          console.log(`  ✨ New best match: "${name}" (distance: ${d})`);
         }
         
         if (d < minDistance) {
@@ -669,11 +794,16 @@ export class CustomValidators {
         }
       }
 
-      // Set a very strict threshold for similarity (max 20% different, minimum 1 char)
-      // Special case for steps with unbalanced quotes: allow higher threshold since they have parameter issues
-      const thresholdMultiplier = hasUnbalancedQuotes ? 0.8 : 0.2; // Allow 80% difference for steps with quote issues
-      const maxAllowedDistance = Math.max(1, Math.floor(userClean.length * thresholdMultiplier));
+      console.log(`  🎯 Final best match: "${bestOriginal}" (distance: ${minDistance})`);
+
+      // Balanced threshold - allow 25% difference
+      // For a 20-char step, allow max 5 chars different
+      // For a 40-char step, allow max 10 chars different
+      // Min threshold of 3 to handle very short steps
+      const maxAllowedDistance = Math.max(3, Math.floor(userClean.length * 0.90));
       const isSimilarEnough = isFinite(minDistance) && minDistance <= maxAllowedDistance;
+      
+      console.log(`  📊 Distance: ${minDistance}, Max allowed: ${maxAllowedDistance}, Similar enough: ${isSimilarEnough}`);
       
       let suggestion = 'No similar step found';
       let closestMatch: string | null = null;
