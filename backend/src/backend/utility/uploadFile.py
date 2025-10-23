@@ -12,6 +12,7 @@ from backend.utility.functions import getLogger
 from .config_handler import *
 from backend.utility.configurations import ConfigurationManager
 from backend.utility.excel_handler import create_excel_handler
+import time
 
 # logger information
 logger = getLogger()
@@ -275,6 +276,7 @@ class UploadFile():
         })
 
         # start with scanning
+        start_time = time.time()
         tempFilePath = self.tempFile.temporary_file_path()
         if not os.path.exists("/var/lib/clamav/main.cvd"):
             logger.error("ClamAV database is missing. Please run 'freshclam' to update the database.")
@@ -290,6 +292,10 @@ class UploadFile():
         
         output = result.stdout.decode("utf-8")
         file, virus = output.split(": ")
+
+
+        elapsed = time.time() - start_time
+        logger.info(f"[VIRUS SCAN COMPLETE] File: {self.tempFile.name}, Duration: {elapsed:.2f}s")
 
         if not virus.startswith("OK"):
             error = f"{self.tempFile.name} contains some sort of virus: {virus}."
@@ -327,6 +333,7 @@ class UploadFile():
     def encrypt(self):
         COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
         self.file.status = "Encrypting"
+        start_time = time.time()
         logger.debug(f"Encrypting {self.tempFile.name}...")
         # send a websocket about the processing being done.
         self.sendWebsocket({
@@ -359,7 +366,9 @@ class UploadFile():
                 }
             })
             raise Exception(str(err))
-    
+        elapsed = time.time() - start_time
+        logger.info(f"[FILE ENCRYPTION COMPLETE] File: {self.tempFile.name}, Duration: {elapsed:.2f}s")
+
     def generateTempObject(self, text, mime, size, md5sum):
         logger.debug(f"Generating temporary File object with name {self.tempFile.name}.")
         try:

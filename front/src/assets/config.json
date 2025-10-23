@@ -1,6 +1,6 @@
 {
-  "version": "3.0.108",
-  "stable_version": "3.0.108",
+  "version": "3.0.110",
+  "stable_version": "3.0.109",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -243,8 +243,37 @@
   ],
   "changelog": [
     {
+      "version": "3.0.110",
+      "date": "2025-10-15",
+      "bugfixes":["Admin > accounts section sidebar was getting overlapped with content"]
+    },
+    {
+      "version": "3.0.109",
+      "date": "2025-10-15",
+      "improved": [
+        {
+          "title": "Loop step indicator improvements - #6977",
+          "description": "Loop step indicator improvements, now it shows feedback about the loop in the step editor."
+        },
+        {
+          "title": "Fixed issue with Step Editor - #6978",
+          "description": "Fixed an issue when writing EE (Enterprise Edition) actions — now proper feedback is displayed when an invalid action is entered."
+        }
+      ]
+    },
+    {
       "version": "3.0.108",
-      "date": "2025-10-12",
+      "date": "2025-10-08",
+      "improved": [
+        {
+          "title": "Help page improvements - #6958",
+          "description": "Help page improvements, updated edit-feature dialog, add shortcuts for L1 and L2, add shortcuts for Live Steps and update other ones."
+        },
+        {
+          "title": "Feature actions improvements - #6949",
+          "description": "Feature actions improvements, now it's more responsive."
+        }
+      ],
       "features": [
         {
           "title": "Data-driven ready files - #6881",
@@ -254,6 +283,7 @@
       "bugfixes":["Data driven ready files are now visible in the file section from the edit feature dialog."]
     },
     {
+      
       "version": "3.0.107",
       "date": "2025-10-03",
       "features": [

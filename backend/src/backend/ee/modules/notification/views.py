@@ -12,6 +12,8 @@ from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
 from backend.utility.config_handler import get_cometa_socket_url
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 import os, requests, traceback
 import time
 import re
@@ -42,6 +44,8 @@ logger = getLogger()
 import threading
 
 from backend.generatePDF import PDFAndEmailManager
+from backend.utility.variable_replacement import replace_feature_variables
+from django.utils.html import escape
 
 
 def escape_telegram_markdown(text):
@@ -58,6 +62,219 @@ def escape_telegram_markdown(text):
     for char in escape_chars:
         text = text.replace(char, f'\\{char}')
     return text
+
+
+def _send_custom_email_notification(feature_result, subject, plain_message, html_message, custom_to=None, custom_cc=None, custom_bcc=None):
+    """
+    Send a custom email notification using custom or feature's configured recipients.
+    
+    Args:
+        feature_result: Feature result object
+        subject: Email subject
+        plain_message: Plain text message
+        html_message: HTML message
+        custom_to: Custom TO recipients (comma-separated string or list), overrides feature config
+        custom_cc: Custom CC recipients (comma-separated string or list), overrides feature config
+        custom_bcc: Custom BCC recipients (comma-separated string or list), overrides feature config
+    """
+    feature = feature_result.feature_id
+    
+    # Helper function to parse recipients (handles both string and list)
+    def parse_recipients(recipients):
+        if recipients is None:
+            return []
+        if isinstance(recipients, list):
+            return [email.strip() for email in recipients if email.strip()]
+        if isinstance(recipients, str):
+            return [email.strip() for email in recipients.split(',') if email.strip()]
+        return []
+    
+    # Use custom recipients if provided, otherwise fall back to feature configuration
+    if custom_to is not None or custom_cc is not None or custom_bcc is not None:
+        # At least one custom recipient was specified
+        to_addresses = parse_recipients(custom_to) if custom_to is not None else []
+        cc_addresses = parse_recipients(custom_cc) if custom_cc is not None else []
+        bcc_addresses = parse_recipients(custom_bcc) if custom_bcc is not None else []
+    else:
+        # No custom recipients, use feature configuration
+        to_addresses = feature.email_address or []
+        cc_addresses = feature.email_cc_address or []
+        bcc_addresses = feature.email_bcc_address or []
+
+    if not any([to_addresses, cc_addresses, bcc_addresses]):
+        raise ConfigurationError("No email recipients configured for this feature")
+
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', None)
+    if not from_email:
+        raise ConfigurationError("Email sender is not configured")
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=plain_message,
+        from_email=from_email,
+        to=to_addresses,
+        cc=cc_addresses,
+        bcc=bcc_addresses,
+        headers={
+            'X-COMETA': 'custom_notification',
+            'X-COMETA-FEATURE': feature_result.feature_name,
+            'X-COMETA-DEPARTMENT': feature_result.department_name
+        }
+    )
+    email.attach_alternative(html_message, "text/html")
+
+    try:
+        email.send()
+        logger.info(
+            "Custom email notification sent",
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "recipients": to_addresses,
+                "cc": cc_addresses,
+                "bcc": bcc_addresses,
+                "custom_recipients": custom_to is not None or custom_cc is not None or custom_bcc is not None,
+            }
+        )
+    except Exception as exc:
+        logger.error(
+            "Failed to send custom email notification",
+            exc_info=True,
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "error": str(exc)
+            }
+        )
+        raise MessageSendError("Failed to send custom email notification")
+
+
+@csrf_exempt
+@require_permissions("edit_feature")
+@handle_notification_error
+def send_custom_notification(request, **kwargs):
+    """
+    Send a custom notification for a specific feature result via email or Telegram.
+    """
+    if request.method != 'POST':
+        raise ValidationError("Only POST method allowed", details={"method": request.method})
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (ValueError, TypeError):
+        raise ValidationError("Invalid JSON payload")
+
+    feature_result_id = payload.get('feature_result_id')
+    if feature_result_id is None:
+        raise ValidationError("feature_result_id parameter is required")
+    feature_result_id = safe_int_conversion(feature_result_id, "feature_result_id", min_value=1)
+
+    channel = (payload.get('channel') or '').strip().lower()
+    if channel not in ('email', 'telegram'):
+        raise ValidationError("channel must be either 'email' or 'telegram'", details={"channel": channel})
+
+    raw_message = payload.get('message')
+    if raw_message is None or str(raw_message).strip() == '':
+        raise ValidationError("message parameter is required and cannot be empty")
+
+    subject_template = payload.get('subject') or ''
+
+    try:
+        feature_result = Feature_result.objects.select_related('feature_id').get(
+            feature_result_id=feature_result_id
+        )
+    except Feature_result.DoesNotExist:
+        raise ValidationError(
+            "Feature result not found",
+            details={"feature_result_id": feature_result_id}
+        )
+
+    # Authorization: ensure user can access the feature's department unless SUPERUSER
+    user = request.session.get('user', {})
+    is_superuser = user.get('user_permissions', {}).get('permission_name') == "SUPERUSER"
+
+    if not is_superuser:
+        user_departments = GetUserDepartments(request)
+        if feature_result.feature_id.department_id not in user_departments:
+            raise AuthorizationError(
+                "Access denied to this feature result",
+                details={"feature_result_id": feature_result_id}
+            )
+
+    telegram_notification_data = None
+    telegram_notification_header = request.META.get('HTTP_X_TELEGRAM_NOTIFICATION')
+    if telegram_notification_header:
+        try:
+            telegram_notification_data = json.loads(telegram_notification_header)
+            logger.info(
+                "Custom notification received Telegram context",
+                extra={
+                    "feature_result_id": feature_result_id,
+                    "telegram_chat_id": telegram_notification_data.get("telegram_chat_id")
+                }
+            )
+        except json.JSONDecodeError:
+            logger.warning(
+                "Failed to parse X-Telegram-Notification header for custom notification",
+                extra={
+                    "feature_result_id": feature_result_id,
+                    "header_value": telegram_notification_header
+                }
+            )
+
+    if telegram_notification_data:
+        feature_result.telegram_notification = telegram_notification_data
+
+    # Variable replacement
+    subject_template = subject_template if subject_template else f"Custom notification - {feature_result.feature_name}"
+    subject_processed = replace_feature_variables(subject_template, feature_result, use_html_breaks=False)
+    subject_processed = " ".join(subject_processed.splitlines()).strip()
+    if not subject_processed:
+        subject_processed = f"Custom notification - {feature_result.feature_name}"
+
+    message_with_variables = replace_feature_variables(str(raw_message), feature_result, use_html_breaks=False)
+    message_with_variables = message_with_variables.replace('\r\n', '\n')
+
+    if channel == 'email':
+        # Extract custom recipients from payload (optional)
+        custom_to = payload.get('to')
+        custom_cc = payload.get('cc')
+        custom_bcc = payload.get('bcc')
+        
+        html_message = f'<pre style="white-space: pre-wrap;">{escape(message_with_variables)}</pre>'
+        _send_custom_email_notification(
+            feature_result, 
+            subject_processed, 
+            message_with_variables, 
+            html_message,
+            custom_to=custom_to,
+            custom_cc=custom_cc,
+            custom_bcc=custom_bcc
+        )
+    else:
+        # Extract custom Telegram settings from payload (optional)
+        custom_bot_token = payload.get('telegram_bot_token')
+        custom_chat_id = payload.get('telegram_chat_id')
+        custom_thread_id = payload.get('telegram_thread_id')
+        
+        feature_result.custom_notification = {
+            "message": message_with_variables,
+            "parse_mode": None,
+            "attach_pdf": False,
+            "attach_screenshots": False,
+            "custom_bot_token": custom_bot_token,
+            "custom_chat_id": custom_chat_id,
+            "custom_thread_id": custom_thread_id
+        }
+        notification_manager = NotificationManger("telegram", pdf_generated=False)
+        if not notification_manager.send_message(feature_result):
+            raise MessageSendError("Failed to send Telegram notification")
+
+    return JsonResponse({
+        "success": True,
+        "channel": channel,
+        "feature_result_id": feature_result_id
+    })
 
 
 @require_permissions("edit_feature")
