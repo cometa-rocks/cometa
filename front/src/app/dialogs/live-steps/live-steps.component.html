@@ -128,12 +128,23 @@
                     </ng-container>
                     <!-- Status: Any other (steps) -->
                     <ng-container *ngSwitchDefault>
-                      <div class="live-status">
+                      <div class="live-status" [ngClass]="{'loop-active': isInLoop}">
                         <mat-spinner
                           color="primary"
                           diameter="20"></mat-spinner>
                         <div class="status-text">
-                          {{ browser.value.status }}
+                          <ng-container *ngIf="isInLoop; else normalStatus">
+                            <span class="loop-status-indicator">
+                              <mat-icon class="loop-icon-status">repeat</mat-icon>
+                              <strong>Loop {{ loopIterationCounter }} of {{ totalIterations }}</strong>
+                              <span class="loop-step-executing">
+                                → {{ browser.value.status }}
+                              </span>
+                            </span>
+                          </ng-container>
+                          <ng-template #normalStatus>
+                            {{ browser.value.status }}
+                          </ng-template>
                         </div>
                         <ng-container
                           *ngTemplateOutlet="counter"></ng-container>

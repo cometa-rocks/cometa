@@ -1,67 +1,75 @@
-<div class="header-container">
-  <h2>Manage accounts</h2>
-  <mat-form-field appearance="fill" class="centered-input">
-    <mat-label>Search user</mat-label>
-    <input 
-    type="search" 
-    disableAutocomplete 
-    [formControl]="search" 
-    matInput 
-    (focus)="onInputFocus()"
-    (blur)="onInputBlur()"/>
-  </mat-form-field>
-</div>
-
-<!-- Use mtx-grid directly with data from API -->
-<ng-container *ngLet="(data$ | async) as table">
-  <div class="table_container">
-    <!-- Loading spinner: keep visible until there are rows -->
-    <div *ngIf="(isLoading$ | async) || !(table?.rows?.length)" class="loading-container">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p class="loading-text">Loading accounts...</p>
-    </div>
-    
-    <!-- Table content -->
-    <mtx-grid
-      *ngIf="!(isLoading$ | async) && (table?.rows?.length)"
-      [data]="table?.rows || []"
-      [columns]="columns"
-      [showToolbar]="true"
-      [sortOnFront]="true"
-      [sortDisableClear]="true"
-      [sortDisabled]="false"
-      [pageIndex]="currentPageIndex"
-      [pageSize]="currentPageSize"
-      [sortActive]="getSavedSort('active')"
-      [sortDirection]="getSavedSort('direction')"
-      [multiSelectable]="multiSelectable"
-      [rowSelectable]="rowSelectable"
-      [columnHideable]="columnHideable"
-      [columnHideableChecked]="columnHideableChecked"
-      [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
-      [columnMovable]="columnMovable"
-      [showColumnMenuHeader]="true"
-      [columnMenuHeaderText]="'Columns Settings'"
-      (columnChange)="saveColumnSettings($event)"
-      sortStart="asc"
-      [pageOnFront]="false"
-      [length]="table?.total || 0"
-      (page)="storePagination($event)"
-      (sortChange)="onSortChange($event)"
-      [cellTemplate]="{
-        actions: actionsTpl,
-        name: nameTpl,
-        email: emailTpl,
-        permission_name: permissionTpl,
-        created_on: createdTpl,
-        last_login: lastLoginTpl
-      }"
-      [pageSizeOptions]="getPageSizeOptions()"
-      >
-    </mtx-grid>
+<div class="accounts-page">
+  <div class="header-container">
+    <h2>Manage accounts</h2>
+    <mat-form-field appearance="fill" class="centered-input">
+      <mat-label>Search user</mat-label>
+      <input 
+      type="search" 
+      disableAutocomplete 
+      [formControl]="search" 
+      matInput 
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"/>
+    </mat-form-field>
   </div>
-</ng-container>
 
+  <!-- Use mtx-grid directly with data from API -->
+  <div class="accounts-table">
+    <ng-container *ngLet="(data$ | async) as table">
+    <div class="table_container">
+      <!-- Loading spinner -->
+      <div *ngIf="isLoading$ | async" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p class="loading-text">Loading accounts...</p>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!(isLoading$ | async) && !(table?.rows?.length)" class="empty-container">
+        <p class="empty-text">No accounts found.</p>
+      </div>
+      
+      <!-- Table content -->
+      <mtx-grid
+          *ngIf="!(isLoading$ | async) && (table?.rows?.length)"
+          [data]="table?.rows || []"
+          [columns]="columns"
+          [showToolbar]="true"
+          [sortOnFront]="true"
+          [sortDisableClear]="true"
+          [sortDisabled]="false"
+          [pageIndex]="currentPageIndex"
+          [pageSize]="currentPageSize"
+          [sortActive]="getSavedSort('active')"
+          [sortDirection]="getSavedSort('direction')"
+          [multiSelectable]="multiSelectable"
+          [rowSelectable]="rowSelectable"
+          [columnHideable]="columnHideable"
+          [columnHideableChecked]="columnHideableChecked"
+          [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+          [columnMovable]="columnMovable"
+          [showColumnMenuHeader]="true"
+          [columnMenuHeaderText]="'Columns Settings'"
+          (columnChange)="saveColumnSettings($event)"
+          sortStart="asc"
+          [pageOnFront]="false"
+          [length]="table?.total || 0"
+          (page)="storePagination($event)"
+          (sortChange)="onSortChange($event)"
+          [cellTemplate]="{
+            actions: actionsTpl,
+            name: nameTpl,
+            email: emailTpl,
+            permission_name: permissionTpl,
+            created_on: createdTpl,
+            last_login: lastLoginTpl
+          }"
+          [pageSizeOptions]="getPageSizeOptions()"
+          >
+        </mtx-grid>
+      </div>
+    </ng-container>
+  </div>
+</div>
 
 <!-- Cell templates for mtx-grid -->
 <ng-template #actionsTpl let-row let-index="index" let-col="colDef" class="actions">
