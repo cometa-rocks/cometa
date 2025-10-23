@@ -251,7 +251,9 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
 
-            <div class="textarea-container" [class.has-error]="step.get('step_content').errors?.invalidStep">
+            <div class="textarea-container" 
+              [class.has-error]="step.get('step_content').errors?.invalidStep"
+              [style.display]="(isApiCallStep(i) && !isEditingApiCall(i)) ? 'none' : 'block'">
               <textarea
                 [style.display]="(isApiCallStep(i) && !isEditingApiCall(i)) ? 'none' : 'unset'"
                 [style.resize]="(isApiCallStep(i)) ? 'vertical' : 'null'"
@@ -359,7 +361,7 @@
               class="suggestion-overlay"
               [style.top]="suggestionPosition[i]?.top + 'px'"
               [style.left]="suggestionPosition[i]?.left + 'px'">
-              <div class="suggestion-content">
+              <div class="suggestion-content" *ngIf="!step.get('step_content').value.toLowerCase().startsWith('Make an api call')">
                 <div class="suggestion-error-message">
                   <div>Invalid step definition.</div>
                   <div>
