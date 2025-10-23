@@ -1699,33 +1699,6 @@ Usage:
       }
     }
 
-    .suggestion-text {
-      margin-bottom: 6px;
-
-      span {
-        display: inline-block;
-        padding: 1px 3px;
-        margin: 3px 1px;
-        border-radius: 3px;
-        transition: all 0.2s ease;
-
-        &.correct-char {
-          background-color: $overlay-success-color;
-          color: $success;
-          border: 1px solid $overlay-success-border-color;
-        }
-
-        &.missing-char {
-          background-color: $overlay-bad-color;
-          color: $red;
-          border: 1px solid $overlay-bad-border-color;
-
-          &.blinking {
-            animation: blink 1s infinite;
-          }
-        }
-      }
-    }
 
     .suggestion-hint {
       font-size: 11px;

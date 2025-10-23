@@ -371,14 +371,7 @@
                     Did you mean: "<span class="closest-match">{{ getStepErrorData(step).closestMatch }}</span>"?
                   </div>
                 </div>
-                <div class="suggestion-text">
-                  <span *ngFor="let char of getSuggestionChars(step); let i = index" 
-                        [class.missing-char]="char.isMissing"
-                        [class.correct-char]="!char.isMissing"
-                        [class.blinking]="char.isMissing">
-                    {{ char.char }}
-                  </span>
-                </div>
+                
                 <div class="suggestion-hint">Press <span class="keyboard-key">TAB</span> to autocomplete</div>
               </div>
             </div>

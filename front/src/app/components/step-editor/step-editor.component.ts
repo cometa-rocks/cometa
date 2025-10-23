@@ -626,21 +626,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
     this._cdr.detectChanges();
   }
 
-  /**
-   * Get suggestion characters for overlay, showing only missing characters
-   */
-  getSuggestionChars(step: FormGroup): { char: string; isMissing: boolean }[] {
-    const errors = step.get('step_content')?.errors;
-    if (!errors || !errors['closestMatch']) {
-      return [];
-    }
-
-    const userInput = step.get('step_content')?.value || '';
-    const correctStep = errors['closestMatch'];
-    
-    // Use CustomValidators unified comparison logic
-    return CustomValidators.compareStepsForOverlay(userInput, correctStep);
-  }
 
   /**
    * Autocomplete the step with the suggested correction
