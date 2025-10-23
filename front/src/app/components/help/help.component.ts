@@ -30,17 +30,24 @@ export class HelpComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;
   @Select(ConfigState) config$: Observable<Config>;
 
-  // Main View Feature
-  ShortMainViewFeature: Shortcut[] = [
-    { position: 1, description: 'Quit the window.', key: 'ESC', windows: true, mac: false },
+  // Live Steps
+
+  ShortLiveSteps: Shortcut[] = [
+    { position: 1, description: 'Stop the execution.', key: 'S', windows: true, mac: false },
+  ];
+
+  // L1 and L2
+
+  ShortL1andL2: Shortcut[] = [
     { position: 2, description: 'Run Feature.', key: 'SPACE', windows: true, mac: false },
-    { position: 6, description: 'Download excel file.', key: 'C', windows: true, mac: false },
+    { position: 6, description: 'Download excel/csv file.', key: 'C', windows: true, mac: false },
     { position: 3, description: 'Edit Feature.', key: 'E', windows: true, mac: false },
     { position: 4, description: 'Show Log Output.', key: 'L', windows: true, mac: false },
     { position: 5, description: 'Enable/Disable notifications.', key: 'N', windows: true, mac: false },
     { position: 6, description: 'Download pdf file.', key: 'P', windows: true, mac: false },
     { position: 6, description: 'Edit Schedule.', key: 'S', windows: true, mac: false },
-
+    { position: 7, description: 'View Latest video.', key: 'V', windows: true, mac: false },
+    { position: 8, description: 'Download complete feature report as pdf.', key: 'P', windows: true, mac: false },
   ];
 
   // Main Page
@@ -52,16 +59,15 @@ export class HelpComponent {
     { position: 4, description: '[P] Header Icon: Profile.', key: 'P', windows: true, mac: false },
     { position: 5, description: '[M] Header Icon: Menu.', key: 'M', windows: true, mac: false },
     { position: 6, description: 'Open search.', key: 'S', windows: true, mac: false },
-    { position: 7, description: 'Close search.', key: 'ESC', windows: true, mac: false },
-    { position: 8, description: 'Return to home.', key: 'H', windows: true, mac: false },
-    { position: 9, description: 'Remove all the filters.', key: 'Shift + Alt + X', windows: true, mac: false },
+    { position: 7, description: 'Quit the dialog, close search.', key: 'ESC', windows: true, mac: false },
+    { position: 8, description: 'Return to Default.', key: 'H', windows: true, mac: false },
   ];
 
   // Data Driven Test
 
   ShortDataDriven: Shortcut[] = [
-    { position: 1, description: "[Columns Shown] button: Show table header's checkboxes.", key: 'S', windows: true, mac: false },
-    { position: 2, description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet.', key: 'T', windows: true, mac: false },
+    // Check this because this shortcuts its relative to arslan changes and now DDT has changed
+    { position: 2, description: 'Show hide files column.', key: 'T', windows: true, mac: false },
   ];
 
   // Create Folder
@@ -70,24 +76,18 @@ export class HelpComponent {
     { position: 1, description: 'Button: OK.', key: 'CTRL+ENTER', windows: true, mac: false },
   ];
 
-  // Create Edit Feature
+  // Create Edit Feature (Information expansion-panel)
 
   ShortCreateEditFeature: Shortcut[] = [
-    { position: 1, description: 'Checkbox: Depends on other feature.', key: 'D', windows: true, mac: false },
+    { position: 0, description: 'Escape: Close the dialog.', key: 'ESC', windows: true, mac: false },
     { position: 2, description: 'Checkbox: Continue on failure.', key: 'F', windows: true, mac: false },
-    { position: 3, description: 'Checkbox: Generate dataset.', key: 'G', windows: true, mac: false },
-    { position: 4, description: 'Checkbox: Ask for help.', key: 'H',  windows: true, mac: false },
-    { position: 5, description: 'Checkbox: Send mail on finish.', key: 'M', windows: true, mac: false },
-    { position: 6, description: 'Checkbox: Network logging.', key: 'N', windows: true, mac: false },
-    { position: 7, description: 'Checkbox: Record video.', key: 'R', windows: true, mac: false },
     { position: 8, description: 'Button: Edit Variables.', key: 'V', windows: true, mac: false },
     { position: 9, description: 'Button: Open Mobiles.', key: 'S', windows: true, mac: false },
     { position: 10, description: 'Button: CREATE/SAVE.', key: 'CTRL+ENTER', windows: true, mac: false },
-    { position: 11, description: 'Textarea: Insert new step above or below.', key: 'CTRL+UP/DOWN', windows: true, mac: false },
-    { position: 12, description: 'Textarea: Copy the step above or below of the reference step.', key: 'CTRL+ALT+UP/DOWN', windows: true, mac: false },
+    { position: 11, description: 'Checkbox: Telegram Notification.', key: 'T', windows: true, mac: false },
   ];
 
-  // Step Editor
+  // Step Editor (Steps expansion-panel)
 
   ShortStepEditor: Shortcut[] = [
     { position: 1, description: 'Checkbox (Select): Hold Shift and click another checkbox to select all checkboxes between the first and the second click.', key: 'SHIFT', windows: true, mac: false },
@@ -126,7 +126,8 @@ export class HelpComponent {
     },
   ];
 
-  listMainViewFeature = this.ShortMainViewFeature;
+  listLiveSteps = this.ShortLiveSteps;
+  listL1andL2 = this.ShortL1andL2;
   listMainPage = this.ShortMainPage;
   listDataDriven = this.ShortDataDriven;
   listCreateEditFeature = this.ShortCreateEditFeature;

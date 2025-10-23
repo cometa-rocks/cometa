@@ -106,6 +106,42 @@ h2 {
     font-size: 1.1rem;
     margin-right: 5px;
   }
+  
+  // Loop status indicator styling
+  &.loop-active {
+    background: linear-gradient(135deg, rgba($blue, 0.1), rgba($blue, 0.15));
+    border-left: 4px solid $blue;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .loop-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .loop-icon-status {
+      color: $blue;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+    
+    strong {
+      color: darken($blue, 15%);
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .loop-step-executing {
+      color: darken($blue, 10%);
+      font-size: 13px;
+      font-style: italic;
+      margin-left: 6px;
+      opacity: 0.85;
+    }
+  }
 }
 
 .headers {
