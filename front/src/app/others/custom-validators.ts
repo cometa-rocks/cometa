@@ -109,6 +109,19 @@ export class CustomValidators {
       }
     }
     
+    // IMPORTANT: Before comparing static text lengths, check for incomplete parameters
+    // This ensures we detect missing quotes correctly instead of just "missing characters"
+    console.log(`🔍 Checking for incomplete parameters before static text comparison`);
+    const incompleteParam = CustomValidators.detectIncompleteParameter(userInput);
+    if (incompleteParam) {
+      console.log(`🔍 Found incomplete parameter: missing ${incompleteParam.missingQuote} quote at position ${incompleteParam.position}`);
+      return {
+        index: incompleteParam.position,
+        userChar: incompleteParam.missingQuote === 'closing' ? '' : userInput[incompleteParam.position] || '',
+        expectedChar: '"'
+      };
+    }
+    
     // If lengths differ, the difference is at the end
     if (userStatic.length !== correctStatic.length) {
       const shorterLength = Math.min(userStatic.length, correctStatic.length);
@@ -147,6 +160,17 @@ export class CustomValidators {
     console.log(`🔍 Checking for typos in original strings:`);
     console.log(`  User: "${userInput}"`);
     console.log(`  Correct: "${correctStep}"`);
+    
+    // First, check for incomplete parameters (missing opening or closing quotes)
+    const incompleteParam = CustomValidators.detectIncompleteParameter(userInput);
+    if (incompleteParam) {
+      console.log(`🔍 Detected incomplete parameter at position ${incompleteParam.position}, missing ${incompleteParam.missingQuote} quote`);
+      return {
+        index: incompleteParam.position,
+        userChar: incompleteParam.missingQuote === 'closing' ? '' : userInput[incompleteParam.position] || '',
+        expectedChar: '"'
+      };
+    }
     
     // Extract static text with position mapping
     const userStatic = CustomValidators.extractStaticWithPositions(userInput);
@@ -196,7 +220,157 @@ export class CustomValidators {
   }
   
   /**
+   * Detect if there's an incomplete parameter (missing opening or closing quote)
+   * Returns the position where the quote should be and which quote is missing
+   */
+  private static detectIncompleteParameter(step: string): { position: number; missingQuote: 'opening' | 'closing' } | null {
+    console.log(`🔍 Detecting incomplete parameters in: "${step}"`);
+    
+    // First check for missing closing quotes (more common case)
+    let i = 0;
+    let lastOpenQuotePos = -1;
+    
+    while (i < step.length) {
+      if (step[i] === '"') {
+        // Check if this is really an opening quote or a closing quote without opening
+        const charBefore = i > 0 ? step[i - 1] : '';
+        
+        // If there's NO space before the quote and we don't have an open quote, 
+        // this might be a closing quote without opening - skip to detectMissingOpeningQuote
+        if (charBefore !== ' ' && lastOpenQuotePos === -1) {
+          console.log(`🔍 Quote at position ${i} has no space before and no open quote - might be unmatched closing`);
+          i++;
+          continue;
+        }
+        
+        // Found an opening quote
+        lastOpenQuotePos = i;
+        i++; // Skip opening quote
+        
+        // Look for closing quote, tracking bracket depth for XPath/CSS
+        let bracketDepth = 0;
+        let foundClosing = false;
+        
+        while (i < step.length) {
+          const char = step[i];
+          
+          // Track bracket depth
+          if (char === '[') {
+            bracketDepth++;
+            i++;
+            continue;
+          } else if (char === ']') {
+            bracketDepth--;
+            i++;
+            continue;
+          }
+          
+          // If we're inside brackets, keep all quotes as-is
+          if (bracketDepth > 0 && char === '"') {
+            i++;
+            continue;
+          }
+          
+          // Check for keywords that indicate parameter ended (even without closing quote)
+          if (bracketDepth === 0) {
+            const remaining = step.substring(i);
+            const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times '];
+            
+            for (const keyword of keywords) {
+              if (remaining.startsWith(keyword)) {
+                // Found keyword - parameter ended without closing quote
+                console.log(`🔍 Missing closing quote after position ${lastOpenQuotePos}, found keyword "${keyword}" at ${i}`);
+                return { position: i, missingQuote: 'closing' };
+              }
+            }
+          }
+          
+          // Check if this is the closing quote (not inside brackets)
+          if (char === '"' && bracketDepth === 0) {
+            // This is the closing quote
+            foundClosing = true;
+            i++; // Skip closing quote
+            break;
+          }
+          
+          i++;
+        }
+        
+        // If we reached the end without finding closing quote
+        if (!foundClosing) {
+          console.log(`🔍 Missing closing quote after position ${lastOpenQuotePos}, reached end of string`);
+          return { position: step.length, missingQuote: 'closing' };
+        }
+      } else {
+        i++;
+      }
+    }
+    
+    // If no missing closing quotes found, check for unmatched closing quotes (missing opening quote)
+    const unmatchedClosing = CustomValidators.detectMissingOpeningQuote(step);
+    if (unmatchedClosing) {
+      return unmatchedClosing;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Detect unmatched closing quotes (missing opening quote)
+   * Example: "Run feature with id 631" before continuing"
+   *                              ↑ this closing quote has no matching opening
+   */
+  private static detectMissingOpeningQuote(step: string): { position: number; missingQuote: 'opening' } | null {
+    console.log(`🔍 Detecting missing opening quotes in: "${step}"`);
+    
+    // Track quote balance to detect unmatched closing quotes
+    let openQuotes = 0;
+    
+    for (let i = 0; i < step.length; i++) {
+      if (step[i] === '"') {
+        // Check if this is likely an opening or closing quote based on context
+        const charBefore = i > 0 ? step[i - 1] : '';
+        
+        if (charBefore === ' ') {
+          // Space before quote → likely opening
+          openQuotes++;
+          console.log(`🔍 Opening quote at position ${i}, openQuotes: ${openQuotes}`);
+        } else if (openQuotes > 0) {
+          // We have open quotes and no space before → likely closing
+          openQuotes--;
+          console.log(`🔍 Closing quote at position ${i}, openQuotes: ${openQuotes}`);
+        } else {
+          // No open quotes but found a closing quote → missing opening!
+          console.log(`🔍 Unmatched closing quote at position ${i} (openQuotes = 0)`);
+          // This closing quote has no matching opening
+          // Find where the opening should be (after the last keyword)
+          const paramKeywords = ['id ', 'url ', 'with ', 'at ', 'on ', 'in ', 'to ', 'for '];
+          const beforeQuote = step.substring(Math.max(0, i - 30), i).toLowerCase();
+          
+          for (const keyword of paramKeywords) {
+            const keywordIndex = beforeQuote.lastIndexOf(keyword);
+            if (keywordIndex >= 0) {
+              const afterKeyword = beforeQuote.substring(keywordIndex + keyword.length);
+              const paramContent = afterKeyword.trim();
+              
+              if (paramContent.length > 0) {
+                // Found parameter content without opening quote
+                const contentStart = i - paramContent.length;
+                console.log(`🔍 Missing opening quote should be at position ${contentStart} (before "${paramContent}")`);
+                return { position: contentStart, missingQuote: 'opening' };
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
    * Extract static text with position mapping
+   * Handles both complete ("param") and incomplete ("param) parameters
    */
   private static extractStaticWithPositions(step: string): { text: string; positions: number[] } {
     let text = '';
@@ -218,20 +392,41 @@ export class CustomValidators {
         console.log(`🔍 Found opening marker at markerIndex=${markerIndex}, stepIndex=${stepIndex}`);
         
         // This is the opening marker (replaces opening quote)
-        // Skip until we find the corresponding closing marker
+        // Skip until we find the corresponding closing marker or a keyword
         markerIndex++; // Skip opening marker
         stepIndex++;   // Skip opening quote
         
-        // Skip all content until closing marker
-        while (markerIndex < withMarkers.length && withMarkers[markerIndex] !== '●') {
+        // Skip all content until closing marker or keyword
+        while (markerIndex < withMarkers.length && stepIndex < step.length) {
+          if (withMarkers[markerIndex] === '●') {
+            // Found closing marker
+            markerIndex++; // Skip closing marker
+            stepIndex++;   // Skip closing quote
+            break;
+          }
+          
+          // Check if we've reached a keyword that indicates parameter ended
+          const remaining = withMarkers.substring(markerIndex);
+          const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times '];
+          let foundKeyword = false;
+          
+          for (const keyword of keywords) {
+            if (remaining.startsWith(keyword)) {
+              // Parameter ended without closing quote, this is static text again
+              foundKeyword = true;
+              console.log(`🔍 Found keyword "${keyword}" - parameter ended at markerIndex=${markerIndex}, stepIndex=${stepIndex}`);
+              break;
+            }
+          }
+          
+          if (foundKeyword) {
+            // Stop here, continue with static text from this position
+            break;
+          }
+          
+          // Still inside parameter content
           markerIndex++;
           stepIndex++;
-        }
-        
-        // Skip closing marker and quote
-        if (markerIndex < withMarkers.length && withMarkers[markerIndex] === '●') {
-          markerIndex++; // Skip closing marker
-          stepIndex++;   // Skip closing quote
         }
         
         console.log(`🔍 After skipping parameter: markerIndex=${markerIndex}, stepIndex=${stepIndex}`);
@@ -252,13 +447,59 @@ export class CustomValidators {
 
   /**
    * Extract static text from a string, removing all parameter content (simple version)
+   * Handles both complete ("param") and incomplete ("param) parameters
    */
   private static extractStaticTextSimple(step: string): string {
     console.log(`🔍 Extracting static text from: "${step}"`);
     
-    // Use regex to remove all quoted content (including nested quotes)
-    // This pattern matches: "content" where content can contain nested quotes
-    const result = step.replace(/"([^"]*(?:"[^"]*)*)"/g, '');
+    // Use marker-based approach to handle incomplete parameters
+    const withMarkers = CustomValidators.replaceQuotesWithMarkers(step);
+    console.log(`🔍 With markers: "${withMarkers}"`);
+    
+    let result = '';
+    let i = 0;
+    
+    while (i < withMarkers.length) {
+      if (withMarkers[i] === '●') {
+        // Found opening marker - skip parameter content
+        i++; // Skip opening marker
+        
+        // Look for closing marker or end of parameter
+        while (i < withMarkers.length) {
+          if (withMarkers[i] === '●') {
+            // Found closing marker - skip it and continue with static text
+            i++;
+            break;
+          }
+          
+          // Check if we've reached a keyword that indicates parameter ended
+          // without proper closing (e.g., " before continuing" after missing quote)
+          const remaining = withMarkers.substring(i);
+          const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times '];
+          let foundKeyword = false;
+          
+          for (const keyword of keywords) {
+            if (remaining.startsWith(keyword)) {
+              // Parameter ended, this is static text again
+              foundKeyword = true;
+              break;
+            }
+          }
+          
+          if (foundKeyword) {
+            // Stop here, continue with static text from this position
+            break;
+          }
+          
+          // Still inside parameter content
+          i++;
+        }
+      } else {
+        // Regular static text character
+        result += withMarkers[i];
+        i++;
+      }
+    }
     
     console.log(`🔍 Final static text: "${result}"`);
     return result;
@@ -312,6 +553,90 @@ export class CustomValidators {
     
     while (i < step.length) {
       if (step[i] === '"') {
+        // IMPORTANT: Check bracket depth FIRST
+        // If we're inside brackets, quotes are part of XPath/CSS and should be kept as-is
+        const beforeQuote = result.join('');
+        let currentBracketDepth = 0;
+        for (let j = 0; j < beforeQuote.length; j++) {
+          if (beforeQuote[j] === '[') currentBracketDepth++;
+          if (beforeQuote[j] === ']') currentBracketDepth--;
+        }
+        
+        // If inside brackets, this quote is part of XPath/CSS selector - keep it as regular quote
+        if (currentBracketDepth > 0) {
+          console.log(`🔍 Quote at position ${i} is inside brackets (depth ${currentBracketDepth}) - keeping as-is`);
+          result.push('"');
+          i++;
+          continue;
+        }
+        
+        // Check if this quote looks like a closing quote without opening
+        // by examining what comes before it
+        const lastFewChars = beforeQuote.slice(-50).toLowerCase();
+        
+        // IMPORTANT: Check if there's a space right before this quote
+        // If there is, this is likely an opening quote, not closing
+        // Example: "id " → opening quote
+        // Example: "id631" → closing quote (missing opening)
+        const charBeforeQuote = beforeQuote.length > 0 ? beforeQuote[beforeQuote.length - 1] : '';
+        let looksLikeClosingWithoutOpening = false;
+        const paramKeywords = ['id ', 'url ', 'with ', 'at ', 'on ', 'in ', 'to ', 'for '];
+        
+        if (charBeforeQuote !== ' ') {
+          // No space before quote - could be closing without opening
+          
+          // Simple check: if there's NO opening marker (●) before this quote,
+          // and the quote has no space before it, it's likely a closing without opening
+          const hasOpeningMarker = beforeQuote.includes('●');
+          
+          if (!hasOpeningMarker) {
+            // Check for pattern: keyword + content (no quote) + current quote
+            // Example: "id 631" where we're at the quote after 631 (no space)
+            
+            for (const keyword of paramKeywords) {
+              if (lastFewChars.includes(keyword)) {
+                // Found a keyword, check if there's content after it without opening quote
+                const afterKeywordIndex = lastFewChars.lastIndexOf(keyword);
+                const afterKeyword = lastFewChars.substring(afterKeywordIndex + keyword.length);
+                
+                // If there's non-space content, this is likely a closing quote
+                if (afterKeyword.trim().length > 0) {
+                  looksLikeClosingWithoutOpening = true;
+                  console.log(`⚠️ Detected closing quote without opening at position ${i}, after keyword "${keyword}"`);
+                  break;
+                }
+              }
+            }
+          }
+        }
+        
+        if (looksLikeClosingWithoutOpening) {
+          // This is a closing quote without opening
+          // Insert a virtual opening marker before the parameter content
+          // Find where the parameter content starts (after the keyword)
+          for (const keyword of paramKeywords) {
+            const keywordIndex = lastFewChars.lastIndexOf(keyword);
+            if (keywordIndex >= 0) {
+              const afterKeyword = lastFewChars.substring(keywordIndex + keyword.length);
+              if (afterKeyword.trim().length > 0 && !afterKeyword.includes('●')) {
+                // Find position in result array where to insert opening marker
+                const paramContent = afterKeyword.trim();
+                const insertPos = result.length - paramContent.length;
+                
+                // Insert opening marker before parameter content
+                result.splice(insertPos, 0, '●');
+                console.log(`  → Inserted virtual opening marker before "${paramContent}"`);
+                break;
+              }
+            }
+          }
+          
+          // Add closing marker for the actual closing quote
+          result.push('●');
+          i++;
+          continue;
+        }
+        
         // This is a potential opening quote - replace with marker
         result.push('●');
         i++;
