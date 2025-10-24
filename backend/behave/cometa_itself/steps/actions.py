@@ -161,6 +161,17 @@ def step_impl_with_settings(context, message, settings):
 @done(u'Send a telegram notification with message "{message}"')
 def step_impl(context, message):
     send_step_details(context, "Sending custom notification")
+    info = []
+    tg_opts = context.feature_info.get('telegram_options')
+    if tg_opts and isinstance(tg_opts, dict):
+        if tg_opts.get('override_chat_ids'): info.append(f"chat_ids: {tg_opts['override_chat_ids']}")
+        if tg_opts.get('override_bot_token'): info.append(f"bot_token: {tg_opts['override_bot_token'][:15]}...")
+        if tg_opts.get('override_message_thread_id'): info.append(f"thread_id: {tg_opts['override_message_thread_id']}")
+    # Fall back to department settings if no feature overrides
+    if not info and context.department.get('settings', {}).get('telegram_chat_ids'):
+        info.append(f"dept_chat_ids: {context.department['settings']['telegram_chat_ids']}")
+    if info and hasattr(context, 'CURRENT_STEP'):
+        context.CURRENT_STEP.name += f' [using {", ".join(info)}]'
     send_custom_notification_request(context, "telegram", message)
     send_step_details(context, "Custom notification sent")
 
@@ -190,6 +201,12 @@ def step_impl_with_recipients(context, subject, message, recipients):
 @done(u'Send an email notification with subject "{subject}" and message "{message}"')
 def step_impl_email(context, subject, message):
     send_step_details(context, "Sending custom notification")
+    info = []
+    if context.feature_info.get('email_address'): info.append(f"to: {', '.join(context.feature_info['email_address'])}")
+    if context.feature_info.get('email_cc_address'): info.append(f"cc: {', '.join(context.feature_info['email_cc_address'])}")
+    if context.feature_info.get('email_bcc_address'): info.append(f"bcc: {', '.join(context.feature_info['email_bcc_address'])}")
+    if info and hasattr(context, 'CURRENT_STEP'):
+        context.CURRENT_STEP.name += f' [using {" | ".join(info)}]'
     send_custom_notification_request(context, "email", message, subject=subject)
     send_step_details(context, "Custom notification sent")
 
