@@ -92,6 +92,19 @@ export class CustomValidators {
     console.log('  👤 USER CLEANED:    "' + userStatic + '"');
     console.log('  ✅ CORRECT CLEANED: "' + correctStatic + '"');
     
+    // IMPORTANT: First check for incomplete parameters BEFORE any character comparison
+    // This ensures we detect missing quotes correctly instead of just "missing characters"
+    console.log(`🔍 Checking for incomplete parameters BEFORE character comparison`);
+    const incompleteParam = CustomValidators.detectIncompleteParameter(userInput);
+    if (incompleteParam) {
+      console.log(`🔍 Found incomplete parameter: missing ${incompleteParam.missingQuote} quote at position ${incompleteParam.position}`);
+      return {
+        index: incompleteParam.position,
+        userChar: incompleteParam.missingQuote === 'closing' ? '' : userInput[incompleteParam.position] || '',
+        expectedChar: '"'
+      };
+    }
+    
     // Compare static text character by character
     const minLength = Math.min(userStatic.length, correctStatic.length);
     
@@ -107,19 +120,6 @@ export class CustomValidators {
           expectedChar: correctStatic[i] 
         };
       }
-    }
-    
-    // IMPORTANT: Before comparing static text lengths, check for incomplete parameters
-    // This ensures we detect missing quotes correctly instead of just "missing characters"
-    console.log(`🔍 Checking for incomplete parameters before static text comparison`);
-    const incompleteParam = CustomValidators.detectIncompleteParameter(userInput);
-    if (incompleteParam) {
-      console.log(`🔍 Found incomplete parameter: missing ${incompleteParam.missingQuote} quote at position ${incompleteParam.position}`);
-      return {
-        index: incompleteParam.position,
-        userChar: incompleteParam.missingQuote === 'closing' ? '' : userInput[incompleteParam.position] || '',
-        expectedChar: '"'
-      };
     }
     
     // If lengths differ, the difference is at the end
@@ -235,7 +235,8 @@ export class CustomValidators {
   private static detectIncompleteParameter(step: string): { position: number; missingQuote: 'opening' | 'closing' } | null {
     console.log(`🔍 Detecting incomplete parameters in: "${step}"`);
     
-    // First, check for keywords that MUST be followed by opening quote
+    // First, check for keywords that MUST ALWAYS be followed by opening quote
+    // Only include keywords where the parameter is ALWAYS a quoted string
     const mustHaveQuoteKeywords = ['selector ', 'URL ', 'url '];
     for (const keyword of mustHaveQuoteKeywords) {
       const keywordIndex = step.toLowerCase().indexOf(keyword.toLowerCase());
@@ -302,7 +303,7 @@ export class CustomValidators {
           // Check for keywords that indicate parameter ended (even without closing quote)
           if (bracketDepth === 0) {
             const remaining = step.substring(i);
-            const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times ', ' value '];
+            const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times ', ' and ', ' run ', ' numbers ', ' seconds ', ' from ', ' using ', ' set '];
             
             for (const keyword of keywords) {
               if (remaining.startsWith(keyword)) {
@@ -381,10 +382,17 @@ export class CustomValidators {
             const keywordIndex = beforeQuote.lastIndexOf(keyword);
             if (keywordIndex >= 0) {
               const afterKeyword = beforeQuote.substring(keywordIndex + keyword.length);
-              const paramContent = afterKeyword.trim();
               
-              if (paramContent.length > 0) {
-                // Found parameter content without opening quote
+              if (afterKeyword.trim().length > 0) {
+                // Extract only the actual parameter content using prioritized regex
+                // Priority 1: Try to match parameter with braces: {param}
+                let match = afterKeyword.match(/(\{[\w\-_]+\})$/);
+                if (!match) {
+                  // Priority 2: Match simple word/number at the end
+                  match = afterKeyword.match(/(\S+)$/);
+                }
+                
+                const paramContent = match ? match[1] : afterKeyword.trim();
                 const contentStart = i - paramContent.length;
                 console.log(`🔍 Missing opening quote should be at position ${contentStart} (before "${paramContent}")`);
                 return { position: contentStart, missingQuote: 'opening' };
@@ -397,16 +405,19 @@ export class CustomValidators {
           // Strategy 2: If no keyword found, use regex to find simple parameter content
           if (!foundKeyword) {
             const beforeQuoteOriginal = step.substring(Math.max(0, i - 20), i);
-            // Only match simple alphanumeric content (no brackets, quotes, or special chars)
-            const match = beforeQuoteOriginal.match(/\s+([^\s\[\]"]+)$/);
+            
+            // Priority 1: Try to match parameter with braces: {param}
+            let match = beforeQuoteOriginal.match(/(\{[\w\-_]+\})$/);
+            if (!match) {
+              // Priority 2: Match simple word/number at the end (after space)
+              match = beforeQuoteOriginal.match(/\s+([\w\-]+)$/);
+            }
+            
             if (match && match[1].length > 0) {
               const paramContent = match[1];
-              // Only trigger if content is simple (alphanumeric, dash, underscore)
-              if (/^[\w\-]+$/.test(paramContent)) {
-                const contentStart = i - paramContent.length;
-                console.log(`🔍 Missing opening quote should be at position ${contentStart} (before "${paramContent}", no keyword)`);
-                return { position: contentStart, missingQuote: 'opening' };
-              }
+              const contentStart = i - paramContent.length;
+              console.log(`🔍 Missing opening quote should be at position ${contentStart} (before "${paramContent}", no keyword)`);
+              return { position: contentStart, missingQuote: 'opening' };
             }
           }
         }
@@ -455,7 +466,7 @@ export class CustomValidators {
           
           // Check if we've reached a keyword that indicates parameter ended
           const remaining = withMarkers.substring(markerIndex);
-          const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times '];
+          const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times ', ' and ', ' run ', ' numbers ', ' seconds ', ' from ', ' using ', ' set '];
           let foundKeyword = false;
           
           for (const keyword of keywords) {
@@ -526,7 +537,7 @@ export class CustomValidators {
           
           // Strategy 1: Check for keywords that indicate parameter ended
           // (e.g., " before continuing" after missing quote)
-          const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times ', ' and ', 'rows', ',', 'using', 'digits'];
+          const keywords = [' before ', ' after ', ' on ', ' at ', ' in ', ' to ', ' with ', ' for ', ' if ', ' contains ', ' times ', ' and ', ' run ', ' numbers ', ' seconds ', ' from ', ' using ', ' set '];
           for (const keyword of keywords) {
             if (remaining.startsWith(keyword)) {
               endOfParameter = true;
@@ -612,8 +623,9 @@ export class CustomValidators {
     const result: string[] = [];
     let i = 0;
     
-    // First pass: check for keywords that MUST be followed by opening quote
-    // If missing, insert virtual opening marker
+    // First pass: check for keywords that MUST ALWAYS be followed by opening quote
+    // Only include keywords where the parameter is ALWAYS a quoted string (selector, URL)
+    // Don't include ambiguous keywords like Click/Open that can have unquoted params
     const mustHaveQuoteKeywords = ['selector ', 'URL ', 'url '];
     for (const keyword of mustHaveQuoteKeywords) {
       const keywordIndex = step.toLowerCase().indexOf(keyword.toLowerCase());
@@ -641,6 +653,7 @@ export class CustomValidators {
         // IMPORTANT: Check bracket depth FIRST
         // If we're inside brackets, quotes are part of XPath/CSS and should be kept as-is
         const beforeQuote = result.join('');
+        
         let currentBracketDepth = 0;
         for (let j = 0; j < beforeQuote.length; j++) {
           if (beforeQuote[j] === '[') currentBracketDepth++;
@@ -669,48 +682,50 @@ export class CustomValidators {
         
         if (charBeforeQuote !== ' ') {
           // No space before quote - could be closing without opening
+          // Only detect this if there's actual parameter content before the quote
           
-          // Check if markers are balanced: count opening markers (●) 
-          // If they're balanced (even count), this quote should be an opening, not closing
           const markerCount = (beforeQuote.match(/●/g) || []).length;
-          const markersAreBalanced = markerCount % 2 === 0;
           
-          if (markersAreBalanced) {
-            // Markers are balanced, so if we find a quote without space before,
-            // it's likely a closing quote without its opening
-            
-            // Strategy 1: Look for known parameter keywords
-            let foundKeyword = false;
-            for (const keyword of paramKeywords) {
-              if (lastFewChars.includes(keyword)) {
-                const afterKeywordIndex = lastFewChars.lastIndexOf(keyword);
-                const afterKeyword = lastFewChars.substring(afterKeywordIndex + keyword.length);
-                
-                if (afterKeyword.trim().length > 0) {
-                  looksLikeClosingWithoutOpening = true;
-                  foundKeyword = true;
-                  console.log(`⚠️ Detected closing quote without opening at position ${i}, after keyword "${keyword}" (markers: ${markerCount})`);
-                  break;
-                }
+          // Strategy 1: Look for known parameter keywords
+          let foundKeyword = false;
+          for (const keyword of paramKeywords) {
+            if (lastFewChars.includes(keyword)) {
+              const afterKeywordIndex = lastFewChars.lastIndexOf(keyword);
+              const afterKeyword = lastFewChars.substring(afterKeywordIndex + keyword.length);
+              
+              // Only trigger if there's content AND no opening marker already
+              if (afterKeyword.trim().length > 0 && !afterKeyword.includes('●')) {
+                looksLikeClosingWithoutOpening = true;
+                foundKeyword = true;
+                console.log(`⚠️ Detected closing quote without opening at position ${i}, after keyword "${keyword}" (markers: ${markerCount})`);
+                break;
               }
             }
+          }
+          
+          // Strategy 2: If no keyword found, check if there's alphanumeric content before quote
+          // Example: "Loop 2" where 2 is the parameter content
+          if (!foundKeyword) {
+            // Look at last few characters before quote
+            const lastChars = beforeQuote.slice(-20);
             
-            // Strategy 2: If no keyword found, check if there's alphanumeric content before quote
-            // Example: "Loop 2" where 2 is the parameter content
-            if (!foundKeyword) {
-              // Look at last few characters before quote
-              const lastChars = beforeQuote.slice(-20);
-              // Check if there's a word/number followed by space(s) and then simple content without opening quote
-              // Use [^\s\[\]"]+ to capture content that doesn't include spaces, brackets, or quotes
-              const match = lastChars.match(/\s+([^\s\[\]"]+)$/);
-              if (match && match[1].length > 0) {
-                // Additional check: make sure this content is simple (no special chars that indicate complex parameter)
+            // Priority 1: Try to match parameter with braces: {param}
+            let match = lastChars.match(/(\{[\w\-_]+\})$/);
+            if (!match) {
+              // Priority 2: Match simple word/number at the end (after space)
+              match = lastChars.match(/\s+([\w\-]+)$/);
+            }
+            
+            // Only trigger if content found AND no opening marker before it
+            if (match && match[1].length > 0) {
+              // Check if there's an opening marker before this content
+              const contentStart = beforeQuote.lastIndexOf(match[1]);
+              const beforeContent = beforeQuote.substring(Math.max(0, contentStart - 5), contentStart);
+              
+              if (!beforeContent.includes('●')) {
                 const content = match[1];
-                // Only trigger if content looks like a simple parameter value (alphanumeric, dash, underscore)
-                if (/^[\w\-]+$/.test(content)) {
-                  looksLikeClosingWithoutOpening = true;
-                  console.log(`⚠️ Detected closing quote without opening at position ${i}, after content "${content}" (markers: ${markerCount})`);
-                }
+                looksLikeClosingWithoutOpening = true;
+                console.log(`⚠️ Detected closing quote without opening at position ${i}, after content "${content}" (markers: ${markerCount})`);
               }
             }
           }
@@ -728,8 +743,15 @@ export class CustomValidators {
             if (keywordIndex >= 0) {
               const afterKeyword = lastFewChars.substring(keywordIndex + keyword.length);
               if (afterKeyword.trim().length > 0 && !afterKeyword.includes('●')) {
-                // Find position in result array where to insert opening marker
-                const paramContent = afterKeyword.trim();
+                // Extract only the actual parameter content using prioritized regex
+                // Priority 1: Try to match parameter with braces: {param}
+                let match = afterKeyword.match(/(\{[\w\-_]+\})$/);
+                if (!match) {
+                  // Priority 2: Match simple word/number at the end (after space)
+                  match = afterKeyword.match(/(\S+)$/);
+                }
+                
+                const paramContent = match ? match[1] : afterKeyword.trim();
                 const insertPos = result.length - paramContent.length;
                 
                 // Insert opening marker before parameter content
@@ -744,19 +766,22 @@ export class CustomValidators {
           // Try Strategy 2: If no keyword, use regex to find simple content
           if (!insertedMarker) {
             const lastChars = beforeQuote.slice(-20);
-            // Only match simple alphanumeric content (no brackets, quotes, or special chars)
-            const match = lastChars.match(/\s+([^\s\[\]"]+)$/);
+            
+            // Priority 1: Try to match parameter with braces: {param}
+            let match = lastChars.match(/(\{[\w\-_]+\})$/);
+            if (!match) {
+              // Priority 2: Match simple word/number at the end (after space)
+              match = lastChars.match(/\s+([\w\-]+)$/);
+            }
+            
             if (match && match[1].length > 0) {
               const paramContent = match[1];
-              // Only insert if content is simple (alphanumeric, dash, underscore)
-              if (/^[\w\-]+$/.test(paramContent)) {
-                const insertPos = result.length - paramContent.length;
-                
-                // Insert opening marker before parameter content
-                result.splice(insertPos, 0, '●');
-                console.log(`  → Inserted virtual opening marker before "${paramContent}" (regex)`);
-                insertedMarker = true;
-              }
+              const insertPos = result.length - paramContent.length;
+              
+              // Insert opening marker before parameter content
+              result.splice(insertPos, 0, '●');
+              console.log(`  → Inserted virtual opening marker before "${paramContent}" (regex)`);
+              insertedMarker = true;
             }
           }
           
@@ -806,24 +831,51 @@ export class CustomValidators {
             // Keywords that typically come before a new parameter, not inside one
             const newParamKeywords = [
               ' times ', 'starting at ', ' at ', ' on ', 'on element ',
-              ' contains ', 'property ', ' in ', ' to ', ' with ', ' for ', ' if '
+              ' contains ', 'property ', ' in ', ' to ', ' with ', ' for ', ' if ', ' using ', ' and ', ' set ',
+              ' variable ', ' cell ', ' from '
             ];
             
             let looksLikeNewOpening = false;
-            for (const keyword of newParamKeywords) {
-              if (beforeQuote.endsWith(keyword.toLowerCase())) {
-                looksLikeNewOpening = true;
-                console.log(`⚠️ Detected new parameter after keyword "${keyword}" - adding missing closing quote`);
-                break;
+            
+            // Count current markers to check if there's an unclosed parameter
+            const currentMarkerCount = (result.join('').match(/●/g) || []).length;
+            const hasUnclosedParam = currentMarkerCount % 2 === 1;
+            
+            if (hasUnclosedParam) {
+              // There's an unclosed parameter - check if this quote should close it
+              // A quote should ONLY close a parameter if it's right after a closing brace }
+              const charBeforeQuote = result.length > 0 ? result[result.length - 1] : '';
+              
+              if (charBeforeQuote === '}' || charBeforeQuote === '●') {
+                // This quote legitimately closes the current parameter
+                looksLikeNewOpening = false;
+              } else {
+                // This quote is NOT after }, so the current param is missing its closing quote
+                // This quote starts a NEW parameter
+                looksLikeNewOpening = true; // Mark as new opening so we break the loop
+              }
+            } else {
+              // No unclosed parameter - check if this is a new opening based on keywords
+              for (const keyword of newParamKeywords) {
+                const lastChars = beforeQuote.slice(-20).toLowerCase();
+                if (lastChars.includes(keyword.toLowerCase())) {
+                  looksLikeNewOpening = true;
+                  console.log(`⚠️ Detected new parameter after keyword "${keyword}" - this is opening, not closing`);
+                  break;
+                }
               }
             }
             
             if (looksLikeNewOpening) {
               // This is a new parameter opening, not our closing quote
-              // Just break without adding marker - the closing quote is missing
-              // Don't increment i, let the outer loop handle this as new opening quote
-              console.log('  → Breaking to let outer loop process this as new opening');
-              foundClosing = false; // Mark as not found so we add marker after loop
+              // The current parameter is missing its closing quote
+              console.log('  → Current parameter missing closing, this quote is new opening');
+              
+              // IMPORTANT: Close the current parameter first, then open the new one
+              result.push('●'); // Close current parameter
+              result.push('●'); // Open new parameter
+              i++;
+              foundClosing = true; // We inserted a virtual closing
               break;
             } else {
               // This is the closing quote - replace with marker
@@ -903,11 +955,48 @@ export class CustomValidators {
       // Use marker-based approach for better comparison with nested quotes
       const MARKER = '●';
       const userWithMarkers = CustomValidators.replaceQuotesWithMarkers(value);
-      // Replace both complete (●...●) and incomplete (●...) parameters with ●●
-      const userClean = userWithMarkers
-        .replace(/●[^●]*●/g, '●●')        // Complete parameters: ●content●
-        .replace(/●[^●]+/g, '●●')         // Incomplete parameters: ●content (no closing)
-        .toLowerCase();
+      console.log('🔧 DEBUG: userWithMarkers =', userWithMarkers);
+      console.log('🔧 DEBUG: userWithMarkers chars:', userWithMarkers.split('').map((c, i) => `${i}:${c}`).join(' '));
+      
+      // NEW STRATEGY: Replace parameters one by one, left to right
+      // Skip already-processed ●● pairs to avoid infinite loops
+      
+      let cleaned = userWithMarkers;
+      let position = 0;
+      let safetyCounter = 0;
+      
+      while (position < cleaned.length && safetyCounter < 50) {
+        safetyCounter++;
+        
+        // Find next marker starting from current position
+        const firstMarker = cleaned.indexOf('●', position);
+        if (firstMarker === -1) break;
+        
+        // Check if this is already a ●● pair (skip it)
+        if (cleaned[firstMarker + 1] === '●' && cleaned.substring(firstMarker, firstMarker + 2) === '●●') {
+          position = firstMarker + 2; // Skip this pair
+          continue;
+        }
+        
+        const secondMarker = cleaned.indexOf('●', firstMarker + 1);
+        
+        if (secondMarker === -1) {
+          // No closing marker - incomplete parameter at end
+          cleaned = cleaned.substring(0, firstMarker) + '●●';
+          console.log('🔧 DEBUG: replaced incomplete param at end');
+          break; // We're at the end
+        } else {
+          // Complete parameter pair
+          const before = cleaned.substring(0, firstMarker);
+          const after = cleaned.substring(secondMarker + 1);
+          cleaned = before + '●●' + after;
+          console.log('🔧 DEBUG: replaced complete param');
+          position = firstMarker + 2; // Move past the ●● we just created
+        }
+      }
+      
+      const userClean = cleaned.toLowerCase();
+      console.log('🔧 DEBUG: userClean final =', userClean);
       
       let minDistance = Number.POSITIVE_INFINITY;
       let bestOriginal = '';
@@ -922,10 +1011,38 @@ export class CustomValidators {
         name = name.replace(/^(then|when|given|and)\s+/i, '');
         
         const actionWithMarkers = CustomValidators.replaceQuotesWithMarkers(name);
-        const clean = actionWithMarkers
-          .replace(/●[^●]*●/g, '●●')        // Complete parameters
-          .replace(/●[^●]+/g, '●●')         // Incomplete parameters
-          .toLowerCase();
+        
+        // Replace parameters one by one (same logic as user input)
+        let actionCleaned = actionWithMarkers;
+        let actionPosition = 0;
+        let actionSafetyCounter = 0;
+        
+        while (actionPosition < actionCleaned.length && actionSafetyCounter < 50) {
+          actionSafetyCounter++;
+          
+          const firstMarker = actionCleaned.indexOf('●', actionPosition);
+          if (firstMarker === -1) break;
+          
+          // Skip already-processed ●● pairs
+          if (actionCleaned[firstMarker + 1] === '●' && actionCleaned.substring(firstMarker, firstMarker + 2) === '●●') {
+            actionPosition = firstMarker + 2;
+            continue;
+          }
+          
+          const secondMarker = actionCleaned.indexOf('●', firstMarker + 1);
+          
+          if (secondMarker === -1) {
+            actionCleaned = actionCleaned.substring(0, firstMarker) + '●●';
+            break;
+          } else {
+            const before = actionCleaned.substring(0, firstMarker);
+            const after = actionCleaned.substring(secondMarker + 1);
+            actionCleaned = before + '●●' + after;
+            actionPosition = firstMarker + 2;
+          }
+        }
+        
+        const clean = actionCleaned.toLowerCase();
         
         // Calculate distance on cleaned versions (static text only)
         let d = CustomValidators.levenshteinDistance(userClean, clean);
