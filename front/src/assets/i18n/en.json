@@ -46,7 +46,8 @@
         "edit_variable": "In this section, we can add or edit variables among other functionalities. The button position will be changed soon!",
         "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
         "maximum_notification_on_error": "If checked, please set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails.",
-        "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
+        "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template",
+        "feature_history": "Open Feature History, check and restore previous versions of the feature"
     },
     "step-definition": {
         "insert-new-above": "CTRL + UP",
@@ -227,7 +228,10 @@
   },
   "live_steps": {
     "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
-    "button_when_starting": "Wait until the feature is started"
+    "button_when_starting": "Wait until the feature is started",
+    "loop_starting": "Starting loop: {{iterations}} iterations from index {{startIndex}}",
+    "loop_executing": "Executing step '{{step}}' inside loop",
+    "loop_progress": "Loop iteration {{current}} of {{total}}"
   },
   "step_editor": {
     "all_steps": "Select all steps",

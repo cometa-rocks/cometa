@@ -1,259 +1,235 @@
 @import 'color';
 @import 'breakpoints';
 
-// Loading spinner styles
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  
-  .loading-text {
-    margin-top: 16px;
-    color: $grey;
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-// Mtx-grid header styles
-:host ::ng-deep .mtx-grid .mat-mdc-header-cell {
-  font-weight: 800;
-  max-width: 300px;
-  width: 300px;
-  font-size: 16px;
-  background-color: $accounts-table-golden-bg;
-}
-
-// Mtx-grid header styles
-:host ::ng-deep .mtx-grid .mat-mdc-cell {
-  font-size: 16px;
-  background-color: $accounts-table-golden-bg;
-}
-
-// Mtx-grid header styles
-:host ::ng-deep .mtx-grid .mat-mdc-cell:nth-child(2n+1), :host ::ng-deep .mtx-grid .mat-mdc-cell:nth-child(2n+2) {
-  font-size: 16px;
-  background-color: transparent;
-}
-
-
-:host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+2) {
-  background-color: $accounts-table-row-border;
-  border-radius: 5px;
-}
-
-// Mtx-grid header styles
-:host ::ng-deep .mtx-grid .mat-mdc-header-cell:first-child {
-  max-width: 50px;
-  width: 50px;
-}
-
-:host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+1) {
-  background-color: $accounts-table-golden-bg;
-  border-radius: 5px;
-}
-
-:host ::ng-deep .mtx-grid .mat-mdc-row:nth-child(2n+2) {
-  background-color: $accounts-table-golden-bg-darker;
-  border-radius: 5px;
-}
-
-:host ::ng-deep .mtx-grid .mat-mdc-header-cell:first-child .mat-header-cell-inner {
-  justify-content: center;
-}
-
-:host ::ng-deep .mtx-grid .mat-mdc-paginator-container {
-  background-color: $accounts-table-golden-bg;
-}
-
-
-h2 {
-  font-size: 12pt;
-  text-transform: uppercase;
-}
-
-:host {
+.accounts-page {
   display: block;
   margin-bottom: 50px;
   height: calc(100% - 158px);
-}
 
-:host::ng-deep .mat-form-field {
-  width: 100%;
-}
+  // Loading and empty states
+  .loading-container,
+  .empty-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
 
-.data {
-  height: 100%;
-  overflow: hidden;
-}
+    .loading-text,
+    .empty-text {
+      margin-top: 16px;
+      color: $grey;
+    }
+  }
 
-::ng-deep button.add-item {
-  font-size: 16px;
-  font-weight: bold;
-}
+  .accounts-table {
+    .mtx-grid .mat-mdc-header-cell {
+      font-weight: 800;
+      max-width: 300px;
+      width: 300px;
+      font-size: 16px;
+      background-color: $accounts-table-golden-bg;
+    }
 
-::ng-deep .mat-icon {
-  font-size: 18px;
-}
+    .mtx-grid .mat-mdc-row:nth-of-type(odd) .mat-mdc-cell {
+      background-color: $accounts-table-golden-bg;
+    }
 
-.mat-spinner {
-  display: block;
-  margin: 0 auto;
-}
+    .mtx-grid .mat-mdc-row:nth-of-type(even) .mat-mdc-cell {
+      background-color: $accounts-table-golden-bg-darker;
+    }
 
+    .mtx-grid .mat-mdc-header-cell:first-child {
+      max-width: 50px;
+      width: 50px;
+    }
 
-.header-container {
-  position: sticky;
-  top: -45px;
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-direction: row;
-  margin-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
-  background-color: $accounts-table-golden-bg;
-  padding: 0 25px 0 25px;
-  height: 90px;
+    .mtx-grid .mat-mdc-header-cell:first-child .mat-header-cell-inner {
+      justify-content: center;
+    }
 
-  .centered-input {
-    width: 80%;
-    margin-top: 20px;
+    .mtx-grid .mat-mdc-paginator-container {
+      background-color: $accounts-table-golden-bg;
+    }
   }
 
   h2 {
-    text-align: center;
+    font-size: 12pt;
+    text-transform: uppercase;
   }
-}
 
-// Table container for mtx-grid
-.table_container {
-  margin-top: 16px;
-}
+  .mat-form-field {
+    width: 100%;
+  }
 
-// Mtx-grid custom styling
-:host ::ng-deep mtx-grid {
-  .mtx-grid {
-    border-radius: 8px;
-    box-shadow: 0 2px 4px $accounts-table-shadow;
-    border: 1px solid $accounts-table-border;
+  .data {
+    height: 100%;
     overflow: hidden;
   }
-  
-  .mtx-grid-toolbar {
-    padding: 0 0 8px;
+
+  button.add-item {
+    font-size: 16px;
+    font-weight: bold;
   }
-  
-  .mat-table-with-data {
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+
+  .mat-icon {
+    font-size: 18px;
   }
-  
-  .mtx-grid-header {
-    .mtx-grid-header-cell {
-      color: $disabled-slide-toggle;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      
-      &.name {
-        color: $blue;
-      }
+
+  .mat-spinner {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .header-container {
+    position: sticky;
+    top: -45px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+    background-color: $accounts-table-golden-bg;
+    padding: 0 25px;
+    height: 90px;
+
+    .centered-input {
+      width: 80%;
+      margin-top: 20px;
+    }
+
+    h2 {
+      text-align: center;
     }
   }
-  
-  // Cell width and text wrapping
-  .mtx-grid-cell {
-    max-width: 100px;
+
+  .table_container {
+    margin-top: 16px;
+  }
+
+  mtx-grid {
+    .mtx-grid {
+      border-radius: 8px;
+      box-shadow: 0 2px 4px $accounts-table-shadow;
+      border: 1px solid $accounts-table-border;
+      overflow: hidden;
+    }
+
+    .mtx-grid-toolbar {
+      padding: 0 0 8px;
+    }
+
+    .mat-table-with-data {
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
+
+    .mtx-grid-header {
+      .mtx-grid-header-cell {
+        color: $disabled-slide-toggle;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        &.name {
+          color: $blue;
+        }
+      }
+    }
+
+    // Cell width and text wrapping
+    .mtx-grid-cell {
+      max-width: 100px;
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      padding: 8px 12px;
+      vertical-align: top;
+    }
+
+    // Header cell widths to match body cells
+    .mtx-grid-header-cell {
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
+      overflow-wrap: break-word;
+      padding: 8px 12px;
+    }
+  }
+
+  // Cell styling for mtx-grid templates
+  .actions-cell {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .edit-button,
+  .delete-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 20px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    mat-icon {
+      font-size: 21px;
+      width: 21px;
+      height: 21px;
+      line-height: 21px;
+    }
+  }
+
+  .edit-button {
+    color: $blue;
+  }
+
+  .delete-button {
+    color: $red;
+  }
+
+  .name-text {
+    color: $blue;
+    font-weight: 500;
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
     overflow-wrap: break-word;
-    hyphens: auto;
-    padding: 8px 12px;
-    vertical-align: top;
   }
-  
-  // Header cell widths to match body cells
-  .mtx-grid-header-cell {
+
+  .email-text {
+    color: $grey;
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
     overflow-wrap: break-word;
-    padding: 8px 12px;
+  }
+
+  .permission-text {
+    color: $disabled-slide-toggle;
+    font-weight: 500;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .date-text {
+    color: $grey;
+    font-family: 'Roboto Mono', monospace;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 }
-
-// Cell styling for mtx-grid templates
-.actions-cell {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.edit-button, .delete-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 20px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    line-height: 18px;
-  }
-}
-
-.edit-button {
-  color: $blue;
-}
-
-.delete-button {
-  color: $red;
-}
-
-.name-text {
-  color: $blue;
-  font-weight: 500;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.email-text {
-  color: $grey;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.permission-text {
-  color: $disabled-slide-toggle;
-  font-weight: 500;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.date-text {
-  color: $grey;
-  font-family: 'Roboto Mono', monospace;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-

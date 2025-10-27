@@ -4,12 +4,22 @@
   display: block;
   width: 100%;
   margin-bottom: 5px;
+  
+  // Styling for steps inside loops
+  &.inside-loop {
+    position: relative;
+    
+    // Removed left border and any indentation - steps should align normally
+  }
+
   .info-row {
     display: flex;
     width: 100%;
     line-height: 20px;
     align-items: center;
     min-height: 40px;
+    position: relative;
+    
     & > div {
       &:first-child {
         margin-right: 5px;
@@ -22,12 +32,45 @@
       }
       flex: initial;
     }
+    
+    // Loop step indicator - very small blue badge centered above the step
+    .loop-step-indicator {
+      position: absolute;
+      top: -12px;
+      left: 10.5%;
+      transform: translateX(-50%);
+      color: $blue;
+      padding: 1px 4px;
+      border-radius: 6px;
+      font-size: 7px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 1px;
+      z-index: 5;
+      white-space: nowrap;
+      
+      .loop-indicator-icon {
+        font-size: 10px;
+        width: 10px;
+        height: 10px;
+      }
+      
+      .loop-indicator-text {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+    }
+
     .index {
       font-weight: bold;
       color: $blue;
       text-align: center;
       flex: 0 25px;
     }
+
+    // Removed sticky loop styling - now behaves like normal steps
     .text {
       line-height: 20px;
       flex: 1 1 50%;
@@ -45,17 +88,79 @@
         display: block;
       }
 
-      // Browser-use AI agent message styling
-      .step-detail {
-        &[title*="🤖"] {
-          background: linear-gradient(135deg, $info-background-feature-item, #f3e5f5);
-          border-left: 4px solid $mobile-information-color;
-          padding: 5px 10px;
-          border-radius: 4px;
-          white-space: normal; // Allow browser-use messages to wrap
-          max-height: 100px;
-          overflow-y: auto;
+      // Loop step styling
+      .step-content.loop-step {
+        font-weight: 600;
+        color: $blue;
+        
+        .sticky-indicator {
+          background: rgba(255, 255, 255, 0.9);
+          color: $blue;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: 700;
+          margin-left: 8px;
+          border: 1px solid $blue;
         }
+      }
+    }
+
+    // Only loop control steps should have blue text color (Loop definition, Continue Loop, Break Loop, End Loop)
+    &[data-loop-step="true"] .text .step-content {
+      color: $blue;
+      font-weight: 600;
+    }
+
+    // Loop progress information
+    .loop-progress-info {
+      background: linear-gradient(135deg, rgba($blue, 0.1), rgba($blue, 0.2));
+      border-left: 4px solid $blue;
+      padding: 10px 14px;
+      margin: 6px 0;
+      border-radius: 6px;
+      
+      .loop-info-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        
+        .loop-icon {
+          color: $blue;
+          font-size: 18px;
+        }
+        
+        .loop-info-text {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          
+          strong {
+            color: darken($blue, 15%);
+            font-weight: 600;
+            font-size: 13px;
+          }
+          
+          .current-step-indicator {
+            color: darken($blue, 10%);
+            font-size: 12px;
+            font-style: italic;
+            opacity: 0.8;
+          }
+        }
+      }
+    }
+
+    // Browser-use AI agent message styling
+    .step-detail {
+      &[title*="🤖"] {
+        background: linear-gradient(135deg, $info-background-feature-item, #f3e5f5);
+        border-left: 4px solid $mobile-information-color;
+        padding: 5px 10px;
+        border-radius: 4px;
+        white-space: normal; // Allow browser-use messages to wrap
+        max-height: 100px;
+        overflow-y: auto;
       }
     }
     .icon-status {
@@ -77,6 +182,10 @@
         background-image: url(^assets/Google-loader.gif);
         background-image: url(^assets/Google-loader.svg);
       }
+      &.skipped {
+        background-image: url(^assets/radio_button_unchecked.svg);
+        opacity: 0.6;
+      }
     }
     .screen-image {
       display: block;
@@ -96,6 +205,10 @@
       &.running {
         background-image: url(^assets/Google-loader.gif);
         background-image: url(^assets/Google-loader.svg);
+      }
+      &.skipped {
+        background-image: url(^assets/radio_button_unchecked.svg);
+        opacity: 0.6;
       }
     }
     
@@ -126,21 +239,48 @@
   }
 
   .error-row {
-    color: #d32f2f;
+    color: $error-red;
     font-weight: bold;
-    background-color: #ffebee;
-    border: 1px solid #f44336;
+    background-color: $error-red-bg;
+    border: 1px solid $error-red-border;
     border-radius: 4px;
     padding: 8px;
-    margin: 4px 0;
+    margin: 5px 0 15px 0;
     font-family: 'Courier New', monospace;
     white-space: pre-wrap;
     max-height: 200px;
     overflow-y: auto;
     
     .error-header {
-      font-weight: bold;
-      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      
+      .loop-error-context {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background-color: $error-red-badge-bg;
+        border: 1px solid $error-red-border;
+        border-radius: 12px;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        
+        .loop-error-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          color: $error-red;
+        }
+        
+        .loop-error-text {
+          color: $error-red;
+          white-space: nowrap;
+        }
+      }
     }
     
     .error-message {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { Observable, Subject, BehaviorSubject, of, combineLatest } from 'rxjs';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { map, startWith, catchError, switchMap, take, tap, distinctUntilChanged, debounceTime } from 'rxjs/operators';
@@ -70,6 +70,7 @@ import { filter } from 'rxjs/operators';
     AccountComponent,
     AsyncPipe,
   ],
+  encapsulation: ViewEncapsulation.None,
 })
 export class AccountsComponent implements OnInit {
   inputFocus: boolean = false;

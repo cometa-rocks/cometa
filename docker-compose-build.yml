@@ -216,7 +216,8 @@ services:
       - ./data/cometa/videos:/videos
     working_dir: /code/front
     ports:
-      - "443:443"
+      #- "443:443"
+      - "8443:443" # freeing 443 for openvpn (amvara8) openvpn will handle the traffic to 443
       - "4200:4200"
     # command: bash /code/front/start.sh openidc basic angular compile serve-auto
     
