@@ -684,6 +684,9 @@ def done(*_args, **_kwargs):
                 # if step executed without running into timeout cancel the timeout
                 signal.alarm(0)
                 # save the result to database
+                # Check if step modified CURRENT_STEP.name to add custom details (e.g., notification config)
+                if hasattr(args[0], 'CURRENT_STEP') and args[0].CURRENT_STEP.name != save_message:
+                    save_message = args[0].CURRENT_STEP.name
                 saveToDatabase(
                     save_message, (time.time() - start_time) * 1000, 0, True, args[0]
                 )
@@ -701,6 +704,9 @@ def done(*_args, **_kwargs):
                 args[0].step_error = format_error_message(logger.mask_values(str(err)),step_name=args[0].step_data.get("step_name"), context=args[0])
                 try:
                     # save the result to databse as False since the step failed
+                    # Check if step modified CURRENT_STEP.name to add custom details (e.g., notification config)
+                    if hasattr(args[0], 'CURRENT_STEP') and args[0].CURRENT_STEP.name != save_message:
+                        save_message = args[0].CURRENT_STEP.name
                     saveToDatabase(
                         save_message,
                         (time.time() - start_time) * 1000,

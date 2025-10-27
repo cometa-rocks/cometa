@@ -162,11 +162,10 @@ def step_impl_with_settings(context, message, settings):
 def step_impl(context, message):
     send_step_details(context, "Sending custom notification")
     info = []
-    tg_opts = context.feature_info.get('telegram_options')
-    if tg_opts and isinstance(tg_opts, dict):
-        if tg_opts.get('override_chat_ids'): info.append(f"chat_ids: {tg_opts['override_chat_ids']}")
-        if tg_opts.get('override_bot_token'): info.append(f"bot_token: {tg_opts['override_bot_token'][:15]}...")
-        if tg_opts.get('override_message_thread_id'): info.append(f"thread_id: {tg_opts['override_message_thread_id']}")
+    telegram_options = context.feature_info.get('telegram_options')
+    if telegram_options and isinstance(telegram_options, dict):
+        if telegram_options.get('override_chat_ids'): info.append(f"chat_ids: {telegram_options['override_chat_ids']}")
+        if telegram_options.get('override_message_thread_id'): info.append(f"thread_id: {telegram_options['override_message_thread_id']}")
     # Fall back to department settings if no feature overrides
     if not info and context.department.get('settings', {}).get('telegram_chat_ids'):
         info.append(f"dept_chat_ids: {context.department['settings']['telegram_chat_ids']}")
