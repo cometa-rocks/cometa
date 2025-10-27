@@ -66,6 +66,43 @@ logger = logging.getLogger("FeatureExecution")
 
 from utility.configurations import ConfigurationManager
 
+
+def mask_bot_token_in_step_name(context, token_value):
+    """
+    Masks a bot token in the step name, showing only the last 4 characters.
+    Used to secure sensitive credentials in logs and PDF reports while allowing validation.
+    
+    Args:
+        context: Behave context object
+        token_value: The actual token value to mask
+    
+    Example:
+        Original: "bot_token": "123456789:AAFnOAAeAb1-1238IscSnfPowzu6ABCzgHd5"
+        Result:   "bot_token": "****gHd5"
+    """
+    if not token_value or not hasattr(context, 'CURRENT_STEP'):
+        return
+    
+    def mask_token(match):
+        full_match = match.group(0)
+        # Extract the token value from the matched string
+        token_match = re.search(r'"bot_token"\s*:\s*"([^"]*)"', full_match)
+        if token_match:
+            token = token_match.group(1)
+            if len(token) > 4:
+                masked = f'"bot_token": "****{token[-4:]}"'
+            else:
+                masked = '"bot_token": "****"'
+            return masked
+        return full_match
+    
+    # Apply masking to step name
+    context.CURRENT_STEP.name = re.sub(
+        r'"bot_token"\s*:\s*"[^"]*"',
+        mask_token,
+        context.CURRENT_STEP.name
+    )
+
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration(
     "COMETA_SCREENSHOT_PREFIX", ""
 )
