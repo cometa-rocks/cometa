@@ -516,6 +516,9 @@ export class MainViewComponent implements OnInit {
     this.buttons = this.columns
     .filter(col => col.buttons)
     .map(col => col.buttons)
+    // @ts-ignore - MtxGridColumn.buttons can be array or function, but runtime always provides array after filter
+    // TODO: Add proper type guard to ensure buttons is array before reduce, or filter out function types
+    // Check l1-tree-view.component.ts for more details
     .reduce((acc, val) => acc.concat(val), []);
   }
 
