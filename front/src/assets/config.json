@@ -243,6 +243,21 @@
   ],
   "changelog": [
     {
+      "version": "3.0.111",
+      "date": "2025-10-31",
+      "bugfixes":["Admin > New departments are now automatically show in main landing after adding them in administration."]
+      "improved": [
+        {
+          "title": "Feature list improvements - #7032",
+          "description": "The feature list now shows the last edited by and last executed by columns."
+        },
+        {
+          "title": "Recent list improvements - #7031",
+          "description": "The recent list is now showing the correct data when sorting by department."
+        }
+      ]
+    },
+    {
       "version": "3.0.110",
       "date": "2025-10-15",
       "bugfixes":["Admin > accounts section sidebar was getting overlapped with content"]
