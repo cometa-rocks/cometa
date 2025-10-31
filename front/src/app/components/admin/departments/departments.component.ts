@@ -9,11 +9,13 @@ import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Departments } from '@store/actions/departments.actions';
+import { User } from '@store/actions/user.actions';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { DepartmentComponent } from './department/department.component';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'admin-departments',
@@ -35,7 +37,8 @@ export class DepartmentsComponent implements OnInit {
   constructor(
     private _api: ApiService,
     private _dialog: MatDialog,
-    private _store: Store
+    private _store: Store,
+    private _log: LogService
   ) {}
 
   @Select(UserState.GetPermission('create_department'))
@@ -64,14 +67,22 @@ export class DepartmentsComponent implements OnInit {
         map(res => res.value),
         filter(value => !!value),
         switchMap(value => this._api.createDepartment(value)),
-        switchMap(response =>
-          this._store.dispatch(
-            new Departments.AddAdminDepartment({
-              department_id: response.department_id,
-              department_name: response.department_name,
-            })
-          )
-        )
+        switchMap(response => {
+          const department = {
+            department_id: response.department_id,
+            department_name: response.department_name,
+          };
+          this._log.msg(
+            '4',
+            `Department added: ${department.department_name} (ID: ${department.department_id})`,
+            'departments',
+            department
+          );
+          return this._store.dispatch([
+            new Departments.AddAdminDepartment(department),
+            new User.AddDepartment(department),
+          ]);
+        })
       );
   }
 }
