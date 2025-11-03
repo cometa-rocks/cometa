@@ -281,6 +281,10 @@
       "date": "2025-10-08",
       "improved": [
         {
+          "title": "Fixed issue with edit-feature dialog - #6958",
+          "description": "Fixed issue with edit-feature dialog, now it doesn't throw an error when creating a new feature."
+        },
+        {
           "title": "Help page improvements - #6958",
           "description": "Help page improvements, updated edit-feature dialog, add shortcuts for L1 and L2, add shortcuts for Live Steps and update other ones."
         },
