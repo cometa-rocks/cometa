@@ -66,6 +66,43 @@ logger = logging.getLogger("FeatureExecution")
 
 from utility.configurations import ConfigurationManager
 
+
+def mask_bot_token_in_step_name(context, token_value):
+    """
+    Masks a bot token in the step name, showing only the last 4 characters.
+    Used to secure sensitive credentials in logs and PDF reports while allowing validation.
+    
+    Args:
+        context: Behave context object
+        token_value: The actual token value to mask
+    
+    Example:
+        Original: "bot_token": "123456789:AAFnOAAeAb1-1238IscSnfPowzu6ABCzgHd5"
+        Result:   "bot_token": "****gHd5"
+    """
+    if not token_value or not hasattr(context, 'CURRENT_STEP'):
+        return
+    
+    def mask_token(match):
+        full_match = match.group(0)
+        # Extract the token value from the matched string
+        token_match = re.search(r'"bot_token"\s*:\s*"([^"]*)"', full_match)
+        if token_match:
+            token = token_match.group(1)
+            if len(token) > 4:
+                masked = f'"bot_token": "****{token[-4:]}"'
+            else:
+                masked = '"bot_token": "****"'
+            return masked
+        return full_match
+    
+    # Apply masking to step name
+    context.CURRENT_STEP.name = re.sub(
+        r'"bot_token"\s*:\s*"[^"]*"',
+        mask_token,
+        context.CURRENT_STEP.name
+    )
+
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration(
     "COMETA_SCREENSHOT_PREFIX", ""
 )
@@ -684,6 +721,9 @@ def done(*_args, **_kwargs):
                 # if step executed without running into timeout cancel the timeout
                 signal.alarm(0)
                 # save the result to database
+                # Check if step modified CURRENT_STEP.name to add custom details (e.g., notification config)
+                if hasattr(args[0], 'CURRENT_STEP') and args[0].CURRENT_STEP.name != save_message:
+                    save_message = args[0].CURRENT_STEP.name
                 saveToDatabase(
                     save_message, (time.time() - start_time) * 1000, 0, True, args[0]
                 )
@@ -701,6 +741,9 @@ def done(*_args, **_kwargs):
                 args[0].step_error = format_error_message(logger.mask_values(str(err)),step_name=args[0].step_data.get("step_name"), context=args[0])
                 try:
                     # save the result to databse as False since the step failed
+                    # Check if step modified CURRENT_STEP.name to add custom details (e.g., notification config)
+                    if hasattr(args[0], 'CURRENT_STEP') and args[0].CURRENT_STEP.name != save_message:
+                        save_message = args[0].CURRENT_STEP.name
                     saveToDatabase(
                         save_message,
                         (time.time() - start_time) * 1000,
