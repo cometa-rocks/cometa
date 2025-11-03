@@ -2014,7 +2014,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
       // Initialize departmentSettings$ for new features
       // Use a default observable that emits undefined since there's no department_id yet
-      // this.departmentSettings$ = of(undefined);
+      this.departmentSettings$ = of(undefined);
 
       // Auto-focus the name input when creating a new feature
       setTimeout(() => {

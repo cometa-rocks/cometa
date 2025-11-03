@@ -77,6 +77,9 @@ def _send_custom_email_notification(feature_result, subject, plain_message, html
         custom_cc: Custom CC recipients (comma-separated string or list), overrides feature config
         custom_bcc: Custom BCC recipients (comma-separated string or list), overrides feature config
     """
+    import smtplib
+    import socket
+    
     feature = feature_result.feature_id
     
     # Helper function to parse recipients (handles both string and list)
@@ -136,6 +139,68 @@ def _send_custom_email_notification(feature_result, subject, plain_message, html
                 "custom_recipients": custom_to is not None or custom_cc is not None or custom_bcc is not None,
             }
         )
+    except smtplib.SMTPAuthenticationError as exc:
+        logger.error(
+            "SMTP authentication failed",
+            exc_info=True,
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "error": str(exc),
+                "smtp_host": getattr(settings, 'EMAIL_HOST', 'not configured')
+            }
+        )
+        raise MessageSendError(f"SMTP authentication failed: {str(exc)}")
+    except smtplib.SMTPConnectError as exc:
+        logger.error(
+            "SMTP connection failed",
+            exc_info=True,
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "error": str(exc),
+                "smtp_host": getattr(settings, 'EMAIL_HOST', 'not configured'),
+                "smtp_port": getattr(settings, 'EMAIL_PORT', 'not configured')
+            }
+        )
+        raise MessageSendError(f"SMTP connection failed: {str(exc)}")
+    except socket.gaierror as exc:
+        logger.error(
+            "SMTP host DNS resolution failed",
+            exc_info=True,
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "error": str(exc),
+                "smtp_host": getattr(settings, 'EMAIL_HOST', 'not configured')
+            }
+        )
+        raise MessageSendError(f"SMTP host not found: {str(exc)} - Check COMETA_EMAIL_HOST configuration")
+    except OSError as exc:
+        logger.error(
+            "Network error connecting to SMTP",
+            exc_info=True,
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "error": str(exc),
+                "smtp_host": getattr(settings, 'EMAIL_HOST', 'not configured'),
+                "smtp_port": getattr(settings, 'EMAIL_PORT', 'not configured')
+            }
+        )
+        raise MessageSendError(f"Network error connecting to SMTP server: {str(exc)} - Check COMETA_EMAIL_HOST and network connectivity")
+    except smtplib.SMTPException as exc:
+        logger.error(
+            "SMTP error occurred",
+            exc_info=True,
+            extra={
+                "feature_id": feature_result.feature_id.feature_id,
+                "feature_result_id": feature_result.feature_result_id,
+                "error": str(exc),
+                "error_type": type(exc).__name__
+            }
+        )
+        raise MessageSendError(f"SMTP error: {type(exc).__name__} - {str(exc)}")
     except Exception as exc:
         logger.error(
             "Failed to send custom email notification",
@@ -146,7 +211,7 @@ def _send_custom_email_notification(feature_result, subject, plain_message, html
                 "error": str(exc)
             }
         )
-        raise MessageSendError("Failed to send custom email notification")
+        raise MessageSendError(f"Failed to send custom email notification: {str(exc)}")
 
 
 @csrf_exempt
