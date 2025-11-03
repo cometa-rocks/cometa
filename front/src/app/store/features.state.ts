@@ -518,7 +518,19 @@ export class FeaturesState {
     return this._api.getFeatures().pipe(
       tap(features => {
         // Group by FeatureID
-        const featuresGrouped = features.results.reduce((r, a) => {
+        // Add defensive check to ensure results exists and is an array
+        if (!features || !features.results || !Array.isArray(features.results)) {
+          this.log.msg(
+            '2',
+            'GetFeatures: Invalid response structure, missing or invalid results',
+            'features.state',
+            features
+          );
+          return;
+        }
+        // TypeScript now knows features.results is an array
+        const results = features.results;
+        const featuresGrouped = results.reduce((r, a) => {
           const featureId = a.feature_id;
           r[featureId] = r[featureId] || {};
           r[featureId] = a;
@@ -885,12 +897,13 @@ export class FeaturesState {
     }
   }
   /**
-   * Gets the 10 most recent features from the selected department.
+   * Gets the 10 most recent features from the selected department based on execution date.
    * @returns the filtered features and folders of the new landing
    * @param state
    * @param department
    * @author Nico Clariana
    * @date 03-02-25
+   * @lastModification Fix: Sort by execution date (result_date) instead of modification date to show recent executions
    */
   static getRecentFeaturesByDpt(state: IFeaturesState, department: number, departmentArray: Array<Department>): FoldersResponse {
 
@@ -902,9 +915,16 @@ export class FeaturesState {
         features = features.filter(val => val.department_id === department);
       }
       features = features.filter(val => departmentArray.some(dept => dept.department_name === val.department_name));
-      // Sorts the features by modification date
+      
+      // Filter out features without execution data (no executions yet)
+      features = features.filter(val => val.info?.result_date != null);
+      
+      // Sort by execution date (most recent first)
       let sorted: any = features.sort(function (a: any, b: any) {
-        return b.last_update < a.last_update ? -1 : 1;
+        // Get execution dates, handling both string and Date objects
+        const dateA = a.info?.result_date ? new Date(a.info.result_date).getTime() : 0;
+        const dateB = b.info?.result_date ? new Date(b.info.result_date).getTime() : 0;
+        return dateB - dateA; // Descending order (newest executions first)
       });
       sorted = sorted.length > 10 ? sorted.slice(0, 10) : sorted; // Limit the results to 10 rows
       let result = { folders: [], features: sorted };
@@ -1031,6 +1051,22 @@ export class FeaturesState {
       columns.depends_on_others = feature.depends_on_others;
       columns.modification = feature.last_edited_date; // Last modification date
       columns.modification_user_id = feature.last_edited?.user_id; // Id of the last modifier
+      columns.last_edited_user = feature.last_edited; // Last edited user (IAccount with name, email, user_id)
+      
+      // Get executed_by from feature.info (which now includes executed_by from backend)
+      // Fallback to feature_results if info doesn't have it
+      let executedByUser = (feature.info as any)?.executed_by || null;
+      if (!executedByUser && feature.feature_results && feature.feature_results.length > 0) {
+        // Find the most recent execution (matching the info)
+        const mostRecentResult = feature.feature_results.find(
+          (fr: FeatureResult) => fr.feature_result_id === feature.info?.feature_result_id
+        );
+        if (mostRecentResult?.executed_by) {
+          executedByUser = mostRecentResult.executed_by;
+        }
+      }
+      columns.executed_by_user = executedByUser; // User who last executed the feature
+      
       result.featureCount += 1;
       // Pushes the columns into the object
       result.rows.push(columns);
@@ -1064,6 +1100,8 @@ export class FeaturesState {
       columns.browsers = null;
       columns.schedule = null;
       columns.depends_on_others = null;
+      columns.last_edited_user = null; // Folders don't have last edited user
+      columns.executed_by_user = null; // Folders don't have executed by user
       columns.route = folder.route || [
         ...JSON.parse(JSON.stringify(state.currentRouteNew)),
         folder,
