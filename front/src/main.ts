@@ -173,7 +173,7 @@ bootstrapApplication(CometaComponent, {
         },
         isolate: false,
       }),
-      SharedModule.forRoot(),
+      //SharedModule.forRoot(),
       JoyrideModule.forRoot(),
       NgxNetworkErrorModule.forRoot({
         authType: 'openid',
@@ -188,7 +188,7 @@ bootstrapApplication(CometaComponent, {
     DownloadService,
     PaymentsService,
     SocketService,
-    ConfigService,
+    //ConfigService,
     TourService,
     WhatsNewService,
     SharedActionsService,
