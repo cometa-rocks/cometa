@@ -5,6 +5,7 @@
 #CHANGELOG:
 # 10.0.12:
 # - Added responseheaders cleanup to housekeeping (__delete_response_headers_if_exists)
+# - Added cleanup for orphaned ResponseHeaders (cleanup_orphaned_response_headers)
 # 10.0.11:
 # - Added native Django API for clearing sessions (clear_django_sessions)
 # - Added native Django API for vacuuming PostgreSQL django_session table (vacuum_postgres_django_sessions)
@@ -25,6 +26,7 @@ from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from django.core.management import call_command
 from django.db import transaction
+from django.db.models import Q
 logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
@@ -542,12 +544,82 @@ class HouseKeepingThread(LogCommand, Thread):
             except Exception as exception:
                 self.log(exception)
 
+    def cleanup_orphaned_response_headers(self):
+        """
+        Clean up ResponseHeaders for Feature_results that have been soft-deleted
+        or already processed by housekeeping. This handles orphaned ResponseHeaders
+        that weren't cleaned up during the main housekeeping process.
+        """
+        self.log("============================================")
+        self.log("Starting orphaned ResponseHeaders cleanup")
+        self.log("============================================")
+        
+        try:
+            # Find ResponseHeaders where the associated Feature_result is soft-deleted (#6705)
+            # or has been marked for housekeeping completion
+            # Query for orphaned ResponseHeaders:
+            # 1. Feature_result is soft-deleted (is_removed=True)
+            # 2. Feature_result has house_keeping_done=True (already processed)
+            orphaned_response_headers = ResponseHeaders.all_objects.filter(
+                Q(result_id__is_removed=True) | Q(result_id__house_keeping_done=True)
+            )
+            
+            # Remove duplicates (in case a ResponseHeaders matches both conditions)
+            orphaned_response_headers = orphaned_response_headers.distinct()
+            
+            count = orphaned_response_headers.count()
+            self.log(f"Found {count} orphaned ResponseHeaders record(s) to clean")
+            
+            if count == 0:
+                self.log("No orphaned ResponseHeaders found")
+                return True
+            
+            deleted_count = 0
+            failed_count = 0
+            
+            for response_header in orphaned_response_headers:
+                try:
+                    # Get feature_result_id safely
+                    feature_result_id = None
+                    if response_header.result_id:
+                        feature_result_id = response_header.result_id.feature_result_id
+                    else:
+                        feature_result_id = "Unknown (result_id is None)"
+                    
+                    self.log(
+                        f"Deleting orphaned ResponseHeaders [ID: {response_header.id}] for Feature_Result [ID: {feature_result_id}]",
+                        spacing=2
+                    )
+                    response_header.delete(soft=False)  # Hard delete
+                    deleted_count += 1
+                except Exception as e:
+                    failed_count += 1
+                    self.log(
+                        f"Error deleting orphaned ResponseHeaders [ID: {response_header.id}]: {str(e)}",
+                        type="error",
+                        spacing=2
+                    )
+            
+            self.log(f"Orphaned ResponseHeaders cleanup completed: {deleted_count} deleted, {failed_count} failed")
+            self.log("============================================")
+            return True
+            
+        except Exception as exception:
+            self.log(
+                f"Exception occurred while cleaning orphaned ResponseHeaders: {str(exception)}",
+                type="error",
+                spacing=1
+            )
+            self.log(f"Traceback: {traceback.format_exc()}", type="error", spacing=2)
+            return False
+
     def run(self):
         logger.debug("Started selecting files for cleanup ")
         count_six_month_previous_logs = 0
         try:
             self.filter_and_delete_files()
             self.check_container_service_and_clean()
+            self.cleanup_orphaned_response_headers()
             self.clear_django_sessions()
             self.vacuum_postgres_django_sessions()
             self.house_keeping_logs.success = True
