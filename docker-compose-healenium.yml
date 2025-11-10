@@ -24,6 +24,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: json-file
     networks:
       - testing
     restart: unless-stopped
@@ -49,6 +51,8 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/behave/logs:/logs
+    logging:
+      driver: json-file
     networks:
       testing:
         aliases:
@@ -62,6 +66,8 @@ services:
     container_name: cometa_hlm_selector_imitator
     ports:
       - "8008:8000"
+    logging:
+      driver: json-file
     networks:
       testing:
         aliases:

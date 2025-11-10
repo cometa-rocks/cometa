@@ -40,16 +40,17 @@
       <div class="steps">{{ lastRun.total }}</div>
       <div class="steps">{{ 1 }}</div>
       <div
-        class="steps last-result-status"
+        class="steps status-box"
         *ngLet="lastRun.success as passed"
         [ngClass]="passed ? 'success' : 'failed'">
-        {{ passed ? 'OK' : 'NOK' }}
+        {{ passed ? 'Passed' : 'Failed' }}
       </div>
     </div>
   </ng-container>
 </div>
 
 <mtx-grid
+  [ngClass]="{'paginator-at-top': isPaginatorAtTop}"
   [data]="results"
   [columns]="columns"
   [sortOnFront]="true"
@@ -58,9 +59,12 @@
   [sortDisableClear]="true"
   [sortDisabled]="false"
   [showToolbar]="true"
-  [showColumnMenuButton]="true"
+  [showColumnMenuButton]="false"
   [columnMenuButtonType]="'stroked'"
   [columnMenuButtonIcon]="'view_column'"
+  [columnHideable]="true"
+  [showColumnMenuHeader]="true"
+  [columnMenuHeaderText]="'Columns Settings'"
   [length]="total"
   [loading]="isLoading"
   [pageOnFront]="false"
@@ -264,6 +268,10 @@
       <mat-icon>delete</mat-icon>
       <span class="mdc-button__label">Clear Feature Results</span>
     </button>
+    <button mat-stroked-button class="columnsButton" [matMenuTriggerFor]="columnMenu">
+      <mat-icon>view_column</mat-icon>
+      <span class="mdc-button__label">Columns Shown</span>
+    </button>
   </div>
 
   <!-- CLEAR Feature Results MENU -->
@@ -288,6 +296,19 @@
         (change)="handleDeleteTemplateWithResults($event)"
         color="primary">
         Also delete templates
+      </mat-checkbox>
+    </button>
+  </mat-menu>
+
+  <!-- CUSTOM COLUMN MENU -->
+  <mat-menu #columnMenu>
+    <div stopPropagation class="mat-menu-panel-category">Columns Settings</div>
+    <button *ngFor="let column of visibleColumns" stopPropagation mat-menu-item>
+      <mat-checkbox
+        [checked]="!column.hide"
+        (change)="toggleColumn(column, $event)"
+        color="primary">
+        {{ column.header }}
       </mat-checkbox>
     </button>
   </mat-menu>

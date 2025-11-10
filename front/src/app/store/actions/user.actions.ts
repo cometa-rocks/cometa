@@ -71,4 +71,13 @@ export namespace User {
     static readonly type = '[User] Set Setting';
     constructor(public settings: SetSettingOptions) {}
   }
+
+  /**
+   * @description Adds a department to the user's departments list
+   * @param {Department} department Department object
+   */
+  export class AddDepartment {
+    static readonly type = '[User] Add Department';
+    constructor(public department: Department) {}
+  }
 }

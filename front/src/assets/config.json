@@ -1,6 +1,6 @@
 {
   "version": "3.0.110",
-  "stable_version": "3.0.109",
+  "stable_version": "3.0.110",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -243,6 +243,21 @@
   ],
   "changelog": [
     {
+      "version": "3.0.111",
+      "date": "2025-10-31",
+      "bugfixes":["Admin > New departments are now automatically show in main landing after adding them in administration."],
+      "improved": [
+        {
+          "title": "Feature list improvements - #7032",
+          "description": "The feature list now shows the last edited by and last executed by columns."
+        },
+        {
+          "title": "Recent list improvements - #7031",
+          "description": "The recent list is now showing the correct data when sorting by department."
+        }
+      ]
+    },
+    {
       "version": "3.0.110",
       "date": "2025-10-15",
       "bugfixes":["Admin > accounts section sidebar was getting overlapped with content"]
@@ -266,12 +281,20 @@
       "date": "2025-10-08",
       "improved": [
         {
+          "title": "Fixed issue with edit-feature dialog - #6958",
+          "description": "Fixed issue with edit-feature dialog, now it doesn't throw an error when creating a new feature."
+        },
+        {
           "title": "Help page improvements - #6958",
           "description": "Help page improvements, updated edit-feature dialog, add shortcuts for L1 and L2, add shortcuts for Live Steps and update other ones."
         },
         {
           "title": "Feature actions improvements - #6949",
           "description": "Feature actions improvements, now it's more responsive."
+        },
+        {
+          "title": "Improve L1 and L2 View responsiveness in mobile - #6948",
+          "description": "Enhanced Step View layout for better mobile responsiveness, applying a mobile-first approach to both Level 1 and Level 2 steps."
         }
       ],
       "features": [

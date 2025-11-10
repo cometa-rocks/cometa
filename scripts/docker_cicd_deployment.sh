@@ -166,8 +166,26 @@ echo -e "\e[0Ksection_start:`date +%s`:parse_browsers\r\e[0KParsing selenoid bro
 docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 10"
 echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
 
+echo "Making sure the deployment folder exists"
+mkdir -p $DEPLOY_BACKEND_FOLDER
+# copy all the data from current directory to the deployment directory
+current_directory=$(pwd)
+echo "Copying all Cometa code files from {$current_directory} directory to the deployment directory {$DEPLOY_BACKEND_FOLDER}"
+rsync -av --exclude={".git/","*.so"} $current_directory $DEPLOY_BACKEND_FOLDER/.
+# change directory to deployment folder
+echo "Changing directory to deployment folder"
+cd $DEPLOY_BACKEND_FOLDER
 
 
+function updateCrontab() {
+    if ! ( crontab -l 2>/dev/null | grep -Fq "${1}" ); then
+        ( crontab -l 2>/dev/null; echo "${1}" ) | crontab -
+        info "Crontab ${2}  created."
+    else
+        debug "Crontab ${2} already exists."
+    fi
+}
 
-
+echo "Updating crontab for cleanup-logs"
+updateCrontab "0 1 * * * cd $current_path && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
 
