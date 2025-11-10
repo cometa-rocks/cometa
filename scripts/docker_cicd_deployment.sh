@@ -180,9 +180,9 @@ cd $DEPLOY_BACKEND_FOLDER
 function updateCrontab() {
     if ! ( crontab -l 2>/dev/null | grep -Fq "${1}" ); then
         ( crontab -l 2>/dev/null; echo "${1}" ) | crontab -
-        info "Crontab ${2}  created."
+        echo "Crontab ${2}  created."
     else
-        debug "Crontab ${2} already exists."
+        echo "Crontab ${2} already exists."
     fi
 }
 
