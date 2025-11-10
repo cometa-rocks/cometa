@@ -44,8 +44,7 @@ stages:
   - build
   - deploy
 
-# main script anchor to avoid code
-# redundancy.
+# THIS SECTION OF CODE IS NOT IN USE, Just keeping to for any reference purpose in the server
 .deployment_script: &deployment_script
   stage: deploy
   script:

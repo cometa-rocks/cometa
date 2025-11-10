@@ -244,6 +244,14 @@ if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "T
 
 STATIC_URL = '/static/'
 
+# Session configuration #6705
+# Set session lifetime to 1 day (86400 seconds) to match OAuth timeout
+# This prevents session table from growing indefinitely
+SESSION_COOKIE_AGE = 86400  # 1 day in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Extend session expiration on each request
+SESSION_COOKIE_SECURE = not IS_DEV  # Only send session cookie over HTTPS (except in dev)
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+
 #OPTIONAL | MANDATORY
 USERIDFLAG = "OPTIONAL"
 

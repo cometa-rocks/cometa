@@ -12,6 +12,9 @@ services:
       - "6379:6379"
     networks:
       - testing
+    logging:
+      driver: json-file
+
     healthcheck:
       test: [ "CMD","redis-cli", "--tls", "--cacert", "/share/certs/ca-cert.pem", "--raw", "incr", "ping"]
     restart: always
@@ -32,6 +35,8 @@ services:
       - ./data/redis/certs:/share/certs
       - ./data/chromadb:/app/data/chromadb
     working_dir: /app
+    logging:
+      driver: json-file
     deploy:
       resources:
         reservations:
@@ -78,6 +83,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5433:5432"
+    logging:
+      driver: json-file
     networks:
       - testing
     restart: unless-stopped
