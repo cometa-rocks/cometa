@@ -175,3 +175,17 @@ rsync -av --exclude={".git/","*.so"} $current_directory $DEPLOY_BACKEND_FOLDER/.
 # change directory to deployment folder
 echo "Changing directory to deployment folder"
 cd $DEPLOY_BACKEND_FOLDER
+
+
+function updateCrontab() {
+    if ! ( crontab -l 2>/dev/null | grep -Fq "${1}" ); then
+        ( crontab -l 2>/dev/null; echo "${1}" ) | crontab -
+        info "Crontab ${2}  created."
+    else
+        debug "Crontab ${2} already exists."
+    fi
+}
+
+echo "Updating crontab for cleanup-logs"
+updateCrontab "0 1 * * * cd $current_path && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
+
