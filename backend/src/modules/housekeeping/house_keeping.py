@@ -1,8 +1,10 @@
 # author : Anand Kushwaha
-# version : 10.0.11
-# date : 2024-07-11
+# version : 10.0.12
+# date : 2025-11-10
 
 #CHANGELOG:
+# 10.0.12:
+# - Added responseheaders cleanup to housekeeping (__delete_response_headers_if_exists)
 # 10.0.11:
 # - Added native Django API for clearing sessions (clear_django_sessions)
 # - Added native Django API for vacuuming PostgreSQL django_session table (vacuum_postgres_django_sessions)
@@ -15,6 +17,7 @@ from backend.utility.classes import LogCommand
 from datetime import datetime, timedelta
 from .models import HouseKeepingLogs
 from modules.container_service.models import ContainerService
+from backend.ee.modules.security.models import ResponseHeaders
 import os, json
 import traceback
 from backend.utility.functions import getLogger
@@ -336,6 +339,53 @@ class HouseKeepingThread(LogCommand, Thread):
             )
             return False
 
+    def __delete_response_headers_if_exists(self, feature_result: Feature_result):
+        """
+        Hard delete ResponseHeaders associated with a Feature_result.
+        Returns True if successful or if no ResponseHeaders exist.
+        """
+        try:
+            # Use all_objects to include soft-deleted records
+            response_headers = ResponseHeaders.all_objects.filter(
+                result_id=feature_result.feature_result_id
+            )
+            
+            count = response_headers.count()
+            if count == 0:
+                return True  # No ResponseHeaders to clean
+            
+            self.log(
+                f"Found {count} ResponseHeaders record(s) for Feature_Result [ID: {feature_result.feature_result_id}]",
+                spacing=3
+            )
+            
+            # Hard delete (soft=False) to actually remove from database
+            deleted_count = 0
+            for rh in response_headers:
+                try:
+                    rh.delete(soft=False)  # Hard delete
+                    deleted_count += 1
+                except Exception as e:
+                    self.log(
+                        f"Error deleting ResponseHeaders [ID: {rh.id}]: {str(e)}",
+                        type="error",
+                        spacing=3
+                    )
+            
+            self.log(
+                f"Deleted {deleted_count} ResponseHeaders record(s) for Feature_Result [ID: {feature_result.feature_result_id}]",
+                spacing=3
+            )
+            return True
+            
+        except Exception as exception:
+            self.log(
+                f'Exception occurred while deleting ResponseHeaders for Feature_Result [ID: {feature_result.feature_result_id}]: {traceback.format_exc()}',
+                type="error",
+                spacing=3,
+            )
+            return False
+
     def filter_and_delete_files(self):
         housekeeping_enabled_departments = []
         # Get the list of department ID's
@@ -423,9 +473,19 @@ class HouseKeepingThread(LogCommand, Thread):
                             screenshot_clean = False
                     self.log(f"Cleaned {len(step_results)} screenshots", spacing=3)
 
+                    # Clean up ResponseHeaders associated with this Feature_result
+                    try:
+                        response_headers_cleaned = self.__delete_response_headers_if_exists(feature_result)
+                        if response_headers_cleaned:
+                            self.log(f"Cleaned ResponseHeaders for Feature_Result [ID: {feature_result.feature_result_id}]", spacing=3)
+                    except Exception as e:
+                        self.log(f"Error cleaning ResponseHeaders for Feature_Result [ID: {feature_result.feature_result_id}]: {str(e)}", type="error", spacing=3)
+                        # Don't fail the entire housekeeping if ResponseHeaders cleanup fails
+                        response_headers_cleaned = True  # Continue with other cleanup
+
                     # Determine if housekeeping was successful
                     # Consider it successful if all operations completed (even if files didn't exist)
-                    if video_clean and pdf_clean and screenshot_clean:
+                    if video_clean and pdf_clean and screenshot_clean and response_headers_cleaned:
                         feature_result.house_keeping_done = True
                         # Reset retry count on success
                         if hasattr(feature_result, 'housekeeping_retry_count'):
