@@ -170,8 +170,8 @@ echo "Making sure the deployment folder exists"
 mkdir -p $DEPLOY_BACKEND_FOLDER
 # copy all the data from current directory to the deployment directory
 current_directory=$(pwd)
-echo "Copying all Cometa code files from {$current_directory} directory to the deployment directory {$DEPLOY_BACKEND_FOLDER}"
-rsync -av --exclude={".git/","*.so"} $current_directory $DEPLOY_BACKEND_FOLDER/.
+echo "Copying all Cometa code files from $current_directory directory to the deployment directory $DEPLOY_BACKEND_FOLDER"
+rsync -av --exclude={".git/","*.so"} $current_directory/ $DEPLOY_BACKEND_FOLDER/.
 # change directory to deployment folder
 echo "Changing directory to deployment folder"
 cd $DEPLOY_BACKEND_FOLDER
@@ -187,5 +187,5 @@ function updateCrontab() {
 }
 
 echo "Updating crontab for cleanup-logs"
-updateCrontab "0 1 * * * cd $current_path && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
+updateCrontab "0 1 * * * cd $DEPLOY_BACKEND_FOLDER && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
 
