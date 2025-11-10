@@ -8,6 +8,8 @@ services:
       - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
+    logging:
+      driver: json-file
     networks:
      - testing
     restart: always
@@ -140,6 +142,8 @@ services:
     image: cometa/novnc:1.6
     platform: linux/amd64
     container_name: cometa_novnc
+    logging:
+      driver: json-file
     networks:
       - testing
     restart: always
@@ -155,6 +159,8 @@ services:
       SCHEDULER_HOST: "crontab"
       SCHEDULER_PORT: "8080"
       DEBUG_LEVEL: 10
+    logging:
+      driver: json-file
     volumes:
       - ./backend/scheduler:/app:rw
     # command: sleep infinity
@@ -198,6 +204,9 @@ services:
       - "443:443"
       - "4200:4200"
     command: bash /code/front/start.sh openidc basic angular compile serve-auto
+    logging:
+      driver: json-file
+
     
     # healthcheck:
     #   test: ["CMD", "curl", "-s", "-k", "https://localhost/lb_test.html"]
@@ -225,6 +234,8 @@ services:
     container_name: cometa_redis
     volumes:
       - ./data/redis/data:/data
+    logging:
+      driver: json-file
     networks:
       - testing
     healthcheck:
