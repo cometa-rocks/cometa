@@ -18,7 +18,10 @@
 VERSION="2025-09-17"
 
 DOCKER_COMPOSE_COMMAND="docker-compose"
-CURRENT_PATH=$PWD
+
+# Get the directory where this script is located (works even if called with absolute path)
+CURRENT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 
 
 
@@ -380,7 +383,7 @@ function checkRosetta() {
 function updateCrontab() {
     if ! ( crontab -l 2>/dev/null | grep -Fq "${1}" ); then
         ( crontab -l 2>/dev/null; echo "${1}" ) | crontab -
-        debug "Crontab ${2}  created."
+        info "Crontab ${2}  created."
     else
         debug "Crontab ${2}  already exists."
     fi
@@ -698,6 +701,9 @@ cleanup_cometa_container_logs() {
     info "- Files failed: $files_failed"
     info "- Total size freed: ${total_size_freed_mb} MB"
     info "============================================"
+    
+    # Ensure crontab entry is set up for automatic cleanup
+    updateCrontab "0 1 * * * cd $CURRENT_PATH && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
 }
 
 # Main cleanup function for Cometa-specific resources
@@ -824,7 +830,7 @@ function get_cometa_up_and_running() {
     info "Updating crontab for housekeeping and gunicorn"
     updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
     updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
-
+    updateCrontab "0 1 * * * cd $CURRENT_PATH && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
 
     #
     # Replace <server> in docker-compose-dev.yml with "local"
