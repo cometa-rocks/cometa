@@ -16,10 +16,10 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^16.2.12",
-    "@angular/cdk": "16.2.14",
+    "@angular/cdk": "^16.2.14",
     "@angular/compiler": "^16.2.12",
     "@angular/forms": "^16.2.12",
-    "@angular/material": "16.2.14",
+    "@angular/material": "^16.2.14",
     "@angular/platform-browser": "^16.2.12",
     "@angular/platform-browser-dynamic": "^16.2.12",
     "@angular/router": "^16.2.12",
@@ -71,11 +71,11 @@
     "@angular/compiler-cli": "^16.2.12",
     "@angular/core": "^16.2.12",
     "@angular/language-service": "^16.2.12",
+    "@types/d3": "^7.4.0",
     "@types/jasmine": "^3.10.5",
     "@types/jasminewd2": "^2.0.9",
     "@types/jquery": "^3.5.14",
     "@types/node": "^18.0.0",
-    "@types/d3": "^7.4.0",
     "ajv": "^6.12.6",
     "jasmine-core": "~3.8.0",
     "jasmine-spec-reporter": "~7.0.0",
@@ -89,5 +89,14 @@
     "ts-node": "^10.7.0",
     "tslint": "~6.1.2",
     "typescript": "~5.1.0"
+  },
+  "overrides": {
+    "ngx-network-error": {
+      "@angular/cdk": "^16.2.14",
+      "@angular/material": "^16.2.14"
+    },
+    "@perfectmemory/ngx-contextmenu": {
+      "@angular/cdk": "^16.2.14"
+    }
   }
 }

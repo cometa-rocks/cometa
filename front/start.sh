@@ -74,7 +74,7 @@ EOF
 # #########
 function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
+	npm install -g @angular/cli@16.2.16 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci --legacy-peer-deps >> output.log 2>&1
