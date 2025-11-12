@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'cookies-expired',
@@ -8,7 +8,7 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
   styleUrls: ['./cookies-expired.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class CookiesExpiredDialog {
   relogin(): void {

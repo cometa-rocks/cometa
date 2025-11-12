@@ -7,26 +7,26 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import {
-  MatLegacyChipListChange as MatChipListChange,
-  MatLegacyChipsModule,
-} from '@angular/material/legacy-chips';
+  MatChipListboxChange, // Changed from MatChipListChange to MatChipListboxChange for Angular 17 compatibility
+  MatChipsModule,
+} from '@angular/material/chips';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatDialogRef,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ApiService } from '@services/api.service';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject } from 'rxjs';
 import { SortByPipe } from '@pipes/sort-by.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { NgFor, AsyncPipe } from '@angular/common';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
@@ -37,15 +37,15 @@ import { InputFocusService } from '@services/inputFocus.service';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatLegacyDialogModule,
-    MatLegacyFormFieldModule,
-    MatLegacyChipsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatChipsModule,
     NgFor,
     MatIconModule,
-    MatLegacySelectModule,
-    MatLegacyOptionModule,
-    MatLegacyInputModule,
-    MatLegacyButtonModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatInputModule,
+    MatButtonModule,
     AsyncPipe,
     SortByPipe,
   ],
@@ -103,7 +103,7 @@ export class InviteUserDialog implements OnInit {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange) {
+  addAddress(change: MatChipListboxChange) { // Changed from MatChipListChange to MatChipListboxChange for Angular 17 compatibility
     // Check email value
     if (change.value) {
       // Get current addresses

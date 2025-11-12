@@ -32,6 +32,7 @@
   grid-template-columns: 1fr 1fr;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 :host::ng-deep .grid-schedule .mat-form-field-label-wrapper {
   text-align: center;
 }
@@ -42,6 +43,7 @@
   margin-right: 5px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 :host::ng-deep .grid-schedule .mat-form-field-infix {
   width: auto !important;
 }

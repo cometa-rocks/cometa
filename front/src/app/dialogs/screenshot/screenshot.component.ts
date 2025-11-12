@@ -1,19 +1,19 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
 import {
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogRef as MatDialogRef,
-} from '@angular/material/legacy-dialog';
+  MAT_DIALOG_DATA,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { SafeStyle, DomSanitizer } from '@angular/platform-browser';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialog,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import {
   ReactiveFormsModule,
 } from '@angular/forms';
@@ -26,9 +26,9 @@ import { NgIf, NgFor, AsyncPipe, NgTemplateOutlet } from '@angular/common';
   styleUrls: ['./screenshot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports:[MatLegacyFormFieldModule,MatLegacyInputModule, 
-    MatLegacyDialogModule, ReactiveFormsModule, AsyncPipe,
-    NgIf, NgFor, MatLegacyButtonModule
+  imports:[MatFormFieldModule,MatInputModule, 
+    MatDialogModule, ReactiveFormsModule, AsyncPipe,
+    NgIf, NgFor, MatButtonModule
   ]
 })
 

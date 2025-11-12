@@ -6,16 +6,16 @@ import {
   OnInit,
 } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Logs } from '@store/actions/logs.actions';
 import { Observable } from 'rxjs';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 import { NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
@@ -25,10 +25,10 @@ import { NgIf, AsyncPipe } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     NgIf,
-    MatLegacyButtonModule,
-    MatLegacyProgressSpinnerModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
     AsyncPipe,
   ],
 })

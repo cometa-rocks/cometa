@@ -12,9 +12,11 @@
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "noImplicitAny": false,
-    "target": "es2018",
+    // "target": "es2018",
+    "target": "es2020", // Added for Angular 17 compatibility
     "typeRoots": ["node_modules/@types"],
-    "lib": ["es2017", "dom"],
+    // "lib": ["es2017", "dom"],
+    "lib": ["es2020", "dom"], // Added for Angular 17 compatibility
     "baseUrl": "src",
     "paths": {
       "@services/*": ["app/services/*"],

@@ -1,11 +1,11 @@
 import { filter } from 'rxjs/operators';
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MatLegacyDialog as MatDialog,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MatDialog,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { NgIf } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,7 +20,7 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     NgIf,
     MatFormFieldModule,
     MatInputModule,

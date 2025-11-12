@@ -1,12 +1,12 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+  MatDialogRef,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'import-json',
@@ -15,12 +15,12 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
     ReactiveFormsModule,
     FormsModule,
-    MatLegacyButtonModule,
+    MatButtonModule,
   ],
 })
 export class ImportJSONComponent {

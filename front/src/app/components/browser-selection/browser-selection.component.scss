@@ -79,11 +79,13 @@ h4 {
   padding: 20px;
   max-height: 500px;
   overflow-x: hidden;
-  &::ng-deep .mat-form-field {
+  &::ng-deep .mat-mdc-form-field {
     width: 100%;
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
     .mat-form-field-underline {
       display: none;
     }
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
     .mat-form-field-wrapper {
       padding-bottom: 0;
     }
@@ -191,7 +193,7 @@ h4 {
   mat-icon:hover {
     color: #f00;
   }
-  .mat-icon-button {
+  .mat-mdc-icon-button {
     width: 25px;
     height: 25px;
   }
@@ -264,7 +266,7 @@ h4 {
           line-height: 40px;
           justify-content: space-between;
           align-items: center;
-          &::ng-deep .mat-checkbox {
+          &::ng-deep .mat-mdc-checkbox {
             flex: 1;
           }
           .favourite {

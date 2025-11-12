@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
-import { MAT_LEGACY_SNACK_BAR_DATA as MAT_SNACK_BAR_DATA } from '@angular/material/legacy-snack-bar';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 /**
  * Snack used to show a loading state
@@ -16,7 +16,7 @@ import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progres
   styleUrls: ['loading.snack.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyProgressSpinnerModule],
+  imports: [MatProgressSpinnerModule],
 })
 export class LoadingSnack {
   constructor(@Inject(MAT_SNACK_BAR_DATA) public text: string) {}

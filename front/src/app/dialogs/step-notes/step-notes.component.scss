@@ -1,10 +1,10 @@
 @import 'color';
 
-:host::ng-deep .mat-dialog-content {
+:host::ng-deep .mat-mdc-dialog-content {
   width: initial !important;
 }
 
-.mat-dialog-title {
+.mat-mdc-dialog-title {
   color: $blue;
 }
 

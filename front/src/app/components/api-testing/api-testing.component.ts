@@ -12,10 +12,10 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { 
-  MatLegacyDialogModule, 
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, 
-  MatLegacyDialogRef as MatDialogRef 
-} from '@angular/material/legacy-dialog';
+  MatDialogModule, 
+  MAT_DIALOG_DATA, 
+  MatDialogRef 
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -39,7 +39,7 @@ interface ApiCallData {
   imports: [
     CommonModule,
     MatIconModule,
-    MatLegacyDialogModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,

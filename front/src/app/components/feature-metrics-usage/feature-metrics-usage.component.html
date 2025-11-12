@@ -40,6 +40,7 @@ Author: Redouan Nati -->
 
         <!-- Average Execution Time Card -->
         <mat-card  
+            appearance="outlined"  
             *ngIf="statistics && !loading && !error && isNonZero(statistics.average_execution_time_ms)" 
             class="metric-card average-time-card">
             <mat-card-header>
@@ -59,7 +60,7 @@ Author: Redouan Nati -->
         </mat-card>
 
         <!-- Total Execution Time Card -->
-        <mat-card  *ngIf="statistics && !loading && !error && (
+        <mat-card  appearance="outlined"  *ngIf="statistics && !loading && !error && (
             isNonZero(statistics.total_execution_time_h) ||
             isNonZero(statistics.total_execution_time_m) ||
             isNonZero(statistics.total_execution_time_s) ||
@@ -97,7 +98,7 @@ Author: Redouan Nati -->
         </mat-card>
 
         <!-- Total Tests Executed Card -->
-        <mat-card  *ngIf="statistics && !loading && !error && isNonZero(statistics.total_tests_executed)" class="metric-card tests-executed-card">
+        <mat-card  appearance="outlined"  *ngIf="statistics && !loading && !error && isNonZero(statistics.total_tests_executed)" class="metric-card tests-executed-card">
             <mat-card-header>
                 <mat-card-title>
                 Total Tests Executed
@@ -112,7 +113,7 @@ Author: Redouan Nati -->
         </mat-card>
 
         <!-- Total Number of Features Card -->
-        <mat-card  *ngIf="statistics && !loading && !error && isNonZero(statistics.total_number_features)" class="metric-card features-card">
+        <mat-card  appearance="outlined"  *ngIf="statistics && !loading && !error && isNonZero(statistics.total_number_features)" class="metric-card features-card">
             <mat-card-header>
                 <mat-card-title>
                 Total Features

@@ -16,16 +16,17 @@
   height: calc(100vh - var(--header-height));
 }
 
-:host::ng-deep .mat-tab-link {
+:host::ng-deep .mat-mdc-tab-link {
   text-transform: capitalize;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
 ::ng-deep
-  .mat-tab-nav-bar.mat-primary
-  .mat-tab-link:not(.mat-tab-disabled):focus {
+  .mat-mdc-tab-nav-bar.mat-primary
+  .mat-mdc-tab-link:not(.mat-tab-disabled):focus {
   background-color: rgba(0, 0, 0, 0.02);
 }
 
-::ng-deep .mat-tab-nav-bar.mat-primary .mat-ink-bar {
+::ng-deep .mat-mdc-tab-nav-bar.mat-primary .mat-ink-bar {
   background-color: rgba(0, 0, 0, 0.6);
 }

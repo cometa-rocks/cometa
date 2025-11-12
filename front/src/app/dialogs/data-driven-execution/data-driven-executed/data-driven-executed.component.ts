@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 // import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog'; // Remove non-legacy imports
 import { Router } from '@angular/router';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { 
-  MatLegacyDialogModule, 
-  MatLegacyDialogRef, 
-  MAT_LEGACY_DIALOG_DATA
-} from '@angular/material/legacy-dialog';
+  MatDialogModule, 
+  MatDialogRef, 
+  MAT_DIALOG_DATA
+} from '@angular/material/dialog';
 
 @Component({
   selector: 'data-driven-executed',
@@ -14,12 +14,12 @@ import {
   styleUrls: ['data-driven-executed.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class DataDrivenTestExecuted {
   constructor(
-    public dialogRef: MatLegacyDialogRef<DataDrivenTestExecuted>,
-    @Inject(MAT_LEGACY_DIALOG_DATA) public data: any,
+    public dialogRef: MatDialogRef<DataDrivenTestExecuted>,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private router: Router
   ) {}
 

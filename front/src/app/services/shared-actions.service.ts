@@ -1,8 +1,8 @@
 import { HttpResponse } from '@angular/common/http';
 import { ElementRef, Injectable, ViewChild } from '@angular/core';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { LoadingSnack } from '@components/snacks/loading/loading.snack';

@@ -57,7 +57,7 @@
             <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentSelect($event)"
                         [disabled]="selectionsDisabled">
               <mat-option *ngFor="let department of departments" [value]="{ id: department.folder_id, name: department.name }">
-                <mat-card>{{ department.name }}</mat-card>
+                <mat-card appearance="outlined">{{ department.name }}</mat-card>
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -70,7 +70,7 @@
                         [disabled]="!departmentChecked || selectionsDisabled">
               <mat-option *ngFor="let feature of allFeatures" 
                           [value]="{ id: feature.feature_id, name: feature.feature_name, id_enviornment: feature.environment_id, name_environment: feature.environment_name }">
-                <mat-card>{{ feature.feature_name }}</mat-card>
+                <mat-card appearance="outlined">{{ feature.feature_name }}</mat-card>
               </mat-option>
             </mat-select>
           </mat-form-field>

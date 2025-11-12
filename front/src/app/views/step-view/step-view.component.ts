@@ -31,7 +31,7 @@ import {
 import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { JsonViewerComponent } from '../json-view/json-view.component';
 import { StepNotesComponent } from '@dialogs/step-notes/step-notes.component';
@@ -45,12 +45,12 @@ import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pip
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { NetworkPaginatedListComponent as NetworkPaginatedListComponent_1 } from '../../components/network-paginated-list/network-paginated-list.component';
@@ -183,14 +183,14 @@ import { LogService } from '@services/log.service';
     LetDirective,
     NgClass,
     StopPropagationDirective,
-    MatLegacyTooltipModule,
-    MatLegacyMenuModule,
+    MatTooltipModule,
+    MatMenuModule,
     MatDividerModule,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     NgStyle,
     NgFor,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     TranslateModule,
     AmParsePipe,
     AmDateFormatPipe,

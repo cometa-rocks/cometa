@@ -1,10 +1,10 @@
 import { Component, Inject } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule as MatDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-sure-remove-file',
@@ -13,7 +13,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   standalone: true,
   imports: [
     MatDialogModule, 
-    MatLegacyButtonModule,
+    MatButtonModule,
   ],
 })
 export class SureRemoveFileComponent {

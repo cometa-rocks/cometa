@@ -64,7 +64,8 @@ import 'core-js/es/array';
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
  */
-import 'zone.js/dist/zone'; // Included with Angular CLI.
+// import 'zone.js/dist/zone'; // Included with Angular CLI.
+import 'zone.js'; // Added for Angular 17 compatibility
 
 /***************************************************************************************************
  * APPLICATION IMPORTS

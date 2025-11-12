@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
-@import './node_modules/@perfectmemory/ngx-contextmenu/src/assets/stylesheets/base.scss';
+// @import './node_modules/@perfectmemory/ngx-contextmenu/src/assets/stylesheets/base.scss';
+@import '../node_modules/@perfectmemory/ngx-contextmenu/src/assets/stylesheets/base.scss'; // Added for Angular 17 compatibility
 @import 'material-theme';
 @import 'color';
 @import 'breakpoints';
@@ -90,7 +91,7 @@ body {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.mat-menu-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
+.mat-mdc-menu-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
@@ -240,14 +241,14 @@ body::-webkit-scrollbar-corner {
   box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.14);
 }
 
-.mat-menu-panel.search {
+.mat-mdc-menu-panel.search {
   position: relative !important;
   left: 20px !important;
   top: 5px !important;
   background: #f0f0f0 !important;
 }
 
-.mat-menu-panel.new-search {
+.mat-mdc-menu-panel.new-search {
   position: relative !important;
   left: auto !important;
   right: 15px !important;
@@ -255,6 +256,7 @@ body::-webkit-scrollbar-corner {
   background: #f0f0f0 !important;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version. */
 .mat-simple-snackbar .mat-button-wrapper {
   color: $secondary-color !important;
 }
@@ -264,7 +266,7 @@ body::-webkit-scrollbar-corner {
   color: $secondary-color !important;
 }
 
-.mat-menu-panel.feature-options {
+.mat-mdc-menu-panel.feature-options {
   background: darken(white, 0.5) !important;
   .mat-icon {
     font-size: 21px !important;
@@ -281,12 +283,12 @@ body::-webkit-scrollbar-corner {
   .move-feature .mat-icon {
     color: orange !important;
   }
-  .mat-menu-item {
+  .mat-mdc-menu-item {
     font-weight: bold;
   }
 }
 
-.mat-menu-panel.folderOptionsMenu {
+.mat-mdc-menu-panel.folderOptionsMenu {
   background: darken(white, 0.5) !important;
   .mat-icon {
     font-size: 21px !important;
@@ -315,14 +317,14 @@ body::-webkit-scrollbar-corner {
 }
 
 
-.mat-menu-item {
+.mat-mdc-menu-item {
   height: 30px !important;
   line-height: 30px !important;
   font-size: 11pt !important;
   font-family: 'CorpoS' !important;
 }
 
-.mat-menu-content {
+.mat-mdc-menu-content {
   padding: 5px 0 !important;
 }
 
@@ -335,6 +337,7 @@ h3 {
 //   height: 35px !important;
 // }
 
+/* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version. */
 .mat-select-content {
   max-height: 150px;
 }
@@ -343,26 +346,29 @@ h3 {
   background-color: transparent !important;
 }
 
-.mat-tooltip {
+.mat-mdc-tooltip {
   font-size: 12px !important;
   white-space: pre-line;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version. */
 .step_adding
   .mat-checkbox-disabled:not(.mat-checkbox-checked)
   .mat-checkbox-frame {
   border-color: rgba(0, 0, 0, 0.54) !important;
 }
 
-.mat-dialog-actions {
+.mat-mdc-dialog-actions {
   justify-content: flex-end !important;
 }
 
 .form-field-blue {
   &.mat-focused {
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
     .mat-form-field-ripple {
       background-color: $blue !important;
     }
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
     .mat-form-field-label,
     .mat-select-arrow {
       color: $blue !important;
@@ -373,10 +379,12 @@ h3 {
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version. */
 .checkbox-blue .mat-checkbox-frame {
   border-color: $blue !important;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version. */
 .checkbox-blue.mat-checkbox-checked .mat-checkbox-background {
   background-color: $blue !important;
 }
@@ -385,15 +393,15 @@ h3 {
 //   width: 500px;
 // }
 
-.enter-value-panel .mat-dialog-content {
+.enter-value-panel .mat-mdc-dialog-content {
   width: auto !important;
 }
 
-.add-step-panel .mat-dialog-content {
+.add-step-panel .mat-mdc-dialog-content {
   width: auto !important;
 }
 
-.edit-feature-panel .mat-dialog-content {
+.edit-feature-panel .mat-mdc-dialog-content {
   width: 100%;
 }
 
@@ -410,17 +418,18 @@ h3 {
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of option that may no longer apply for the MDC version. */
 .edit-feature-step-suggestions .mat-option-text {
   font-family: 'Segoe UI', 'CorpoS';
 }
 
-.modify-user-panel .mat-dialog-content {
+.modify-user-panel .mat-mdc-dialog-content {
   @media (min-width: 900px) {
     width: 700px;
   }
   @media (max-width: 900px) {
     width: auto;
-    .mat-form-field {
+    .mat-mdc-form-field {
       display: block;
       width: 100%;
       min-width: 200px;
@@ -428,7 +437,7 @@ h3 {
   }
 }
 
-.modify-password-panel .mat-dialog-content {
+.modify-password-panel .mat-mdc-dialog-content {
   @media (min-width: 650px) {
     width: 445px;
     .move-right {
@@ -437,7 +446,7 @@ h3 {
   }
   @media (max-width: 650px) {
     width: auto;
-    .mat-form-field {
+    .mat-mdc-form-field {
       display: block;
       width: 100%;
       min-width: 250px;
@@ -445,7 +454,7 @@ h3 {
   }
 }
 
-.modify-password-panel .mat-dialog-content {
+.modify-password-panel .mat-mdc-dialog-content {
   @media (min-width: 650px) {
     width: 445px;
     .move-right {
@@ -454,7 +463,7 @@ h3 {
   }
   @media (max-width: 650px) {
     width: auto;
-    .mat-form-field {
+    .mat-mdc-form-field {
       display: block;
       width: 100%;
       min-width: 250px;
@@ -462,7 +471,7 @@ h3 {
   }
 }
 
-.create-user-panel .mat-dialog-content {
+.create-user-panel .mat-mdc-dialog-content {
   @media (min-width: 900px) {
     width: 680px;
     .move-right {
@@ -471,7 +480,7 @@ h3 {
   }
   @media (max-width: 900px) {
     width: auto;
-    .mat-form-field {
+    .mat-mdc-form-field {
       display: block;
       width: 100%;
       min-width: 250px;
@@ -479,6 +488,7 @@ h3 {
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version. */
 .mat-slide-toggle-content {
   font-family: 'CorpoS', 'Segoe UI', 'Arial';
 }
@@ -579,7 +589,7 @@ h3 {
   }
 }
 
-.edit-feature-panel .mat-dialog-container,
+.edit-feature-panel .mat-mdc-dialog-container,
 .create-test-panel .mat-dialog-container {
   background-color: darken(white, 3);
 }
@@ -610,7 +620,7 @@ h3 {
   width: 100%;
   height: 100%;
   background-color: rgba(black, 0.5) !important;
-  .mat-dialog-container {
+  .mat-mdc-dialog-container {
     border-radius: 0;
     box-shadow: none !important;
     padding: 0;
@@ -626,7 +636,7 @@ h3 {
 }
 
 .variable-columns-menu {
-  .mat-menu-content {
+  .mat-mdc-menu-content {
     display: flex;
     flex-direction: column;
     padding: 8px 16px !important;
@@ -642,7 +652,7 @@ h3 {
 .edit-variable-panel {
   min-width: 95%;
   min-height: 60%;
-  .mat-dialog-container {
+  .mat-mdc-dialog-container {
     max-height: 100dvh;
     max-width: 100dvw;
     resize: both;
@@ -654,7 +664,7 @@ h3 {
 .api-testing-dialog {
   min-width: 95%;
   min-height: 70%;
-  .mat-dialog-container {   
+  .mat-mdc-dialog-container {   
     resize: both;
     overflow: auto;
   }
@@ -681,7 +691,7 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
-  .mat-dialog-container {
+  .mat-mdc-dialog-container {
     max-height: 100dvh;
     max-width: 100dvw;
     overflow: hidden;
@@ -697,7 +707,7 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
-  .mat-dialog-container {
+  .mat-mdc-dialog-container {
     max-height: 100dvh;
     max-width: 100dvw;
     overflow: hidden;
@@ -709,7 +719,7 @@ h3 {
 // }
 
 
-.mat-menu-item {
+.mat-mdc-menu-item {
   span {
     font-weight: bold;
     color: rgba(black, 0.6);
@@ -722,6 +732,7 @@ h3 {
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of menu that may no longer apply for the MDC version. */
 .mat-menu-panel-category {
   font-size: 0.85rem;
   padding: 10px 16px;
@@ -744,11 +755,11 @@ h3 {
   margin-bottom: 30px;
 }
 
-.mat-paginator {
+.mat-mdc-paginator {
   background: transparent !important;
 }
 
-.mat-menu-panel {
+.mat-mdc-menu-panel {
   min-height: 30px !important;
 }
 
@@ -758,7 +769,7 @@ h3 {
   }
 }
 
-.mat-dialog-content {
+.mat-mdc-dialog-content {
   @include for-phone-only {
     width: auto !important;
   }
@@ -770,7 +781,7 @@ h3 {
   overflow-y: hidden !important;
 }
 
-.mat-spinner.loading {
+.mat-mdc-progress-spinner.loading {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -779,7 +790,7 @@ h3 {
   margin: auto;
 }
 
-.mat-dialog-actions button {
+.mat-mdc-dialog-actions button {
   font-weight: bold;
 }
 
@@ -856,7 +867,7 @@ h3 {
   margin: 5px 0 !important;
 }
 
-.mat-menu-item-submenu-trigger::after {
+.mat-mdc-menu-item-submenu-trigger::after {
   /*
     removed RRO 20.04.2023
 
@@ -877,11 +888,11 @@ h3 {
     */
 }
 
-.paginator-center .mat-paginator-container {
+.paginator-center .mat-mdc-paginator-container {
   justify-content: center;
 }
 
-.mat-spinner.align-center {
+.mat-mdc-progress-spinner.align-center {
   margin: 0 auto;
 }
 
@@ -957,7 +968,8 @@ video-player .header {
   background-color: rgba(black, 0.9);
 }
 
-[mat-menu-item] .mat-checkbox .mat-checkbox-inner-container {
+/* TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version. */
+[mat-menu-item] .mat-mdc-checkbox .mat-checkbox-inner-container {
   /* margin: 0,15,0,15; */
   /* margin-right:17px; */
 }
@@ -965,11 +977,12 @@ video-player .header {
 .description-option {
   font-weight: bold;
   color: rgba(black, 0.8);
-  .mat-form-field {
+  .mat-mdc-form-field {
     input {
       font-size: 1rem;
     }
   }
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
   .mat-form-field-wrapper {
     padding-bottom: 0;
   }
@@ -1014,24 +1027,26 @@ video-player .header {
 .modify-department-panel {
   display: inline;
   max-width: 70%;
-  .mat-dialog-content {
+  .mat-mdc-dialog-content {
     width: 100%;
   }
 }
 
 .description-option {
-  .mat-form-field.step_timeout_from,
+  .mat-mdc-form-field.step_timeout_from,
   .mat-form-field.step_timeout_to,
   .mat-form-field.step_timeout {
     width: 150px;
     margin: 0;
   }
-  .mat-form-field {
+  .mat-mdc-form-field {
     margin-left: 20px;
   }
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
   .mat-form-field-appearance-outline .mat-form-field-label {
     top: 1.3em !important;
   }
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
   .mat-form-field-appearance-outline.mat-form-field-can-float.mat-form-field-should-float
     .mat-form-field-label,
   .mat-form-field-appearance-outline.mat-form-field-can-float
@@ -1040,15 +1055,18 @@ video-player .header {
     .mat-form-field-label {
     transform: translateY(-1.2em) scale(0.75) !important;
   }
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
   .mat-form-field-appearance-outline .mat-form-field-prefix,
   .mat-form-field-appearance-outline .mat-form-field-suffix {
     top: 0em !important;
   }
   .mat-focused {
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
     .mat-form-field-appearance-outline .mat-form-field-label {
       top: 1.3em !important;
     }
   }
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
   .mat-form-field-appearance-outline .mat-form-field-infix {
     padding: 0.45em;
   }
@@ -1069,11 +1087,12 @@ video-player .header {
   }
 }
 
-.mat-form-field {
+.mat-mdc-form-field {
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
   .mat-form-field-label {
     font-size: 1rem !important;
   }
-  .mat-error {
+  .mat-mdc-form-field-error {
     font-size: 0.8rem !important;
   }
 }
@@ -1143,15 +1162,16 @@ draggable-window{
   display: none;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of dialog that may no longer apply for the MDC version. */
 mat-dialog-container draggable-window{
   display: block;
 }
 
-.mat-dialog-container {
+.mat-mdc-dialog-container {
   resize: both;
 }
 
-.no-resize-dialog .mat-dialog-container {
+.no-resize-dialog .mat-mdc-dialog-container {
   resize: none !important;
 }
 

@@ -1,9 +1,9 @@
 import { Component, HostListener } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+  MatDialogRef,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 import { NgIf } from '@angular/common';
 
 @Component({
@@ -11,7 +11,7 @@ import { NgIf } from '@angular/common';
   templateUrl: 'schedule-help.component.html',
   styleUrls: ['schedule-help.component.scss'],
   standalone: true,
-  imports: [MatLegacyDialogModule, NgIf, MatLegacyButtonModule],
+  imports: [MatDialogModule, NgIf, MatButtonModule],
 })
 export class ScheduleHelp {
   constructor(public dialogRef: MatDialogRef<ScheduleHelp>) {}

@@ -8,8 +8,8 @@ import {
   Host,
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngxs/store';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
 import { map } from 'rxjs/operators';
@@ -22,9 +22,9 @@ import {
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
 import { NgIf, AsyncPipe } from '@angular/common';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
@@ -34,9 +34,9 @@ import { InputFocusService } from '@services/inputFocus.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyCheckboxModule,
+    MatCheckboxModule,
     DisableAutocompleteDirective,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgIf,
     AsyncPipe,
   ],

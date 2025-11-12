@@ -1,17 +1,17 @@
 import { Component, Inject, ChangeDetectionStrategy, HostListener, ChangeDetectorRef } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import {
-  MatLegacySlideToggleChange as MatSlideToggleChange,
-  MatLegacySlideToggleModule,
-} from '@angular/material/legacy-slide-toggle';
+  MatSlideToggleChange,
+  MatSlideToggleModule,
+} from '@angular/material/slide-toggle';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import {
@@ -27,14 +27,14 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { parseExpression } from 'cron-parser';
 import { LogService } from '@services/log.service';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { InputFocusService } from '../../services/inputFocus.service';
 
@@ -48,18 +48,18 @@ import { InputFocusService } from '../../services/inputFocus.service';
   imports: [
     ReactiveFormsModule,
     FormsModule,
-    MatLegacyDialogModule,
+    MatDialogModule,
     NgIf,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
-    MatLegacySelectModule,
-    MatLegacyOptionModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatOptionModule,
     DisableAutocompleteDirective,
     NgFor,
-    MatLegacySlideToggleModule,
+    MatSlideToggleModule,
     MatIconModule,
-    MatLegacyTooltipModule,
-    MatLegacyButtonModule,
+    MatTooltipModule,
+    MatButtonModule,
     TranslateModule,
     AsyncPipe,
   ],

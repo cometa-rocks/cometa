@@ -6,11 +6,11 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { Features } from '@store/actions/features.actions';
@@ -18,16 +18,16 @@ import { FeaturesState } from '@store/features.state';
 import { UserState } from '@store/user.state';
 import { map, switchMap } from 'rxjs/operators';
 import { SortByPipe } from '@pipes/sort-by.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgIf, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
 import { Subject } from 'rxjs';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
@@ -37,17 +37,17 @@ import { KEY_CODES } from '@others/enums';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     NgIf,
     ReactiveFormsModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatFormFieldModule,
+    MatInputModule,
     DisableAutocompleteDirective,
-    MatLegacySelectModule,
+    MatSelectModule,
     NgFor,
-    MatLegacyOptionModule,
-    MatLegacyButtonModule,
-    MatLegacyTooltipModule,
+    MatOptionModule,
+    MatButtonModule,
+    MatTooltipModule,
     SortByPipe,
   ],
 })

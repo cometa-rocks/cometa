@@ -5,11 +5,11 @@
 
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import {
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialog,
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import { ApiService } from '@services/api.service';
@@ -21,7 +21,7 @@ import {
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
 import { AsyncPipe } from '@angular/common';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MoveFolderItemComponent } from './move-folder-item/move-folder-item.component';
 
 @Component({
@@ -31,9 +31,9 @@ import { MoveFolderItemComponent } from './move-folder-item/move-folder-item.com
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     MoveFolderItemComponent,
-    MatLegacyButtonModule,
+    MatButtonModule,
     AsyncPipe,
   ],
 })

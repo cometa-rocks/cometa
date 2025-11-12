@@ -72,6 +72,7 @@
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of dialog that may no longer apply for the MDC version.*/
 mat-dialog-content {
   flex: 1 1 auto;
   overflow: auto;
@@ -88,7 +89,7 @@ mat-dialog-content {
 }
 
 ::ng-deep mat-tab-group,
-::ng-deep .mat-tab-body-wrapper,
+::ng-deep .mat-mdc-tab-body-wrapper,
 ::ng-deep .mat-tab-body,
 ::ng-deep .mat-tab-body-content {
   flex: 1;
@@ -157,7 +158,7 @@ mat-dialog-content {
   margin-top: 16px;
 }
 
-.mat-dialog-container {
+.mat-mdc-dialog-container {
   display: flex;
   flex-direction: column;
   padding: 0;

@@ -18,12 +18,12 @@ import { InputFocusService } from '../../services/inputFocus.service';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { API_URL } from 'app/tokens';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   UntypedFormControl,
   UntypedFormGroup,
@@ -33,16 +33,16 @@ import {
   FormsModule,
 } from '@angular/forms';
 import {
-  MatLegacyCheckboxChange as MatCheckboxChange,
-  MatLegacyCheckboxModule,
-} from '@angular/material/legacy-checkbox';
+  MatCheckboxChange,
+  MatCheckboxModule,
+} from '@angular/material/checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import {
-  MatLegacyChipListChange as MatChipListChange,
-  MatLegacyChipsModule,
-} from '@angular/material/legacy-chips';
+  MatChipListboxChange, // Changed from MatChipListChange to MatChipListboxChange for Angular 17 compatibility
+  MatChipsModule,
+} from '@angular/material/chips';
 import { ApplicationsState } from '@store/applications.state';
 import { Select, Store } from '@ngxs/store';
 import { EnvironmentsState } from '@store/environments.state';
@@ -89,20 +89,20 @@ import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 import { RouterLink } from '@angular/router';
 import { BrowserSelectionComponent as BrowserSelectionComponent_1 } from '../../components/browser-selection/browser-selection.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
-import { MatLegacyTableModule } from '@angular/material/legacy-table';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
-import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatButtonModule } from '@angular/material/button';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { DatePipe } from '@angular/common';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { MatDividerModule } from '@angular/material/divider';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
@@ -129,25 +129,25 @@ import { SharedActionsService } from '@services/shared-actions.service';
     ReactiveFormsModule,
     FormsModule,
     NgIf,
-    MatLegacyDialogModule,
+    MatDialogModule,
     MatExpansionModule,
     MatDividerModule,
-    MatLegacyFormFieldModule,
-    MatLegacySelectModule,
+    MatFormFieldModule,
+    MatSelectModule,
     NgFor,
-    MatLegacyOptionModule,
-    MatLegacyInputModule,
+    MatOptionModule,
+    MatInputModule,
     MatIconModule,
-    MatLegacyCheckboxModule,
-    MatLegacyTooltipModule,
+    MatCheckboxModule,
+    MatTooltipModule,
     LetDirective,
-    MatLegacyButtonModule,
-    MatLegacyChipsModule,
-    MatLegacyRadioModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatRadioModule,
     StopPropagationDirective,
-    MatLegacyTableModule,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyMenuModule,
+    MatTableModule,
+    MatProgressSpinnerModule,
+    MatMenuModule,
     ClipboardModule,
     BrowserSelectionComponent_1,
     RouterLink,
@@ -1016,7 +1016,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange, fieldName: string) {
+  addAddress(change: MatChipListboxChange, fieldName: string) { // Changed from MatChipListChange to MatChipListboxChange for Angular 17 compatibility
     // Check email value
     if (change.value) {
       // Accounts with only Default department, are limited, they can only use their own email

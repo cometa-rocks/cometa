@@ -1,20 +1,21 @@
 @import 'color';
 @import 'breakpoints';
 
-.mat-dialog-title {
+.mat-mdc-dialog-title {
   color: $blue;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
 :host::ng-deep .mat-tab-label {
   opacity: 1;
   font-weight: bold;
 }
 
-:host::ng-deep .mat-tab-body {
+:host::ng-deep .mat-mdc-tab-body {
   margin: 20px 0 10px;
 }
 
-:host::ng-deep .mat-form-field {
+:host::ng-deep .mat-mdc-form-field {
   width: 100%;
 }
 
@@ -37,11 +38,11 @@
   }
 }
 
-.mat-radio-button ~ .mat-radio-button {
+.mat-mdc-radio-button ~ .mat-radio-button {
   margin-left: 16px;
 }
 
-.mat-radio-group {
+.mat-mdc-radio-group {
   display: block;
   margin-bottom: 10px;
   margin-top: 10px;
@@ -61,6 +62,7 @@
   align-items: center;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 :host::ng-deep .mat-form-field-appearance-fill .mat-form-field-infix {
   padding: 0.5em 0 0.6em 0;
 }

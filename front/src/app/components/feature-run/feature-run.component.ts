@@ -7,10 +7,10 @@ import {
   OnInit,
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { VideoComponent } from '@dialogs/video/video.component';
 import { BehaviorSubject } from 'rxjs';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { switchMap } from 'rxjs/operators';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -27,10 +27,10 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import {
   NgClass,
@@ -52,11 +52,11 @@ import { LetDirective } from '../../directives/ng-let.directive';
     NgClass,
     NgIf,
     StopPropagationDirective,
-    MatLegacyMenuModule,
+    MatMenuModule,
     MatDividerModule,
     NgTemplateOutlet,
-    MatLegacyTooltipModule,
-    MatLegacyButtonModule,
+    MatTooltipModule,
+    MatButtonModule,
     MatIconModule,
     TranslateModule,
     AmParsePipe,

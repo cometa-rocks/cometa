@@ -8,11 +8,11 @@ button {
   font-weight: bold;
 }
 
-.mat-dialog-content {
+.mat-mdc-dialog-content {
   width: 500px;
 }
 
-::ng-deep .mat-dialog-container {
+::ng-deep .mat-mdc-dialog-container {
   resize: none;
 }
 

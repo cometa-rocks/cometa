@@ -10,7 +10,7 @@ import {
   TemplateRef,
   Inject
 } from '@angular/core';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
@@ -25,9 +25,9 @@ import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { NgIf, NgFor } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
@@ -137,9 +137,9 @@ interface UserInfo {
     NgIf,
     NgFor,
     StopPropagationDirective,
-    MatLegacyMenuModule,
+    MatMenuModule,
     MatDividerModule,
-    MatLegacyButtonModule,
+    MatButtonModule,
     AmParsePipe,
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,

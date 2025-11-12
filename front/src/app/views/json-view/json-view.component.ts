@@ -8,10 +8,10 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialog as MatDialog,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialog,
+} from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
 import {

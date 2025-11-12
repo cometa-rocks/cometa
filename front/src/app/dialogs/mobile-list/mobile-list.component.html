@@ -669,7 +669,7 @@
                     class="mobile-options"
                     *ngFor="let department of departments"
                     [value]="{ id: department.department_id, name: department.department_name }">
-                    <mat-card>{{ department.department_name }}</mat-card>
+                    <mat-card appearance="outlined">{{ department.department_name }}</mat-card>
                   </mat-option>
                 </mat-select>
               </mat-form-field>

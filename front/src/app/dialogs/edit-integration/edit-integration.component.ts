@@ -12,10 +12,10 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
@@ -24,14 +24,14 @@ import { Integrations } from '@store/actions/integrations.actions';
 import { UserState } from '@store/user.state';
 import { switchMap } from 'rxjs/operators';
 import { SortByPipe } from '@pipes/sort-by.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
+import { MatButtonModule } from '@angular/material/button';
+import { MatRadioModule } from '@angular/material/radio';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgIf, NgClass, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
 
@@ -42,19 +42,19 @@ import { InputFocusService } from '@services/inputFocus.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     NgIf,
     ReactiveFormsModule,
-    MatLegacyFormFieldModule,
-    MatLegacySelectModule,
+    MatFormFieldModule,
+    MatSelectModule,
     LetDirective,
     NgClass,
     NgFor,
-    MatLegacyOptionModule,
-    MatLegacyInputModule,
+    MatOptionModule,
+    MatInputModule,
     DisableAutocompleteDirective,
-    MatLegacyRadioModule,
-    MatLegacyButtonModule,
+    MatRadioModule,
+    MatButtonModule,
     SortByPipe,
   ],
 })

@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
 import {
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { AccountComponent } from '../../components/admin/accounts/account/account.component';
 import { NgFor } from '@angular/common';
 
@@ -12,7 +12,7 @@ import { NgFor } from '@angular/common';
   styleUrls: ['./accounts-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, NgFor, AccountComponent],
+  imports: [MatDialogModule, NgFor, AccountComponent],
 })
 export class AccountsDialog {
   page: number = 0;

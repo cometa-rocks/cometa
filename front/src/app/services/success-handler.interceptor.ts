@@ -7,7 +7,7 @@ import {
   HttpResponse,
 } from '@angular/common/http';
 import { filter, map, tap } from 'rxjs/operators';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { ErrorDialog } from '@dialogs/error/error.dialog';
 

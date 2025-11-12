@@ -15,23 +15,23 @@ import {
 } from '@angular/animations';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MatLegacyDialog as MatDialog,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MatDialog,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { Select } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { FilterStepPipe } from '@pipes/filter-step.pipe';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'add-step',
@@ -48,17 +48,17 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
   ],
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
     ReactiveFormsModule,
     FormsModule,
     NgIf,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     NgFor,
-    MatLegacyTooltipModule,
-    MatLegacyCheckboxModule,
+    MatTooltipModule,
+    MatCheckboxModule,
     AsyncPipe,
     FilterStepPipe,
   ],

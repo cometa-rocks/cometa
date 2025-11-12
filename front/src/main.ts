@@ -55,15 +55,15 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { CometaTitleStrategyService } from '@services/titles/cometa-title.service';
 import { TitleStrategy } from '@angular/router';
 import {
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogRef as MatDialogRef,
-} from '@angular/material/legacy-dialog';
+  MAT_DIALOG_DATA,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import {
-  MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS as MAT_TOOLTIP_DEFAULT_OPTIONS,
-  MatLegacyTooltipDefaultOptions as MatTooltipDefaultOptions,
-} from '@angular/material/legacy-tooltip';
+  MAT_TOOLTIP_DEFAULT_OPTIONS,
+  MatTooltipDefaultOptions,
+} from '@angular/material/tooltip';
 import { i18nMatPaginatorIntl } from '@services/paginator-intl';
-import { MatLegacyPaginatorIntl as MatPaginatorIntl } from '@angular/material/legacy-paginator';
+import { MatPaginatorIntl } from '@angular/material/paginator';
 import {
   STRIPE_PUBLIC_TEST_KEY,
   STRIPE_PUBLIC_LIVE_KEY,

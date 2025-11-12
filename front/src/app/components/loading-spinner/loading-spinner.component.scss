@@ -18,8 +18,8 @@
 
 // Override Material spinner color
 ::ng-deep {
-  .mat-spinner circle,
-  .mat-progress-spinner circle,
+  .mat-mdc-progress-spinner circle,
+  .mat-mdc-progress-spinner circle,
   .mdc-circular-progress__determinate-circle,
   .mdc-circular-progress__indeterminate-circle-graphic {
     stroke: $blue !important;

@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import { Select, Store } from '@ngxs/store';
 import { EnvironmentsState } from '@store/environments.state';
@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
 import { Environments } from '@store/actions/environments.actions';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { EnvironmentComponent } from './environment/environment.component';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
@@ -25,7 +25,7 @@ import { NgFor, NgIf, AsyncPipe } from '@angular/common';
     NgFor,
     EnvironmentComponent,
     NgIf,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     SortByPipe,
     AsyncPipe,

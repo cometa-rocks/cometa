@@ -31,11 +31,12 @@ h2 {
   margin-top: 15px;
 }
 
-.mat-dialog-content {
+.mat-mdc-dialog-content {
   margin-bottom: 10px;
   max-height: initial !important;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-tab-label-content .browser-icon {
   width: 18px;
   height: 18px;
@@ -46,6 +47,7 @@ h2 {
   background-position: center;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-tab-label-content .live_preview {
   // margin-right: 0;
   margin-left: 10px;
@@ -58,11 +60,13 @@ h2 {
   // font-weight: bold;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-tab-label-content .live_preview_mobile {
   font-size: 18px;
   margin-left: 10px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-tab-label-content .live_preview_mobile_play {
   margin-left: -25.5px;
   font-size: 12px;
@@ -70,6 +74,7 @@ h2 {
   align-items: center;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-tab-label-content .live_preview_mobile_play_more {
   font-size: 12px;
   display: flex;
@@ -78,6 +83,7 @@ h2 {
   left: -25px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-ripple.mat-tab-label-active {
   opacity: 1;
 }
@@ -180,7 +186,7 @@ h2 {
   }
 }
 
-:host::ng-deep .mat-spinner {
+:host::ng-deep .mat-mdc-progress-spinner {
   display: inline-block;
   vertical-align: bottom;
   margin-right: 5px;
@@ -189,12 +195,13 @@ h2 {
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-tab-body-content {
   padding-top: 15px;
   box-sizing: border-box;
 }
 
-:host::ng-deep .mat-dialog-actions {
+:host::ng-deep .mat-mdc-dialog-actions {
   justify-content: space-between !important;
 }
 
@@ -210,12 +217,12 @@ h2 {
     width: unset !important;
     height: unset !important;
     max-width: 100% !important;
-    .mat-dialog-content {
+    .mat-mdc-dialog-content {
       width: 100% !important;
       max-width: 100%;
       min-width: 600px;
     }
-    .mat-dialog-container {
+    .mat-mdc-dialog-container {
       max-width: calc(100vw - 30px) !important;
       width: 100%;
       @include for-tablet-portrait-up {

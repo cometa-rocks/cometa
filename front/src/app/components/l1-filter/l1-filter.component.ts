@@ -34,11 +34,11 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { FilterTextPipe } from '@pipes/filter-text.pipe';
 import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -50,11 +50,11 @@ import { TranslateModule } from '@ngx-translate/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     MatIconModule,
     NgFor,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatFormFieldModule,
+    MatInputModule,
     ReactiveFormsModule,
     DisableAutocompleteDirective,
     FormsModule,

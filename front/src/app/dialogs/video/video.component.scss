@@ -13,11 +13,11 @@ video {
   }
 }
 
-:host::ng-deep .mat-spinner {
+:host::ng-deep .mat-mdc-progress-spinner {
   margin: 120px auto;
 }
 
-::ng-deep .video-player-panel .mat-dialog-container {
+::ng-deep .video-player-panel .mat-mdc-dialog-container {
   padding: 0;
   overflow: hidden;
 }

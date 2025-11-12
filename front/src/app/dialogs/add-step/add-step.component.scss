@@ -9,17 +9,19 @@
   text-align: center !important;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 .step .mat-form-field-infix {
   border-top: 0.24375em solid transparent !important;
 }
 
 .search-step {
   width: 100%;
-  .mat-icon-button {
+  .mat-mdc-icon-button {
     height: 20px;
     width: 20px;
   }
-  .mat-icon-button .mat-button-focus-overlay {
+  /* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
+  .mat-mdc-icon-button .mat-button-focus-overlay {
     opacity: 1;
   }
   .mat-icon {
@@ -28,6 +30,7 @@
     z-index: 99;
     top: -1px;
   }
+  /* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version.*/
   .mat-button-focus-overlay {
     background-color: rgba($color: $blue, $alpha: 0.8) !important;
   }
@@ -36,7 +39,8 @@
   }
 }
 
-.mat-form-field.mat-focused .mat-form-field-label,
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
+.mat-mdc-form-field.mat-focused .mat-form-field-label,
 .mat-form-field-appearance-outline .mat-form-field-outline-thick,
 .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
   color: $blue !important;
@@ -53,7 +57,8 @@
   overflow-y: scroll;
 }
 
-.search-step.mat-form-field.mat-focused .mat-form-field-ripple {
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
+.search-step.mat-mdc-form-field.mat-focused .mat-form-field-ripple {
   background-color: $blue !important;
 }
 
@@ -114,6 +119,6 @@
   }
 }
 
-.add-step-panel .mat-dialog-content {
+.add-step-panel .mat-mdc-dialog-content {
     width: 80vw !important;
 }

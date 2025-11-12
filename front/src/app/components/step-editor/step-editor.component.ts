@@ -27,9 +27,9 @@ import {
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import { InputFocusService } from '../../services/inputFocus.service';
 import {
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogRef as MatDialogRef,
-} from '@angular/material/legacy-dialog';
+  MatDialog,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
 import { Select, Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
@@ -60,40 +60,40 @@ import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
 import {
-  MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent,
-  MatLegacyAutocompleteModule,
-} from '@angular/material/legacy-autocomplete';
+  MatAutocompleteSelectedEvent,
+  MatAutocompleteModule,
+} from '@angular/material/autocomplete';
 import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
 import {
-  MatLegacyCheckboxChange as MatCheckboxChange,
-  MatLegacyCheckboxModule,
-} from '@angular/material/legacy-checkbox';
+  MatCheckboxChange,
+  MatCheckboxModule,
+} from '@angular/material/checkbox';
 import {
-  MatLegacyList as MatList,
-  MatLegacyListItem as MatListItem,
-  MatLegacyListModule,
-} from '@angular/material/legacy-list';
+  MatList,
+  MatListItem,
+  MatListModule,
+} from '@angular/material/list';
 import { TranslateModule } from '@ngx-translate/core';
 import { CheckDuplicatePipe } from '../../pipes/check-duplicate.pipe';
 import { FilterStepPipe } from '@pipes/filter-step.pipe';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { NgFor, NgClass, NgIf, NgStyle, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 import { KEY_CODES } from '@others/enums';
 import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
-import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartmentsState } from '@store/departments.state';
 import { FeaturesState } from '@store/features.state';
@@ -126,17 +126,17 @@ interface StepState {
     CdkDrag,
     NgClass,
     CdkDragHandle,
-    MatLegacyCheckboxModule,
-    MatLegacySelectModule,
-    MatLegacyOptionModule,
+    MatCheckboxModule,
+    MatSelectModule,
+    MatOptionModule,
     TextFieldModule,
-    MatLegacyAutocompleteModule,
+    MatAutocompleteModule,
     NgIf,
-    MatLegacyListModule,
+    MatListModule,
     NgStyle,
-    MatLegacyTooltipModule,
-    MatLegacyButtonModule,
-    MatLegacyMenuModule,
+    MatTooltipModule,
+    MatButtonModule,
+    MatMenuModule,
     StopPropagationDirective,
     LetDirective,
     AsyncPipe,

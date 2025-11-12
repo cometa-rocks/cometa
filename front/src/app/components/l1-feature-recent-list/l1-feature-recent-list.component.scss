@@ -258,7 +258,7 @@
   .mat-icon {
     margin-right: 0;
   }
-  &::ng-deep .mat-progress-spinner {
+  &::ng-deep .mat-mdc-progress-spinner {
     margin-right: 5px;
   }
   &.success {
@@ -281,6 +281,7 @@
   }
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version.*/
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
   background-color: $blue !important;
 }
@@ -322,12 +323,14 @@
   margin: 0 auto;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 :host::ng-deep .mat-form-field-flex {
   font-size: 12px;
   transform-origin: right;
   margin-top: 20px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of option that may no longer apply for the MDC version.*/
 ::ng-deep .mat-option-text {
   font-size: 16px;
 }

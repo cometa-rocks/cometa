@@ -1,7 +1,7 @@
 :host::ng-deep {
   display: flex;
   align-items: center;
-  .mat-spinner {
+  .mat-mdc-progress-spinner {
     margin-right: 15px;
     circle {
       stroke: rgba(white, 0.75) !important;

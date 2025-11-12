@@ -20,11 +20,11 @@ button.submit {
   margin-top: 10px;
 }
 
-:host::ng-deep .mat-dialog-content {
+:host::ng-deep .mat-mdc-dialog-content {
   display: flex;
   flex-wrap: wrap;
   @include for-phone-landscape-up {
-    .mat-form-field {
+    .mat-mdc-form-field {
       flex: 0 calc(50% - 10px);
       &:nth-child(odd) {
         margin-right: 10px;

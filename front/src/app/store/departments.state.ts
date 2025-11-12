@@ -3,7 +3,7 @@ import { ApiService } from '@services/api.service';
 import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Departments } from './actions/departments.actions';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import produce from 'immer';
 
 /**

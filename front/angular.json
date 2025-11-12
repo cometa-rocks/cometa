@@ -78,14 +78,14 @@
           "options": {
             "host": "0.0.0.0",
             "disableHostCheck": true,
-            "browserTarget": "cometa:build"
+            "buildTarget": "cometa:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "cometa:build:production"
+              "buildTarget": "cometa:build:production"
             },
             "development": {
-              "browserTarget": "cometa:build:development"
+              "buildTarget": "cometa:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -93,7 +93,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "cometa:build"
+            "buildTarget": "cometa:build"
           }
         },
         "test": {

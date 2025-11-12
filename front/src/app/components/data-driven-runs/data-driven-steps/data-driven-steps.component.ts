@@ -28,7 +28,7 @@ import {
 import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';

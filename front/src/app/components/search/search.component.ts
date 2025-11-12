@@ -17,15 +17,15 @@ import { Store, Select } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import { ApplicationsState } from '@store/applications.state';
 import { EnvironmentsState } from '@store/environments.state';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UserState } from '@store/user.state';
 import { Features } from '@store/actions/features.actions';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
-  LegacyPageEvent as PageEvent,
-  MatLegacyPaginatorModule,
-} from '@angular/material/legacy-paginator';
+  PageEvent,
+  MatPaginatorModule,
+} from '@angular/material/paginator';
 import { Paginations } from '@store/actions/paginations.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -41,21 +41,21 @@ import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
 import { PaginationPipe } from '@pipes/pagination.pipe';
 import { FeatureListComponent } from '../feature-list/feature-list.component';
 import { FeatureItemComponent } from './feature-item/feature-item.component';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { NewFolderComponent } from '../new-folder/new-folder.component';
 import { FolderComponent } from '../folder/folder.component';
 import { EasterEggComponent } from '../easter-egg/easter-egg.component';
-import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
+import { MatRadioModule } from '@angular/material/radio';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 
 @UntilDestroy()
 @Component({
@@ -98,26 +98,26 @@ import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
   ],
   standalone: true,
   imports: [
-    MatLegacyMenuModule,
+    MatMenuModule,
     NgFor,
     NgIf,
-    MatLegacySelectModule,
-    MatLegacyOptionModule,
-    MatLegacyButtonModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
     DisableAutocompleteDirective,
-    MatLegacyRadioModule,
+    MatRadioModule,
     ReactiveFormsModule,
     EasterEggComponent,
     FolderComponent,
     NewFolderComponent,
     LetDirective,
     MatRippleModule,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     FeatureItemComponent,
     FeatureListComponent,
-    MatLegacyPaginatorModule,
+    MatPaginatorModule,
     PaginationPipe,
     StoreSelectorPipe,
     SortByPipe,

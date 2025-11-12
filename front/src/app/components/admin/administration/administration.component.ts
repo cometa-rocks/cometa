@@ -4,8 +4,8 @@ import {
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { EditConfigurationComponent } from './edit-configuration/edit-configuration.component';
 
 @Component({
@@ -15,7 +15,7 @@ import { EditConfigurationComponent } from './edit-configuration/edit-configurat
   imports: [
     NgFor,
     NgIf,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     AsyncPipe,
     EditConfigurationComponent,

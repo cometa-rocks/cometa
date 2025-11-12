@@ -1,11 +1,11 @@
 import { Component, ChangeDetectionStrategy, Inject, HostListener } from '@angular/core';
 import {
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-  MatLegacyDialogRef as MatDialogRef,
-} from '@angular/material/legacy-dialog';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -14,7 +14,7 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrls: ['./mobile-validation-error.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule, MatLegacyTooltipModule, TranslateModule],
+  imports: [MatDialogModule, MatButtonModule, MatTooltipModule, TranslateModule],
 })
 export class MobileValidationErrorDialog {
   constructor(

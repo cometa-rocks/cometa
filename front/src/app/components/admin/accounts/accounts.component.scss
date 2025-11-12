@@ -59,7 +59,7 @@
     text-transform: uppercase;
   }
 
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 100%;
   }
 
@@ -77,7 +77,7 @@
     font-size: 18px;
   }
 
-  .mat-spinner {
+  .mat-mdc-progress-spinner {
     display: block;
     margin: 0 auto;
   }
@@ -122,7 +122,7 @@
       padding: 0 0 8px;
     }
 
-    .mat-table-with-data {
+    .mat-mdc-table-with-data {
       border-top-left-radius: 5px;
       border-top-right-radius: 5px;
     }

@@ -207,6 +207,7 @@ h2, h3{
   // bottom: 135px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of dialog that may no longer apply for the MDC version.*/
 mat-dialog-content {
   width: 100%;
   height: calc(100vh - 200px);
@@ -837,6 +838,7 @@ mobile-list {
   margin-left: 10px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 .mat-form-field-wrapper {
   font-size: 13px;
 }
@@ -1631,20 +1633,21 @@ mobile-list {
   position: absolute;
   top: 147px;
   left: 373px;
+  /* TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.*/
   mat-slide-toggle {
     transform: scale(0.8);
     background-color: var(--mdc-theme-primary) !important;
     opacity: 1 !important;
   }
-  .mat-slide-toggle.mat-checked::after {
+  .mat-mdc-slide-toggle.mat-checked::after {
     background-color: $disabled-slide-toggle !important;
   }
-  .mat-slide-toggle.mat-checked::after {
+  .mat-mdc-slide-toggle.mat-checked::after {
     background-color: $disabled-slide-toggle;
   }
 }
 
-::ng-deep .mat-dialog-container {
+::ng-deep .mat-mdc-dialog-container {
   background-color: $bg-mat-dialog-container;
 }
 
@@ -1669,6 +1672,7 @@ mobile-list {
 
 // slide toggle
 
+/* TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.*/
 mat-slide-toggle {
  opacity: 0.6;
 }
@@ -1701,7 +1705,7 @@ mat-slide-toggle {
   margin-bottom: -35px;
 }
 
-.mat-dialog-actions {
+.mat-mdc-dialog-actions {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -2121,7 +2125,7 @@ mat-slide-toggle {
   .mat-icon {
     margin-right: 5px;
   }
-  &::ng-deep .mat-progress-spinner {
+  &::ng-deep .mat-mdc-progress-spinner {
     margin-right: 10px;
   }
   &.success {
@@ -2266,7 +2270,7 @@ mat-slide-toggle {
   justify-content: flex-start;
   height: 100%;
   margin-left: 3px;
-  
+  /* TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.*/
   mat-slide-toggle {
     transform: scale(0.8);
     margin-left: -10px;
@@ -2406,6 +2410,7 @@ mat-slide-toggle {
   animation: none !important;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version.*/
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
   background-color: $blue !important;
 }

@@ -6,14 +6,14 @@
   height: 100%;
   width: 100%;
 
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 100%;
     flex: 1;
     display: flex;
     flex-direction: column;
   }
 
-  .mat-dialog-title {
+  .mat-mdc-dialog-title {
     color: $blue;
     padding: 20px 24px;
   }
@@ -26,7 +26,7 @@
 }
 
 ::ng-deep .cdk-overlay-pane.import-json-dialog-container {
-  .mat-dialog-container {
+  .mat-mdc-dialog-container {
     min-width: 600px !important;
     max-width: 100dvw !important;
     max-height: 100dvh !important;
@@ -36,7 +36,7 @@
   }
 }
 
-::ng-deep .mat-dialog-actions {
+::ng-deep .mat-mdc-dialog-actions {
   padding: 8px 24px;
   margin: 0;
   display: flex;
