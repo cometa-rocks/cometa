@@ -3,6 +3,7 @@
 # AMVARA CONSULTING S.L. - 2020
 # #########################################
 # Changelog:
+# 2025-11-14 Change Angular CLI version to 17.3.17 to match project dependencies [Update to Angular 17]
 # 2020-07-24 RRO cat output.log to viewshow possible compile errors
 # 2020-02-06 ASO Modified script into seperate functions for easy execution
 # 2018-11-12 ABA First version
@@ -74,7 +75,7 @@ EOF
 # #########
 function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	npm install -g @angular/cli@16.2.16 >> output.log 2>&1
+	npm install -g @angular/cli@17.3.17 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci --legacy-peer-deps >> output.log 2>&1
