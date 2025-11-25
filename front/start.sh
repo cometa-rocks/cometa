@@ -77,7 +77,7 @@ function install_angular(){
 	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
 	echo -e "\e[37mInstalling npm packages...\e[0m"
-	npm ci --legacy-peer-deps >> output.log 2>&1
+	npm ci --legacy-peer-deps >> output.log 2>&1 ############## Objective, delete the --legacy-peer-deps
 	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/front/node_modules/\@types/d3-shape/index.d.ts
 	echo -e "\e[32mOK\e[0m"
 }
