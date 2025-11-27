@@ -471,7 +471,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit, After
               const userDepartments = this.user.departments.map(dept => dept.department_id);
               const matchingFeature = features.find(f => 
                 f.feature_name === searchValue && 
-                userDepartments.includes(f.department_id)
+                this.department?.department_id === f.department_id
               );
               if (matchingFeature) {
                 this.stepStates[index] = {
