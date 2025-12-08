@@ -49,6 +49,7 @@ stages:
 # SECURITY JOBS
 ######################################################
 # Shai-Hulud 2.0 Supply Chain Attack Detector
+# Scans npm packages for compromised dependencies from the Nov 2025 supply chain attack
 security:shai-hulud-scan:
   stage: security
   image: node:22
@@ -57,7 +58,13 @@ security:shai-hulud-scan:
     - cd /tmp/detector && npm ci --ignore-scripts
     - |
       export INPUT_FAIL_ON_CRITICAL=true
+      echo "=== Scanning front/ ==="
       export INPUT_WORKING_DIRECTORY=$CI_PROJECT_DIR/front
+      node /tmp/detector/dist/index.js
+    - |
+      export INPUT_FAIL_ON_CRITICAL=true
+      echo "=== Scanning backend/ws-server/ ==="
+      export INPUT_WORKING_DIRECTORY=$CI_PROJECT_DIR/backend/ws-server
       node /tmp/detector/dist/index.js
   allow_failure: false
   rules:
@@ -65,10 +72,14 @@ security:shai-hulud-scan:
       changes:
         - front/package.json
         - front/package-lock.json
+        - backend/ws-server/package.json
+        - backend/ws-server/package-lock.json
     - if: '$CI_COMMIT_BRANCH =~ /^(stage|prod|master|development|build)$/'
       changes:
         - front/package.json
         - front/package-lock.json
+        - backend/ws-server/package.json
+        - backend/ws-server/package-lock.json
 
 # THIS SECTION OF CODE IS NOT IN USE, Just keeping to for any reference purpose in the server
 .deployment_script: &deployment_script
