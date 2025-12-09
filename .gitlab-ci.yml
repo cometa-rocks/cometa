@@ -53,6 +53,9 @@ stages:
 security:shai-hulud-scan:
   stage: security
   image: node:22
+  tags:
+    # This tag will make sure that it runs on Amvara8 server, not on default runner
+    - build
   script:
     - git clone --depth 1 https://github.com/gensecaihq/Shai-Hulud-2.0-Detector.git /tmp/detector
     - cd /tmp/detector && npm ci --ignore-scripts
