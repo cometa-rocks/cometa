@@ -4,15 +4,15 @@
   "description": "Socket Server",
   "main": "index.js",
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "crypto": "^1.0.1",
-    "express": "^4.17.1",
-    "morgan": "^1.10.0",
-    "pm2": "^6.0.14",
-    "socket.io": "^4.1.2"
+    "body-parser": "1.19.0",
+    "crypto": "1.0.1",
+    "express": "4.17.1",
+    "morgan": "1.10.0",
+    "pm2": "6.0.14",
+    "socket.io": "4.1.2"
   },
   "devDependencies": {
-    "socket.io": "^4.1.2"
+    "socket.io": "4.1.2"
   },
   "scripts": {
     "server-start": "pm2 start --no-daemon app/index.js",
