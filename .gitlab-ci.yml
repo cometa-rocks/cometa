@@ -64,7 +64,7 @@ security:shai-hulud-scan:
       cd $CI_PROJECT_DIR/front
       # Install dependencies to scan the front node_modules package.json and package-lock.json for vulnerabilities
       echo "=== Installing dependencies of front to scan the front node_modules package.json and package-lock.json for vulnerabilities ==="
-      npm ci --ignore-scripts
+      npm ci --legacy-peer-deps
       export INPUT_FAIL_ON_CRITICAL=true
       export INPUT_FAIL_ON_HIGH=true
       export INPUT_FAIL_ON_ANY=true
