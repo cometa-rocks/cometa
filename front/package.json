@@ -30,6 +30,7 @@
     "@ngtools/webpack": "^16.2.16",
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
+    "@ngxs-labs/immer-adapter": "^3.0.5",
     "@ngxs-labs/select-snapshot": "^5.0.0",
     "@ngxs/devtools-plugin": "^3.8.2",
     "@ngxs/form-plugin": "^3.8.2",
