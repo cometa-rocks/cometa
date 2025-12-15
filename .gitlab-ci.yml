@@ -60,14 +60,30 @@ security:shai-hulud-scan:
     - git clone --depth 1 https://github.com/gensecaihq/Shai-Hulud-2.0-Detector.git /tmp/detector
     - cd /tmp/detector && npm ci --ignore-scripts
     - |
-      export INPUT_FAIL_ON_CRITICAL=true
-      echo "=== Scanning front/ ==="
       export INPUT_WORKING_DIRECTORY=$CI_PROJECT_DIR/front
+      cd $CI_PROJECT_DIR/front
+      # Install dependencies to scan the front node_modules package.json and package-lock.json for vulnerabilities
+      echo "=== Installing dependencies of front to scan the front node_modules package.json and package-lock.json for vulnerabilities ==="
+      npm ci --ignore-scripts
+      export INPUT_FAIL_ON_CRITICAL=true
+      export INPUT_FAIL_ON_HIGH=true
+      export INPUT_FAIL_ON_ANY=true
+      export INPUT_SCAN_LOCKFILES=true
+      export INPUT_SCAN_NODE_MODULES=true
+      echo "=== Scanning front/node_modules package.json and package-lock.json for vulnerabilities ==="
       node /tmp/detector/dist/index.js
     - |
-      export INPUT_FAIL_ON_CRITICAL=true
-      echo "=== Scanning backend/ws-server/ ==="
       export INPUT_WORKING_DIRECTORY=$CI_PROJECT_DIR/backend/ws-server
+      cd $CI_PROJECT_DIR/backend/ws-server
+      # Install dependencies to scan the backend/ws-server node_modules package.json and package-lock.json for vulnerabilities
+      echo "=== Installing dependencies of backend/ws-server to scan the backend/ws-server node_modules package.json and package-lock.json for vulnerabilities ==="
+      npm ci --ignore-scripts
+      export INPUT_FAIL_ON_CRITICAL=true
+      export INPUT_FAIL_ON_HIGH=true
+      export INPUT_FAIL_ON_ANY=true
+      export INPUT_SCAN_LOCKFILES=true
+      export INPUT_SCAN_NODE_MODULES=true
+      echo "=== Scanning backend/ws-server/node_modules package.json and package-lock.json for vulnerabilities ==="
       node /tmp/detector/dist/index.js
   allow_failure: false
   rules:
@@ -77,7 +93,10 @@ security:shai-hulud-scan:
         - front/package-lock.json
         - backend/ws-server/package.json
         - backend/ws-server/package-lock.json
-    - if: '$CI_COMMIT_BRANCH =~ /^(stage|prod|master|development|build)$/'
+    # Scanning for vulnerabilities in development, pre-stage and 'build' branches
+    # It does not make sense to scan the vulnerabilities in prod and master branches because build images are used to deploy the application
+    # When code is pushed to master and stage branches, it does not interact with raw code
+    - if: '$CI_COMMIT_BRANCH =~ /^(pre-stage|development|build)$/'
       changes:
         - front/package.json
         - front/package-lock.json

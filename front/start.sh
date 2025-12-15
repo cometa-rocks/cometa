@@ -78,8 +78,26 @@ function install_angular(){
 	# echo -e "\e[32mOK\e[0m"
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci --legacy-peer-deps >> output.log 2>&1
-	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/front/node_modules/\@types/d3-shape/index.d.ts
+    
 	echo -e "\e[32mOK\e[0m"
+}
+
+function scan_for_vulnerabilities(){	
+	# Scan the front and front/node_modules directories for vulnerabilities
+	git clone --depth 1 https://github.com/gensecaihq/Shai-Hulud-2.0-Detector.git /tmp/detector
+    cd /tmp/detector && npm ci --ignore-scripts
+	export INPUT_FAIL_ON_CRITICAL=true
+	echo "=== Scanning front/ ==="
+	export INPUT_WORKING_DIRECTORY=/code/front
+	export INPUT_FAIL_ON_CRITICAL=true
+	export INPUT_FAIL_ON_HIGH=true
+	export INPUT_FAIL_ON_ANY=true
+	export INPUT_SCAN_LOCKFILES=true
+	export INPUT_SCAN_NODE_MODULES=true
+    echo "=== Scanning package.json and package-lock.json and front/node_modules/*/package.json and front/node_modules/*/package-lock.json for security vulnerabilities ==="
+    node /tmp/detector/dist/index.js
+	echo "=== Scanning complete ==="
+	######### scanning complete #########	
 }
 
 # #########
@@ -366,7 +384,7 @@ if [[ "${NORESTART:-FALSE}" == "FALSE" && "${SERVE:-FALSE}" == "FALSE" ]]; then
 fi
 
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
-test "${COMPILE:-FALSE}" == "TRUE" && build_project
+test "${COMPILE:-FALSE}" == "TRUE" && build_project && scan_for_vulnerabilities
 test "${SERVE:-FALSE}" == "TRUE" && serve_project
 test "${SERVEAUTO:-FALSE}" == "TRUE" && serve_project_auto
 
