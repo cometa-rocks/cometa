@@ -10,7 +10,7 @@ import { ApiService } from '@services/api.service';
 import { tap } from 'rxjs/operators';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { User } from './actions/user.actions';
-import produce from 'immer';
+import { produce } from 'immer';
 import { Browserstack } from './actions/browserstack.actions';
 import { Browsers } from './actions/browsers.actions';
 import { Lyrid } from './actions/browserslyrid.actions';

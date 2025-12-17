@@ -1,7 +1,7 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { Injectable } from '@angular/core';
 import { PaginatedList } from './actions/paginated-list.actions';
-import produce from 'immer';
+import { produce } from 'immer';
 
 /**
  * @description Contains the state of all network paginated lists

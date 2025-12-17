@@ -3,7 +3,7 @@ import { ApiService } from '@services/api.service';
 import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Applications } from './actions/applications.actions';
-import produce from 'immer';
+import { produce } from 'immer';
 
 /**
  * @description Contains the state of all applications

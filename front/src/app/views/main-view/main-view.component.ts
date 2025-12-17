@@ -565,9 +565,12 @@ export class MainViewComponent implements OnInit {
   // Extract buttons from mtxgridCoumns
   extractButtons() {
     this.buttons = this.columns
-    .filter(col => col.buttons)
-    .map(col => col.buttons)
-    .reduce((acc, val) => acc.concat(val), []);
+      .filter(col => col.buttons)
+      .map(col => col.buttons)
+      .reduce((acc: any[], val) => {
+        const buttons = typeof val === 'function' ? val({} as any) : val;
+        return acc.concat(buttons);
+      }, []);
   }
 
   // return to v2 dashboard

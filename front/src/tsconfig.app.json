@@ -23,9 +23,15 @@
       "@actions/*": ["app/store/actions/*"],
       "@guards/*": ["app/guards/*"],
       "@plugins/*": ["app/plugins/*"],
-      "@common/*": ["app/common/*"]
+      "@common/*": ["app/common/*"],
+      "ngx-network-error": ["../node_modules/ngx-network-error/projects/ngx-network-error/src/public-api.ts"],
+      "rxjs": ["../node_modules/rxjs"],
+      "rxjs/*": ["../node_modules/rxjs/*"]
     }
   },
   "files": ["main.ts", "polyfills.ts"],
-  "include": ["./**/*.d.ts"]
+  "include": ["./**/*.d.ts"],
+  "exclude": [
+    "../node_modules/ngx-network-error/**/*.ts"
+  ]
 }

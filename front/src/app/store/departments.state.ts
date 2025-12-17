@@ -4,7 +4,7 @@ import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Departments } from './actions/departments.actions';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-import produce from 'immer';
+import { produce } from 'immer';
 
 /**
  * @description Contains the state of departments for Admin and Users

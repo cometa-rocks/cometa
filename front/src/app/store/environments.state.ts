@@ -2,7 +2,7 @@ import { State, Action, StateContext } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import produce from 'immer';
+import { produce } from 'immer';
 import { Environments } from './actions/environments.actions';
 
 /**

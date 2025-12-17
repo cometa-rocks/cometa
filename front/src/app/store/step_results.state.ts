@@ -1,6 +1,6 @@
 import { State, Action, StateContext } from '@ngxs/store';
 import { Injectable } from '@angular/core';
-import produce from 'immer';
+import { produce } from 'immer';
 import { ApiService } from '@services/api.service';
 import { tap } from 'rxjs/operators';
 import { StepResults } from './actions/step_results.actions';

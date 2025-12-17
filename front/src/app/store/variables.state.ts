@@ -3,7 +3,7 @@ import { ApiService } from '@services/api.service';
 import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
-import produce from 'immer';
+import { produce } from 'immer';
 import { Variables } from './actions/variables.actions';
 import { sortBy } from 'ngx-amvara-toolbox';
 

@@ -7,6 +7,29 @@ import { FeaturesState } from '@store/features.state';
 import * as d3 from 'd3';
 import { debounceTime, Observable } from 'rxjs';
 
+// Extend D3 types to include runtime properties
+interface ExtendedHierarchyNode<Datum> extends Omit<d3.HierarchyNode<Datum>, 'id'> {
+  x: number;
+  y: number;
+  x0?: number;
+  y0?: number;
+  id?: number | string;
+  _children?: ExtendedHierarchyNode<Datum>[];
+}
+
+interface ExtendedHierarchyLink<Datum> {
+  source: ExtendedHierarchyNode<Datum>;
+  target: ExtendedHierarchyNode<Datum>;
+}
+
+interface TreeNodeData {
+  id?: number;
+  name?: string;
+  type?: string;
+  depends_on_others?: boolean;
+  children?: TreeNodeData[];
+}
+
 @Component({
   selector: 'cometa-l1-tree-view',
   templateUrl: './l1-tree-view.component.html',
@@ -101,7 +124,7 @@ export class L1TreeViewComponent implements OnInit {
       return;
     }
     
-    const boundries = treeViewElement.getBoundingClientRect();
+    const boundries = (treeViewElement as HTMLElement).getBoundingClientRect();
     // viewer width and height
     const width = boundries.width;
     const height = boundries.height;
@@ -113,28 +136,28 @@ export class L1TreeViewComponent implements OnInit {
     const dx = 30; // line height
     const dy = width / 4;
 
-    const tree = d3.tree().nodeSize([dx, dy]);
+    const tree = d3.tree<TreeNodeData>().nodeSize([dx, dy]);
     const diagonal = d3
-      .linkHorizontal()
-      .x(d => {
+      .linkHorizontal<any, any>()
+      .x((d: any) => {
         let appendText = 0;
-        if (d.data) appendText = this.widthChecker(d.data.name) + textSpace + 5;
+        if (d.data && d.data.name) appendText = this.widthChecker(d.data.name) + textSpace + 5;
         return d.y + appendText;
       })
-      .y(d => d.x + 1);
+      .y((d: any) => d.x + 1);
 
-    let root = d3.hierarchy(this.viewingData);
+    let root = d3.hierarchy(this.viewingData) as unknown as ExtendedHierarchyNode<TreeNodeData>;
     root.x0 = dy / 2;
     root.y0 = 0;
     root.descendants().forEach((d, i) => {
-      d.id = i;
+      (d as ExtendedHierarchyNode<TreeNodeData>).id = i;
     });
 
     const zoom = d3
       .zoom()
       .scaleExtent([1, 10])
-      .on('zoom', event => {
-        svg.attr('transform', event.transform);
+      .on('zoom', (event: d3.D3ZoomEvent<any, any>) => {
+        svg.attr('transform', event.transform.toString());
       });
 
     const parent = d3
@@ -159,37 +182,37 @@ export class L1TreeViewComponent implements OnInit {
       .attr('cursor', 'pointer')
       .attr('pointer-events', 'all');
 
-    const collapse = d => {
+    const collapse = (d: ExtendedHierarchyNode<TreeNodeData>) => {
       if (d.children) {
-        d._children = d.children;
+        d._children = d.children as ExtendedHierarchyNode<TreeNodeData>[];
         d._children.forEach(collapse);
         d.children = null;
       }
     };
 
-    const expand = d => {
+    const expand = (d: ExtendedHierarchyNode<TreeNodeData>) => {
       if (d._children) {
-        d.children = d._children;
-        d.children.forEach(expand);
+        d.children = d._children as any;
+        (d.children as any).forEach(expand);
         d._children = null;
       }
     };
 
-    const toggle = d => {
+    const toggle = (d: ExtendedHierarchyNode<TreeNodeData>) => {
       if (d._children) {
-        d.children = d._children;
+        d.children = d._children as any;
         d._children = null;
       } else if (d.children) {
-        d._children = d.children;
+        d._children = d.children as ExtendedHierarchyNode<TreeNodeData>[];
         d.children = null;
       }
     };
 
-    function centerNode(source) {
+    function centerNode(source: ExtendedHierarchyNode<TreeNodeData>) {
       const t = d3.zoomTransform(parent.node());
       const selectedNode = d3
         .selectAll('g')
-        .filter(d => (d ? d.id == source.id : false))
+        .filter((d: ExtendedHierarchyNode<TreeNodeData>) => (d ? d.id == source.id : false))
         .node();
       
       // Check if the node exists before calling getBBox
@@ -198,9 +221,9 @@ export class L1TreeViewComponent implements OnInit {
         return;
       }
       
-      const boundries = selectedNode.getBBox();
-      let x = -source.y0;
-      let y = -source.x0;
+      const boundries = (selectedNode as SVGGraphicsElement).getBBox();
+      let x = -(source.y0 || 0);
+      let y = -(source.x0 || 0);
       x = x * t.k + width / 2 - margins.left - boundries.width / 2;
       if (source.children) {
         x = x - dy / 2;
@@ -209,53 +232,56 @@ export class L1TreeViewComponent implements OnInit {
       d3.select('svg')
         .transition()
         .duration(250)
-        .call(zoom.transform, d3.zoomIdentity.translate(x, y).scale(t.k));
+        .call(zoom.transform as any, d3.zoomIdentity.translate(x, y).scale(t.k));
     }
 
-    const update = source => {
+    const update = (source: ExtendedHierarchyNode<TreeNodeData>) => {
       const duration = 250;
-      const nodes = root.descendants().reverse();
-      const links = root.links();
+      const nodes = root.descendants().reverse() as unknown as ExtendedHierarchyNode<TreeNodeData>[];
+      const links = root.links() as unknown as ExtendedHierarchyLink<TreeNodeData>[];
 
       // Compute the new tree layout.
-      tree(root);
+      tree(root as any);
 
       let left = root;
       let right = root;
-      root.eachBefore(node => {
-        if (node.x < left.x) left = node;
-        if (node.x > right.x) right = node;
+      root.eachBefore((node: any) => {
+        const extendedNode = node as ExtendedHierarchyNode<TreeNodeData>;
+        if (extendedNode.x < left.x) left = extendedNode;
+        if (extendedNode.x > right.x) right = extendedNode;
       });
 
       const height = right.x - left.x + margins.top + margins.bottom;
       const transition = parent
         .transition()
         .duration(duration)
-        .attr('viewBox', [-margins.left, left.x - margins.top, width, height])
+        .attr('viewBox', `${-margins.left} ${left.x - margins.top} ${width} ${height}`)
         .tween(
           'resize',
           window.ResizeObserver ? null : () => () => svg.dispatch('toggle')
         );
 
       // Update the nodes…
-      const node = gNode.selectAll('g').data(nodes, d => d.id);
+      const node = gNode.selectAll('g').data(nodes, (d: ExtendedHierarchyNode<TreeNodeData>) => d.id);
       let feature: Feature;
 
       // Enter any new nodes at the parent's previous position.
       const nodeEnter = node
         .enter()
         .append('g')
-        .attr('transform', d => `translate(${source.y0},${source.x0})`)
+        .attr('transform', (d: ExtendedHierarchyNode<TreeNodeData>) => `translate(${source.y0 || 0},${source.x0 || 0})`)
         .attr('fill-opacity', 0)
         .attr('stroke-opacity', 0)
         .on('click', (event, d) => {
-          toggle(d);
-          update(d);
-          centerNode(d);
+          const node = d as unknown as ExtendedHierarchyNode<TreeNodeData>;
+          toggle(node);
+          update(node);
+          centerNode(node);
         })
         .on('dblclick', (event, d) => {
-          if (d.data.type == 'feature') {
-            this._router.navigate(['/from/tree-view/', d.data.id]);
+          const nodeData = (d as unknown as ExtendedHierarchyNode<TreeNodeData>).data;
+          if (nodeData && nodeData.type == 'feature' && nodeData.id) {
+            this._router.navigate(['/from/tree-view/', nodeData.id]);
           }
         });
 
@@ -269,18 +295,21 @@ export class L1TreeViewComponent implements OnInit {
           `translate(-${imageSize / 2}px, ${imageSize / 2}px)`
         )
         .attr('font-size', '20px')
-        .attr('fill', d =>
-          d.data.type === 'feature' && d.data.depends_on_others
+        .attr('fill', (d: ExtendedHierarchyNode<TreeNodeData>) => {
+          const nodeData = d.data;
+          return nodeData && nodeData.type === 'feature' && nodeData.depends_on_others
             ? 'gray'
-            : 'black'
-        )
-        .attr('class', d =>
-          d.data.type != 'feature' && !d.children && !d._children
+            : 'black';
+        })
+        .attr('class', (d: ExtendedHierarchyNode<TreeNodeData>) =>
+          d.data && d.data.type != 'feature' && !d.children && !d._children
             ? 'disabled'
             : ''
         )
-        .text(d => {
-          switch (d.data.type) {
+        .text((d: ExtendedHierarchyNode<TreeNodeData>) => {
+          const nodeData = d.data;
+          if (!nodeData || !nodeData.type) return '';
+          switch (nodeData.type) {
             case 'department':
               return 'domain';
             case 'folder':
@@ -300,12 +329,18 @@ export class L1TreeViewComponent implements OnInit {
         .attr('dy', '0.40em')
         .attr('x', textSpace)
         .attr('text-anchor', 'start')
-        .attr('class', d => `node-text node-text-${d.data.type}`)
-        .text(d => d.data.name);
+        .attr('class', (d: ExtendedHierarchyNode<TreeNodeData>) => {
+          const nodeData = d.data;
+          return `node-text node-text-${nodeData?.type || 'unknown'}`;
+        })
+        .text((d: ExtendedHierarchyNode<TreeNodeData>) => {
+          const nodeData = d.data;
+          return nodeData?.name || '';
+        });
 
       nodeEnter
         .append('circle')
-        .attr('r', d => (d.parent ? 5 : 0))
+        .attr('r', (d: ExtendedHierarchyNode<TreeNodeData>) => (d.parent ? 5 : 0))
         .attr('fill', 'gray')
         .attr('transform', `translate(${-textSpace - 5}, 1)`);
 
@@ -313,7 +348,7 @@ export class L1TreeViewComponent implements OnInit {
       const nodeUpdate = node
         .merge(nodeEnter)
         .transition(transition)
-        .attr('transform', d => `translate(${d.y},${d.x})`)
+        .attr('transform', (d: ExtendedHierarchyNode<TreeNodeData>) => `translate(${d.y},${d.x})`)
         .attr('fill-opacity', 1)
         .attr('stroke-opacity', 1);
 
@@ -322,48 +357,46 @@ export class L1TreeViewComponent implements OnInit {
         .exit()
         .transition(transition)
         .remove()
-        .attr('transform', d => `translate(${source.y},${source.x})`)
+        .attr('transform', (d: ExtendedHierarchyNode<TreeNodeData>) => `translate(${source.y},${source.x})`)
         .attr('fill-opacity', 0)
         .attr('stroke-opacity', 0);
 
       // Update the links…
-      const link = gLink.selectAll('path').data(links, d => d.target.id);
+      const link = gLink.selectAll('path').data(links, (d: ExtendedHierarchyLink<TreeNodeData>) => d.target.id);
       // Enter any new links at the parent's previous position.
       const linkEnter = link
         .enter()
         .append('path')
-        .attr('d', d => {
-          const o = { x: source.x0, y: source.y0 };
-          return diagonal({ source: o, target: o });
+        .attr('d', (d: ExtendedHierarchyLink<TreeNodeData>) => {
+          const o = { x: source.x0 || 0, y: source.y0 || 0, data: source.data };
+          return diagonal({ source: o, target: o } as any);
         });
       // Transition links to their new position.
       link
         .merge(linkEnter)
         .transition(transition)
-        .attr('d', d => {
-          const target = {
-            x: d.target.x,
-            y: d.target.y - 15,
-          };
-          return diagonal({ source: d.source, target: target });
+        .attr('d', (d: ExtendedHierarchyLink<TreeNodeData>) => {
+          const target = { ...d.target, y: d.target.y - 15 };
+          return diagonal({ source: d.source, target: target } as any);
         });
       // Transition exiting nodes to the parent's new position.
       link
         .exit()
         .transition(transition)
         .remove()
-        .attr('d', d => {
-          const o = { x: source.x, y: source.y };
-          return diagonal({ source: o, target: o });
+        .attr('d', (d: ExtendedHierarchyLink<TreeNodeData>) => {
+          const o = { x: source.x, y: source.y, data: source.data };
+          return diagonal({ source: o, target: o } as any);
         });
 
       // Stash the old positions for transition.
-      root.eachBefore(d => {
-        d.x0 = d.x;
-        d.y0 = d.y;
+      root.eachBefore((d: any) => {
+        const extendedNode = d as ExtendedHierarchyNode<TreeNodeData>;
+        extendedNode.x0 = extendedNode.x;
+        extendedNode.y0 = extendedNode.y;
       });
     };
-    root.children.forEach(collapse);
+    (root.children as any).forEach(collapse);
     update(root);
     centerNode(root);
   }

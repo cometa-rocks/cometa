@@ -12,6 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "noImplicitAny": false,
+    "skipLibCheck": true,
     "target": "es2018",
     "typeRoots": ["node_modules/@types"],
     "lib": ["es2017", "dom"],
@@ -28,8 +29,14 @@
       "@store/*": ["app/store/*"],
       "@actions/*": ["app/store/actions/*"],
       "@guards/*": ["app/guards/*"],
-      "@plugins/*": ["app/plugins/*"]
+      "@plugins/*": ["app/plugins/*"],
+      "ngx-network-error": ["../node_modules/ngx-network-error/projects/ngx-network-error/src/public-api.ts"],
+      "rxjs": ["../node_modules/rxjs"],
+      "rxjs/*": ["../node_modules/rxjs/*"]
     }
   },
-  "include": ["src/**/*.d.ts"]
+  "include": ["src/**/*.d.ts"],
+  "exclude": [
+    "node_modules/ngx-network-error/**/*.ts"
+  ]
 }
