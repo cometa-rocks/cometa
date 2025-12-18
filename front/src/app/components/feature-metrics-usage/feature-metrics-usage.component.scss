@@ -98,14 +98,15 @@ h2 {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
-
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
   mat-card-header {
     padding: 16px 16px 8px 16px;
 
     @include for-tablet-portrait-up {
       padding: 20px 20px 12px 20px;
     }
-
+    /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
     mat-card-title {
       font-size: 16px;
       font-weight: 600;
@@ -113,7 +114,7 @@ h2 {
       margin: 0;
     }
   }
-
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
   mat-card-content {
     padding: 8px 16px 16px 16px;
 

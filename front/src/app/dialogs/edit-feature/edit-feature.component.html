@@ -353,14 +353,14 @@
         <ng-template matExpansionPanelContent>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label>Email address, use tab to separate emails. </mat-label>
-            <mat-chip-list #chipList>
-              <mat-chip
+            <mat-chip-grid #chipList>
+              <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_address').value"
                 [removable]="true"
                 (removed)="removeAddress(addr, 'email_address')"
                 >{{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
+              </mat-chip-row>
               <input
                 formControlName="address_to_add"
                 [matChipInputFor]="chipList"
@@ -369,20 +369,20 @@
                 (matChipInputTokenEnd)="addAddress($event, 'email_address')"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()" />
-            </mat-chip-list>
+            </mat-chip-grid>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
               >CC (Carbon Copy): Enter email addresses, use tab to separate emails.
             </mat-label>
-            <mat-chip-list #ccChipList>
-              <mat-chip
+            <mat-chip-grid #ccChipList>
+              <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_cc_address').value"
                 [removable]="true"
                 (removed)="removeAddress(addr, 'email_cc_address')"
                 >{{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
+              </mat-chip-row>
             <input
               formControlName="address_to_add"
               [matChipInputFor]="ccChipList"
@@ -392,20 +392,20 @@
               (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               />
-            </mat-chip-list>
+            </mat-chip-grid>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
               >BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.
             </mat-label>
-            <mat-chip-list #bccChipList>
-              <mat-chip
+            <mat-chip-grid #bccChipList>
+              <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_bcc_address').value"
                 [removable]="true"
                 (removed)="removeAddress(addr, 'email_bcc_address')"
                 >{{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
+              </mat-chip-row>
             <input
               formControlName="address_to_add"
               [matChipInputFor]="bccChipList"
@@ -415,7 +415,7 @@
               (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               />
-            </mat-chip-list>
+            </mat-chip-grid>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label

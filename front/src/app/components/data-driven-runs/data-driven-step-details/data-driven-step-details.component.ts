@@ -14,7 +14,7 @@ import {
 } from '@angular/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { SafeStyle, DomSanitizer } from '@angular/platform-browser';
 import { API_BASE } from 'app/tokens';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';

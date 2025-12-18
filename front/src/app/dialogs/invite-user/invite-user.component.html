@@ -3,14 +3,14 @@
   <mat-dialog-content>
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Email address, use tab to separate emails</mat-label>
-      <mat-chip-list #chipList>
-        <mat-chip
+      <mat-chip-grid #chipList>
+        <mat-chip-row
           *ngFor="let addr of emails$ | async"
           [removable]="true"
           (removed)="removeAddress(addr)"
           >{{ addr }}
           <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip>
+        </mat-chip-row>
         <input
           formControlName="email_show"
           [matChipInputFor]="chipList"
@@ -19,7 +19,7 @@
           (matChipInputTokenEnd)="addAddress($event)" 
           (focus)="onInputFocus()"
           (blur)="onInputBlur()"/>
-      </mat-chip-list>
+      </mat-chip-grid>
     </mat-form-field>
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Department</mat-label>

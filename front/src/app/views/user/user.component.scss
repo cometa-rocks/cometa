@@ -369,6 +369,7 @@ p {
 
 // Toggle Slide
 
+/* TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.*/
 mat-slide-toggle {
   transform: scale(0.8);
   // Moves the toggle to the left

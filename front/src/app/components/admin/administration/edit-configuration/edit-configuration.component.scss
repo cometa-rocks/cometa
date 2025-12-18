@@ -1,11 +1,11 @@
 @import 'color';
 
-.mat-dialog-title {
+.mat-mdc-dialog-title {
   margin: 0;
   height: 40px;
 }
 
-.mat-dialog-content {
+.mat-mdc-dialog-content {
   display: unset;
 }
 
@@ -53,30 +53,30 @@
 
     .var-row.edit {
       cursor: pointer;
-      td.mat-cell {
+      td.mat-mdc-cell {
         border-bottom: 1px solid $blue;
       }
     }
 
-    td.mat-cell {
+    td.mat-mdc-cell {
       small {
         display: block;
         font-size: 10px;
       }
     }
 
-    th.mat-header-cell {
+    th.mat-mdc-header-cell {
       font-size: 13px;
       font-weight: bold;
       color: $blue;
     }
 
-    td.mat-cell,
-    th.mat-header-cell {
+    td.mat-mdc-cell,
+    th.mat-mdc-header-cell {
       padding-right: 20px;
     }
 
-    tr.mat-header-row {
+    tr.mat-mdc-header-row {
       position: sticky;
       z-index: 1;
       top: 0;
@@ -138,6 +138,7 @@ p.inuse {
   font-weight: bold;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of dialog that may no longer apply for the MDC version. */
 mat-dialog-actions {
   gap: 8px;
 }

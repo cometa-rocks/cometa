@@ -5,8 +5,8 @@ import { DisableAutocompleteDirective } from '../../../../directives/disable-aut
 import { InputFocusService } from '@services/inputFocus.service';
 import { map } from 'rxjs/operators';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store, Select } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -24,10 +24,10 @@ import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pip
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { StandByBrowserHeaderComponent } from './stand-by-browser-header /stand-by-browser-header.component';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 import { SlicePipe } from '@angular/common';
 
 
@@ -54,10 +54,10 @@ import { SlicePipe } from '@angular/common';
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     FirstLetterUppercasePipe,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     JsonPipe, 
-    MatLegacyCheckboxModule,
-    MatLegacyButtonModule,
+    MatCheckboxModule,
+    MatButtonModule,
     SlicePipe,
   ],
 })

@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { 
-  MatLegacyDialogModule, 
-  MatLegacyDialogRef,
-  MAT_LEGACY_DIALOG_DATA
-} from '@angular/material/legacy-dialog';
+  MatDialogModule, 
+  MatDialogRef,
+  MAT_DIALOG_DATA
+} from '@angular/material/dialog';
 
 @Component({
   selector: 'data-driven-stop',
@@ -13,12 +13,12 @@ import {
   styleUrls: ['data-driven-stop.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class DataDrivenTestStop {
   constructor(
-    public dialogRef: MatLegacyDialogRef<DataDrivenTestStop>,
-    @Inject(MAT_LEGACY_DIALOG_DATA) public data: any,
+    public dialogRef: MatDialogRef<DataDrivenTestStop>,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private router: Router
   ) {}
 

@@ -11,6 +11,7 @@
   gap: 10px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version.*/
 ::ng-deep .selected-apks mat-chip-row {
   border-radius: 10px;
   padding: 8px 16px;
@@ -21,6 +22,7 @@
   padding-right: 35px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version.*/
 ::ng-deep .selected-apks mat-chip-row .mdc-evolution-chip__text-label {
   flex-grow: 1;
   min-width: 100px;
@@ -30,10 +32,12 @@
   text-overflow: ellipsis;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version.*/
 ::ng-deep .selected-apks mat-chip-row mat-icon {
   font-size: 18px;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version.*/
 ::ng-deep .selected-apks mat-chip-row button {
   margin-left: 8px;
   flex-shrink: 0;
@@ -42,6 +46,7 @@
   border: none;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version.*/
 ::ng-deep .selected-apks mat-chip-row .chip-text {
   flex-grow: 1;
   min-width: 0;
@@ -95,7 +100,7 @@
   color: #1565c0;
 }
 
-::ng-deep .mat-dialog-container {
+::ng-deep .mat-mdc-dialog-container {
   resize: both;
 }
 
@@ -103,7 +108,7 @@
   padding: 0 27px 0 24px;
 }
 
-:host::ng-deep .mat-dialog-content {
+:host::ng-deep .mat-mdc-dialog-content {
   padding: 0 10px 5px;
   @include for-tablet-portrait-up {
     padding: 0 24px 5px;
@@ -292,7 +297,7 @@ h2, h3 {
 }
 
 // Asegura que el panel del dropdown sea lo suficientemente ancho y permita ver todo el texto
-::ng-deep .mat-select-panel {
+::ng-deep .mat-mdc-select-panel {
   min-width: 400px !important; // o el valor que prefieras
   max-width: none !important;
   width: auto !important;
@@ -301,7 +306,7 @@ h2, h3 {
 }
 
 // Opciones: que el texto nunca se corte
-::ng-deep .mat-select-panel .mat-option {
+::ng-deep .mat-mdc-select-panel .mat-mdc-option {
   white-space: normal !important;
   text-overflow: unset !important;
   overflow: visible !important;

@@ -1,18 +1,18 @@
 import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
 import { switchMap, tap } from 'rxjs/operators';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscribe } from 'app/custom-decorators';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { DepartmentNamePipe } from '@pipes/department-name.pipe';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'cometa-folder',
@@ -21,9 +21,9 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyButtonModule,
+    MatButtonModule,
     StopPropagationDirective,
-    MatLegacyMenuModule,
+    MatMenuModule,
     MatIconModule,
     DepartmentNamePipe,
   ],

@@ -17,8 +17,8 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { LogService } from '@services/log.service';
 import { FeatureRunningPipe } from '../../pipes/feature-running.pipe';
 import { DepartmentNamePipe } from '@pipes/department-name.pipe';
@@ -27,14 +27,14 @@ import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pip
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { LetDirective } from '../../directives/ng-let.directive';
 import {
   NgIf,
@@ -56,17 +56,17 @@ import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
   imports: [
     NgIf,
     LetDirective,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgClass,
     MatIconModule,
     StopPropagationDirective,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     NgSwitch,
     NgSwitchCase,
-    MatLegacyButtonModule,
-    MatLegacyMenuModule,
+    MatButtonModule,
+    MatMenuModule,
     MatDividerModule,
-    MatLegacyCheckboxModule,
+    MatCheckboxModule,
     TranslateModule,
     AmParsePipe,
     AmDateFormatPipe,

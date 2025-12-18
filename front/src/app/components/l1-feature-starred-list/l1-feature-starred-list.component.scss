@@ -59,30 +59,37 @@
       mat-form-field {
         width: 300px;
         ::ng-deep {
+          /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
           .mat-form-field-wrapper {
             padding-bottom: 0;
           }
+          /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
           .mat-form-field-flex {
             height: 50px;
             align-items: center;
           }
+          /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
           .mat-form-field-infix {
             padding: 0;
             border-top: 0;
             display: flex;
             align-items: center;
           }
+          /* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.*/
           .mat-select-value {
             line-height: 50px;
             display: flex;
             align-items: center;
           }
+          /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
           .mat-form-field-underline {
             bottom: 0;
           }
+          /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
           .mat-form-field-label-wrapper {
             top: -1.25em;
           }
+          /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
           .mat-form-field-label {
             display: flex;
             align-items: center;
@@ -138,30 +145,37 @@
     mat-form-field {
       width: 300px;
       ::ng-deep {
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
         .mat-form-field-wrapper {
           padding-bottom: 0;
         }
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
         .mat-form-field-flex {
           height: 50px;
           align-items: center;
         }
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
         .mat-form-field-infix {
           padding: 0;
           border-top: 0;
           display: flex;
           align-items: center;
         }
+        /* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.*/
         .mat-select-value {
           line-height: 50px;
           display: flex;
           align-items: center;
         }
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
         .mat-form-field-underline {
           bottom: 0;
         }
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
         .mat-form-field-label-wrapper {
           top: -1.25em;
         }
+        /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
         .mat-form-field-label {
           display: flex;
           align-items: center;

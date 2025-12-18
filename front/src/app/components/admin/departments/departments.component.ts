@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import { Select, Store } from '@ngxs/store';
 import { DepartmentsState } from '@store/departments.state';
@@ -12,7 +12,7 @@ import { Departments } from '@store/actions/departments.actions';
 import { User } from '@store/actions/user.actions';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { DepartmentComponent } from './department/department.component';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { LogService } from '@services/log.service';
@@ -27,7 +27,7 @@ import { LogService } from '@services/log.service';
     NgFor,
     DepartmentComponent,
     NgIf,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     SortByPipe,
     AsyncPipe,

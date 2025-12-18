@@ -1,7 +1,7 @@
 @import 'color';
 @import 'breakpoints';
 
-.mat-dialog-title {
+.mat-mdc-dialog-title {
   margin: 0;
   padding: 12px 15px;
   box-sizing: border-box;
@@ -128,10 +128,10 @@
   }
 }
 
-::ng-deep .whats-new-panel .mat-dialog-container {
+::ng-deep .whats-new-panel .mat-mdc-dialog-container {
   padding: 0;
   border-radius: 5px;
-  .mat-dialog-content {
+  .mat-mdc-dialog-content {
     padding: 0;
     margin: 0;
     overflow-x: hidden;
@@ -166,7 +166,7 @@
       background: transparent;
     }
   }
-  .mat-dialog-actions {
+  .mat-mdc-dialog-actions {
     margin: 0;
     padding: 15px;
     box-sizing: border-box;

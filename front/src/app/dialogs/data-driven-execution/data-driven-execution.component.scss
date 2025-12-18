@@ -1,7 +1,8 @@
 @import 'color';
 @import 'breakpoints';
 
-:host::ng-deep .edit-feature-info .mat-form-field .mat-form-field-infix {
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
+:host::ng-deep .edit-feature-info .mat-mdc-form-field .mat-form-field-infix {
   width: 130px;
 }
 
@@ -9,7 +10,7 @@
   @media (max-width: 600px) {
     flex-wrap: wrap;
   }
-  .mat-form-field {
+  .mat-mdc-form-field {
     @-moz-document url-prefix() {
       textarea {
         height: 15px;
@@ -25,18 +26,18 @@
 .table-container {
   max-height: 300px;
   overflow: auto;
-  tr.mat-header-row {
+  tr.mat-mdc-header-row {
     position: sticky;
     z-index: 1;
     top: 0;
   }
-  table.mat-table {
+  table.mat-mdc-table {
     width: 100%;
     min-width: 700px;
   }
 
-  td.mat-cell,
-  th.mat-header-cell {
+  td.mat-mdc-cell,
+  th.mat-mdc-header-cell {
     padding: 0;
   }
 
@@ -73,7 +74,7 @@ a {
   text-decoration: none;
 }
 
-.mat-radio-button {
+.mat-mdc-radio-button {
   margin: 0 10px;
 }
 
@@ -81,7 +82,7 @@ a {
   // overflow: unset;
 }
 
-:host::ng-deep .mat-dialog-content {
+:host::ng-deep .mat-mdc-dialog-content {
   padding: 0 10px 5px;
   @include for-tablet-portrait-up {
     padding: 0 24px 5px;
@@ -142,7 +143,7 @@ a {
   @include for-tablet-portrait-up {
     flex-direction: row;
     align-items: center;
-    .mat-checkbox:not(:first-child) {
+    .mat-mdc-checkbox:not(:first-child) {
       margin-left: 20px;
     }
   }
@@ -204,12 +205,13 @@ button {
   width: 100%;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 .schedule::ng-deep .mat-form-field-infix {
   width: auto !important;
   text-align: center;
 }
 
-.mat-radio-button {
+.mat-mdc-radio-button {
   display: block;
   margin-top: 15px;
   @include for-tablet-portrait-up {

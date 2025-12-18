@@ -2,14 +2,14 @@
 .mobile-validation-dialog {
   z-index: 1001 !important; // Higher than parent dialog
   
-  .mat-dialog-container {
+  .mat-mdc-dialog-container {
     position: relative;
     z-index: 1002;
   }
   
   // Prevent event bubbling to parent dialog
-  .mat-dialog-content,
-  .mat-dialog-actions {
+  .mat-mdc-dialog-content,
+  .mat-mdc-dialog-actions {
     position: relative;
     z-index: 1003;
   }

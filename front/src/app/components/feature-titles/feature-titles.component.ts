@@ -4,7 +4,7 @@ import { Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { map, switchMap } from 'rxjs/operators';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
@@ -13,7 +13,7 @@ import { NgIf, AsyncPipe } from '@angular/common';
   styleUrls: ['./feature-titles.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe],
+  imports: [NgIf, MatTooltipModule, AsyncPipe],
 })
 export class FeatureTitlesComponent implements OnInit {
   feature$: Observable<Feature>;

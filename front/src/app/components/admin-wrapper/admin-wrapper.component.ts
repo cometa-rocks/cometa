@@ -4,7 +4,7 @@ import { UserState } from '@store/user.state';
 import { Observable } from 'rxjs';
 import { RouterLinkActive, RouterLink, RouterOutlet } from '@angular/router';
 import { NgIf, AsyncPipe } from '@angular/common';
-import { MatLegacyTabsModule } from '@angular/material/legacy-tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
   selector: 'admin-wrapper',
@@ -13,7 +13,7 @@ import { MatLegacyTabsModule } from '@angular/material/legacy-tabs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyTabsModule,
+    MatTabsModule,
     NgIf,
     RouterLinkActive,
     RouterLink,

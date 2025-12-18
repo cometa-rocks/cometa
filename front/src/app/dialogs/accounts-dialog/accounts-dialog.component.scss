@@ -9,6 +9,7 @@ account:nth-child(2n + 2) {
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 5px;
 }
+/* TODO(mdc-migration): The following rule targets internal classes of dialog that may no longer apply for the MDC version. */
 mat-dialog-content {
   width: 100%;
 }

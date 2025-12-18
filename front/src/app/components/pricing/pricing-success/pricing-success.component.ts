@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'cometa-pricing-success',
@@ -9,7 +9,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   styleUrls: ['./pricing-success.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyButtonModule],
+  imports: [MatButtonModule],
 })
 export class PricingSuccessComponent {
   constructor(

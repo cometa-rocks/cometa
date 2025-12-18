@@ -3,7 +3,7 @@ import { FeaturesState } from '@store/features.state';
 import { UserState } from '@store/user.state';
 import { ApiService } from '@services/api.service';
 import { map, concatMap, finalize } from 'rxjs/operators';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, from } from 'rxjs';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { exportToJSONFile } from 'ngx-amvara-toolbox';
@@ -12,8 +12,8 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Store } from '@ngxs/store';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FeatureComponent } from './feature/feature.component';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 
@@ -27,8 +27,8 @@ import { NgIf, NgFor, AsyncPipe } from '@angular/common';
     NgIf,
     NgFor,
     FeatureComponent,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyButtonModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
     MatIconModule,
     SortByPipe,
     AsyncPipe,

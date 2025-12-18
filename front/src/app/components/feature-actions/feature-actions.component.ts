@@ -5,12 +5,12 @@ import {
   Input,
   Inject
 } from '@angular/core';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatDialog as MatModernDialog } from '@angular/material/dialog';
 import { LogOutputComponent } from '@dialogs/log-output/log-output.component';
 import { ApiService } from '@services/api.service';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { VideoComponent } from '@dialogs/video/video.component';
 import { Store } from '@ngxs/store';
 import { ResultsState } from '@store/results.state';
@@ -37,7 +37,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { PaginatedListsState } from '@store/paginated-list.state';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ErrorDialog } from '@dialogs/error/error.dialog';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -48,7 +48,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   styleUrls: ['./feature-actions.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe, MatProgressSpinnerModule],
+  imports: [NgIf, MatTooltipModule, AsyncPipe, MatProgressSpinnerModule],
 })
 export class FeatureActionsComponent implements OnInit {
   notificationEnabled$: Observable<boolean>;

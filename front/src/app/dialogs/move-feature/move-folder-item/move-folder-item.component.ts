@@ -6,18 +6,18 @@ import {
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import { filter, map, switchMap, tap } from 'rxjs/operators';
 import { Subscribe } from 'app/custom-decorators';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfigService } from '@services/config.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
 import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
 
 @Component({
@@ -28,8 +28,8 @@ import { StopPropagationDirective } from '../../../directives/stop-propagation.d
   standalone: true,
   imports: [
     StopPropagationDirective,
-    MatLegacyButtonModule,
-    MatLegacyMenuModule,
+    MatButtonModule,
+    MatMenuModule,
     MatIconModule,
     NgIf,
     NgFor,

@@ -24,12 +24,12 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { LetDirective } from '../../directives/ng-let.directive';
 import {
@@ -54,16 +54,16 @@ import {
     NgClass,
     LetDirective,
     StopPropagationDirective,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgIf,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyButtonModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
     MatIconModule,
     NgSwitch,
     NgSwitchCase,
     NgSwitchDefault,
-    MatLegacyCheckboxModule,
-    MatLegacyMenuModule,
+    MatCheckboxModule,
+    MatMenuModule,
     MatDividerModule,
     AsyncPipe,
     LowerCasePipe,

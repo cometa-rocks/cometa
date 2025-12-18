@@ -1,10 +1,11 @@
 @import 'color';
 
-:host::ng-deep .enter-value.mat-form-field.mat-focused .mat-form-field-ripple {
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+:host::ng-deep .enter-value.mat-mdc-form-field.mat-focused .mat-form-field-ripple {
   background-color: $blue;
 }
 
-:host::ng-deep .mat-form-field {
+:host::ng-deep .mat-mdc-form-field {
   width: 100%;
 }
 
@@ -14,7 +15,7 @@
   height: 100%;
 }
 
-.mat-dialog-container {
+.mat-mdc-dialog-container {
   min-width: 600px;
   min-height: 500px;
   display: flex;
@@ -45,11 +46,12 @@
   border-radius: 5px;
 }
 
-.mat-spinner {
+.mat-mdc-progress-spinner {
   display: block;
   margin: 0 auto;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of dialog that may no longer apply for the MDC version. */
 mat-dialog-actions {
   margin: 0;
   padding: 0 0;

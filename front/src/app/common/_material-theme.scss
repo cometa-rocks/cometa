@@ -1,7 +1,7 @@
 @use '@angular/material' as mat;
 
 @include mat.core();
-@include mat.legacy-core();
+@include mat.core();
 
 $cometa-primary: mat.define-palette(mat.$blue-palette, 800);
 $cometa-accent: mat.define-palette(mat.$purple-palette, 900);
@@ -20,4 +20,4 @@ $cometa-theme: mat.define-light-theme(
 );
 
 @include mat.all-component-themes($cometa-theme);
-@include mat.all-legacy-component-themes($cometa-theme);
+@include mat.all-component-themes($cometa-theme);

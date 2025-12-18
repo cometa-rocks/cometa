@@ -7,8 +7,8 @@ import {
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Browsers } from '@store/actions/browsers.actions';
 import { Actions } from '@store/actions/actions.actions';
 import { Store } from '@ngxs/store';
@@ -25,7 +25,7 @@ import { API_BASE } from 'app/tokens';
   imports: [
     NgFor,
     NgIf,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     AsyncPipe,
     HouseKeepingComponent,

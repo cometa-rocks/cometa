@@ -10,9 +10,9 @@ import {
   TemplateRef,
 } from '@angular/core';
 import {
-  LegacyPageEvent as PageEvent,
-  MatLegacyPaginatorModule,
-} from '@angular/material/legacy-paginator';
+  PageEvent,
+  MatPaginatorModule,
+} from '@angular/material/paginator';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
@@ -21,10 +21,10 @@ import { PaginatedListsState } from '@store/paginated-list.state';
 import { SafeGetStorage, StorageType } from 'ngx-amvara-toolbox';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgTemplateOutlet, NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -42,9 +42,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     NgTemplateOutlet,
     NgIf,
     NgFor,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyPaginatorModule,
-    MatLegacyButtonModule,
+    MatProgressSpinnerModule,
+    MatPaginatorModule,
+    MatButtonModule,
     AsyncPipe,
     MatIconModule,
     MatTooltipModule,

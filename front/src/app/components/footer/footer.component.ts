@@ -4,7 +4,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { SocketService } from '@services/socket.service';
 import { Observable } from 'rxjs';
 import { NgIf, AsyncPipe } from '@angular/common';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
@@ -13,7 +13,7 @@ import { LetDirective } from '../../directives/ng-let.directive';
   styleUrls: ['./footer.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [LetDirective, MatLegacyTooltipModule, NgIf, AsyncPipe],
+  imports: [LetDirective, MatTooltipModule, NgIf, AsyncPipe],
 })
 export class FooterComponent {
   constructor(public _socketService: SocketService) {}
