@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -21,7 +22,6 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { PdfLinkPipe } from '@pipes/pdf-link.pipe';
 import { DownloadService } from '@services/download.service';
 import { InterceptorParams } from 'ngx-network-error';
-import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';
 import { WebSockets } from '@store/actions/results.actions';
 
@@ -32,7 +32,7 @@ import { WebSockets } from '@store/actions/results.actions';
   styleUrls: ['./data-driven-results.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [PdfLinkPipe],
-  imports: [CommonModule, SharedModule],
+  imports: [SharedModule, NgClass],
   standalone: true,
 })
 export class DataDrivenResultsComponent implements OnInit {

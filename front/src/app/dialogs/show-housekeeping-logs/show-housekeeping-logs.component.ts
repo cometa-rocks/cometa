@@ -24,7 +24,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'show-housekeeping-log-dialog',
@@ -33,7 +32,6 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    CommonModule,
     MatDialogModule,
     ReactiveFormsModule,
     MatFormFieldModule,

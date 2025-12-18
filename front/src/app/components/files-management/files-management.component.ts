@@ -29,7 +29,7 @@ import { SureRemoveFileComponent } from '@dialogs/sure-remove-file/sure-remove-f
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 // Common Angular imports
-import { CommonModule } from '@angular/common';
+import { NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -88,7 +88,8 @@ import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    CommonModule,
+    NgIf,
+    NgFor,
     FormsModule,
     MtxGridModule,
     MatIconModule,

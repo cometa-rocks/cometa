@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Inject, ChangeDetectorRef, HostListener } from '@angular/core';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { NgIf, NgFor, NgClass, AsyncPipe, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -69,7 +69,10 @@ import { LogService } from '@services/log.service';
   styleUrls: ['./chat-popup.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
+    NgIf,
+    NgFor,
+    NgClass,
+    AsyncPipe,
     FormsModule,
     MatIconModule,
     MatButtonModule,

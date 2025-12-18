@@ -46,7 +46,6 @@ import { FeatureActionsComponent } from '../../components/feature-actions/featur
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 import { ElementRef } from '@angular/core';
 import { LogService } from '@services/log.service';
-import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
 import { UserState } from '@store/user.state';
@@ -83,7 +82,6 @@ import { log } from 'ngx-amvara-toolbox';
     PixelDifferencePipe,
     AsyncPipe,
     TitleCasePipe,
-    CommonModule,
     MatSelectModule,
     MatBadgeModule
   ],

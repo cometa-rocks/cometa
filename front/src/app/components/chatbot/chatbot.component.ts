@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, ViewChild, ElementRef, OnDestroy, HostListener, NgZone, AfterViewInit, ChangeDetectorRef, Renderer2, Inject } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { NgIf, NgFor, NgClass, AsyncPipe, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -43,7 +43,10 @@ import { LogService } from '../../services/log.service';
   ],
   standalone: true,
   imports: [
-    CommonModule,
+    NgIf,
+    NgFor,
+    NgClass,
+    AsyncPipe,
     FormsModule,
     MatIconModule,
     MatButtonModule,

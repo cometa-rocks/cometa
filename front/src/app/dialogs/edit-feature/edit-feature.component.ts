@@ -40,7 +40,7 @@ import { StepEditorComponent } from '@components/step-editor/step-editor.compone
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import {
-  MatChipListChange,
+  MatChipListboxChange,
   MatChipsModule,
 } from '@angular/material/chips';
 import { ApplicationsState } from '@store/applications.state';
@@ -1016,7 +1016,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange, fieldName: string) {
+  addAddress(change: MatChipListboxChange, fieldName: string) {
     // Check email value
     if (change.value) {
       // Accounts with only Default department, are limited, they can only use their own email

@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { CommonModule } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -10,7 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./sure-remove-run.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     MatDialogModule,
     MatButtonModule
   ]

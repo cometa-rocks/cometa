@@ -24,9 +24,8 @@ import { Tour, TourExtended, Tours } from '@services/tours';
 import { UserState } from '@store/user.state';
 import { map, Observable } from 'rxjs';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { NgIf, AsyncPipe } from '@angular/common';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { WhatsNewService } from '@services/whats-new.service';
-import { CommonModule } from '@angular/common';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ConfigState } from '@store/config.state';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -37,7 +36,7 @@ import { MatDialogModule } from '@angular/material/dialog';
   styleUrls: ['./welcome.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, LetDirective, AsyncPipe, CommonModule, MatDialogModule],
+  imports: [NgIf, NgFor, LetDirective, AsyncPipe, MatDialogModule],
 })
 export class WelcomeComponent {
   constructor(

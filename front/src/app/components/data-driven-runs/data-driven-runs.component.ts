@@ -62,7 +62,6 @@ import { MatSelectChange } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
-import { CommonModule } from '@angular/common';
 import * as _ from 'lodash';
 import { LogService } from '@services/log.service';
 import { FilesManagementComponent } from '@components/files-management/files-management.component';
@@ -156,7 +155,6 @@ interface UserInfo {
     SortByPipe,
     MatProgressSpinnerModule,
     LoadingSpinnerComponent,
-    CommonModule,
     FilesManagementComponent,
   ],
 })

@@ -32,7 +32,12 @@
       "@plugins/*": ["app/plugins/*"],
       "ngx-network-error": ["../node_modules/ngx-network-error/projects/ngx-network-error/src/public-api.ts"],
       "rxjs": ["../node_modules/rxjs"],
-      "rxjs/*": ["../node_modules/rxjs/*"]
+      "rxjs/*": ["../node_modules/rxjs/*"],
+      "@angular/*": ["../node_modules/@angular/*"],
+      "@angular/common": ["../node_modules/@angular/common"],
+      "@angular/core": ["../node_modules/@angular/core"],
+      "@angular/forms": ["../node_modules/@angular/forms"],
+      "@angular/material/*": ["../node_modules/@angular/material/*"]
     }
   },
   "include": ["src/**/*.d.ts"],

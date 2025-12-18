@@ -21,7 +21,7 @@ import {
   distinctUntilChanged,
   switchMap,
 } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LogService } from '@services/log.service';
 
@@ -31,7 +31,7 @@ import { LogService } from '@services/log.service';
   styleUrls: ['./json-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, MatButtonModule, NgxJsonViewerModule],
+  imports: [NgIf, MatButtonModule, NgxJsonViewerModule],
 })
 export class JsonViewerComponent implements OnInit {
   @ViewChild('jqResult') jq_result: ElementRef<HTMLTextAreaElement>;

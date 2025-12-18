@@ -11,7 +11,7 @@
  */
 import { Component, OnInit, Inject, ChangeDetectionStrategy} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { NgIf, NgFor, KeyValuePipe, TitleCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
@@ -27,7 +27,9 @@ import { parseISO, isValid } from 'date-fns';
   styleUrls: ['./feature-history.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
+    NgIf,
+    NgFor,
+    KeyValuePipe,
     MatIconModule,
     MatButtonModule,
     MatChipsModule,

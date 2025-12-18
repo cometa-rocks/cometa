@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 import { FeaturesState } from '@store/features.state';
-import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ConfigState } from '@store/config.state';
@@ -14,7 +13,7 @@ import { EnvironmentsState } from '@store/environments.state';
 
 @Component({
   selector: 'cometa-data-driven',
-  imports: [CommonModule, SharedModule],
+  imports: [SharedModule],
   templateUrl: './data-driven.component.html',
   styleUrls: ['./data-driven.component.scss'],
   standalone: true,

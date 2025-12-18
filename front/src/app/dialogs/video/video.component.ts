@@ -12,9 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
+import { NgIf, NgFor, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { LogService } from '@services/log.service';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'video-player',
@@ -24,6 +23,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     NgIf,
+    NgFor,
     MatProgressSpinnerModule,
     MatButtonModule,
     MatTooltipModule,
@@ -33,7 +33,6 @@ import { CommonModule } from '@angular/common';
     BrowserComboTextPipe,
     AsyncPipe,
     TitleCasePipe,
-    CommonModule,
   ],
 })
 export class VideoComponent implements OnInit {

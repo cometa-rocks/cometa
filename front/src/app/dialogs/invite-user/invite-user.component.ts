@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import {
-  MatChipListChange,
+  MatChipListboxChange,
   MatChipsModule,
 } from '@angular/material/chips';
 import {
@@ -103,7 +103,7 @@ export class InviteUserDialog implements OnInit {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange) {
+  addAddress(change: MatChipListboxChange) {
     // Check email value
     if (change.value) {
       // Get current addresses

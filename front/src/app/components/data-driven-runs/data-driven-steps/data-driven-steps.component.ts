@@ -30,7 +30,6 @@ import { NetworkPaginatedListComponent } from '@components/network-paginated-lis
 import { SharedActionsService } from '@services/shared-actions.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
-import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';
 import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
 
@@ -39,7 +38,7 @@ import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
   templateUrl: './data-driven-steps.component.html',
   styleUrls: ['./data-driven-steps.component.scss'],
   standalone: true,
-  imports: [CommonModule, SharedModule, TruncateApiBodyPipe],
+  imports: [SharedModule, TruncateApiBodyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('progressIn', [

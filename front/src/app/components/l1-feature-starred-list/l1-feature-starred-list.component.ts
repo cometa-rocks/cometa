@@ -11,7 +11,7 @@
  */
 
 import { Component, Input, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgIf, NgFor, KeyValuePipe, AsyncPipe } from '@angular/common';
 import { StarredService } from '@services/starred.service';
 import { Observable, combineLatest, of, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
@@ -34,7 +34,10 @@ interface TableData {
   selector: 'cometa-l1-feature-starred-list',
   standalone: true,
   imports: [
-    CommonModule, 
+    NgIf,
+    NgFor,
+    KeyValuePipe,
+    AsyncPipe,
     MatIconModule, 
     L1FeatureItemListComponent,
     MatFormFieldModule,

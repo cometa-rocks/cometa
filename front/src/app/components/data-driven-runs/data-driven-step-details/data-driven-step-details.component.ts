@@ -36,7 +36,6 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
-import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';
 
 @Component({
@@ -45,7 +44,7 @@ import { SharedModule } from '@modules/shared.module';
   styleUrls: ['./data-driven-step-details.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, SharedModule],
+  imports: [SharedModule],
   animations: [
     trigger('image1', [
       state(
