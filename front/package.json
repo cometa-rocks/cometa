@@ -43,7 +43,7 @@
     "@types/body-parser": "1.19.5",
     "@types/c3": "0.7.8",
     "ajv-keywords": "3.5.2",
-    "angular-svg-round-progressbar": "15.0.0",
+    "angular-svg-round-progressbar": "14.0.0",
     "compare-versions": "3.6.0",
     "core-js": "3.21.1",
     "cron-parser": "4.3.0",
