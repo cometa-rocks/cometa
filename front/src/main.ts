@@ -77,12 +77,7 @@ import {
 } from './app/tokens';
 import { LoadingInterceptor } from '@services/loading.interceptor';
 import { SuccessHandlerInterceptor } from '@services/success-handler.interceptor';
-import {
-  HTTP_INTERCEPTORS,
-  withInterceptorsFromDi,
-  provideHttpClient,
-  HttpClient,
-} from '@angular/common/http';
+import { HTTP_INTERCEPTORS, withInterceptorsFromDi, provideHttpClient, HttpClient } from '@angular/common/http';
 import { Tours } from '@services/tours';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { WhatsNewService } from '@services/whats-new.service';
