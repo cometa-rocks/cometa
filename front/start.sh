@@ -155,7 +155,8 @@ function build_project(){
 	cat output.log
 
 	echo -e "\e[37mCopying files to public folder...\e[0m"
-	cp -a /code/front/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
+	# cp -a /code/front/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
+	cp -a /code/front/dist/browser/. /usr/local/apache2/htdocs/ >> output.log 2>&1
 
 	# FIX me does not work in localhost
 	# echo "Fixing user permissions, setting uid and gid to: ${UIDGID}"

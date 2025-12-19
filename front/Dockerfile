@@ -58,7 +58,8 @@ COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
 WORKDIR /code/front
 
 # Copy the Angular build output to the Nginx HTML directory
-COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
+# COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
+COPY --chown=cometa:cometa --from=build /app/dist/browser/ /usr/local/apache2/htdocs
 # COPY --from=build --chown=cometa:cometa /app/dist/ /usr/local/apache2/htdocs 
 COPY --chown=cometa:cometa ./apache2/conf/*.conf /usr/local/apache2/conf
 COPY --chown=cometa:cometa ./apache2/metadata/* /code/front/apache2/metadata

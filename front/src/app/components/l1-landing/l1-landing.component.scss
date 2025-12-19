@@ -40,7 +40,7 @@ edit-variables {
     height: 21px;
     width: 21px;
     &.feature-icon {
-      background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+      background: url(/assets/internal/COM_Add_Icon2.svg) no-repeat;
       background-size: contain;
       stroke-width: 3;
       height: 21px;
@@ -228,7 +228,7 @@ edit-variables {
           height: 21px;
           width: 21px;
           &.feature-icon {
-            background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+            background: url(/assets/internal/COM_Add_Icon2.svg) no-repeat;
             background-size: contain;
             stroke-width: 3;
             height: 17px;
@@ -253,7 +253,7 @@ edit-variables {
           height: 21px;
           width: 21px;
           &.feature-icon {
-            background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+            background: url(/assets/internal/COM_Add_Icon2.svg) no-repeat;
             background-size: contain;
             stroke-width: 3;
             height: 21px;
@@ -287,7 +287,7 @@ edit-variables {
     height: 50px;
     width: 52px;
     cursor: pointer;
-    background-image: url(^assets/filter.svg);
+    background-image: url(/assets/filter.svg);
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: 16px 18px;
@@ -386,15 +386,15 @@ p {
         opacity: 0.5;
       }
       &.tiles:after {
-        background-image: url(^assets/icons/tiles-view.svg);
+        background-image: url(/assets/icons/tiles-view.svg);
         background-size: 15px;
       }
       &.list:after {
-        background-image: url(^assets/icons/list-view.svg);
+        background-image: url(/assets/icons/list-view.svg);
         background-size: 20px;
       }
       &.tree:after {
-        background-image: url(^assets/icons/tree-view.svg);
+        background-image: url(/assets/icons/tree-view.svg);
         background-size: 20px;
       }
     }

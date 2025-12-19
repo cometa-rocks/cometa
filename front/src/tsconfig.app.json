@@ -35,8 +35,12 @@
     }
   },
   "files": ["main.ts", "polyfills.ts"],
-  "include": ["./**/*.d.ts"],
+  "include": [
+    "./**/*.d.ts",
+    "../node_modules/ngx-network-error/projects/ngx-network-error/src/**/*.ts"
+  ],
   "exclude": [
-    "../node_modules/ngx-network-error/**/*.ts"
+    "../node_modules/ngx-network-error/src/**/*.ts",
+    "../node_modules/ngx-network-error/projects/ngx-network-error/src/**/*.spec.ts"
   ]
 }

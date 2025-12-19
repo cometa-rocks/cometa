@@ -10,10 +10,10 @@
   background-size: contain;
   background-position: center;
   &.checked {
-    background-image: url(^assets/check.svg);
+    background-image: url(/assets/check.svg);
   }
   &.timeout {
-    background-image: url(^assets/warning.svg);
+    background-image: url(/assets/warning.svg);
   }
 }
 

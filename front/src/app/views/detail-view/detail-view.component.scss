@@ -18,7 +18,7 @@
   cursor: pointer;
   height: 32px;
   width: 32px;
-  background: url(^assets/internal/COM_Edit_Icon.svg) no-repeat;
+  background: url(/assets/internal/COM_Edit_Icon.svg) no-repeat;
   background-size: contain;
   transform: scale(1) rotate(0deg);
   transition: transform 0.2s ease-in-out;
@@ -50,7 +50,7 @@ hr {
   @include for-tablet-portrait-up {
     display: block;
   }
-  background-image: url(^assets/arrow.svg);
+  background-image: url(/assets/arrow.svg);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
@@ -113,7 +113,7 @@ hr {
       width: 15px;
       display: inline-block;
       margin-right: 10px;
-      background: url(^assets/left-arrow.svg) no-repeat;
+      background: url(/assets/left-arrow.svg) no-repeat;
       background-size: contain;
       vertical-align: middle;
     }
@@ -144,7 +144,7 @@ hr {
     justify-content: center;
     &.ok {
       i.tick {
-        background: url(^assets/internal/COM_OK_Icon.svg) no-repeat;
+        background: url(/assets/internal/COM_OK_Icon.svg) no-repeat;
         background-size: contain;
       }
       span.tick {
@@ -153,7 +153,7 @@ hr {
     }
     &.nok {
       i.tick {
-        background: url(^assets/internal/COM_NotOK_Icon.svg) no-repeat;
+        background: url(/assets/internal/COM_NotOK_Icon.svg) no-repeat;
         background-size: contain;
       }
       span.tick {
@@ -202,7 +202,7 @@ hr {
       flex: 0 130px;
       min-width: 130px;
       height: 45px;
-      background-image: url(^assets/pixels_grafic.svg);
+      background-image: url(/assets/pixels_grafic.svg);
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
@@ -212,7 +212,7 @@ hr {
       flex: 0 50px;
       width: 50px;
       height: 50px;
-      background: url(^assets/internal/COM_Time_Icon.svg) no-repeat;
+      background: url(/assets/internal/COM_Time_Icon.svg) no-repeat;
       background-size: contain;
       margin-right: 20px;
     }
@@ -289,7 +289,7 @@ hr {
         }
         .zoom {
           right: 100px;
-          background-image: url(^assets/eye.svg);
+          background-image: url(/assets/eye.svg);
           background-size: 30px;
           @include for-tablet-portrait-up {
             right: 80px;
@@ -297,7 +297,7 @@ hr {
         }
         .remove {
           left: 100px;
-          background-image: url(^assets/trash.svg);
+          background-image: url(/assets/trash.svg);
           background-size: 25px;
           @include for-tablet-portrait-up {
             left: 80px;

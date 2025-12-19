@@ -170,20 +170,20 @@
       background-size: contain;
       background-position: center 8px;
       &.waiting {
-        background-image: url(^assets/hourglass.svg);
+        background-image: url(/assets/hourglass.svg);
       }
       &.success {
-        background-image: url(^assets/check.svg);
+        background-image: url(/assets/check.svg);
       }
       &.failed {
-        background-image: url(^assets/warning.svg);
+        background-image: url(/assets/warning.svg);
       }
       &.running {
-        background-image: url(^assets/Google-loader.gif);
-        background-image: url(^assets/Google-loader.svg);
+        background-image: url(/assets/Google-loader.gif);
+        background-image: url(/assets/Google-loader.svg);
       }
       &.skipped {
-        background-image: url(^assets/radio_button_unchecked.svg);
+        background-image: url(/assets/radio_button_unchecked.svg);
         opacity: 0.6;
       }
     }
@@ -194,20 +194,20 @@
       background-size: 22px;
       background-position: center 8px;
       &.waiting {
-        background-image: url(^assets/hourglass.svg);
+        background-image: url(/assets/hourglass.svg);
       }
       &.success {
-        background-image: url(^assets/check.svg);
+        background-image: url(/assets/check.svg);
       }
       &.failed {
-        background-image: url(^assets/warning.svg);
+        background-image: url(/assets/warning.svg);
       }
       &.running {
-        background-image: url(^assets/Google-loader.gif);
-        background-image: url(^assets/Google-loader.svg);
+        background-image: url(/assets/Google-loader.gif);
+        background-image: url(/assets/Google-loader.svg);
       }
       &.skipped {
-        background-image: url(^assets/radio_button_unchecked.svg);
+        background-image: url(/assets/radio_button_unchecked.svg);
         opacity: 0.6;
       }
     }

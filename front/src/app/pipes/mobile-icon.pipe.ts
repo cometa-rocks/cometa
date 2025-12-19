@@ -23,7 +23,7 @@ export class MobileIconPipe implements PipeTransform {
     // }
     // name = name.replace(/ /, '').toLowerCase();
     return this._sanitizer.bypassSecurityTrustStyle(
-      `url(assets/icons/mobile.svg)`
+      `url(/assets/icons/mobile.svg)`
     );
   }
 }

@@ -28,13 +28,13 @@
   background-size: contain;
   background-position: center;
   &.Discord {
-    background-image: url(^assets/icons/discord.svg);
+    background-image: url(/assets/icons/discord.svg);
   }
   &.Slack {
-    background-image: url(^assets/icons/slack.svg);
+    background-image: url(/assets/icons/slack.svg);
   }
   &.Mattermost {
-    background-image: url(^assets/icons/mattermost.svg);
+    background-image: url(/assets/icons/mattermost.svg);
   }
 }
 

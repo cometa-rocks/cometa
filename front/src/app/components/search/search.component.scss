@@ -31,7 +31,7 @@
     height: 50px;
     width: 52px;
     cursor: pointer;
-    background-image: url(^assets/filter.svg);
+    background-image: url(/assets/filter.svg);
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: 16px 18px;
@@ -176,7 +176,7 @@
       cursor: pointer;
       display: block;
       background: #f0f0f0;
-      background-image: url(^assets/cross.svg);
+      background-image: url(/assets/cross.svg);
       background-repeat: no-repeat;
       background-size: 10px;
       background-position: center center;
@@ -283,7 +283,7 @@ h4 {
         height: 12px;
         width: 18px;
         opacity: 0.4;
-        background-image: url(^assets/icons/next.svg);
+        background-image: url(/assets/icons/next.svg);
         background-repeat: no-repeat;
         background-size: contain;
         background-position: center;
@@ -293,7 +293,7 @@ h4 {
     i {
       height: 18px;
       width: 18px;
-      background-image: url(^assets/icons/folder.svg);
+      background-image: url(/assets/icons/folder.svg);
       background-repeat: no-repeat;
       background-position: center;
       background-size: contain;
@@ -360,11 +360,11 @@ p {
         opacity: 0.5;
       }
       &.tiles:after {
-        background-image: url(^assets/icons/tiles-view.svg);
+        background-image: url(/assets/icons/tiles-view.svg);
         background-size: 15px;
       }
       &.list:after {
-        background-image: url(^assets/icons/list-view.svg);
+        background-image: url(/assets/icons/list-view.svg);
         background-size: 20px;
       }
     }

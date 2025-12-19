@@ -26,7 +26,7 @@
 .log {
   height: 32px;
   width: 32px;
-  background: url(^assets/internal/COM_Edit_Icon.svg) no-repeat;
+  background: url(/assets/internal/COM_Edit_Icon.svg) no-repeat;
   background-size: contain;
   transform: scale(1) rotate(0deg);
   transition: transform 0.2s ease-in-out;
@@ -50,7 +50,7 @@
   opacity: 0.7;
   border: 1px solid black;
   border-radius: 50%;
-  background: url(^assets/icons/calendar.svg) no-repeat;
+  background: url(/assets/icons/calendar.svg) no-repeat;
   background-size: 16px;
   background-position: 8px 7px;
   transform: scale(1) rotate(0deg);
@@ -63,7 +63,7 @@
 .run {
   height: 32px;
   width: 32px;
-  background: url(^assets/play-button.svg) no-repeat;
+  background: url(/assets/play-button.svg) no-repeat;
   background-size: contain;
   transform: scale(1);
   transition: transform 0.2s ease-in-out;
@@ -104,7 +104,7 @@
   height: 30px;
   width: 30px;
   background-size: 22px 20px;
-  background-image: url(^assets/icons/pdf.svg);
+  background-image: url(/assets/icons/pdf.svg);
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -112,7 +112,7 @@
 .csv {
   height: 30px;
   width: 30px;
-  background-image: url(^assets/icons/csv.svg);
+  background-image: url(/assets/icons/csv.svg);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
@@ -152,7 +152,7 @@
   height: 32px;
   width: 30px;
   opacity: 0.7;
-  background-image: url(^assets/icons/more.svg);
+  background-image: url(/assets/icons/more.svg);
   background-repeat: no-repeat;
   background-size: 25px;
   background-position: center;
@@ -178,7 +178,7 @@
   border: 1px solid black;
   border-radius: 50%;
   opacity: 0.7;
-  background-image: url(^assets/icons/bell.svg);
+  background-image: url(/assets/icons/bell.svg);
   background-size: 16px;
   background-repeat: no-repeat;
   background-position: center;
@@ -191,7 +191,7 @@
     border-color: $blue;
     background-color: $blue;
     opacity: 1;
-    background-image: url(^assets/icons/bell-white.svg);
+    background-image: url(/assets/icons/bell-white.svg);
   }
 }
 

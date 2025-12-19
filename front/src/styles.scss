@@ -10,13 +10,13 @@
   font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
-  src: url(^assets/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
+  src: url(/assets/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
   src:
     local('Material Icons'),
     local('MaterialIcons-Regular'),
-    url(^assets/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
-    url(^assets/iconfont/MaterialIcons-Regular.woff) format('woff'),
-    url(^assets/iconfont/MaterialIcons-Regular.ttf) format('truetype');
+    url(/assets/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
+    url(/assets/iconfont/MaterialIcons-Regular.woff) format('woff'),
+    url(/assets/iconfont/MaterialIcons-Regular.ttf) format('truetype');
 }
 
 .material-icons {
@@ -46,12 +46,12 @@
 
 @font-face {
   font-family: CorpoS;
-  src: url(^assets/c063003t.ttf) format('truetype');
+  src: url(/assets/c063003t.ttf) format('truetype');
 }
 
 @font-face {
   font-family: CorpoSDem;
-  src: url(^assets/c063004t.ttf) format('truetype');
+  src: url(/assets/c063004t.ttf) format('truetype');
 }
 
 * {
@@ -504,23 +504,23 @@ h3 {
     margin-right: 5px;
   }
   &.chrome {
-    background-image: url(^assets/chrome.svg);
+    background-image: url(/assets/chrome.svg);
   }
   &.firefox {
-    background-image: url(^assets/firefox.svg);
+    background-image: url(/assets/firefox.svg);
   }
   &.MicrosoftEdge,
   &.edge {
-    background-image: url(^assets/icons/edge.svg);
+    background-image: url(/assets/icons/edge.svg);
   }
   &.safari {
-    background-image: url(^assets/icons/safari.svg);
+    background-image: url(/assets/icons/safari.svg);
   }
   &.ie {
-    background-image: url(^assets/icons/ie.svg);
+    background-image: url(/assets/icons/ie.svg);
   }
   &.clipboard {
-    background-image: url(^assets/clipboard.svg);
+    background-image: url(/assets/clipboard.svg);
   }
 }
 

@@ -106,7 +106,7 @@
         .run-test {
           height: 12px;
           width: 10px;
-          background-image: url(^assets/play-button_2.svg);
+          background-image: url(/assets/play-button_2.svg);
           background-repeat: no-repeat;
           background-size: contain;
           vertical-align: middle;
@@ -463,7 +463,7 @@ input {
     height: 18pt;
     transition: transform 0.3s ease;
     min-width: 18px;
-    background-image: url(^assets/icons/folder.svg);
+    background-image: url(/assets/icons/folder.svg);
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;

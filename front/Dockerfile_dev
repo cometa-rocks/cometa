@@ -67,7 +67,8 @@ COPY --chown=cometa:cometa package*.json ./
 RUN npx ng build -c production 
 
 # Copy the Angular build output to the Nginx HTML directory
-COPY /code/front/dist/ /usr/local/apache2/htdocs
+# COPY /code/front/dist/ /usr/local/apache2/htdocs
+COPY /code/front/dist/browser/ /usr/local/apache2/htdocs
 
 RUN mkdir -p /usr/local/apache2/htdocs/mobile/inspector
 # Copy appium Inspector code from inspector build

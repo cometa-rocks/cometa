@@ -50,23 +50,23 @@
     &:hover i,
     &.active i {
       &.menu {
-        background: url(^assets/internal/COM_Menu_Icon.hover.svg) no-repeat;
+        background: url(/assets/internal/COM_Menu_Icon.hover.svg) no-repeat;
         background-size: contain;
       }
       &.settings {
-        background: url(^assets/internal/COM_Filter_Icon.hover.svg) no-repeat;
+        background: url(/assets/internal/COM_Filter_Icon.hover.svg) no-repeat;
         background-size: contain;
       }
       &.upload {
-        background: url(^assets/internal/COM_Add_Icon.hover.svg) no-repeat;
+        background: url(/assets/internal/COM_Add_Icon.hover.svg) no-repeat;
         background-size: contain;
       }
       &.user {
-        background: url(^assets/internal/COM_User_Icon.hover.svg) no-repeat;
+        background: url(/assets/internal/COM_User_Icon.hover.svg) no-repeat;
         background-size: contain;
       }
       &.chat {
-        background: url(^assets/icons/chat.hover.svg) no-repeat;
+        background: url(/assets/icons/chat.hover.svg) no-repeat;
         background-size: contain;
       }
     }
@@ -84,24 +84,24 @@
       height: 22px;
       width: 22px;
       &.menu {
-        background: url(^assets/internal/COM_Menu_Icon.svg) no-repeat;
+        background: url(/assets/internal/COM_Menu_Icon.svg) no-repeat;
         background-size: contain;
         height: 17px;
       }
       &.settings {
-        background: url(^assets/internal/COM_Filter_Icon.svg) no-repeat;
+        background: url(/assets/internal/COM_Filter_Icon.svg) no-repeat;
         background-size: contain;
       }
       &.upload {
-        background: url(^assets/internal/COM_Add_Icon.svg) no-repeat;
+        background: url(/assets/internal/COM_Add_Icon.svg) no-repeat;
         background-size: contain;
       }
       &.user {
-        background: url(^assets/internal/COM_User_Icon.svg) no-repeat;
+        background: url(/assets/internal/COM_User_Icon.svg) no-repeat;
         background-size: contain;
       }
       &.chat {
-        background: url(^assets/icons/chat.svg) no-repeat;
+        background: url(/assets/icons/chat.svg) no-repeat;
         background-size: contain;
       }
       &.landing {
@@ -154,7 +154,7 @@
     height: 40px;
     cursor: pointer;
     width: 40px;
-    background: url(^assets/cross.svg) no-repeat;
+    background: url(/assets/cross.svg) no-repeat;
     background-size: 15px;
     background-position: 12px 12px;
     border-radius: 50%;

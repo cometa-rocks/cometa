@@ -27,7 +27,7 @@
   i {
     height: 18px;
     width: 18px;
-    background-image: url(^assets/internal/COM_Menu_Icon_Sidemap_Arrow.svg);
+    background-image: url(/assets/internal/COM_Menu_Icon_Sidemap_Arrow.svg);
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
@@ -94,7 +94,7 @@
         height: 12px;
         width: 18px;
         opacity: 0.4;
-        background-image: url(^assets/icons/next.svg);
+        background-image: url(/assets/icons/next.svg);
         background-repeat: no-repeat;
         background-size: contain;
         background-position: center;
@@ -163,7 +163,7 @@
       cursor: pointer;
       display: block;
       background: $body-bg-color;
-      background-image: url(^assets/cross.svg);
+      background-image: url(/assets/cross.svg);
       background-repeat: no-repeat;
       background-size: 10px;
       background-position: center center;

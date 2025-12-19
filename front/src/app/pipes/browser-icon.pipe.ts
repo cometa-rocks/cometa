@@ -22,7 +22,7 @@ export class BrowserIconPipe implements PipeTransform {
     }
     name = name.replace(/ /, '').toLowerCase();
     return this._sanitizer.bypassSecurityTrustStyle(
-      `url(assets/icons/${name}.svg)`
+      `url(/assets/icons/${name}.svg)`
     );
   }
 }

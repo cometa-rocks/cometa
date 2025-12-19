@@ -113,14 +113,14 @@ a {
   .portrait_landscape {
     width: 250px;
     height: 140px;
-    background-image: url(^assets/img/portrait_landscape.svg);
+    background-image: url(/assets/img/portrait_landscape.svg);
     background-size: contain;
     background-repeat: no-repeat;
   }
   .scroll_swipe {
     width: 250px;
     height: 135px;
-    background-image: url(^assets/img/scroll_swipe.svg);
+    background-image: url(/assets/img/scroll_swipe.svg);
     background-size: contain;
     background-repeat: no-repeat;
   }
@@ -130,12 +130,12 @@ a {
     height: 90px;
   }
   .hand1 {
-    background-image: url(^assets/img/hand1.svg);
+    background-image: url(/assets/img/hand1.svg);
   }
   .hand2 {
     margin-left: 80px;
     height: 95px;
-    background-image: url(^assets/img/hand2.svg);
+    background-image: url(/assets/img/hand2.svg);
   }
 }
 
