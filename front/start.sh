@@ -174,8 +174,10 @@ function serve_project() {
 	ps aux | grep "ng serve" | grep -v grep | awk '{print $2}' | xargs -r kill -9
 	# replace baseHref inside index.html before serving
 	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
-	# serve the project
-	npx ng serve
+	# serve the project (old way - deprecated in Angular v18)
+	# npx ng serve
+	# serve the project with serve-path flag (Angular v18 requires --serve-path instead of --base-href)
+	npx ng serve --serve-path /debug/
 }
 
 # #########
@@ -187,8 +189,10 @@ function serve_project() {
 function serve_project_auto() {
 	# replace baseHref inside index.html before serving
 	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
-	# serve the project
-	nohup npx ng serve & > /usr/local/apache2/angular_serve.logs 2>&1 &
+	# serve the project (old way - deprecated in Angular v18)
+	# nohup npx ng serve & > /usr/local/apache2/angular_serve.logs 2>&1 &
+	# serve the project with serve-path flag (Angular v18 requires --serve-path instead of --base-href)
+	nohup npx ng serve --serve-path /debug/ & > /usr/local/apache2/angular_serve.logs 2>&1 &
 }
 
 # #########
