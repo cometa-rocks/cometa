@@ -15,17 +15,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
-  selector: 'sure-remove-feature',
-  templateUrl: './sure-remove-feature.component.html',
-  styleUrls: ['./sure-remove-feature.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    LetDirective,
-    MatButtonModule,
-    AsyncPipe,
-  ],
+    selector: 'sure-remove-feature',
+    templateUrl: './sure-remove-feature.component.html',
+    styleUrls: ['./sure-remove-feature.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        LetDirective,
+        MatButtonModule,
+        AsyncPipe,
+    ]
 })
 export class SureRemoveFeatureComponent {
   static panelClass = 'no-resize-dialog';

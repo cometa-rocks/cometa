@@ -26,20 +26,19 @@ import { MatRippleModule } from '@angular/material/core';
 import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
-  selector: 'cometa-folder-item-tree',
-  templateUrl: './folder-item-tree.component.html',
-  styleUrls: ['./folder-item-tree.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    LetDirective,
-    MatRippleModule,
-    MatIconModule,
-    NgIf,
-    NgFor,
-    forwardRef(() => FolderItemTreeComponent),
-    AsyncPipe,
-  ],
+    selector: 'cometa-folder-item-tree',
+    templateUrl: './folder-item-tree.component.html',
+    styleUrls: ['./folder-item-tree.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        LetDirective,
+        MatRippleModule,
+        MatIconModule,
+        NgIf,
+        NgFor,
+        forwardRef(() => FolderItemTreeComponent),
+        AsyncPipe,
+    ]
 })
 export class FolderItemTreeComponent implements OnInit {
   // stores state for each folder in hierarchy

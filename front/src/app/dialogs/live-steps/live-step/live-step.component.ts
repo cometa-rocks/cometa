@@ -38,42 +38,35 @@ import { DatePipe } from '@angular/common';
 
 @UntilDestroy()
 @Component({
-  selector: 'cometa-live-step',
-  templateUrl: './live-step.component.html',
-  styleUrls: ['./live-step.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('detailAnimation', [
-      transition(':enter', [
-        style({ transform: 'translateY(100%)', height: 0, opacity: 0 }),
-        animate(
-          '250ms',
-          style({ transform: 'translateY(0)', height: '20px', opacity: 1 })
-        ),
-      ]),
-      transition(':leave', [
-        style({ transform: 'translateY(0)', height: '20px', opacity: 1 }),
-        animate(
-          '250ms',
-          style({ transform: 'translateY(100%)', height: 0, opacity: 0 })
-        ),
-      ]),
-    ]),
-  ],
-  standalone: true,
-  imports: [
-    LetDirective,
-    NgClass,
-    MatTooltipModule,
-    NgIf,
-    NgFor,
-    MatIconModule,
-    NgStyle,
-    AsyncPipe,
-    TitleCasePipe,
-    TruncateApiBodyPipe,
-    DatePipe,
-  ],
+    selector: 'cometa-live-step',
+    templateUrl: './live-step.component.html',
+    styleUrls: ['./live-step.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('detailAnimation', [
+            transition(':enter', [
+                style({ transform: 'translateY(100%)', height: 0, opacity: 0 }),
+                animate('250ms', style({ transform: 'translateY(0)', height: '20px', opacity: 1 })),
+            ]),
+            transition(':leave', [
+                style({ transform: 'translateY(0)', height: '20px', opacity: 1 }),
+                animate('250ms', style({ transform: 'translateY(100%)', height: 0, opacity: 0 })),
+            ]),
+        ]),
+    ],
+    imports: [
+        LetDirective,
+        NgClass,
+        MatTooltipModule,
+        NgIf,
+        NgFor,
+        MatIconModule,
+        NgStyle,
+        AsyncPipe,
+        TitleCasePipe,
+        TruncateApiBodyPipe,
+        DatePipe,
+    ]
 })
 export class LiveStepComponent implements OnInit {
   status$ = new BehaviorSubject<string>('waiting');

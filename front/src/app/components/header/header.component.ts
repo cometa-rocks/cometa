@@ -35,29 +35,22 @@ import { LogService } from '@services/log.service';
 import { ApiService } from '@services/api.service';
 
 @Component({
-  selector: 'header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('opened', [
-      state(
-        'false',
-        style({
-          transform: 'translateX(100vw)',
-        })
-      ),
-      state(
-        'true',
-        style({
-          transform: 'translateX(calc(100vw - 360px))',
-        })
-      ),
-      transition('false <=> true', animate('250ms 0ms ease-in-out')),
-    ]),
-  ],
-  standalone: true,
-  imports: [RouterLink, NgIf, MatTooltipModule, RouterLinkActive, TranslateModule, AsyncPipe, LetDirective],
+    selector: 'header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('opened', [
+            state('false', style({
+                transform: 'translateX(100vw)',
+            })),
+            state('true', style({
+                transform: 'translateX(calc(100vw - 360px))',
+            })),
+            transition('false <=> true', animate('250ms 0ms ease-in-out')),
+        ]),
+    ],
+    imports: [RouterLink, NgIf, MatTooltipModule, RouterLinkActive, TranslateModule, AsyncPipe, LetDirective]
 })
 export class HeaderComponent {
   @Select(UserState) account$: Observable<UserInfo>;

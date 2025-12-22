@@ -3,10 +3,11 @@ import { Component, Inject, ViewEncapsulation, ChangeDetectionStrategy, OnInit }
 import { SharedModule } from '@modules/shared.module';
 
 @Component({
-  selector: 'draggable-window',
-  templateUrl: './draggable-window.component.html',
-  styleUrls: ['./draggable-window.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'draggable-window',
+    templateUrl: './draggable-window.component.html',
+    styleUrls: ['./draggable-window.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 
 export class DraggableWindowComponent {

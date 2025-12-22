@@ -8,12 +8,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
-  selector: 'footer',
-  templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [LetDirective, MatTooltipModule, NgIf, AsyncPipe],
+    selector: 'footer',
+    templateUrl: './footer.component.html',
+    styleUrls: ['./footer.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [LetDirective, MatTooltipModule, NgIf, AsyncPipe]
 })
 export class FooterComponent {
   constructor(public _socketService: SocketService) {}

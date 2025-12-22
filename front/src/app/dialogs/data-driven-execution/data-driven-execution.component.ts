@@ -38,30 +38,29 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { API_BASE } from 'app/tokens';
 
 @Component({
-  selector: 'data-driven-execution',
-  templateUrl: './data-driven-execution.component.html',
-  styleUrls: ['./data-driven-execution.component.scss'],
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    FormsModule,
-    NgFor,
-    MatOptionModule,
-    NgIf,
-    MatIconModule,
-    MtxGridModule,
-    MatButtonModule,
-    StopPropagationDirective,
-    AmParsePipe,
-    AmDateFormatPipe,
-    SortByPipe,
-    HumanizeBytesPipe,
-    AvailableFilesPipe,
-  ],
+    selector: 'data-driven-execution',
+    templateUrl: './data-driven-execution.component.html',
+    styleUrls: ['./data-driven-execution.component.scss'],
+    imports: [
+        MatDialogModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+        FormsModule,
+        NgFor,
+        MatOptionModule,
+        NgIf,
+        MatIconModule,
+        MtxGridModule,
+        MatButtonModule,
+        StopPropagationDirective,
+        AmParsePipe,
+        AmDateFormatPipe,
+        SortByPipe,
+        HumanizeBytesPipe,
+        AvailableFilesPipe,
+    ]
 })
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [

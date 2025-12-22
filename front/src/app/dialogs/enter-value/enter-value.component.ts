@@ -18,19 +18,18 @@ import { InputFocusService } from '@services/inputFocus.service';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
-  selector: 'enter-value',
-  templateUrl: './enter-value.component.html',
-  styleUrls: ['./enter-value.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatButtonModule,
-  ],
+    selector: 'enter-value',
+    templateUrl: './enter-value.component.html',
+    styleUrls: ['./enter-value.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatButtonModule,
+    ]
 })
 export class EnterValueComponent {
   inputFocus: boolean = false;

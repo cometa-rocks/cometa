@@ -14,19 +14,18 @@ interface AddColumnDialogData {
 }
 
 @Component({
-  selector: 'add-column-name-dialog',
-  templateUrl: './add-column-name.component.html',
-  styleUrls: ['./add-column-name.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-  ],
+    selector: 'add-column-name-dialog',
+    templateUrl: './add-column-name.component.html',
+    styleUrls: ['./add-column-name.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+    ]
 })
 export class AddColumnNameDialogComponent {
   columnName = '';

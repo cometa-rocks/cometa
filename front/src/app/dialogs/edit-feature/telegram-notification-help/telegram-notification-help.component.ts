@@ -4,12 +4,11 @@ import { NgFor } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
-  selector: 'cometa-telegram-notification-help',
-  templateUrl: 'telegram-notification-help.component.html',
-  styleUrls: ['telegram-notification-help.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, NgFor, MatButtonModule],
+    selector: 'cometa-telegram-notification-help',
+    templateUrl: 'telegram-notification-help.component.html',
+    styleUrls: ['telegram-notification-help.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, NgFor, MatButtonModule]
 })
 export class TelegramNotificationHelp {
 

@@ -9,12 +9,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-  selector: 'mobile-validation-error',
-  templateUrl: './mobile-validation-error.component.html',
-  styleUrls: ['./mobile-validation-error.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatTooltipModule, TranslateModule],
+    selector: 'mobile-validation-error',
+    templateUrl: './mobile-validation-error.component.html',
+    styleUrls: ['./mobile-validation-error.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule, MatTooltipModule, TranslateModule]
 })
 export class MobileValidationErrorDialog {
   constructor(

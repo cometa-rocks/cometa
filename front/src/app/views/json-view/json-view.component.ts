@@ -26,12 +26,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'json-viewer',
-  templateUrl: './json-view.component.html',
-  styleUrls: ['./json-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgIf, MatButtonModule, NgxJsonViewerModule],
+    selector: 'json-viewer',
+    templateUrl: './json-view.component.html',
+    styleUrls: ['./json-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgIf, MatButtonModule, NgxJsonViewerModule]
 })
 export class JsonViewerComponent implements OnInit {
   @ViewChild('jqResult') jq_result: ElementRef<HTMLTextAreaElement>;

@@ -13,12 +13,11 @@ import { map } from 'rxjs/operators';
 
 
 @Component({
-  selector: 'admin-browsers',
-  templateUrl: './browsers.component.html',
-  styleUrls: ['./browsers.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent, AsyncPipe],
+    selector: 'admin-browsers',
+    templateUrl: './browsers.component.html',
+    styleUrls: ['./browsers.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent, AsyncPipe]
 })
 export class BrowsersComponent  implements OnInit {
   @Select(BrowsersState.getBrowserJsons) browsers$: Observable<

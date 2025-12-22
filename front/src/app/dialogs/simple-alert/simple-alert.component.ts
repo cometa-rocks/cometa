@@ -12,8 +12,8 @@ export interface SimpleAlertData {
 }
 
 @Component({
-  selector: 'simple-alert',
-  template: `
+    selector: 'simple-alert',
+    template: `
     <h2 mat-dialog-title>{{ data?.title }}</h2>
     <mat-dialog-content>
       <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: 0;">{{ data?.message }}</pre>
@@ -24,9 +24,8 @@ export interface SimpleAlertData {
       </button>
     </mat-dialog-actions>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class SimpleAlertDialog {
   constructor(

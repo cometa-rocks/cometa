@@ -9,8 +9,8 @@ import { Observable, Subscription } from 'rxjs';
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'cometa-chat-popup',
-  template: `
+    selector: 'cometa-chat-popup',
+    template: `
     <div class="chat-popup-container" (keydown)="handleKeyDown($event)">
       <div class="chat-popup">
         <div class="chat-popup-header">
@@ -66,18 +66,17 @@ import { LogService } from '@services/log.service';
       </div>
     </div>
   `,
-  styleUrls: ['./chat-popup.component.scss'],
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    NgClass,
-    AsyncPipe,
-    FormsModule,
-    MatIconModule,
-    MatButtonModule,
-    TranslateModule
-  ]
+    styleUrls: ['./chat-popup.component.scss'],
+    imports: [
+        NgIf,
+        NgFor,
+        NgClass,
+        AsyncPipe,
+        FormsModule,
+        MatIconModule,
+        MatButtonModule,
+        TranslateModule
+    ]
 })
 export class ChatPopupComponent implements OnInit, OnDestroy {
   messages$: Observable<ChatMessage[]>;

@@ -27,19 +27,18 @@ import { ChatbotComponent } from './components/chatbot/chatbot.component';
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'cometa',
-  templateUrl: './cometa.component.html',
-  styleUrls: ['./cometa.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    HeaderComponent,
-    RouterOutlet,
-    ToursComponent,
-    FooterComponent,
-    ChatbotComponent,
-    AsyncPipe,
-  ],
+    selector: 'cometa',
+    templateUrl: './cometa.component.html',
+    styleUrls: ['./cometa.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        HeaderComponent,
+        RouterOutlet,
+        ToursComponent,
+        FooterComponent,
+        ChatbotComponent,
+        AsyncPipe,
+    ]
 })
 export class CometaComponent implements OnInit {
   @Select(ConfigState) config$: Observable<Config>;

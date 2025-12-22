@@ -44,26 +44,25 @@ import { TranslateModule } from '@ngx-translate/core';
 
 @UntilDestroy()
 @Component({
-  selector: 'cometa-l1-filter',
-  templateUrl: './l1-filter.component.html',
-  styleUrls: ['./l1-filter.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatTooltipModule,
-    MatIconModule,
-    NgFor,
-    MatFormFieldModule,
-    MatInputModule,
-    ReactiveFormsModule,
-    DisableAutocompleteDirective,
-    FormsModule,
-    NgIf,
-    StoreSelectorPipe,
-    FilterTextPipe,
-    AsyncPipe,
-    TranslateModule
-  ],
+    selector: 'cometa-l1-filter',
+    templateUrl: './l1-filter.component.html',
+    styleUrls: ['./l1-filter.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatTooltipModule,
+        MatIconModule,
+        NgFor,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        DisableAutocompleteDirective,
+        FormsModule,
+        NgIf,
+        StoreSelectorPipe,
+        FilterTextPipe,
+        AsyncPipe,
+        TranslateModule
+    ]
 })
 export class L1FilterComponent implements OnInit {
   constructor(

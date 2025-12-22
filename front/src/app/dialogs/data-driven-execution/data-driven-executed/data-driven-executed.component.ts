@@ -9,12 +9,11 @@ import {
 } from '@angular/material/dialog';
 
 @Component({
-  selector: 'data-driven-executed',
-  templateUrl: 'data-driven-executed.component.html',
-  styleUrls: ['data-driven-executed.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'data-driven-executed',
+    templateUrl: 'data-driven-executed.component.html',
+    styleUrls: ['data-driven-executed.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class DataDrivenTestExecuted {
   constructor(

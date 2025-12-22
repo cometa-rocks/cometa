@@ -15,19 +15,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'whats-new',
-  templateUrl: './whats-new.component.html',
-  styleUrls: ['./whats-new.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    NgIf,
-    NgFor,
-    MatButtonModule,
-    SafeHtmlPipe,
-    TranslateModule,
-  ],
+    selector: 'whats-new',
+    templateUrl: './whats-new.component.html',
+    styleUrls: ['./whats-new.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        NgIf,
+        NgFor,
+        MatButtonModule,
+        SafeHtmlPipe,
+        TranslateModule,
+    ]
 })
 export class WhatsNewDialog {
   /** Get plain changelog object from Config */

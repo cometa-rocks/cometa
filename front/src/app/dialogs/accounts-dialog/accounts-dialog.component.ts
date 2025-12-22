@@ -7,12 +7,11 @@ import { AccountComponent } from '../../components/admin/accounts/account/accoun
 import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'accounts-dialog',
-  templateUrl: './accounts-dialog.component.html',
-  styleUrls: ['./accounts-dialog.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, NgFor, AccountComponent],
+    selector: 'accounts-dialog',
+    templateUrl: './accounts-dialog.component.html',
+    styleUrls: ['./accounts-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, NgFor, AccountComponent]
 })
 export class AccountsDialog {
   page: number = 0;

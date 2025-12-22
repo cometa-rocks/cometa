@@ -43,12 +43,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @UntilDestroy()
 @Component({
-  selector: 'cometa-feature-actions',
-  templateUrl: './feature-actions.component.html',
-  styleUrls: ['./feature-actions.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgIf, MatTooltipModule, AsyncPipe, MatProgressSpinnerModule],
+    selector: 'cometa-feature-actions',
+    templateUrl: './feature-actions.component.html',
+    styleUrls: ['./feature-actions.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgIf, MatTooltipModule, AsyncPipe, MatProgressSpinnerModule]
 })
 export class FeatureActionsComponent implements OnInit {
   notificationEnabled$: Observable<boolean>;

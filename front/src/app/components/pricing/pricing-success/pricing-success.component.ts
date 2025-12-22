@@ -4,12 +4,11 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'cometa-pricing-success',
-  templateUrl: './pricing-success.component.html',
-  styleUrls: ['./pricing-success.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatButtonModule],
+    selector: 'cometa-pricing-success',
+    templateUrl: './pricing-success.component.html',
+    styleUrls: ['./pricing-success.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatButtonModule]
 })
 export class PricingSuccessComponent {
   constructor(

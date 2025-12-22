@@ -3,11 +3,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-loading-spinner',
-  templateUrl: './loading-spinner.component.html',
-  styleUrls: ['./loading-spinner.component.scss'],
-  standalone: true,
-  imports: [MatProgressSpinnerModule, NgIf]
+    selector: 'app-loading-spinner',
+    templateUrl: './loading-spinner.component.html',
+    styleUrls: ['./loading-spinner.component.scss'],
+    imports: [MatProgressSpinnerModule, NgIf]
 })
 export class LoadingSpinnerComponent {
   @Input() isVisible = true;

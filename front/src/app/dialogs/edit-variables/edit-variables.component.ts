@@ -65,34 +65,33 @@ interface PassedData {
 }
 
 @Component({
-  selector: 'edit-variables',
-  templateUrl: './edit-variables.component.html',
-  styleUrls: ['./edit-variables.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgIf,
-    MatDialogModule,
-    CdkDrag,
-    CdkDragHandle,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatButtonModule,
-    MatMenuModule,
-    NgFor,
-    MatCheckboxModule,
-    MatTableModule,
-    MatSortModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatTooltipModule,
-    AmParsePipe,
-    AmDateFormatPipe,
-    DraggableWindowModule
-  ],
+    selector: 'edit-variables',
+    templateUrl: './edit-variables.component.html',
+    styleUrls: ['./edit-variables.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgIf,
+        MatDialogModule,
+        CdkDrag,
+        CdkDragHandle,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        FormsModule,
+        MatButtonModule,
+        MatMenuModule,
+        NgFor,
+        MatCheckboxModule,
+        MatTableModule,
+        MatSortModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatTooltipModule,
+        AmParsePipe,
+        AmDateFormatPipe,
+        DraggableWindowModule
+    ]
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
   allColumns: VariableColumns[] = [

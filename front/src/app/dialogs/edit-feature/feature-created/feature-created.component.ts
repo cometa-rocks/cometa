@@ -8,12 +8,11 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'feature-created',
-  templateUrl: 'feature-created.component.html',
-  styleUrls: ['feature-created.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'feature-created',
+    templateUrl: 'feature-created.component.html',
+    styleUrls: ['feature-created.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class FeatureCreated {
   static panelClass = 'no-resize-dialog';

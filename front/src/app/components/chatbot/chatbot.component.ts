@@ -16,43 +16,42 @@ import { Configuration } from '../../store/actions/config.actions';
 import { LogService } from '../../services/log.service';
 
 @Component({
-  selector: 'cometa-chatbot',
-  templateUrl: './chatbot.component.html',
-  styleUrls: ['./chatbot.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default,
-  animations: [
-    trigger('chatWindow', [
-      state('closed', style({
-        height: '0',
-        opacity: '0'
-      })),
-      state('open', style({
-        opacity: '1'
-      })),
-      state('minimized', style({
-        height: '0',
-        opacity: '0'
-      })),
-      state('maximized', style({
-        opacity: '1'
-      })),
-      transition('closed <=> open', animate('250ms ease-in-out')),
-      transition('open <=> minimized', animate('250ms ease-in-out')),
-      transition('open <=> maximized', animate('250ms ease-in-out'))
-    ])
-  ],
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    NgClass,
-    AsyncPipe,
-    FormsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    TranslateModule
-  ]
+    selector: 'cometa-chatbot',
+    templateUrl: './chatbot.component.html',
+    styleUrls: ['./chatbot.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Default,
+    animations: [
+        trigger('chatWindow', [
+            state('closed', style({
+                height: '0',
+                opacity: '0'
+            })),
+            state('open', style({
+                opacity: '1'
+            })),
+            state('minimized', style({
+                height: '0',
+                opacity: '0'
+            })),
+            state('maximized', style({
+                opacity: '1'
+            })),
+            transition('closed <=> open', animate('250ms ease-in-out')),
+            transition('open <=> minimized', animate('250ms ease-in-out')),
+            transition('open <=> maximized', animate('250ms ease-in-out'))
+        ])
+    ],
+    imports: [
+        NgIf,
+        NgFor,
+        NgClass,
+        AsyncPipe,
+        FormsModule,
+        MatIconModule,
+        MatButtonModule,
+        MatTooltipModule,
+        TranslateModule
+    ]
 })
 export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   isOpen$: Observable<boolean>;

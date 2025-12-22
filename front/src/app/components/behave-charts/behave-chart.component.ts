@@ -18,13 +18,12 @@ import { NgIf, AsyncPipe } from '@angular/common';
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'behave-chart-desktop-steps',
-  templateUrl: './behave-chart.component.html',
-  styleUrls: ['./behave-chart.component.scss'],
-  providers: [AmParsePipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgIf, HighchartsChartModule, AsyncPipe],
+    selector: 'behave-chart-desktop-steps',
+    templateUrl: './behave-chart.component.html',
+    styleUrls: ['./behave-chart.component.scss'],
+    providers: [AmParsePipe],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgIf, HighchartsChartModule, AsyncPipe]
 })
 export class BehaveChartTestComponent
   implements OnChanges, OnInit, AfterViewInit

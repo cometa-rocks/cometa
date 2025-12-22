@@ -30,27 +30,26 @@ import { InputFocusService } from '@services/inputFocus.service';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
-  selector: 'modify-user',
-  templateUrl: './modify-user.component.html',
-  styleUrls: ['./modify-user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatSelectModule,
-    NgFor,
-    MatOptionModule,
-    MatButtonModule,
-    AmParsePipe,
-    AmDateFormatPipe,
-    SortByPipe,
-    AsyncPipe,
-    KeyValuePipe,
-  ],
+    selector: 'modify-user',
+    templateUrl: './modify-user.component.html',
+    styleUrls: ['./modify-user.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatSelectModule,
+        NgFor,
+        MatOptionModule,
+        MatButtonModule,
+        AmParsePipe,
+        AmDateFormatPipe,
+        SortByPipe,
+        AsyncPipe,
+        KeyValuePipe,
+    ]
 })
 export class ModifyUserComponent {
   @Select(DepartmentsState) departments$: Observable<Department[]>;

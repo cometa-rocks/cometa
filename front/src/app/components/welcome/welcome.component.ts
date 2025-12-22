@@ -31,12 +31,11 @@ import { ConfigState } from '@store/config.state';
 import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
-  selector: 'cometa-welcome',
-  templateUrl: './welcome.component.html',
-  styleUrls: ['./welcome.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgIf, NgFor, LetDirective, AsyncPipe, MatDialogModule],
+    selector: 'cometa-welcome',
+    templateUrl: './welcome.component.html',
+    styleUrls: ['./welcome.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgIf, NgFor, LetDirective, AsyncPipe, MatDialogModule]
 })
 export class WelcomeComponent {
   constructor(

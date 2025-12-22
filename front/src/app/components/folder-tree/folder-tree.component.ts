@@ -24,12 +24,11 @@ import { ApiService } from '@services/api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'cometa-folder-tree',
-  templateUrl: './folder-tree.component.html',
-  styleUrls: ['./folder-tree.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatTooltipModule, MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe, TranslateModule],
+    selector: 'cometa-folder-tree',
+    templateUrl: './folder-tree.component.html',
+    styleUrls: ['./folder-tree.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatTooltipModule, MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe, TranslateModule]
 })
 export class FolderTreeComponent implements OnInit {
   constructor(

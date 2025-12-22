@@ -21,21 +21,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
 
 @Component({
-  selector: 'cometa-move-folder-item',
-  templateUrl: './move-folder-item.component.html',
-  styleUrls: ['./move-folder-item.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    StopPropagationDirective,
-    MatButtonModule,
-    MatMenuModule,
-    MatIconModule,
-    NgIf,
-    NgFor,
-    forwardRef(() => MoveFolderItemComponent),
-    AsyncPipe,
-  ],
+    selector: 'cometa-move-folder-item',
+    templateUrl: './move-folder-item.component.html',
+    styleUrls: ['./move-folder-item.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        StopPropagationDirective,
+        MatButtonModule,
+        MatMenuModule,
+        MatIconModule,
+        NgIf,
+        NgFor,
+        forwardRef(() => MoveFolderItemComponent),
+        AsyncPipe,
+    ]
 })
 export class MoveFolderItemComponent {
   constructor(

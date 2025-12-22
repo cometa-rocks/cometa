@@ -26,29 +26,28 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'show-housekeeping-log-dialog',
-  templateUrl: './show-housekeeping-logs.component.html',
-  styleUrls: ['./show-housekeeping-logs.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatSelectModule,
-    NgFor,
-    NgIf,
-    MatOptionModule,
-    MatButtonModule,
-    AmParsePipe,
-    AmDateFormatPipe,
-    SortByPipe,
-    AsyncPipe,
-    KeyValuePipe,
-    MatProgressSpinnerModule,
-  ],
+    selector: 'show-housekeeping-log-dialog',
+    templateUrl: './show-housekeeping-logs.component.html',
+    styleUrls: ['./show-housekeeping-logs.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatSelectModule,
+        NgFor,
+        NgIf,
+        MatOptionModule,
+        MatButtonModule,
+        AmParsePipe,
+        AmDateFormatPipe,
+        SortByPipe,
+        AsyncPipe,
+        KeyValuePipe,
+        MatProgressSpinnerModule,
+    ]
 })
 export class ShowHousekeepingLogDialog implements OnInit {
   houseKeepingLog!: HouseKeepingLogs;

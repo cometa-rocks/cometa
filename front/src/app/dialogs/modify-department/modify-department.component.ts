@@ -34,24 +34,23 @@ import { InputFocusService } from '../../services/inputFocus.service';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
-  selector: 'modify-department',
-  templateUrl: './modify-department.component.html',
-  styleUrls: ['./modify-department.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatCheckboxModule,
-    MatTooltipModule,
-    LetDirective,
-    MatButtonModule,
-    TranslateModule,
-    AsyncPipe,
-  ],
+    selector: 'modify-department',
+    templateUrl: './modify-department.component.html',
+    styleUrls: ['./modify-department.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatCheckboxModule,
+        MatTooltipModule,
+        LetDirective,
+        MatButtonModule,
+        TranslateModule,
+        AsyncPipe,
+    ]
 })
 export class ModifyDepartmentComponent {
   rForm: UntypedFormGroup;

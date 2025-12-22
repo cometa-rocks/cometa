@@ -6,12 +6,11 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'cometa-error',
-  templateUrl: 'error.dialog.html',
-  styleUrls: ['./error.dialog.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'cometa-error',
+    templateUrl: 'error.dialog.html',
+    styleUrls: ['./error.dialog.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class ErrorDialog {
   constructor(@Inject(MAT_DIALOG_DATA) public error: Success) {

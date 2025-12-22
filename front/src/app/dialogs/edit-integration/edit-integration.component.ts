@@ -36,27 +36,26 @@ import { NgIf, NgClass, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
-  selector: 'edit-integration',
-  templateUrl: './edit-integration.component.html',
-  styleUrls: ['./edit-integration.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    NgIf,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    LetDirective,
-    NgClass,
-    NgFor,
-    MatOptionModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatRadioModule,
-    MatButtonModule,
-    SortByPipe,
-  ],
+    selector: 'edit-integration',
+    templateUrl: './edit-integration.component.html',
+    styleUrls: ['./edit-integration.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        NgIf,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        LetDirective,
+        NgClass,
+        NgFor,
+        MatOptionModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatRadioModule,
+        MatButtonModule,
+        SortByPipe,
+    ]
 })
 export class EditIntegrationDialog implements OnInit {
   @ViewSelectSnapshot(UserState.RetrieveUserDepartments)

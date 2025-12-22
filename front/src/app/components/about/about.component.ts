@@ -12,20 +12,19 @@ import { LetDirective } from '../../directives/ng-let.directive';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'cometa-about',
-  templateUrl: './about.component.html',
-  styleUrls: ['./about.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgFor,
-    LetDirective,
-    NgIf,
-    TranslateModule,
-    SafeUrlPipe,
-    SortByPipe,
-    AsyncPipe,
-  ],
+    selector: 'cometa-about',
+    templateUrl: './about.component.html',
+    styleUrls: ['./about.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgFor,
+        LetDirective,
+        NgIf,
+        TranslateModule,
+        SafeUrlPipe,
+        SortByPipe,
+        AsyncPipe,
+    ]
 })
 export class AboutComponent {
   @Select(CustomSelectors.GetConfigProperty('serverInfo.version'))

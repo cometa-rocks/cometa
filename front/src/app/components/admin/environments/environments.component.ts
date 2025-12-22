@@ -16,20 +16,19 @@ import { EnvironmentComponent } from './environment/environment.component';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'admin-environments',
-  templateUrl: './environments.component.html',
-  styleUrls: ['./environments.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgFor,
-    EnvironmentComponent,
-    NgIf,
-    MatButtonModule,
-    MatIconModule,
-    SortByPipe,
-    AsyncPipe,
-  ],
+    selector: 'admin-environments',
+    templateUrl: './environments.component.html',
+    styleUrls: ['./environments.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgFor,
+        EnvironmentComponent,
+        NgIf,
+        MatButtonModule,
+        MatIconModule,
+        SortByPipe,
+        AsyncPipe,
+    ]
 })
 export class EnvironmentsComponent implements OnInit {
   constructor(

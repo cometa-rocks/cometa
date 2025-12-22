@@ -61,69 +61,58 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FeatureMetricsUsageComponent } from '@components/feature-metrics-usage/feature-metrics-usage.component';
 @UntilDestroy()
 @Component({
-  selector: 'cometa-l1-landing',
-  templateUrl: './l1-landing.component.html',
-  styleUrls: ['./l1-landing.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('listAnimation', [
-      transition('* => *', [
-        query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
-        query(
-          ':enter',
-          stagger('100ms', [
-            animate('.4s ease-in-out', style({ opacity: 1, top: '0px' })),
-          ]),
-          { optional: true }
-        ),
-      ]),
-    ]),
-    trigger('addDialog', [
-      state(
-        'false',
-        style({
-          visibility: 'hidden',
-          left: '-30px',
-          opacity: 0,
-        })
-      ),
-      state(
-        'true',
-        style({
-          visibility: 'visible',
-          left: '0',
-          opacity: 1,
-        })
-      ),
-      transition('false <=> true', animate('150ms ease-out')),
-    ]),
-  ],
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    NgIf,
-    FolderTreeComponent,
-    LetDirective,
-    L1FilterComponent,
-    MatRippleModule,
-    MatTooltipModule,
-    NgFor,
-    L1FeatureItemListComponent,
-    L1FeatureListComponent,
-    L1TreeViewComponent,
-    WelcomeComponent,
-    DataDrivenRunsComponent,
-    EditVariablesComponent,
-    L1FeatureTeamListComponent,
-    L1FeatureRecentListComponent,
-    L1FeatureStarredListComponent,
-    L1FeatureTrashbinListComponent,
-    MobileListComponent,
-    AsyncPipe,
-    TranslateModule,
-    FeatureMetricsUsageComponent
-  ],
+    selector: 'cometa-l1-landing',
+    templateUrl: './l1-landing.component.html',
+    styleUrls: ['./l1-landing.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('listAnimation', [
+            transition('* => *', [
+                query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
+                query(':enter', stagger('100ms', [
+                    animate('.4s ease-in-out', style({ opacity: 1, top: '0px' })),
+                ]), { optional: true }),
+            ]),
+        ]),
+        trigger('addDialog', [
+            state('false', style({
+                visibility: 'hidden',
+                left: '-30px',
+                opacity: 0,
+            })),
+            state('true', style({
+                visibility: 'visible',
+                left: '0',
+                opacity: 1,
+            })),
+            transition('false <=> true', animate('150ms ease-out')),
+        ]),
+    ],
+    imports: [
+        MatButtonModule,
+        MatIconModule,
+        NgIf,
+        FolderTreeComponent,
+        LetDirective,
+        L1FilterComponent,
+        MatRippleModule,
+        MatTooltipModule,
+        NgFor,
+        L1FeatureItemListComponent,
+        L1FeatureListComponent,
+        L1TreeViewComponent,
+        WelcomeComponent,
+        DataDrivenRunsComponent,
+        EditVariablesComponent,
+        L1FeatureTeamListComponent,
+        L1FeatureRecentListComponent,
+        L1FeatureStarredListComponent,
+        L1FeatureTrashbinListComponent,
+        MobileListComponent,
+        AsyncPipe,
+        TranslateModule,
+        FeatureMetricsUsageComponent
+    ]
 })
 export class L1LandingComponent implements OnInit {
   constructor(

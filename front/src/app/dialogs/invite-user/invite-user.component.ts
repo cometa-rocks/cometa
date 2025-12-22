@@ -30,25 +30,24 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
-  selector: 'invite-user',
-  templateUrl: './invite-user.component.html',
-  styleUrls: ['./invite-user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatChipsModule,
-    NgFor,
-    MatIconModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatInputModule,
-    MatButtonModule,
-    AsyncPipe,
-    SortByPipe,
-  ],
+    selector: 'invite-user',
+    templateUrl: './invite-user.component.html',
+    styleUrls: ['./invite-user.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatChipsModule,
+        NgFor,
+        MatIconModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatInputModule,
+        MatButtonModule,
+        AsyncPipe,
+        SortByPipe,
+    ]
 })
 export class InviteUserDialog implements OnInit {
   @ViewSelectSnapshot(UserState.RetrieveUserDepartments)

@@ -9,12 +9,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
-  selector: 'are-you-sure',
-  templateUrl: './are-you-sure.component.html',
-  styleUrls: ['./are-you-sure.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'are-you-sure',
+    templateUrl: './are-you-sure.component.html',
+    styleUrls: ['./are-you-sure.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class AreYouSureDialog {
   static panelClass = 'no-resize-dialog';

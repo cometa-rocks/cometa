@@ -19,18 +19,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'log-output',
-  templateUrl: './log-output.component.html',
-  styleUrls: ['./log-output.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    NgIf,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    AsyncPipe,
-  ],
+    selector: 'log-output',
+    templateUrl: './log-output.component.html',
+    styleUrls: ['./log-output.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        NgIf,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        AsyncPipe,
+    ]
 })
 export class LogOutputComponent implements OnInit {
   constructor(

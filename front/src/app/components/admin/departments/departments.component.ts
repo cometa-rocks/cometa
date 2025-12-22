@@ -18,20 +18,19 @@ import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'admin-departments',
-  templateUrl: './departments.component.html',
-  styleUrls: ['./departments.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgFor,
-    DepartmentComponent,
-    NgIf,
-    MatButtonModule,
-    MatIconModule,
-    SortByPipe,
-    AsyncPipe,
-  ],
+    selector: 'admin-departments',
+    templateUrl: './departments.component.html',
+    styleUrls: ['./departments.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgFor,
+        DepartmentComponent,
+        NgIf,
+        MatButtonModule,
+        MatIconModule,
+        SortByPipe,
+        AsyncPipe,
+    ]
 })
 export class DepartmentsComponent implements OnInit {
   constructor(

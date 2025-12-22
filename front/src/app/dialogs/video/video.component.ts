@@ -16,24 +16,23 @@ import { NgIf, NgFor, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'video-player',
-  templateUrl: './video.component.html',
-  styleUrls: ['./video.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    MatProgressSpinnerModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatIconModule,
-    TranslateModule,
-    BrowserIconPipe,
-    BrowserComboTextPipe,
-    AsyncPipe,
-    TitleCasePipe,
-  ],
+    selector: 'video-player',
+    templateUrl: './video.component.html',
+    styleUrls: ['./video.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgIf,
+        NgFor,
+        MatProgressSpinnerModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatIconModule,
+        TranslateModule,
+        BrowserIconPipe,
+        BrowserComboTextPipe,
+        AsyncPipe,
+        TitleCasePipe,
+    ]
 })
 export class VideoComponent implements OnInit {
   showHeader$ = new BehaviorSubject<boolean>(false);

@@ -33,23 +33,22 @@ import { MatTooltipModule } from '@angular/material/tooltip';
  * More details in component code
  */
 @Component({
-  selector: 'network-paginated-list',
-  templateUrl: './network-paginated-list.component.html',
-  styleUrls: ['./network-paginated-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgTemplateOutlet,
-    NgIf,
-    NgFor,
-    MatProgressSpinnerModule,
-    MatPaginatorModule,
-    MatButtonModule,
-    AsyncPipe,
-    MatIconModule,
-    MatTooltipModule,
-    TranslateModule
-  ],
+    selector: 'network-paginated-list',
+    templateUrl: './network-paginated-list.component.html',
+    styleUrls: ['./network-paginated-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgTemplateOutlet,
+        NgIf,
+        NgFor,
+        MatProgressSpinnerModule,
+        MatPaginatorModule,
+        MatButtonModule,
+        AsyncPipe,
+        MatIconModule,
+        MatTooltipModule,
+        TranslateModule
+    ]
 })
 export class NetworkPaginatedListComponent implements OnChanges {
   /**

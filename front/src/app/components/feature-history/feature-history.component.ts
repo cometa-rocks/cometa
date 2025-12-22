@@ -22,21 +22,20 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { MatDialogModule } from '@angular/material/dialog';
 import { parseISO, isValid } from 'date-fns';
 @Component({
-  selector: 'cometa-feature-history',
-  templateUrl: './feature-history.component.html',
-  styleUrls: ['./feature-history.component.scss'],
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    KeyValuePipe,
-    MatIconModule,
-    MatButtonModule,
-    MatChipsModule,
-    TitleCasePipe,
-    DraggableWindowModule,
-    MatDialogModule
-  ],
+    selector: 'cometa-feature-history',
+    templateUrl: './feature-history.component.html',
+    styleUrls: ['./feature-history.component.scss'],
+    imports: [
+        NgIf,
+        NgFor,
+        KeyValuePipe,
+        MatIconModule,
+        MatButtonModule,
+        MatChipsModule,
+        TitleCasePipe,
+        DraggableWindowModule,
+        MatDialogModule
+    ]
 })
 export class FeatureHistoryComponent implements OnInit {
 

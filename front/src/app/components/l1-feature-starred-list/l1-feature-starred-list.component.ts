@@ -31,21 +31,20 @@ interface TableData {
 }
 
 @Component({
-  selector: 'cometa-l1-feature-starred-list',
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    KeyValuePipe,
-    AsyncPipe,
-    MatIconModule, 
-    L1FeatureItemListComponent,
-    MatFormFieldModule,
-    MatSelectModule,
-    FormsModule
-  ],
-  templateUrl: './l1-feature-starred-list.component.html',
-  styleUrls: ['./l1-feature-starred-list.component.scss']
+    selector: 'cometa-l1-feature-starred-list',
+    imports: [
+        NgIf,
+        NgFor,
+        KeyValuePipe,
+        AsyncPipe,
+        MatIconModule,
+        L1FeatureItemListComponent,
+        MatFormFieldModule,
+        MatSelectModule,
+        FormsModule
+    ],
+    templateUrl: './l1-feature-starred-list.component.html',
+    styleUrls: ['./l1-feature-starred-list.component.scss']
 })
 
 export class L1FeatureStarredListComponent implements OnInit {

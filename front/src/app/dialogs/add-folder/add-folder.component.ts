@@ -31,25 +31,24 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
-  selector: 'add-folder',
-  templateUrl: './add-folder.component.html',
-  styleUrls: ['./add-folder.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    NgIf,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatSelectModule,
-    NgFor,
-    MatOptionModule,
-    MatButtonModule,
-    MatTooltipModule,
-    SortByPipe,
-  ],
+    selector: 'add-folder',
+    templateUrl: './add-folder.component.html',
+    styleUrls: ['./add-folder.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        NgIf,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatSelectModule,
+        NgFor,
+        MatOptionModule,
+        MatButtonModule,
+        MatTooltipModule,
+        SortByPipe,
+    ]
 })
 export class AddFolderComponent {
   /**

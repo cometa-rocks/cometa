@@ -41,19 +41,18 @@ const DEFAULT_DISTANCE_FROM_MARGIN_BOTTOM = 5;
 const DEFAULT_DISTANCE_FROM_MARGIN_RIGHT = 5;
 
 @Component({
-  selector: 'joyride-step',
-  templateUrl: './joyride-step.component.html',
-  styleUrls: ['./joyride-step.component.scss'],
-  encapsulation: ViewEncapsulation.None,
-  standalone: true,
-  imports: [
-    NgIf,
-    JoyrideArrowComponent,
-    JoyrideCloseButtonComponent,
-    NgTemplateOutlet,
-    JoyrideButtonComponent,
-    AsyncPipe,
-  ],
+    selector: 'joyride-step',
+    templateUrl: './joyride-step.component.html',
+    styleUrls: ['./joyride-step.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    imports: [
+        NgIf,
+        JoyrideArrowComponent,
+        JoyrideCloseButtonComponent,
+        NgTemplateOutlet,
+        JoyrideButtonComponent,
+        AsyncPipe,
+    ]
 })
 export class JoyrideStepComponent implements OnInit, OnDestroy, AfterViewInit {
   stepWidth: number = STEP_MIN_WIDTH;

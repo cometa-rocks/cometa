@@ -59,74 +59,63 @@ import { MatMenuModule } from '@angular/material/menu';
 
 @UntilDestroy()
 @Component({
-  selector: 'search',
-  templateUrl: './search.component.html',
-  styleUrls: ['./search.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('listAnimation', [
-      transition('* => *', [
-        query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
-        query(
-          ':enter',
-          stagger('100ms', [
-            animate('.4s ease-in-out', style({ opacity: 1, top: '0px' })),
-          ]),
-          { optional: true }
-        ),
-      ]),
-    ]),
-    trigger('addDialog', [
-      state(
-        'false',
-        style({
-          visibility: 'hidden',
-          left: '-30px',
-          opacity: 0,
-        })
-      ),
-      state(
-        'true',
-        style({
-          visibility: 'visible',
-          left: '0',
-          opacity: 1,
-        })
-      ),
-      transition('false <=> true', animate('150ms ease-out')),
-    ]),
-  ],
-  standalone: true,
-  imports: [
-    MatMenuModule,
-    NgFor,
-    NgIf,
-    MatSelectModule,
-    MatOptionModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    DisableAutocompleteDirective,
-    MatRadioModule,
-    ReactiveFormsModule,
-    EasterEggComponent,
-    FolderComponent,
-    NewFolderComponent,
-    LetDirective,
-    MatRippleModule,
-    MatTooltipModule,
-    FeatureItemComponent,
-    FeatureListComponent,
-    MatPaginatorModule,
-    PaginationPipe,
-    StoreSelectorPipe,
-    SortByPipe,
-    DependsPipe,
-    FeatureSortPipe,
-    AlreadyTakenFilterPipe,
-    FilterTextPipe,
-    AsyncPipe,
-  ],
+    selector: 'search',
+    templateUrl: './search.component.html',
+    styleUrls: ['./search.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('listAnimation', [
+            transition('* => *', [
+                query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
+                query(':enter', stagger('100ms', [
+                    animate('.4s ease-in-out', style({ opacity: 1, top: '0px' })),
+                ]), { optional: true }),
+            ]),
+        ]),
+        trigger('addDialog', [
+            state('false', style({
+                visibility: 'hidden',
+                left: '-30px',
+                opacity: 0,
+            })),
+            state('true', style({
+                visibility: 'visible',
+                left: '0',
+                opacity: 1,
+            })),
+            transition('false <=> true', animate('150ms ease-out')),
+        ]),
+    ],
+    imports: [
+        MatMenuModule,
+        NgFor,
+        NgIf,
+        MatSelectModule,
+        MatOptionModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        DisableAutocompleteDirective,
+        MatRadioModule,
+        ReactiveFormsModule,
+        EasterEggComponent,
+        FolderComponent,
+        NewFolderComponent,
+        LetDirective,
+        MatRippleModule,
+        MatTooltipModule,
+        FeatureItemComponent,
+        FeatureListComponent,
+        MatPaginatorModule,
+        PaginationPipe,
+        StoreSelectorPipe,
+        SortByPipe,
+        DependsPipe,
+        FeatureSortPipe,
+        AlreadyTakenFilterPipe,
+        FilterTextPipe,
+        AsyncPipe,
+    ]
 })
 export class SearchComponent implements OnInit {
   @Select(ApplicationsState) applications$: Observable<Application[]>;

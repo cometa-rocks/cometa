@@ -8,12 +8,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'cometa-feature-titles',
-  templateUrl: './feature-titles.component.html',
-  styleUrls: ['./feature-titles.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgIf, MatTooltipModule, AsyncPipe],
+    selector: 'cometa-feature-titles',
+    templateUrl: './feature-titles.component.html',
+    styleUrls: ['./feature-titles.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgIf, MatTooltipModule, AsyncPipe]
 })
 export class FeatureTitlesComponent implements OnInit {
   feature$: Observable<Feature>;

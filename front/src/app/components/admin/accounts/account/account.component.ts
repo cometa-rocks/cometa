@@ -22,19 +22,18 @@ import { DisableAutocompleteDirective } from '../../../../directives/disable-aut
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
-  selector: 'account',
-  templateUrl: './account.component.html',
-  styleUrls: ['./account.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    DisableAutocompleteDirective,
-    NgIf,
-    MatTooltipModule,
-    AmParsePipe,
-    AmDateFormatPipe,
-    AsyncPipe,
-  ],
+    selector: 'account',
+    templateUrl: './account.component.html',
+    styleUrls: ['./account.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        DisableAutocompleteDirective,
+        NgIf,
+        MatTooltipModule,
+        AmParsePipe,
+        AmDateFormatPipe,
+        AsyncPipe,
+    ]
 })
 export class AccountComponent {
   @Select(UserState.GetPermission('edit_account'))

@@ -5,11 +5,10 @@ import { JoyrideDirective } from '../../plugins/ngx-joyride/directives/joyride.d
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'cometa-tours',
-  templateUrl: './tours.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgIf, NgFor, JoyrideDirective, AttachToDirective, AsyncPipe],
+    selector: 'cometa-tours',
+    templateUrl: './tours.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgIf, NgFor, JoyrideDirective, AttachToDirective, AsyncPipe]
 })
 export class ToursComponent {
   constructor(public _tourService: TourService) {}

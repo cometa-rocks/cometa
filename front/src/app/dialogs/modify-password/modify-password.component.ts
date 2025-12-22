@@ -17,18 +17,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'modify-password',
-  templateUrl: './modify-password.component.html',
-  styleUrls: ['./modify-password.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-  ],
+    selector: 'modify-password',
+    templateUrl: './modify-password.component.html',
+    styleUrls: ['./modify-password.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+    ]
 })
 export class ModifyPasswordComponent {
   rForm: UntypedFormGroup;

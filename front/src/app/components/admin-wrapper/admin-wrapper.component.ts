@@ -7,19 +7,18 @@ import { NgIf, AsyncPipe } from '@angular/common';
 import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
-  selector: 'admin-wrapper',
-  templateUrl: './admin-wrapper.component.html',
-  styleUrls: ['./admin-wrapper.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatTabsModule,
-    NgIf,
-    RouterLinkActive,
-    RouterLink,
-    RouterOutlet,
-    AsyncPipe,
-  ],
+    selector: 'admin-wrapper',
+    templateUrl: './admin-wrapper.component.html',
+    styleUrls: ['./admin-wrapper.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatTabsModule,
+        NgIf,
+        RouterLinkActive,
+        RouterLink,
+        RouterOutlet,
+        AsyncPipe,
+    ]
 })
 export class AdminWrapperComponent {
   @Select(UserState.GetPermission('view_accounts_panel'))

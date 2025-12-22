@@ -12,11 +12,10 @@ import { ApplicationsState } from '@store/applications.state';
 import { EnvironmentsState } from '@store/environments.state';
 
 @Component({
-  selector: 'cometa-data-driven',
-  imports: [SharedModule],
-  templateUrl: './data-driven.component.html',
-  styleUrls: ['./data-driven.component.scss'],
-  standalone: true,
+    selector: 'cometa-data-driven',
+    imports: [SharedModule],
+    templateUrl: './data-driven.component.html',
+    styleUrls: ['./data-driven.component.scss']
 })
 export class DataDrivenComponent implements OnInit {
   displayedColumns: string[] = [

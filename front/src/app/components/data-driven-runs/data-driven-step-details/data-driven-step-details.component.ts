@@ -39,71 +39,52 @@ import {
 import { SharedModule } from '@modules/shared.module';
 
 @Component({
-  selector: 'data-driven-step-details.component',
-  templateUrl: './data-driven-step-details.component.html',
-  styleUrls: ['./data-driven-step-details.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [SharedModule],
-  animations: [
-    trigger('image1', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 500ms ease-in-out')),
-    ]),
-    trigger('image2', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 600ms ease-in-out')),
-    ]),
-    trigger('image3', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 700ms ease-in-out')),
-    ]),
-  ],
+    selector: 'data-driven-step-details.component',
+    templateUrl: './data-driven-step-details.component.html',
+    styleUrls: ['./data-driven-step-details.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [SharedModule],
+    animations: [
+        trigger('image1', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 500ms ease-in-out')),
+        ]),
+        trigger('image2', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 600ms ease-in-out')),
+        ]),
+        trigger('image3', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 700ms ease-in-out')),
+        ]),
+    ]
 })
 export class DataDrivenStepDetailViewComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('remove_screenshot'))

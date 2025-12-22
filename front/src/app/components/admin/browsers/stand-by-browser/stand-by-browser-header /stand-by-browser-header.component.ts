@@ -32,31 +32,30 @@ import { MatButtonModule } from '@angular/material/button';
 
 
 @Component({
-  selector: 'stand-by-browser-header',
-  templateUrl: './stand-by-browser-header.component.html',
-  styleUrls: ['./stand-by-browser-header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    DisableAutocompleteDirective,
-    BrowserComboTextPipe,
-    StandByBrowserComboTextPipe,
-    ReactiveFormsModule,
-    DisableAutocompleteDirective,
-    FormsModule,
-    MatIconModule,
-    NgIf,
-    NgClass,
-    AsyncPipe,
-    NgFor,
-    AmParsePipe,
-    AmDateFormatPipe,
-    SecondsToHumanReadablePipe,
-    FirstLetterUppercasePipe,
-    JsonPipe, 
-    MatCheckboxModule,
-    MatButtonModule
-  ],
+    selector: 'stand-by-browser-header',
+    templateUrl: './stand-by-browser-header.component.html',
+    styleUrls: ['./stand-by-browser-header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        DisableAutocompleteDirective,
+        BrowserComboTextPipe,
+        StandByBrowserComboTextPipe,
+        ReactiveFormsModule,
+        DisableAutocompleteDirective,
+        FormsModule,
+        MatIconModule,
+        NgIf,
+        NgClass,
+        AsyncPipe,
+        NgFor,
+        AmParsePipe,
+        AmDateFormatPipe,
+        SecondsToHumanReadablePipe,
+        FirstLetterUppercasePipe,
+        JsonPipe,
+        MatCheckboxModule,
+        MatButtonModule
+    ]
 })
 export class StandByBrowserHeaderComponent{
 

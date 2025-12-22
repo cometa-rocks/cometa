@@ -83,38 +83,37 @@ interface StepSummaryResponse {
 }
 
 @Component({
-  selector: 'graph-view',
-  templateUrl: './graph-view.component.html',
-  styleUrls: ['./graph-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    NgClass,
-    MatProgressSpinnerModule,
-    AmParsePipe,
-    AmDateFormatPipe,
-    SecondsToHumanReadablePipe,
-    FirstLetterUppercasePipe,
-    NumeralPipe,
-    ScreenshotBgPipe,
-    AsyncPipe,
-    CometaDatePipe,
-    FormsModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDialogModule,
-    MatOptionModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatButtonModule,
-    MatExpansionModule
-  ],
-  providers: [
-    GraphService
-  ]
+    selector: 'graph-view',
+    templateUrl: './graph-view.component.html',
+    styleUrls: ['./graph-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgIf,
+        NgFor,
+        NgClass,
+        MatProgressSpinnerModule,
+        AmParsePipe,
+        AmDateFormatPipe,
+        SecondsToHumanReadablePipe,
+        FirstLetterUppercasePipe,
+        NumeralPipe,
+        ScreenshotBgPipe,
+        AsyncPipe,
+        CometaDatePipe,
+        FormsModule,
+        MatSelectModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatDialogModule,
+        MatOptionModule,
+        MatIconModule,
+        MatTooltipModule,
+        MatButtonModule,
+        MatExpansionModule
+    ],
+    providers: [
+        GraphService
+    ]
 })
 export class GraphViewComponent implements OnInit {
   ready = new BehaviorSubject<boolean>(false);

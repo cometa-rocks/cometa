@@ -7,11 +7,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgIf } from '@angular/common';
 
 @Component({
-  selector: 'schedule-help',
-  templateUrl: 'schedule-help.component.html',
-  styleUrls: ['schedule-help.component.scss'],
-  standalone: true,
-  imports: [MatDialogModule, NgIf, MatButtonModule],
+    selector: 'schedule-help',
+    templateUrl: 'schedule-help.component.html',
+    styleUrls: ['schedule-help.component.scss'],
+    imports: [MatDialogModule, NgIf, MatButtonModule]
 })
 export class ScheduleHelp {
   constructor(public dialogRef: MatDialogRef<ScheduleHelp>) {}

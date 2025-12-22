@@ -12,12 +12,11 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'html-diff',
-  templateUrl: './html-diff.component.html',
-  styleUrls: ['./html-diff.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'html-diff',
+    templateUrl: './html-diff.component.html',
+    styleUrls: ['./html-diff.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class HtmlDiffDialog {
   constructor(

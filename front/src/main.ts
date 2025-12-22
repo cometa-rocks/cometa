@@ -1,8 +1,4 @@
-import {
-  enableProdMode,
-  APP_INITIALIZER,
-  importProvidersFrom,
-} from '@angular/core';
+import { enableProdMode, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import {
@@ -218,13 +214,10 @@ bootstrapApplication(CometaComponent, {
       provide: STRIPE_API_KEY,
       useValue: getStripeApiKey(),
     },
-    {
-      // This loads the config.json file before the App is initialized
-      provide: APP_INITIALIZER,
-      useFactory: configLoader,
-      deps: [ConfigService],
-      multi: true,
-    },
+    provideAppInitializer(() => {
+        const initializerFn = (configLoader)(inject(ConfigService));
+        return initializerFn();
+      }),
     {
       provide: MatPaginatorIntl,
       useClass: i18nMatPaginatorIntl,

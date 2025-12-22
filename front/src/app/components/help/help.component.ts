@@ -19,12 +19,11 @@ interface Shortcut {
 }
 
 @Component({
-  selector: 'cometa-help',
-  templateUrl: './help.component.html',
-  styleUrls: ['./help.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgFor, SortByPipe, AsyncPipe, MtxGridModule],
+    selector: 'cometa-help',
+    templateUrl: './help.component.html',
+    styleUrls: ['./help.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgFor, SortByPipe, AsyncPipe, MtxGridModule]
 })
 export class HelpComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;

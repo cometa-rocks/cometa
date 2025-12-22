@@ -4,12 +4,11 @@ import { NgFor } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
-  selector: 'cometa-email-template-help',
-  templateUrl: 'email-template-help.component.html',
-  styleUrls: ['email-template-help.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, NgFor, MatButtonModule],
+    selector: 'cometa-email-template-help',
+    templateUrl: 'email-template-help.component.html',
+    styleUrls: ['email-template-help.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, NgFor, MatButtonModule]
 })
 export class EmailTemplateHelp {
 

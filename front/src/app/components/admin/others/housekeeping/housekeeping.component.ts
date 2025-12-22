@@ -10,21 +10,20 @@ import { MatDialog } from '@angular/material/dialog';
 
 
 @Component({
-  selector: 'housekeeping',
-  templateUrl: './housekeeping.component.html',
-  styleUrls: ['./housekeeping.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    DisableAutocompleteDirective,
-    NgIf,
-    NgClass,
-    MatIconModule,
-    AsyncPipe,
-    AmDateFormatPipe,
-    AmParsePipe,
-    ShowHousekeepingLogDialog
-  ],
+    selector: 'housekeeping',
+    templateUrl: './housekeeping.component.html',
+    styleUrls: ['./housekeeping.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        DisableAutocompleteDirective,
+        NgIf,
+        NgClass,
+        MatIconModule,
+        AsyncPipe,
+        AmDateFormatPipe,
+        AmParsePipe,
+        ShowHousekeepingLogDialog
+    ]
 })
 export class HouseKeepingComponent {
   

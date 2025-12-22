@@ -34,34 +34,33 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'add-step',
-  templateUrl: './add-step.component.html',
-  styleUrls: ['./add-step.component.scss'],
-  encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('fontSize', [
-      state('false', style({ 'font-size': '0px' })),
-      state('true', style({ 'font-size': '16px' })),
-      transition('* => *', animate(100)),
-    ]),
-  ],
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    ReactiveFormsModule,
-    FormsModule,
-    NgIf,
-    MatButtonModule,
-    MatIconModule,
-    NgFor,
-    MatTooltipModule,
-    MatCheckboxModule,
-    AsyncPipe,
-    FilterStepPipe,
-  ],
+    selector: 'add-step',
+    templateUrl: './add-step.component.html',
+    styleUrls: ['./add-step.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('fontSize', [
+            state('false', style({ 'font-size': '0px' })),
+            state('true', style({ 'font-size': '16px' })),
+            transition('* => *', animate(100)),
+        ]),
+    ],
+    imports: [
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        FormsModule,
+        NgIf,
+        MatButtonModule,
+        MatIconModule,
+        NgFor,
+        MatTooltipModule,
+        MatCheckboxModule,
+        AsyncPipe,
+        FilterStepPipe,
+    ]
 })
 export class AddStepComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;

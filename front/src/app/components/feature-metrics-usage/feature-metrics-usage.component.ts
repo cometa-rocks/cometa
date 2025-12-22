@@ -12,19 +12,18 @@ import { NgIf, AsyncPipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
-  selector: 'cometa-feature-metrics-usage',
-  templateUrl: './feature-metrics-usage.component.html',    
-  styleUrls: ['./feature-metrics-usage.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatCardModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    NgIf,
-    AsyncPipe,
-    DecimalPipe
-  ],
+    selector: 'cometa-feature-metrics-usage',
+    templateUrl: './feature-metrics-usage.component.html',
+    styleUrls: ['./feature-metrics-usage.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatCardModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        NgIf,
+        AsyncPipe,
+        DecimalPipe
+    ]
 })
 export class FeatureMetricsUsageComponent implements OnInit {
   statistics: any = null;

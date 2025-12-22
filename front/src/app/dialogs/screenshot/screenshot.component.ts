@@ -21,15 +21,14 @@ import { NgIf, NgFor, AsyncPipe, NgTemplateOutlet } from '@angular/common';
 
 
 @Component({
-  selector: 'cometa-screenshot',
-  templateUrl: './screenshot.component.html',
-  styleUrls: ['./screenshot.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports:[MatFormFieldModule,MatInputModule, 
-    MatDialogModule, ReactiveFormsModule, AsyncPipe,
-    NgIf, NgFor, MatButtonModule
-  ]
+    selector: 'cometa-screenshot',
+    templateUrl: './screenshot.component.html',
+    styleUrls: ['./screenshot.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatFormFieldModule, MatInputModule,
+        MatDialogModule, ReactiveFormsModule, AsyncPipe,
+        NgIf, NgFor, MatButtonModule
+    ]
 })
 
 export class ScreenshotComponent {

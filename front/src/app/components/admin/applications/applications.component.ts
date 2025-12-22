@@ -16,20 +16,19 @@ import { ApplicationComponent } from './application/application.component';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'admin-applications',
-  templateUrl: './applications.component.html',
-  styleUrls: ['./applications.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgFor,
-    ApplicationComponent,
-    NgIf,
-    MatButtonModule,
-    MatIconModule,
-    SortByPipe,
-    AsyncPipe,
-  ],
+    selector: 'admin-applications',
+    templateUrl: './applications.component.html',
+    styleUrls: ['./applications.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgFor,
+        ApplicationComponent,
+        NgIf,
+        MatButtonModule,
+        MatIconModule,
+        SortByPipe,
+        AsyncPipe,
+    ]
 })
 export class ApplicationsComponent implements OnInit {
   @Select(UserState.GetPermission('create_application'))

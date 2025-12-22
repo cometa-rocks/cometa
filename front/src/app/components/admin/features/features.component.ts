@@ -18,21 +18,20 @@ import { FeatureComponent } from './feature/feature.component';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'admin-features',
-  templateUrl: './features.component.html',
-  styleUrls: ['./features.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    FeatureComponent,
-    MatProgressSpinnerModule,
-    MatButtonModule,
-    MatIconModule,
-    SortByPipe,
-    AsyncPipe,
-  ],
+    selector: 'admin-features',
+    templateUrl: './features.component.html',
+    styleUrls: ['./features.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgIf,
+        NgFor,
+        FeatureComponent,
+        MatProgressSpinnerModule,
+        MatButtonModule,
+        MatIconModule,
+        SortByPipe,
+        AsyncPipe,
+    ]
 })
 export class FeaturesComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))

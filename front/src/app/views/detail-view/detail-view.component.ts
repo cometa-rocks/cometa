@@ -50,85 +50,66 @@ import { GraphViewComponent } from '../../views/detail-view/graph-view/graph-vie
 import { LogService } from '@services/log.service';
 
 @Component({
-  selector: 'detail-view',
-  templateUrl: './detail-view.component.html',
-  styleUrls: ['./detail-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('image1', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 500ms ease-in-out')),
-    ]),
-    trigger('image2', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 600ms ease-in-out')),
-    ]),
-    trigger('image3', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 700ms ease-in-out')),
-    ]),
-  ],
-  standalone: true,
-  imports: [
-    FeatureTitlesComponent,
-    FeatureActionsComponent,
-    NgIf,
-    NgClass,
-    MatProgressSpinnerModule,
-    AmParsePipe,
-    AmDateFormatPipe,
-    SecondsToHumanReadablePipe,
-    FirstLetterUppercasePipe,
-    NumeralPipe,
-    ScreenshotBgPipe,
-    AsyncPipe,
-    GraphViewComponent,
-  ],
+    selector: 'detail-view',
+    templateUrl: './detail-view.component.html',
+    styleUrls: ['./detail-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('image1', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 500ms ease-in-out')),
+        ]),
+        trigger('image2', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 600ms ease-in-out')),
+        ]),
+        trigger('image3', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 700ms ease-in-out')),
+        ]),
+    ],
+    imports: [
+        FeatureTitlesComponent,
+        FeatureActionsComponent,
+        NgIf,
+        NgClass,
+        MatProgressSpinnerModule,
+        AmParsePipe,
+        AmDateFormatPipe,
+        SecondsToHumanReadablePipe,
+        FirstLetterUppercasePipe,
+        NumeralPipe,
+        ScreenshotBgPipe,
+        AsyncPipe,
+        GraphViewComponent,
+    ]
 })
 export class DetailViewComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('remove_screenshot'))

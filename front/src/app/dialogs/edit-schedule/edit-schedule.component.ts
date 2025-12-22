@@ -40,29 +40,28 @@ import { InputFocusService } from '../../services/inputFocus.service';
 
 @UntilDestroy()
 @Component({
-  selector: 'edit-schedule',
-  templateUrl: './edit-schedule.component.html',
-  styleUrls: ['./edit-schedule.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    FormsModule,
-    MatDialogModule,
-    NgIf,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    DisableAutocompleteDirective,
-    NgFor,
-    MatSlideToggleModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatButtonModule,
-    TranslateModule,
-    AsyncPipe,
-  ],
+    selector: 'edit-schedule',
+    templateUrl: './edit-schedule.component.html',
+    styleUrls: ['./edit-schedule.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        FormsModule,
+        MatDialogModule,
+        NgIf,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatOptionModule,
+        DisableAutocompleteDirective,
+        NgFor,
+        MatSlideToggleModule,
+        MatIconModule,
+        MatTooltipModule,
+        MatButtonModule,
+        TranslateModule,
+        AsyncPipe,
+    ]
 })
 export class EditSchedule {
   static panelClass = 'no-resize-dialog';

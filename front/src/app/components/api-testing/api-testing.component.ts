@@ -32,25 +32,24 @@ interface ApiCallData {
 }
 
 @Component({
-  selector: 'cometa-api-testing',
-  templateUrl: './api-testing.component.html',
-  styleUrls: ['./api-testing.component.scss'],
-  standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    MatIconModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatTabsModule,
-    MatCheckboxModule,
-    FormsModule,
-    ReactiveFormsModule,
-    DraggableWindowModule
-  ],
+    selector: 'cometa-api-testing',
+    templateUrl: './api-testing.component.html',
+    styleUrls: ['./api-testing.component.scss'],
+    imports: [
+        NgIf,
+        NgFor,
+        MatIconModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatButtonModule,
+        MatTabsModule,
+        MatCheckboxModule,
+        FormsModule,
+        ReactiveFormsModule,
+        DraggableWindowModule
+    ]
 })
 export class ApiTestingComponent implements OnInit {
   httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];

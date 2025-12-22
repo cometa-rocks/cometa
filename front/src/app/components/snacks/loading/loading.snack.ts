@@ -11,12 +11,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
  *    snackRef.dismiss();
  */
 @Component({
-  selector: 'loading-snack',
-  templateUrl: 'loading.snack.html',
-  styleUrls: ['loading.snack.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatProgressSpinnerModule],
+    selector: 'loading-snack',
+    templateUrl: 'loading.snack.html',
+    styleUrls: ['loading.snack.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatProgressSpinnerModule]
 })
 export class LoadingSnack {
   constructor(@Inject(MAT_SNACK_BAR_DATA) public text: string) {}

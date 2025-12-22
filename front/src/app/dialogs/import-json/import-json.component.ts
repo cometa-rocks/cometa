@@ -9,19 +9,18 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'import-json',
-  templateUrl: './import-json.component.html',
-  styleUrls: ['./import-json.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatButtonModule,
-  ],
+    selector: 'import-json',
+    templateUrl: './import-json.component.html',
+    styleUrls: ['./import-json.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        FormsModule,
+        MatButtonModule,
+    ]
 })
 export class ImportJSONComponent {
   constructor(public dialogRef: MatDialogRef<ImportJSONComponent>) {

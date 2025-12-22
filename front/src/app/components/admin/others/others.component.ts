@@ -19,19 +19,17 @@ import { HouseKeepingComponent } from './housekeeping/housekeeping.component';
 import { API_BASE } from 'app/tokens';
 
 @Component({
-  selector: 'admin-others',
-  templateUrl: './others.component.html',
-  styleUrls: ['./others.component.scss'],
-  imports: [
-    NgFor,
-    NgIf,
-    MatButtonModule,
-    MatIconModule,
-    AsyncPipe,
-    HouseKeepingComponent,
-  ],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
+    selector: 'admin-others',
+    templateUrl: './others.component.html',
+    styleUrls: ['./others.component.scss'],
+    imports: [
+        NgFor,
+        NgIf,
+        MatButtonModule,
+        MatIconModule,
+        AsyncPipe,
+        HouseKeepingComponent,
+    ]
 })
 export class AdminOthersComponent implements OnInit {
   houseKeepingLogs: HouseKeepingLogs[];

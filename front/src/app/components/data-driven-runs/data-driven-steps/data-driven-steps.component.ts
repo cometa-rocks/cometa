@@ -34,109 +34,73 @@ import { SharedModule } from '@modules/shared.module';
 import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
 
 @Component({
-  selector: 'data-driven-step-view',
-  templateUrl: './data-driven-steps.component.html',
-  styleUrls: ['./data-driven-steps.component.scss'],
-  standalone: true,
-  imports: [SharedModule, TruncateApiBodyPipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('progressIn', [
-      transition('* => *', [
-        query(
-          ':enter',
-          style({ opacity: 0, position: 'relative', left: '-50px' }),
-          { optional: true }
-        ),
-        query(
-          ':enter',
-          stagger('80ms', [
-            animate(
-              '.2s 0ms ease-in',
-              style({ opacity: 1, position: 'relative', left: '0' })
-            ),
-          ]),
-          { optional: true }
-        ),
-      ]),
-    ]),
-    trigger('info', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          bottom: '-20px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          bottom: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 300ms ease-in-out')),
-    ]),
-    trigger('chart', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          top: '30px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          top: '0',
-        })
-      ),
-      transition('false => true', animate('300ms 500ms ease-in-out')),
-    ]),
-    trigger('returnArrow', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-30px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 0ms ease-in-out')),
-    ]),
-    trigger('returnText', [
-      state(
-        'false',
-        style({
-          opacity: 0,
-          position: 'relative',
-          left: '-50px',
-        })
-      ),
-      state(
-        'true',
-        style({
-          opacity: 1,
-          position: 'relative',
-          left: '0',
-        })
-      ),
-      transition('false => true', animate('200ms 100ms ease-in-out')),
-    ]),
-  ],
+    selector: 'data-driven-step-view',
+    templateUrl: './data-driven-steps.component.html',
+    styleUrls: ['./data-driven-steps.component.scss'],
+    imports: [SharedModule, TruncateApiBodyPipe],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('progressIn', [
+            transition('* => *', [
+                query(':enter', style({ opacity: 0, position: 'relative', left: '-50px' }), { optional: true }),
+                query(':enter', stagger('80ms', [
+                    animate('.2s 0ms ease-in', style({ opacity: 1, position: 'relative', left: '0' })),
+                ]), { optional: true }),
+            ]),
+        ]),
+        trigger('info', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                bottom: '-20px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                bottom: '0',
+            })),
+            transition('false => true', animate('200ms 300ms ease-in-out')),
+        ]),
+        trigger('chart', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                top: '30px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                top: '0',
+            })),
+            transition('false => true', animate('300ms 500ms ease-in-out')),
+        ]),
+        trigger('returnArrow', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-30px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 0ms ease-in-out')),
+        ]),
+        trigger('returnText', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px',
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0',
+            })),
+            transition('false => true', animate('200ms 100ms ease-in-out')),
+        ]),
+    ]
 })
 export class DataDrivenStepViewComponent implements OnInit {
   clickStepResult: number = null;

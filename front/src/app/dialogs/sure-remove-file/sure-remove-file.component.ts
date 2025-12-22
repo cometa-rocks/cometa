@@ -7,14 +7,13 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-sure-remove-file',
-  templateUrl: './sure-remove-file.component.html',
-  styleUrls: ['./sure-remove-file.component.scss'],
-  standalone: true,
-  imports: [
-    MatDialogModule, 
-    MatButtonModule,
-  ],
+    selector: 'app-sure-remove-file',
+    templateUrl: './sure-remove-file.component.html',
+    styleUrls: ['./sure-remove-file.component.scss'],
+    imports: [
+        MatDialogModule,
+        MatButtonModule,
+    ]
 })
 export class SureRemoveFileComponent {
   static panelClass = 'no-resize-dialog';

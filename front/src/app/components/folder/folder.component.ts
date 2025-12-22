@@ -15,18 +15,17 @@ import { StopPropagationDirective } from '../../directives/stop-propagation.dire
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'cometa-folder',
-  templateUrl: './folder.component.html',
-  styleUrls: ['./folder.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    StopPropagationDirective,
-    MatMenuModule,
-    MatIconModule,
-    DepartmentNamePipe,
-  ],
+    selector: 'cometa-folder',
+    templateUrl: './folder.component.html',
+    styleUrls: ['./folder.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatButtonModule,
+        StopPropagationDirective,
+        MatMenuModule,
+        MatIconModule,
+        DepartmentNamePipe,
+    ]
 })
 export class FolderComponent {
   constructor(

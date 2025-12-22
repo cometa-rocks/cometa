@@ -27,13 +27,12 @@ import { WebSockets } from '@store/actions/results.actions';
 
 @UntilDestroy()
 @Component({
-  selector: 'data-driven-results',
-  templateUrl: './data-driven-results.component.html',
-  styleUrls: ['./data-driven-results.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [PdfLinkPipe],
-  imports: [SharedModule, NgClass],
-  standalone: true,
+    selector: 'data-driven-results',
+    templateUrl: './data-driven-results.component.html',
+    styleUrls: ['./data-driven-results.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [PdfLinkPipe],
+    imports: [SharedModule, NgClass]
 })
 export class DataDrivenResultsComponent implements OnInit {
   //   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;

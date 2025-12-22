@@ -4,14 +4,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-sure-remove-run',
-  templateUrl: './sure-remove-run.component.html',
-  styleUrls: ['./sure-remove-run.component.scss'],
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MatButtonModule
-  ]
+    selector: 'app-sure-remove-run',
+    templateUrl: './sure-remove-run.component.html',
+    styleUrls: ['./sure-remove-run.component.scss'],
+    imports: [
+        MatDialogModule,
+        MatButtonModule
+    ]
 })
 export class SureRemoveRunComponent {
   static panelClass = 'no-resize-dialog';

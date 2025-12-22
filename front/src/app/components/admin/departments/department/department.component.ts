@@ -21,18 +21,17 @@ import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 
 @Component({
-  selector: 'department',
-  templateUrl: './department.component.html',
-  styleUrls: ['./department.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    DisableAutocompleteDirective,
-    NgIf,
-    NgClass,
-    MatIconModule,
-    AsyncPipe,
-  ],
+    selector: 'department',
+    templateUrl: './department.component.html',
+    styleUrls: ['./department.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        DisableAutocompleteDirective,
+        NgIf,
+        NgClass,
+        MatIconModule,
+        AsyncPipe,
+    ]
 })
 export class DepartmentComponent {
   @Select(UserState.GetPermission('edit_department'))

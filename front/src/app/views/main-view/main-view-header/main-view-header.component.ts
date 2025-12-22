@@ -37,26 +37,25 @@ import { NgClass, NgFor, AsyncPipe } from '@angular/common';
 import { LetDirective } from '../../../directives/ng-let.directive';
 
 @Component({
-  selector: 'cometa-main-view-header',
-  templateUrl: './main-view-header.component.html',
-  styleUrls: ['./main-view-header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    LetDirective,
-    NgClass,
-    MatMenuModule,
-    StopPropagationDirective,
-    MatCheckboxModule,
-    CdkDropList,
-    NgFor,
-    CdkDrag,
-    CdkDragHandle,
-    MatTooltipModule,
-    MatDividerModule,
-    TranslateModule,
-    AsyncPipe,
-  ],
+    selector: 'cometa-main-view-header',
+    templateUrl: './main-view-header.component.html',
+    styleUrls: ['./main-view-header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        LetDirective,
+        NgClass,
+        MatMenuModule,
+        StopPropagationDirective,
+        MatCheckboxModule,
+        CdkDropList,
+        NgFor,
+        CdkDrag,
+        CdkDragHandle,
+        MatTooltipModule,
+        MatDividerModule,
+        TranslateModule,
+        AsyncPipe,
+    ]
 })
 export class MainViewHeaderComponent implements OnInit {
   /** Holds all the current headers of the results table */

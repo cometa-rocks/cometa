@@ -8,12 +8,11 @@ import {
 } from '@angular/material/dialog';
 
 @Component({
-  selector: 'data-driven-stop',
-  templateUrl: 'data-driven-stop.component.html',
-  styleUrls: ['data-driven-stop.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'data-driven-stop',
+    templateUrl: 'data-driven-stop.component.html',
+    styleUrls: ['data-driven-stop.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class DataDrivenTestStop {
   constructor(

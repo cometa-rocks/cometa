@@ -16,19 +16,18 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
-  selector: 'application',
-  templateUrl: './application.component.html',
-  styleUrls: ['./application.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    DisableAutocompleteDirective,
-    FormsModule,
-    NgIf,
-    NgClass,
-    AsyncPipe,
-  ],
+    selector: 'application',
+    templateUrl: './application.component.html',
+    styleUrls: ['./application.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        DisableAutocompleteDirective,
+        FormsModule,
+        NgIf,
+        NgClass,
+        AsyncPipe,
+    ]
 })
 export class ApplicationComponent {
   @Select(UserState.GetPermission('edit_application'))

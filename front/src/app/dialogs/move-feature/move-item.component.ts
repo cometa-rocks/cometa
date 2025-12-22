@@ -25,17 +25,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MoveFolderItemComponent } from './move-folder-item/move-folder-item.component';
 
 @Component({
-  selector: 'cometa-move-item',
-  templateUrl: './move-item.component.html',
-  styleUrls: ['./move-item.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MoveFolderItemComponent,
-    MatButtonModule,
-    AsyncPipe,
-  ],
+    selector: 'cometa-move-item',
+    templateUrl: './move-item.component.html',
+    styleUrls: ['./move-item.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        MoveFolderItemComponent,
+        MatButtonModule,
+        AsyncPipe,
+    ]
 })
 export class MoveItemDialog {
   homeFolder$: Observable<Folder>;

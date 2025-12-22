@@ -12,12 +12,11 @@ import {
 } from '@angular/material/dialog';
 
 @Component({
-  selector: 'step-notes',
-  templateUrl: './step-notes.component.html',
-  styleUrls: ['./step-notes.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'step-notes',
+    templateUrl: './step-notes.component.html',
+    styleUrls: ['./step-notes.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class StepNotesComponent {
   constructor(

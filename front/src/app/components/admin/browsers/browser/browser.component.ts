@@ -17,20 +17,19 @@ import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'browser',
-  templateUrl: './browser.component.html',
-  styleUrls: ['./browser.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [DisableAutocompleteDirective,
-    BrowserComboTextPipe,
-    ReactiveFormsModule,
-    DisableAutocompleteDirective,
-    FormsModule,
-    NgIf,
-    NgClass,
-    AsyncPipe,
-  ],
+    selector: 'browser',
+    templateUrl: './browser.component.html',
+    styleUrls: ['./browser.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [DisableAutocompleteDirective,
+        BrowserComboTextPipe,
+        ReactiveFormsModule,
+        DisableAutocompleteDirective,
+        FormsModule,
+        NgIf,
+        NgClass,
+        AsyncPipe,
+    ]
 })
 export class BrowserComponent {
   @Input() browser: BrowserstackBrowser;

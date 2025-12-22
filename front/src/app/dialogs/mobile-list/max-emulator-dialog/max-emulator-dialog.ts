@@ -14,23 +14,22 @@ import { MatListModule } from '@angular/material/list';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'max-emulator-dialog',
-  templateUrl: 'max-emulator-dialog.html',
-  styleUrls: ['max-emulator-dialog.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    NgIf,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatListModule,
-    CommonModule
-  ],
-  providers: [
-    { provide: MatDialogRef, useValue: {} }
-  ]
+    selector: 'max-emulator-dialog',
+    templateUrl: 'max-emulator-dialog.html',
+    styleUrls: ['max-emulator-dialog.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogModule,
+        NgIf,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatListModule,
+        CommonModule
+    ],
+    providers: [
+        { provide: MatDialogRef, useValue: {} }
+    ]
 })
 export class MaxEmulatorDialogComponent {
   departments: any;

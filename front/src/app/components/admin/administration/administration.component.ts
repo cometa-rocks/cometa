@@ -9,19 +9,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { EditConfigurationComponent } from './edit-configuration/edit-configuration.component';
 
 @Component({
-  selector: 'administration',
-  templateUrl: './administration.component.html',
-  styleUrls: ['./administration.component.scss'],
-  imports: [
-    NgFor,
-    NgIf,
-    MatButtonModule,
-    MatIconModule,
-    AsyncPipe,
-    EditConfigurationComponent,
-  ],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
+    selector: 'administration',
+    templateUrl: './administration.component.html',
+    styleUrls: ['./administration.component.scss'],
+    imports: [
+        NgFor,
+        NgIf,
+        MatButtonModule,
+        MatIconModule,
+        AsyncPipe,
+        EditConfigurationComponent,
+    ]
 })
 export class AdministrationComponent implements OnInit {
   showConfigurations: Boolean = false

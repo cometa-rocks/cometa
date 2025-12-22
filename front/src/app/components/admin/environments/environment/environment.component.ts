@@ -16,19 +16,18 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
-  selector: 'environment',
-  templateUrl: './environment.component.html',
-  styleUrls: ['./environment.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    DisableAutocompleteDirective,
-    FormsModule,
-    NgIf,
-    NgClass,
-    AsyncPipe,
-  ],
+    selector: 'environment',
+    templateUrl: './environment.component.html',
+    styleUrls: ['./environment.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        DisableAutocompleteDirective,
+        FormsModule,
+        NgIf,
+        NgClass,
+        AsyncPipe,
+    ]
 })
 export class EnvironmentComponent {
   @Select(UserState.GetPermission('edit_environment'))

@@ -28,18 +28,17 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
-  selector: 'feature',
-  templateUrl: './feature.component.html',
-  styleUrls: ['./feature.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    MatCheckboxModule,
-    DisableAutocompleteDirective,
-    MatTooltipModule,
-    NgIf,
-    AsyncPipe,
-  ],
+    selector: 'feature',
+    templateUrl: './feature.component.html',
+    styleUrls: ['./feature.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatCheckboxModule,
+        DisableAutocompleteDirective,
+        MatTooltipModule,
+        NgIf,
+        AsyncPipe,
+    ]
 })
 export class FeatureComponent implements OnInit {
   canEditFeature$: Observable<boolean>;
