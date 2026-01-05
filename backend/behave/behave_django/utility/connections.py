@@ -2,6 +2,7 @@ import os
 import redis
 from utility.common import get_logger
 import traceback
+import socket
 
 logger = get_logger()
 from utility.configurations import ConfigurationManager
@@ -33,7 +34,14 @@ def connect_redis():
     # This is kept separately in case any client wants to have separate ai container
     # by sending jobs message to different queue it will separate the processing load
 
-    logger.debug(f"Connecting to redis host {REDIS_HOST}:{REDIS_PORT}")
+    logger.info(
+        "Connecting to Redis: host=%s port=%s db=%s ssl=%s hostname=%s",
+        REDIS_HOST,
+        REDIS_PORT,
+        REDIS_DB,
+        REDIS_DB_TSL_SSL_ENABLED,
+        socket.gethostname(),
+    )
 
     redis_connection_details = {
         "host": REDIS_HOST,
