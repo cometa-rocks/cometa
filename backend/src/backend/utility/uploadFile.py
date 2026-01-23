@@ -278,7 +278,7 @@ class UploadFile():
         # start with scanning
         start_time = time.time()
         tempFilePath = self.tempFile.temporary_file_path()
-        if not os.path.exists("/var/lib/clamav/main.cvd"):
+        if not os.path.exists("/var/lib/clamav/main.cvd") and not os.path.exists("/var/lib/clamav/main.cld")):
             logger.error("ClamAV database is missing. Please run 'freshclam' to update the database.")
             raise Exception('ClamAV database is missing. Please contact an administrator.')
         
