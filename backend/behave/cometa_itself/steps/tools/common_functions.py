@@ -66,6 +66,43 @@ logger = logging.getLogger("FeatureExecution")
 
 from utility.configurations import ConfigurationManager
 
+
+def mask_bot_token_in_step_name(context, token_value):
+    """
+    Masks a bot token in the step name, showing only the last 4 characters.
+    Used to secure sensitive credentials in logs and PDF reports while allowing validation.
+    
+    Args:
+        context: Behave context object
+        token_value: The actual token value to mask
+    
+    Example:
+        Original: "bot_token": "123456789:AAFnOAAeAb1-1238IscSnfPowzu6ABCzgHd5"
+        Result:   "bot_token": "****gHd5"
+    """
+    if not token_value or not hasattr(context, 'CURRENT_STEP'):
+        return
+    
+    def mask_token(match):
+        full_match = match.group(0)
+        # Extract the token value from the matched string
+        token_match = re.search(r'"bot_token"\s*:\s*"([^"]*)"', full_match)
+        if token_match:
+            token = token_match.group(1)
+            if len(token) > 4:
+                masked = f'"bot_token": "****{token[-4:]}"'
+            else:
+                masked = '"bot_token": "****"'
+            return masked
+        return full_match
+    
+    # Apply masking to step name
+    context.CURRENT_STEP.name = re.sub(
+        r'"bot_token"\s*:\s*"[^"]*"',
+        mask_token,
+        context.CURRENT_STEP.name
+    )
+
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration(
     "COMETA_SCREENSHOT_PREFIX", ""
 )
@@ -81,6 +118,112 @@ def _async_post(url, headers=None, json=None):
         except Exception as e:
             logger.error(f"Async POST to {url} failed: {e}")
     _executor.submit(_task)
+
+
+def parse_json_object(raw_value, context_label):
+    """Parse JSON provided to Behave steps, enforcing object structure."""
+    if raw_value is None:
+        return {}
+    if isinstance(raw_value, dict):
+        return raw_value
+    if isinstance(raw_value, str):
+        raw_value = raw_value.strip()
+        if raw_value == "":
+            return {}
+        try:
+            parsed = json.loads(raw_value)
+        except json.JSONDecodeError as err:
+            raise CustomError(f"Invalid JSON provided for {context_label}: {err}")
+        if not isinstance(parsed, dict):
+            raise CustomError(f"{context_label} must be a JSON object")
+        return parsed
+    raise CustomError(f"Unsupported data type for {context_label}: {type(raw_value).__name__}")
+
+
+def send_custom_notification_request(context, channel, message, subject=None, to=None, cc=None, bcc=None, telegram_bot_token=None, telegram_chat_id=None, telegram_thread_id=None, timeout=30):
+    """Send a custom notification (email or telegram) via the backend API.
+    
+    Args:
+        context: Behave context
+        channel: 'email' or 'telegram'
+        message: Notification message
+        subject: Email subject (optional, for email channel)
+        to: Custom TO recipients (optional, for email channel) - comma-separated emails
+        cc: Custom CC recipients (optional, for email channel) - comma-separated emails
+        bcc: Custom BCC recipients (optional, for email channel) - comma-separated emails
+        telegram_bot_token: Custom Telegram bot token (optional, for telegram channel)
+        telegram_chat_id: Custom Telegram chat ID (optional, for telegram channel)
+        telegram_thread_id: Custom Telegram thread ID (optional, for telegram channel)
+        timeout: Request timeout in seconds
+    """
+    if message is None or message == "":
+        raise CustomError("Notification message cannot be empty")
+
+    normalized_channel = (channel or "").strip().lower()
+    if normalized_channel not in ("email", "telegram"):
+        raise CustomError(f"Unsupported notification channel: {channel}")
+
+    feature_result_id = os.environ.get("feature_result_id")
+    if not feature_result_id:
+        raise CustomError("Environment variable 'feature_result_id' is not available")
+
+    try:
+        feature_result_id_int = int(feature_result_id)
+    except ValueError as err:
+        raise CustomError(f"Invalid feature_result_id '{feature_result_id}': {err}") from err
+
+    payload = {
+        "feature_result_id": feature_result_id_int,
+        "channel": normalized_channel,
+        "message": message.replace("\\n", "\n") if isinstance(message, str) else message,
+    }
+    if subject:
+        payload["subject"] = subject
+    
+    # Add custom recipients if provided (for email channel)
+    if to is not None:
+        payload["to"] = to
+    if cc is not None:
+        payload["cc"] = cc
+    if bcc is not None:
+        payload["bcc"] = bcc
+    
+    # Add custom Telegram settings if provided (for telegram channel)
+    if telegram_bot_token is not None:
+        payload["telegram_bot_token"] = telegram_bot_token
+    if telegram_chat_id is not None:
+        payload["telegram_chat_id"] = telegram_chat_id
+    if telegram_thread_id is not None:
+        payload["telegram_thread_id"] = telegram_thread_id
+
+    headers = {"Host": "cometa.local"}
+    if normalized_channel == "telegram":
+        telegram_context = getattr(context, "telegram_notification", None)
+        if telegram_context:
+            try:
+                headers["X-Telegram-Notification"] = json.dumps(telegram_context)
+            except (TypeError, ValueError) as err:
+                logger.warning(
+                    "Failed to serialize telegram_notification context: %s", err, exc_info=True
+                )
+
+    url = f"{get_cometa_backend_url()}/send_custom_notification/"
+    logger.debug("Sending custom notification via %s", url)
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
+    except requests.RequestException as err:
+        logger.error("Error while sending custom notification", exc_info=True)
+        raise CustomError(f"Failed to send {normalized_channel} notification: {err}") from err
+
+    if response.status_code != 200:
+        try:
+            response_data = response.json()
+        except ValueError:
+            response_data = response.text
+        raise CustomError(f"Backend rejected {normalized_channel} notification: {response_data}")
+
+    return response
 
 
 def takeScreenshot(device_driver, step_type="BROWSER"):
@@ -578,6 +721,9 @@ def done(*_args, **_kwargs):
                 # if step executed without running into timeout cancel the timeout
                 signal.alarm(0)
                 # save the result to database
+                # Check if step modified CURRENT_STEP.name to add custom details (e.g., notification config)
+                if hasattr(args[0], 'CURRENT_STEP') and args[0].CURRENT_STEP.name != save_message:
+                    save_message = args[0].CURRENT_STEP.name
                 saveToDatabase(
                     save_message, (time.time() - start_time) * 1000, 0, True, args[0]
                 )
@@ -595,6 +741,9 @@ def done(*_args, **_kwargs):
                 args[0].step_error = format_error_message(logger.mask_values(str(err)),step_name=args[0].step_data.get("step_name"), context=args[0])
                 try:
                     # save the result to databse as False since the step failed
+                    # Check if step modified CURRENT_STEP.name to add custom details (e.g., notification config)
+                    if hasattr(args[0], 'CURRENT_STEP') and args[0].CURRENT_STEP.name != save_message:
+                        save_message = args[0].CURRENT_STEP.name
                     saveToDatabase(
                         save_message,
                         (time.time() - start_time) * 1000,
@@ -1416,5 +1565,3 @@ def inspect_context_complete(context, logger=None, max_depth=2, current_depth=0)
     
     if current_depth == 0:
         logger.info("=== END COMPLETE CONTEXT INSPECTION ===")
-
-

@@ -97,6 +97,7 @@ interface FeatureResult {
   files: string[];
   network_response_count: number;
   vulnerable_response_count: number;
+  executed_by?: IAccount; // User who executed the feature
 }
 
 // Create feature
@@ -283,6 +284,7 @@ interface FeatureRun {
   ok: number;
   skipped: number;
   execution_time: number;
+  executed_by?: IAccount; // User who executed the feature (from most recent feature_result)
   pixel_diff: number;
 }
 
@@ -1227,6 +1229,16 @@ interface FeatureHistoryEntry {
   description: string;
   steps_count: number;
   steps: FeatureHistoryStep[];
+  // Additional feature data from backup
+  browsers?: any[];
+  schedule?: string;
+  send_mail?: boolean;
+  send_mail_on_error?: boolean;
+  network_logging?: boolean;
+  generate_dataset?: boolean;
+  continue_on_failure?: boolean;
+  send_telegram_notification?: boolean;
+  [key: string]: any; // Allow for additional properties
 }
 
 interface FeatureHistoryStep {

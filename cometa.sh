@@ -5,6 +5,7 @@
 # ##################################################
 #
 # Changelog:
+# 2025-11-10 RRO Added support for cleanup of Docker container logs for Cometa containers
 # 2025-09-17 RRO Added support for docker-compose-dev.yml file & cleanup of cometa containers, images, volumes, networks
 # 2025-09-15 RRO Added debug mode to the script
 # 2025-08-29 RRO Added check for Rosetta on Apple Silicon Macs, better logging, and show logs for all containers if no container specified
@@ -17,7 +18,10 @@
 VERSION="2025-09-17"
 
 DOCKER_COMPOSE_COMMAND="docker-compose"
-CURRENT_PATH=$PWD
+
+# Get the directory where this script is located (works even if called with absolute path)
+CURRENT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 
 
 
@@ -64,6 +68,7 @@ Options:
   --cleanup-containers      Clean up only Docker containers
   --cleanup-volumes         Clean up only Docker volumes
   --cleanup-networks        Clean up only Docker networks
+  --cleanup-logs [size]     Clean up Docker container logs for Cometa containers (default: 100MB)
   --cleanup-all             Clean up all Docker resources
   --update-docker           (WIP) Update Docker and related components
   --check-docker            Check if Docker is installed and running
@@ -90,6 +95,7 @@ Examples:
   $0 --stop-cometa         # Stop all Cometa containers
   $0 --cleanup-cometa      # Clean up only Cometa-related Docker resources
   $0 --cleanup-images      # Clean up only Docker images
+  $0 --cleanup-logs 100    # Clean up logs larger than 100MB for Cometa containers
 
 For more information, see the documentation or contact support.
 EOF
@@ -377,7 +383,7 @@ function checkRosetta() {
 function updateCrontab() {
     if ! ( crontab -l 2>/dev/null | grep -Fq "${1}" ); then
         ( crontab -l 2>/dev/null; echo "${1}" ) | crontab -
-        debug "Crontab ${2}  created."
+        info "Crontab ${2}  created."
     else
         debug "Crontab ${2}  already exists."
     fi
@@ -593,6 +599,113 @@ prune_cometa_networks() {
     info "Pruned $pruned_count Cometa networks"
 }
 
+# Function to clean up Docker container logs for Cometa containers only
+cleanup_cometa_container_logs() {
+    info "Starting Docker container logs cleanup for Cometa containers..."
+    
+    local max_size_mb=${1:-100}  # Default to 100MB if not specified
+    local max_size_bytes=$((max_size_mb * 1024 * 1024))
+    
+    # Get all Cometa container names
+    local cometa_containers=($(get_cometa_containers))
+    
+    if [[ ${#cometa_containers[@]} -eq 0 ]]; then
+        info "No Cometa containers found"
+        return 0
+    fi
+    
+    info "Found ${#cometa_containers[@]} Cometa container(s) to check: ${cometa_containers[*]}"
+    
+    local total_size_freed=0
+    local files_processed=0
+    local files_truncated=0
+    local files_failed=0
+    
+    # Process each Cometa container
+    for container_name in "${cometa_containers[@]}"; do
+        # Get container ID (works for both running and stopped containers)
+        local container_id=$(docker inspect --format='{{.Id}}' "$container_name" 2>/dev/null)
+        
+        if [[ -z "$container_id" ]]; then
+            info "Container '$container_name' not found, skipping"
+            continue
+        fi
+        
+        # Get log file path directly from Docker (most reliable method)
+        # This works regardless of where Docker stores its data
+        local log_file_path=$(docker inspect --format='{{.LogPath}}' "$container_name" 2>/dev/null)
+        
+        # If LogPath is not available, try to construct it from common locations
+        if [[ -z "$log_file_path" || ! -f "$log_file_path" ]]; then
+            # Try to get Docker root directory
+            local docker_root=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
+            
+            if [[ -n "$docker_root" ]]; then
+                log_file_path="${docker_root}/containers/${container_id}/${container_id}-json.log"
+            else
+                # Fall back to common paths
+                local common_paths=(
+                    "/var/lib/docker/containers/${container_id}/${container_id}-json.log"
+                    "$HOME/Library/Containers/com.docker.docker/Data/vms/0/data/docker/containers/${container_id}/${container_id}-json.log"
+                    "/var/snap/docker/common/var-lib-docker/containers/${container_id}/${container_id}-json.log"
+                )
+                
+                for test_path in "${common_paths[@]}"; do
+                    if [[ -f "$test_path" ]]; then
+                        log_file_path="$test_path"
+                        break
+                    fi
+                done
+            fi
+        fi
+        
+        if [[ -z "$log_file_path" || ! -f "$log_file_path" ]]; then
+            info "Log file not found for container '$container_name' (ID: ${container_id:0:12}), skipping"
+            continue
+        fi
+        
+        files_processed=$((files_processed + 1))
+        
+        # Get file size (works on both Linux and macOS)
+        local file_size=$(stat -f%z "$log_file_path" 2>/dev/null || stat -c%s "$log_file_path" 2>/dev/null)
+        
+        if [[ -z "$file_size" ]]; then
+            warning "Could not get file size for $log_file_path"
+            files_failed=$((files_failed + 1))
+            continue
+        fi
+        
+        local size_mb=$((file_size / 1024 / 1024))
+        
+        if [[ $file_size -gt $max_size_bytes ]]; then
+            # Truncate the file (safer than deleting - Docker will continue writing)
+            if truncate -s 0 "$log_file_path" 2>/dev/null || : > "$log_file_path" 2>/dev/null; then
+                files_truncated=$((files_truncated + 1))
+                total_size_freed=$((total_size_freed + file_size))
+                info "Truncated log for '$container_name' (was ${size_mb} MB) at $log_file_path"
+            else
+                warning "Failed to truncate log for '$container_name' at $log_file_path"
+                files_failed=$((files_failed + 1))
+            fi
+        else
+            info "Log for '$container_name' is ${size_mb} MB (within ${max_size_mb} MB limit), skipping"
+        fi
+    done
+    
+    local total_size_freed_mb=$((total_size_freed / 1024 / 1024))
+    
+    info "============================================"
+    info "Docker container logs cleanup completed:"
+    info "- Files processed: $files_processed"
+    info "- Files truncated: $files_truncated"
+    info "- Files failed: $files_failed"
+    info "- Total size freed: ${total_size_freed_mb} MB"
+    info "============================================"
+    
+    # Ensure crontab entry is set up for automatic cleanup
+    updateCrontab "0 1 * * * cd $CURRENT_PATH && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
+}
+
 # Main cleanup function for Cometa-specific resources
 cleanup_cometa() {
     info "Starting Cometa-specific cleanup..."
@@ -717,7 +830,7 @@ function get_cometa_up_and_running() {
     info "Updating crontab for housekeeping and gunicorn"
     updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
     updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
-
+    updateCrontab "0 1 * * * cd $CURRENT_PATH && ./cometa.sh --cleanup-logs 100" "cleanup-logs.cleanup"
 
     #
     # Replace <server> in docker-compose-dev.yml with "local"
@@ -1062,6 +1175,17 @@ do
             ;;
         --cleanup-networks)
             cleanup_networks
+            exit 0
+            ;;
+        --cleanup-logs)
+            # Check if next argument is a number (size in MB)
+            if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+                max_size=$2
+                shift  # Consume the size argument
+            else
+                max_size=100  # Default to 100MB
+            fi
+            cleanup_cometa_container_logs "$max_size"
             exit 0
             ;;
         --cleanup-all)

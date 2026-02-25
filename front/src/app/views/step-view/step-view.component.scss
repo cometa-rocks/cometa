@@ -45,7 +45,7 @@
   width: 100%;
   position: relative;
   text-align: center;
-  padding: 30px 30px 60px; // table header will be in the same position in feature result component and step view component
+  padding: 30px 15px 40px; // table header will be in the same position in feature result component and step view component
   box-sizing: border-box;
 
   @include for-tablet-portrait-up-plus30 {
@@ -66,11 +66,14 @@
     .return-text {
       flex: initial;
       line-height: 50px;
-      font-size: 14pt;
+      font-size: 0.9rem;
       font-weight: bold;
       color: rgba(black, 0.6);
       &:first-letter {
         text-transform: uppercase;
+      }
+      @include for-tablet-portrait-up {
+        font-size: 18px; // the equivalence of 14pt is 18px
       }
     }
     i {
@@ -111,6 +114,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 5px;
     @include for-tablet-portrait-up {
       flex: 0 500px;
     }
@@ -124,16 +128,24 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 110px;
+  width: 20%;
+  @include for-tablet-portrait-up {
+    width: 110px;
+  }
   .value {
     position: absolute;
     height: 25px;
     width: 100%;
-    top: 35px;
-    font-size: 20pt;
+    top: 15px;
+    font-size: 0.9rem;
     font-weight: 500;
     margin: auto;
     text-align: center;
+
+    @include for-tablet-portrait-up {
+      top: 35px;
+      font-size: 20pt;
+    }
 
     &::after {
       content: attr(data-value);
@@ -147,6 +159,10 @@
     font-weight: bold;
     color: rgba(0, 0, 0, 0.6);
     text-align: center;
+    font-size: 0.7rem;
+    @include for-tablet-portrait-up {
+      font-size: 1rem;
+    }
   }
 }
 
@@ -162,13 +178,13 @@
   font-weight: bold;
   margin-top: 20px;
   @include for-tablet-portrait-up {
-    flex: 0 105px;
-    max-width: 105px;
+    flex: 0 125px;
+    max-width: 125px;
     flex-direction: column;
   }
   .red {
     flex: 0 33.33333%;
-    font-size: 40pt;
+    font-size: 32pt;
     color: $bad;
     text-transform: uppercase;
     @include for-tablet-portrait-up {
@@ -178,17 +194,24 @@
   }
   .total-pixel-title {
     flex: 0 33.33333%;
-    padding: 0 15px;
+    padding: 0 10px;
     box-sizing: border-box;
-    font-size: 18pt;
+    font-size: 16pt;
     @include for-tablet-portrait-up {
       flex: initial;
       font-size: 15pt;
+      padding: 0 15px;
+      font-size: 18px;
     }
   }
   .pixel_graphic {
     flex: 0 33.33333%;
-    height: 50px;
+    height: 30px;
+    margin-top: 15px;
+    @include for-tablet-portrait-up {
+      height: 50px;
+      margin-top: 0;
+    }
   }
 }
 
@@ -244,41 +267,31 @@
     background-color: $darker-step ;
     color: $white-text ;
     text-transform: uppercase ;
-    padding: 16px 0 ; // Increased padding for better spacing
     box-sizing: border-box ;
     border-radius: 8px 8px 0 0 ; // Rounded top corners for card effect
     box-shadow: 0 2px 8px $transparent-bg ; // Subtle shadow for depth
     margin-bottom: 2px ; // Small gap between header and content
 
-    .name {
-      flex: 0 40%;
-      max-width: 40%;
-      text-align: center;
-      padding-left: 0;
-    }
+    // Mobile-first defaults
+    padding: 10px 8px;
+    font-size: 12px;
 
-    .status {
-      flex: 0 12%;
-      max-width: 12%;
-      text-align: center;
-    }
+    .name { flex: 0 55%; max-width: 55%; text-align: center; padding-left: 0; }
+    .status { flex: 0 12%; max-width: 12%; text-align: center; }
+    .time { flex: 0 12%; max-width: 12%; text-align: center; }
+    .time:last-of-type { display: none; }
+    .difference-mobile { flex: 0 15%; max-width: 15%; text-align: center; margin-right: 5px; }
+    .options { flex: 0 10%; max-width: 10%; text-align: left; margin-right: 10px;}
 
-    .time {
-      flex: 0 12%;
-      max-width: 12%;
-      text-align: center;
-    }
-
-    .difference-mobile {
-      flex: 0 15%;
-      max-width: 15%;
-      text-align: center;
-    }
-
-    .options {
-      flex: 0 8%;
-      max-width: 8%;
-      text-align: left;
+    // Desktop overrides
+    @include for-tablet-portrait-up {
+      padding: 16px 0;
+      font-size: inherit;
+      .name { flex: 0 40%; max-width: 40%; }
+      .status { flex: 0 12%; max-width: 12%; }
+      .time { flex: 0 12%; max-width: 12%; }
+      .time:last-of-type { display: inline-block; }
+      .options { flex: 0 8%; max-width: 8%; }
     }
   }
 
@@ -289,7 +302,7 @@
     padding-left: 0.67em; // Add margin between rows for separation
     padding: 0.67em;
     font-weight: bold;
-    font-size: 1.8em;
+    font-size: 1em;
     transition: all 0.2s ease-in-out; 
     cursor: pointer; // Smooth transitions
     &:hover {
@@ -299,24 +312,25 @@
         color: $blue;
       }
     }
+    @include for-tablet-portrait-up {
+      font-size: 1.8em;
+    }
   }
   
   .step-row-step-view {
     display: flex;
     align-items: center;
-    min-height: 65px; // Increased from 53px for better spacing
     box-sizing: border-box;
     font-weight: bold;
     cursor: pointer;
-    padding: 15px 20px; // Increased padding for better breathing room
     margin: 5px 0; // Add margin between rows for separation
     border-radius: 6px; // Rounded corners for card effect
     transition: all 0.2s ease-in-out; // Smooth transitions
     position: relative; // For shadow positioning
 
-    @include for-tablet-portrait-up {
-      padding: 16px 24px; // Even more padding on larger screens
-    }
+    // Mobile-first defaults
+    min-height: 56px;
+    padding: 10px 12px;
 
     &:nth-child(odd) {
       background-color: $white-grey-cell-bg;
@@ -367,16 +381,19 @@
     }
 
     .name {
-      flex: 0 40%;
-      max-width: 40%;
-      padding-left: 20px; // Increased from 20px
+      // Mobile default
+      flex: 0 55%;
+      max-width: 55%;
       box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       
+      // Desktop overrides
       @include for-tablet-portrait-up {
+        flex: 0 40%;
+        max-width: 40%;
         font-size: 1rem;
         padding-left: 24px; // Increased padding on larger screens
       }
@@ -407,6 +424,16 @@
           border-left: none; // Remove the border since we're using gap for separation
           line-height: 1.4;
           flex: 1; // Allow the step name to take remaining space
+          margin-right: 10px;
+          font-size: 0.8rem;
+          @include for-tablet-portrait-up {
+            font-size: 1rem;
+          }
+        }
+
+        @include for-tablet-portrait-up {
+          margin-right: 0px;
+
         }
 
         .step-error {
@@ -464,13 +491,16 @@
     }
 
     .status {
-      flex: 0 12%;
-      max-width: 12%;
+      // Mobile default
+      display: initial;
+      flex: 0 15%;
+      max-width: 15%;
       text-align: center;
-      display: none;
       
+      // Desktop overrides
       @include for-tablet-portrait-up {
-        display: initial;
+        flex: 0 12%;
+        max-width: 12%;
       }
       
       &.ok {
@@ -483,11 +513,20 @@
     }
 
     .time {
+      // Mobile default
       flex: 0 12%;
       max-width: 12%;
       text-align: center;
       color: $bad;
       font-weight: 500; // Added font weight for better readability
+    }
+
+    // Hide second time on mobile, show on desktop
+    .time:last-of-type { display: none; }
+    @include for-tablet-portrait-up { 
+      .time:last-of-type { 
+        display: inline-block; 
+      } 
     }
 
     .difference {
@@ -497,14 +536,21 @@
     }
 
     .item-options {
-      margin-right: 20px;
-      flex: 0 8%;
-      max-width: 8%;
+      margin-right: 8px; // mobile
+      flex: 0 10%;
+      max-width: 10%;
       min-width: 0;
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
+
+      @include for-tablet-portrait-up { 
+        margin-right: 20px; 
+        flex: 0 8%; 
+        max-width: 8%; 
+        flex-wrap: nowrap;
+      }
       
       .option {
         display: flex;
@@ -527,8 +573,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px; // Increased from 32px
-        height: 36px; // Increased from 32px
+        width: 32px; // mobile
+        height: 32px; // mobile
         border-radius: 4px; // Rounded corners for buttons
         transition: all 0.2s ease-in-out; // Smooth transitions
         &:hover {
@@ -536,6 +582,21 @@
           transform: scale(1.05); // Slight scale effect on hover
         }
         
+        @include for-tablet-portrait-up { 
+          width: 36px; 
+          height: 36px; 
+        }
+      }
+
+      // Icons utility class in item-options context
+      .icons {
+        font-size: 1.1rem;
+      }
+
+      @include for-tablet-portrait-up {
+        .icons {
+          font-size: 1.4rem;
+        }
       }
     }
   }
@@ -575,4 +636,3 @@
     opacity: 0;
   }
 }
-

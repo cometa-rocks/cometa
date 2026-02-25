@@ -2193,20 +2193,31 @@ class UploadViewSet(viewsets.ModelViewSet):
             return JsonResponse({'success': False, 'error': 'File does not exists.'})
 
     def create(self, request):
+        logger.info(f"[UPLOAD START] Received upload request from user: {request.session.get('user', {}).get('user_id', 'unknown')}")
+
         # get the department_id from the request
         department_id = request.POST.get('department_id', -1)
         if department_id == -1 or departmentExists(department_id) == -1:
+            logger.error(f"[UPLOAD ERROR] Department does not exist for user: {request.session.get('user', {}).get('user_id', 'unknown')}")
             return JsonResponse({'success': False, 'error': "Department does not exist."})
 
         file_type = request.POST.get('file_type', 'normal')
+        files = request.FILES.getlist('files')
+
+        for f in files:
+            logger.info(f"[UPLOAD] File received: {f.name}, size: {f.size} bytes, type: {file_type}")
 
         try:
+            logger.info(f"[UPLOAD] Spawning background thread for {len(files)} file(s)")
             # Spawn thread to upload files in background
             t = Thread(target=uploadFilesThread,
                        args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id'], file_type))
             t.start()
+            logger.info(f"[UPLOAD] Background thread started, returning success to client")
             return JsonResponse({'success': True})
         except Exception as e:
+            logger.error(f"[UPLOAD ERROR] Error occurred while uploading files for user: {request.session.get('user', {}).get('user_id', 'unknown')}")
+            logger.exception(e)
             return JsonResponse({'success': False, 'error': str(e)})
 
     def delete(self, request, *args, **kwargs):

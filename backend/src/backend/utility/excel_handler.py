@@ -56,11 +56,18 @@ class ExcelGridHandler:
         Returns:
             Tuple[pd.DataFrame, Dict[str, Any]]: DataFrame with data and metadata dict
         """
+        # Check if file is a supported format
+        file_lower = self.file_path.lower()
+        is_supported = file_lower.endswith(('.csv', '.xls', '.xlsx'))
+        
+        if not is_supported:
+            raise Exception(f"Unsupported file type. Only .csv, .xls, and .xlsx files are supported for data-driven testing.")
+        
         metadata = {
             'sheet_names': [],
             'selected_sheet': None,
             'column_order': [],
-            'file_type': 'csv' if self.file_path.lower().endswith('.csv') else 'excel'
+            'file_type': 'csv' if file_lower.endswith('.csv') else 'excel'
         }
         
         try:
@@ -321,8 +328,22 @@ class ExcelGridHandler:
         ddr_sheets = []
         sheet_details = {}
         
+        # Check if file is a supported format (CSV or Excel only)
+        file_lower = self.file_path.lower()
+        is_supported = file_lower.endswith(('.csv', '.xls', '.xlsx'))
+        
+        if not is_supported:
+            logger.info(f"File {self.file_path} is not a supported format for DDR (only .csv, .xls, .xlsx)")
+            return {
+                'is_ddr_ready': False,
+                'ddr_sheets': [],
+                'sheet_details': {},
+                'total_sheets': 0,
+                'reason': 'File type not supported for data-driven testing (only .csv, .xls, .xlsx files are supported)'
+            }
+        
         try:
-            if self.file_path.lower().endswith('.csv'):
+            if file_lower.endswith('.csv'):
                 # CSV handling
                 df, metadata = self.read_file_data()
                 cols_normalized = [DataFrameUtils.normalize_column_name(col) for col in df.columns]

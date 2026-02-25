@@ -13,6 +13,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    logging:
+      driver: json-file
+
     networks:
      - testing
     restart: always
@@ -110,6 +113,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+
     networks:
      - testing
 
@@ -143,6 +149,9 @@ services:
     container_name: cometa_novnc
     networks:
       - testing
+    logging:
+      driver: json-file
+
 
   crontab:
     container_name: cometa_crontab
@@ -157,6 +166,9 @@ services:
       SCHEDULER_PORT: "8080"
     networks:
       - testing
+    logging:
+      driver: json-file
+
 
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
@@ -167,6 +179,9 @@ services:
     restart: always
     user: "0"  # This forces the container to run as root
     container_name: cometa_front
+    logging:
+      driver: json-file
+
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
       # httpd.conf file and paths.conf file are kept during build, 
@@ -215,6 +230,9 @@ services:
       - testing
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    logging:
+      driver: json-file
+
 
 networks:
   testing:

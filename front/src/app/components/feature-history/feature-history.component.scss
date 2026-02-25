@@ -7,7 +7,13 @@
 @import 'color';
 @import 'breakpoints';
 
+// maybe ng-deep?
+::ng-deep .mat-dialog-container {
+  overflow: hidden;
+}
+
 .feature-history-container {
+  position: relative;
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
@@ -84,18 +90,21 @@
 
   .history-timeline {
     position: relative;
-    padding-left: 40px;
+    padding: 0 20px;
+    max-height: calc(80vh - 160px); // 80vh minus header and padding space
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .history-entry {
       position: relative;
       margin-bottom: 32px;
 
-      .entry-content {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border-left: 4px solid $blue;
+        .entry-content {
+          background: white;
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          border-left: 4px solid $blue;
 
         &.current-version {
           border-left-color: $success;
@@ -165,6 +174,8 @@
         }
 
         .entry-details {
+          position: relative;
+
           .feature-name {
             margin: 0 0 8px 0;
             font-size: 18px;
@@ -245,6 +256,7 @@
             margin-top: 16px;
             border-top: 1px solid $border-color;
             padding-top: 16px;
+            padding-right: 50px; // Space for restore button
 
             .steps-header {
               display: flex;
@@ -371,6 +383,7 @@
             margin-top: 16px;
             border-top: 1px solid $border-color;
             padding-top: 16px;
+            padding-right: 50px; // Space for restore button
 
             .changes-header {
               display: flex;
@@ -619,4 +632,52 @@
       }
     }
   }
+}
+
+.restore-button-container {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 15;
+
+  .restore-button {
+    background: $blue;
+    color: $pure-white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px $table-medium-shadow;
+    transition: all 0.2s ease;
+
+    // Fix alignment
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; // override mat-icon-button default padding
+    line-height: 1; // prevents vertical offset
+
+    &:hover {
+      background: darken($blue, 10%);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px $table-high-shadow;
+    }
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+  }
+}
+
+.close-button {
+  font-weight: bold;
+  color: "warn";
+}
+
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
 }

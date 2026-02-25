@@ -114,7 +114,7 @@ def run_browser(env, **kwargs):
                 data = {
                     "feature_result_id": feature_result_id,
                     "status": "Failed",
-                    "error": out
+                    "log": out
                 }
                 headers = {"Content-type": "application/json", "Host": "cometa.local"}
                 requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)

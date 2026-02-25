@@ -277,4 +277,22 @@ export class UserState {
   static RetrieveIntegrationApps(user: UserInfo) {
     return user.integration_apps;
   }
+
+  @Action(User.AddDepartment)
+  addDepartment(
+    { patchState, getState }: StateContext<UserInfo>,
+    { department }: User.AddDepartment
+  ) {
+    const user = getState();
+    // Add department only if doesn't exist already
+    if (
+      !user.departments.some(
+        dept => dept.department_id === department.department_id
+      )
+    ) {
+      patchState({
+        departments: [...user.departments, department],
+      });
+    }
+  }
 }

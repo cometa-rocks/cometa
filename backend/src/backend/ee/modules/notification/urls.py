@@ -2,7 +2,17 @@
 # Sponsored by Mercedes-Benz AG, Stuttgart
 # ###
 
-from .views import send_notifications, telegram_webhook, subscribe_telegram_notifications, unsubscribe_telegram_notifications, list_telegram_subscriptions, link_telegram_chat, generate_auth_token, verify_auth_token
+from .views import (
+    send_notifications,
+    send_custom_notification,
+    telegram_webhook,
+    subscribe_telegram_notifications,
+    unsubscribe_telegram_notifications,
+    list_telegram_subscriptions,
+    link_telegram_chat,
+    generate_auth_token,
+    verify_auth_token,
+)
 
 from django.conf.urls import url
 
@@ -20,6 +30,7 @@ from django.conf.urls import url
 def register_notification_urlpatterns(urlpatterns) :
 
     urlpatterns = urlpatterns + [
+        url(r'^send_custom_notification/$', send_custom_notification),
         url(r'^send_notifications/', send_notifications),
         # Telegram webhook endpoints
         url(r'^telegram/webhook/$', telegram_webhook),

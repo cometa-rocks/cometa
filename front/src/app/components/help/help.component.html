@@ -71,6 +71,13 @@
         </mtx-grid>
       </div>
       <div class="shortcuts-table">
+        <h2 class="shortcuts-h2">Step Editor</h2>
+        <mtx-grid [data]="listStepEditor"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
+      <div class="shortcuts-table">
         <h2 class="shortcuts-h2">Data Driven</h2>
         <mtx-grid [data]="listDataDriven"
                   [columns]="columns"
@@ -85,15 +92,15 @@
         </mtx-grid>
       </div>
       <div class="shortcuts-table">
-        <h2 class="shortcuts-h2">Main View Feature</h2>
-        <mtx-grid [data]="listMainViewFeature"
+        <h2 class="shortcuts-h2">L1 and L2</h2>
+        <mtx-grid [data]="listL1andL2"
                   [columns]="columns"
                   [trackBy]="trackByName">
         </mtx-grid>
       </div>
       <div class="shortcuts-table">
-        <h2 class="shortcuts-h2">Step Editor</h2>
-        <mtx-grid [data]="listStepEditor"
+        <h2 class="shortcuts-h2">Live Steps</h2>
+        <mtx-grid [data]="listLiveSteps"
                   [columns]="columns"
                   [trackBy]="trackByName">
         </mtx-grid>
