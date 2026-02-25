@@ -361,7 +361,7 @@
   .header.version { margin-left: 0; }
   .header.version .title .version-pill {
     display: inline-block;
-    background-color: $version-pill-color;
+    background-color: $disabled-toggle-bg;
     color: $triple-f-white;
     padding: 8px 8px;
     border-radius: 5px;
