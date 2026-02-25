@@ -158,6 +158,8 @@ export class L1FeatureListComponent implements OnInit {
     { header: 'Last run', field: 'date', sortable: true },
     { header: 'Last duration', field: 'time', sortable: true },
     { header: 'Last steps', field: 'total', sortable: true },
+    { header: 'Last edited by', field: 'last_edited_user', sortable: true },
+    { header: 'Last executed by', field: 'executed_by_user', sortable: true },
 
     // #3427 -------------------------------------------------------- start
     // hide department, application, environment and show successfull and files steps cuantity

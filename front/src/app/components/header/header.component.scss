@@ -6,7 +6,7 @@
   flex: 0 var(--header-height);
   max-width: 100%;
   background-color: $header-bg-color;
-  z-index: 99;
+  z-index: 101;
 }
 
 .header-main {
@@ -71,7 +71,7 @@
       }
     }
     @include maxWidth(1100px) {
-      width: 60px;
+      width: 3rem;
     }
     i {
       position: absolute;

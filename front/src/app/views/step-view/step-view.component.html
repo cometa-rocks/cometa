@@ -89,7 +89,7 @@
     </div>
   </div>
   <div class="data">
-         <ng-template #headTemplate>
+      <ng-template #headTemplate>
        <div class="header-step-view">
          <div class="name">STEP</div>
          <div class="status">RESULT</div>
@@ -213,7 +213,7 @@
                   item.belongs_to.feature_id,
                   'edit'
                 )">
-                  <mat-icon>edit</mat-icon>
+                  <mat-icon class="icons">edit</mat-icon>
                 </button>
               </div>
               <!-- View Screenshot -->
@@ -225,7 +225,7 @@
                   matTooltip="View Screenshot"
                   stopPropagation
                   mat-icon-button>
-                  <mat-icon>insert_photo</mat-icon>
+                  <mat-icon class="icons">insert_photo</mat-icon>
                 </button>
               </div>
               <!-- View REST API CALL -->
@@ -235,7 +235,7 @@
                   matTooltip="View REST API Call"
                   stopPropagation
                   mat-icon-button>
-                  <mat-icon>http</mat-icon>
+                  <mat-icon class="icons">http</mat-icon>
                 </button>
               </div>
               <div class="option view-rest-api" *ngIf="item?.network_response">
@@ -253,11 +253,11 @@
                   mat-icon-button>
                   <mat-icon
                     *ngIf="item.vulnerability_headers_count > 0"
-                    [ngStyle]="{ color: 'red' }">
+                    [ngStyle]="{ color: 'red' }" class="icons">
                     sync_problem
                   </mat-icon>
                   <mat-icon *ngIf="item.vulnerability_headers_count == 0"
-                    >sync</mat-icon
+                    class="icons">sync</mat-icon
                   >
                 </button>
               </div>
@@ -268,7 +268,7 @@
                   matTooltip="View HTML difference"
                   stopPropagation
                   mat-icon-button>
-                  <mat-icon>code</mat-icon>
+                  <mat-icon class="icons">code</mat-icon>
                 </button>
               </div>
               <!-- View Notes -->
@@ -278,7 +278,7 @@
                   [matTooltip]="item.notes.title"
                   stopPropagation
                   mat-icon-button>
-                  <mat-icon>description</mat-icon>
+                  <mat-icon class="icons">description</mat-icon>
                 </button>
               </div>
               <!-- Download attached files to Step Result -->
@@ -294,7 +294,7 @@
                       stopPropagation
                       [href]="item.files[0] | downloadLink"
                       mat-icon-button>
-                      <mat-icon>insert_drive_file</mat-icon>
+                      <mat-icon class="icons">insert_drive_file</mat-icon>
                     </a>
                   </ng-container>
                   <ng-template #multipleFiles>

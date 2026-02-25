@@ -76,6 +76,8 @@ Author: dph000
         date: dateTpl,
         time: timeTpl,
         modification: modificationTpl,
+        last_edited_user: lastEditedUserTpl,
+        executed_by_user: executedByUserTpl,
         department: departmentTpl,
         browsers: browsersTpl,
         schedule: scheduleTpl,
@@ -216,6 +218,24 @@ Author: dph000
 <ng-template #modificationTpl let-row let-index="index" let-col="colDef">
   <ng-container *ngIf="row.modification as modification; else emptyField">
     {{ modification | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
+  </ng-container>
+</ng-template>
+
+<!-- User who last edited the feature -->
+<ng-template #lastEditedUserTpl let-row let-index="index" let-col="colDef">
+  <ng-container *ngIf="row.last_edited_user; else emptyField">
+    <div [matTooltip]="row.last_edited_user.email" matTooltipPosition="above">
+      {{ row.last_edited_user.name }}
+    </div>
+  </ng-container>
+</ng-template>
+
+<!-- User who last executed the feature -->
+<ng-template #executedByUserTpl let-row let-index="index" let-col="colDef">
+  <ng-container *ngIf="row.executed_by_user; else emptyField">
+    <div [matTooltip]="row.executed_by_user.email || ''" matTooltipPosition="above">
+      {{ row.executed_by_user.name }}
+    </div>
   </ng-container>
 </ng-template>
 

@@ -161,6 +161,7 @@ class FeatureResultSerializer(serializers.ModelSerializer):
 
 class FeatureResultInfoSerializer(serializers.ModelSerializer):
     result_date = serializers.DateTimeField(format=datetimeTZFormat)
+    executed_by = BasicOIDCAccountSerializer(many=False, read_only=True)
     class Meta:
         model = Feature_result
         fields = [
@@ -171,7 +172,8 @@ class FeatureResultInfoSerializer(serializers.ModelSerializer):
             'app_name',
             'environment_name',
             'network_logging_enabled',
-            'feature_result_id'
+            'feature_result_id',
+            'executed_by'
         ]
         read_only_fields = fields
 
@@ -261,10 +263,11 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
     result_date = serializers.DateTimeField(format=datetimeTZFormat, source='date_time')
     status = serializers.SerializerMethodField()
     ok = serializers.SerializerMethodField()
+    executed_by = serializers.SerializerMethodField() # get executed_by from the most recent feature_result
 
     class Meta:
         model = Feature_Runs
-        fields = ('execution_time','status', 'total', 'success', 'result_date', 'ok')
+        fields = ('execution_time','status', 'total', 'success', 'result_date', 'ok', 'executed_by')
 
     def get_execution_time(self, instance):
         return sumField(instance.feature_results.all(), 'execution_time')
@@ -284,6 +287,13 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
             return 'Success'
     def get_success(self, instance):
         return False if getFieldsWithSpecificValue(instance.feature_results.all(), 'success', False) > 0 else True
+
+    def get_executed_by(self, instance):
+        # Get executed_by from the most recent feature_result
+        most_recent_result = instance.feature_results.order_by('-result_date').first()
+        if most_recent_result and most_recent_result.executed_by:
+            return BasicOIDCAccountSerializer(most_recent_result.executed_by, many=False).data
+        return None
 
 
 #############################

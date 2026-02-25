@@ -200,6 +200,8 @@ export class L1FeatureRecentListComponent implements OnChanges {
     { header: 'Duration', field: 'time', sortable: true },
     { header: 'Steps', field: 'total', sortable: true },
     { header: 'Modified on', field: 'modification', sortable: true },
+    { header: 'Last edited by', field: 'last_edited_user', sortable: true },
+    { header: 'Last executed by', field: 'executed_by_user', sortable: true },
     { header: 'ID', field: 'id', sortable: true },
     { header: 'Department', field: 'department', sortable: true },
     { header: 'Application', field: 'app', sortable: true },
