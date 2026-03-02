@@ -606,6 +606,18 @@ export class MainViewComponent implements OnInit {
     );
   }
 
+  trackByButtonIndex(index: number): number {
+    return index;
+  }
+
+  trackByColumnField(_: number, column: MtxGridColumn): string {
+    return column.field ?? '';
+  }
+
+  trackByMobile(_: number, mobile: { name?: string; id?: number }): string | number {
+    return mobile?.id ?? mobile?.name ?? _;
+  }
+
   // Toggles column visibility
   toggleColumn(column: MtxGridColumn, event: MatCheckboxChange) {
     // Update the column's hide property

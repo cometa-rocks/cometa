@@ -562,6 +562,18 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
+  trackByBackupId(_: number, entry: FeatureHistoryEntry): string {
+    return entry.backup_id;
+  }
+
+  trackByStepIndex(index: number): number {
+    return index;
+  }
+
+  trackByFlagLabel(_: number, flag: { label: string }): string {
+    return flag.label;
+  }
+
   getStepFlags(step: any): { label: string; value: boolean; color: string }[] {
     try {
       // With new unified structure, step is the actual step data

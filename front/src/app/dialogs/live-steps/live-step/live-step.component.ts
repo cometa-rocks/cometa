@@ -351,6 +351,10 @@ export class LiveStepComponent implements OnInit {
 
   resultSteps: StepStatus[] = [];
 
+  trackByLogIndex(_: number, log: BrowserUseLogEntry): string | number {
+    return log.timestamp != null ? `${log.timestamp}-${log.step_index}` : _;
+  }
+
   getScreenshot = (type: string) => {
     if (this.screenshots && this.screenshots[type]) {
       return this._sanitizer.bypassSecurityTrustStyle(

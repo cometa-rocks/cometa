@@ -489,6 +489,10 @@ export class StepViewComponent implements OnInit {
   /**
    * Get healing data for a specific step item
    */
+  trackByFile(_: number, file: string): string {
+    return file;
+  }
+
   getHealingDataForStep(item: any): HealeniumData | undefined {
     // Check if the item itself has healing_data
     if (item?.healing_data) {

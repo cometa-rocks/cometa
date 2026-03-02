@@ -309,7 +309,7 @@
                       <a
                         stopPropagation
                         [href]="file | downloadLink"
-                        *ngFor="let file of item.files"
+                        *ngFor="let file of item.files; trackBy: trackByFile"
                         mat-menu-item
                         >{{ file | downloadName }}</a
                       >

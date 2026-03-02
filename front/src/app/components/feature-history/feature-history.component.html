@@ -28,7 +28,7 @@
 
     <!-- History List -->
     <div *ngIf="!loading && !error" class="history-timeline">
-      <div *ngFor="let entry of history; let i = index" class="history-entry">
+      <div *ngFor="let entry of history; let i = index; trackBy: trackByBackupId" class="history-entry">
         <!-- Entry Content -->
         <div class="entry-content" [ngClass]="{'current-version': isCurrentVersion(entry.backup_id)}">
           <div class="entry-header">
@@ -95,14 +95,14 @@
                 </button>
               </div>
               <div class="steps-list">
-                <div *ngFor="let step of entry.steps; let stepIndex = index" class="step-item">
+                <div *ngFor="let step of entry.steps; let stepIndex = index; trackBy: trackByStepIndex" class="step-item">
 
                   <div class="step-content">
                     <div class="step-text">{{ formatStep(step) }}</div>
                     
                     <div class="step-flags" *ngIf="getStepFlags(step).length > 0">
                       <div 
-                        *ngFor="let flag of getStepFlags(step)" 
+                        *ngFor="let flag of getStepFlags(step); trackBy: trackByFlagLabel" 
                         class="flag-chip"
                         [ngClass]="'flag-' + flag.color">
                         <mat-icon>{{ getFlagIcon(flag.label) }}</mat-icon>
