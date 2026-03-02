@@ -1,12 +1,14 @@
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
 import { FeaturesState } from '@store/features.state';
 import * as d3 from 'd3';
 import { debounceTime, Observable } from 'rxjs';
 
+@UntilDestroy()
 @Component({
   selector: 'cometa-l1-tree-view',
   templateUrl: './l1-tree-view.component.html',
@@ -371,7 +373,7 @@ export class L1TreeViewComponent implements OnInit {
   async ngOnInit() {
     this.data = await this._api.getTreeView().toPromise();
 
-    this.currentRoute$.pipe(debounceTime(100)).subscribe(d => {
+    this.currentRoute$.pipe(debounceTime(100), untilDestroyed(this)).subscribe(d => {
       const data = this.dataFromCurrentRoute(d);
       if (data) {
         this.viewingData = data;
