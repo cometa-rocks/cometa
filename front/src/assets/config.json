@@ -1,6 +1,6 @@
 {
-  "version": "3.0.110",
-  "stable_version": "3.0.110",
+  "version": "3.0.112",
+  "stable_version": "3.0.112",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.112",
+      "date": "2025-03-02",
+      "improved": [
+        {
+          "title": "Performance: trackBy on *ngFor loops",
+          "description": "Added trackBy to dynamic lists (live-step AI logs, feature history, step-view files, main-view buttons/columns/mobiles) to reduce unnecessary DOM updates and improve responsiveness when lists change."
+        }
+      ]
+    },
     {
       "version": "3.0.111",
       "date": "2025-10-31",
