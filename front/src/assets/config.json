@@ -1,6 +1,6 @@
 {
-  "version": "3.0.110",
-  "stable_version": "3.0.110",
+  "version": "3.0.112",
+  "stable_version": "3.0.112",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -242,6 +242,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.112",
+      "date": "2026-03-03",
+      "improved": [
+        {
+          "title": "Frontend type safety",
+          "description": "Reduced use of 'any' and improved TypeScript types in API service, file-upload service, features state, feature-history component, and related code. Added FeatureHistoryCompareResult interface. No behaviour changes."
+        }
+      ]
+    },
     {
       "version": "3.0.111",
       "date": "2025-10-31",
