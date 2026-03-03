@@ -80,7 +80,7 @@ export class ModifyDepartmentTimeoutComponent {
       .applyDepartmentStepsTimeout(this.department_id, options)
       .subscribe({
         next: res => {
-          let result = JSON.parse(res);
+          let result = typeof res === 'string' ? JSON.parse(res) : res;
 
           // if timeout modification XHR was successfull, show user how many steps and features were modified
           if (result.success) {

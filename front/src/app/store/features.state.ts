@@ -774,8 +774,8 @@ export class FeaturesState {
    */
   @Selector()
   @ImmutableSelector()
-  static GetStateDAta(state: IFeaturesState, user): any {
-    return JSON.parse(JSON.stringify(state));
+  static GetStateDAta(state: IFeaturesState, user: UserInfo | null): IFeaturesState {
+    return JSON.parse(JSON.stringify(state)) as IFeaturesState;
   }
     /**
    * Setter of the global variable selectedDepartment.
@@ -795,7 +795,7 @@ export class FeaturesState {
    */
   @Selector([UserState])
   @ImmutableSelector()
-  static GetNewFeaturesWithinFolder(state: IFeaturesState, user): any {
+  static GetNewFeaturesWithinFolder(state: IFeaturesState, user: UserInfo | null) {
     /**
      * Input: -Features
      *        -Folders
@@ -811,7 +811,11 @@ export class FeaturesState {
      */
     // Return features of the selected folders
     let folders = JSON.parse(JSON.stringify(state.folders)) as FoldersResponse;
-    let result: any = {};
+    let result: { AAA_help?: string; folderCount: number; featureCount: number; rows: unknown[] } = {
+      folderCount: 0,
+      featureCount: 0,
+      rows: [],
+    };
     let user_id = UserState.GetUserId(user); // Get the user id
     let department = UserState.RetrieveUserDepartments(user);
     let activeList = localStorage.getItem('co_active_list'); // Get the current list status
@@ -920,16 +924,14 @@ export class FeaturesState {
       features = features.filter(val => val.info?.result_date != null);
       
       // Sort by execution date (most recent first)
-      let sorted: any = features.sort(function (a: any, b: any) {
+      let sorted: Feature[] = features.sort(function (a: Feature, b: Feature) {
         // Get execution dates, handling both string and Date objects
         const dateA = a.info?.result_date ? new Date(a.info.result_date).getTime() : 0;
         const dateB = b.info?.result_date ? new Date(b.info.result_date).getTime() : 0;
         return dateB - dateA; // Descending order (newest executions first)
       });
       sorted = sorted.length > 10 ? sorted.slice(0, 10) : sorted; // Limit the results to 10 rows
-      let result = { folders: [], features: sorted };
-      result.features = sorted.map(val => val.feature_id); // Store only the id of each feature
-      return result;
+      return { folders: [], features: sorted.map(val => val.feature_id) };
   }
 
     /**
@@ -940,20 +942,18 @@ export class FeaturesState {
    * @author Nico Clariana
    * @date 06-02-25
    */
-  static getRecentFeaturesByMy(state: IFeaturesState, user_id: number, departmentArray: Array<Department>){
+  static getRecentFeaturesByMy(state: IFeaturesState, user_id: number, departmentArray: Array<Department>): FoldersResponse {
     let features: Feature[] = Object.values(
       JSON.parse(JSON.stringify(state.details))
     );
     // Display features only from departments the user has access to ordered by last edited.
     features = features.filter(val => departmentArray.some(dept => dept.department_name === val.department_name));
     features = features.filter(val => val.last_edited?.user_id === user_id);
-    let sorted: any = features.sort(function (a: any, b: any) {
+    let sorted: Feature[] = features.sort(function (a: Feature, b: Feature) {
       return b.last_edited_date < a.last_edited_date ? -1 : 1;
     });
     sorted = sorted.length > 10 ? sorted.slice(0, 10) : sorted; // Limit the results to 10 rows
-    let result = { folders: [], features: sorted };
-    result.features = sorted.map(val => val.feature_id); // Store only the id of each feature
-    return result;
+    return { folders: [], features: sorted.map(val => val.feature_id) };
   }
 
   /**
@@ -1010,7 +1010,7 @@ export class FeaturesState {
     if (!folders) return;
 
     for (const id of folders.features) {
-      let columns: any = {}; // Variable to store the feature values
+      let columns: Record<string, unknown> = {}; // Variable to store the feature values
       let feature = state.details[id]; // Variable with the feature data
 
       //return if there are no features
@@ -1055,7 +1055,7 @@ export class FeaturesState {
       
       // Get executed_by from feature.info (which now includes executed_by from backend)
       // Fallback to feature_results if info doesn't have it
-      let executedByUser = (feature.info as any)?.executed_by || null;
+      let executedByUser = feature.info?.executed_by ?? null;
       if (!executedByUser && feature.feature_results && feature.feature_results.length > 0) {
         // Find the most recent execution (matching the info)
         const mostRecentResult = feature.feature_results.find(
@@ -1073,7 +1073,7 @@ export class FeaturesState {
     }
     // Loop over folder and add the information from folder to our new array
     for (const folder of folders.folders) {
-      let columns: any = {}; // Variable to store the folder values
+      let columns: Record<string, unknown> = {}; // Variable to store the folder values
 
       // Gets the needed variables and inserts them into the columns variable
       // The variables that equal null are there to avoid problems during data show with the material table

@@ -1251,3 +1251,11 @@ interface FeatureHistoryResponse {
   history: FeatureHistoryEntry[];
   error?: string;
 }
+
+interface FeatureHistoryCompareResult {
+  hasChanges: boolean;
+  changes: Record<string, boolean>;
+  current: (Feature & { detailedSteps?: FeatureStep[] }) | null;
+  backup: FeatureHistoryEntry;
+  error?: string;
+}

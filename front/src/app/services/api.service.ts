@@ -29,7 +29,7 @@ export class ApiService {
     user: UserInfo,
     browsers: BrowserstackBrowser[]
   ): Observable<boolean> {
-    return this._http.patch<any>(`${this.api}accounts/${user.user_id}/`, {
+    return this._http.patch<boolean>(`${this.api}accounts/${user.user_id}/`, {
       email: user.email,
       permission_name: user.user_permissions.permission_name,
       name: user.name,
@@ -43,7 +43,7 @@ export class ApiService {
    * @usedIn tour.service.ts
    * @returns Observable<HttpRequest>
    */
-  saveUserSettings(user: UserInfo, settings: any) {
+  saveUserSettings(user: UserInfo, settings: Record<string, unknown>) {
     return this._http.patch<Success>(`${this.api}accounts/${user.user_id}/`, {
       email: user.email,
       name: user.name,
@@ -63,10 +63,10 @@ export class ApiService {
 
   // Create Folder on the backend for the current logged user and inside another folder
   createFolder(name: string, department_id: number, parent_id: number = 0) {
-    const params = {
-      name: name,
+    const params: { name: string; department: number; parent_id?: number } = {
+      name,
       department: department_id,
-    } as any;
+    };
     if (parent_id !== 0 && parent_id !== null) {
       params.parent_id = parent_id;
     }
@@ -90,9 +90,12 @@ export class ApiService {
     feature_id: number,
     department_id?: number
   ) {
-    const params = {
-      feature_id: feature_id,
-    } as any;
+    const params: {
+      feature_id: number;
+      old_folder?: number | string;
+      new_folder?: number;
+      department_id?: number;
+    } = { feature_id };
     if (previous_id !== 0) {
       params.old_folder = previous_id;
     }
@@ -100,7 +103,6 @@ export class ApiService {
       params.new_folder = next_id;
     }
     if (department_id) {
-      // Add the department_id variable to send it to the backend
       params.department_id = department_id;
     }
     return this._http.patch<Success>(`${this.api}folder/feature/`, params);
@@ -123,8 +125,8 @@ export class ApiService {
   // Get FeatureResult info
   getFeatureResult(feature_result_id: number) {
     return this._http
-      .get<any>(`${this.api}feature_results/${feature_result_id}/`)
-      .pipe(map(json => json.result as FeatureResult));
+      .get<{ result: FeatureResult }>(`${this.api}feature_results/${feature_result_id}/`)
+      .pipe(map(json => json.result));
   }
 
   // Get Feature Runs
@@ -152,7 +154,7 @@ export class ApiService {
     });
   }
 
-  getFeature(FeatureID: number, params?) {
+  getFeature(FeatureID: number, params?: Record<string, string | number>) {
     return this._http
       .get<
         PaginatedResponse<Feature>
@@ -165,7 +167,7 @@ export class ApiService {
   }
 
   // Get all step specifying a ID or Name
-  getFeatureSteps(feature_id: number, params?) {
+  getFeatureSteps(feature_id: number, params?: Record<string, string | number>) {
     return this._http
       .get<
         PaginatedResponse<FeatureStep>
@@ -174,7 +176,7 @@ export class ApiService {
   }
 
   // Get all step specifying a ID or Name
-  getFeatureExecutionSteps(feature_id: number, params?) {
+  getFeatureExecutionSteps(feature_id: number, params?: Record<string, string | number>) {
     return this._http
       .get<
         PaginatedResponse<FeatureStep>
@@ -208,7 +210,7 @@ export class ApiService {
 
 
     // Parse JQ, if content is a json or string
-    getParsedJQFilter_content(filter: string, content: any) {
+    getParsedJQFilter_content(filter: string, content: string | object) {
       return this._http.post<Success>(
         `${this.base}compile_jq/`,
         {
@@ -255,13 +257,11 @@ export class ApiService {
    */
   patchFeatureResult(
     featureResultId: number,
-    patches: Partial<FeatureResult>,
-    params?
+    patches: Partial<FeatureResult> & { error?: unknown },
+    params?: Record<string, string | number>
   ) {
-
     // Filter out the 'error' field as it doesn't exist in the backend model
-    const filteredPatches = { ...patches };
-    delete (filteredPatches as any).error;
+    const { error: _omit, ...filteredPatches } = patches;
 
     return this._http.patch<Success>(
       `${this.api}feature_results/${featureResultId}/`,
@@ -277,7 +277,7 @@ export class ApiService {
    * @param runId Feature run id
    * @param archive Partial object of FeatureRun
    */
-  patchRun(runId: number, patches: Partial<FeatureRun>, params?) {
+  patchRun(runId: number, patches: Partial<FeatureRun>, params?: Record<string, string | number>) {
     return this._http.patch<Success>(
       `${this.api}feature_run/${runId}/`,
       patches,
@@ -464,9 +464,9 @@ export class ApiService {
 
   // Departments
 
-  createDepartment(department_name) {
-    return this._http.post<any>(`${this.api}departments/`, {
-      department_name: department_name,
+  createDepartment(department_name: string) {
+    return this._http.post<Department>(`${this.api}departments/`, {
+      department_name,
     });
   }
 
@@ -474,7 +474,7 @@ export class ApiService {
     department_id: number,
     options: { step_timeout_from: number; step_timeout_to: number }
   ) {
-    return this._http.post<any>(
+    return this._http.post<Success>(
       `${this.base}departments/${department_id}/updateStepTimeout/`,
       options,
       {
@@ -500,9 +500,9 @@ export class ApiService {
 
   // Applications
 
-  createApplication(app_name) {
-    return this._http.post<any>(`${this.api}applications/`, {
-      app_name: app_name,
+  createApplication(app_name: string) {
+    return this._http.post<Application>(`${this.api}applications/`, {
+      app_name,
     });
   }
 
@@ -519,9 +519,9 @@ export class ApiService {
 
   // Browsers
 
-  createBrowser(browser_name) {
-    return this._http.post<any>(`${this.api}browsers/`, {
-      browser_name: browser_name,
+  createBrowser(browser_name: string) {
+    return this._http.post<BrowserResultObject>(`${this.api}browsers/`, {
+      browser_name,
     });
   }
 
@@ -538,9 +538,9 @@ export class ApiService {
 
   // Environments
 
-  createEnvironment(environment_name) {
-    return this._http.post<any>(`${this.api}environments/`, {
-      environment_name: environment_name,
+  createEnvironment(environment_name: string) {
+    return this._http.post<Environment>(`${this.api}environments/`, {
+      environment_name,
     });
   }
 
@@ -616,9 +616,9 @@ export class ApiService {
   }
 
   removeFeatureResult(
-    feature_result_id,
+    feature_result_id: number,
     deleteTemplate: boolean = false,
-    params?
+    params?: Record<string, string | number>
   ) {
     return this._http.delete<Success>(
       `${this.api}feature_results/${feature_result_id}/${deleteTemplate ? '?delete_template' : ''}`,
@@ -628,7 +628,7 @@ export class ApiService {
     );
   }
 
-  removeFeatureRun(run_id, deleteTemplate: boolean = false, params?) {
+  removeFeatureRun(run_id: number, deleteTemplate: boolean = false, params?: Record<string, string | number>) {
     return this._http.delete<Success>(
       `${this.api}feature_run/${run_id}/${deleteTemplate ? '?delete_template' : ''}`,
       {
@@ -651,13 +651,13 @@ export class ApiService {
     });
   }
 
-  stopRunningTask(feature_id) {
+  stopRunningTask(feature_id: number) {
     return this._http.get<Success>(`${this.base}killTask/${feature_id}/`);
   }
 
   // Get feature info as JSON
   getJsonFeatureFile(feature_id: number) {
-    return this._http.get<any>(`${this.base}getJson/${feature_id}/`);
+    return this._http.get<Feature>(`${this.base}getJson/${feature_id}/`);
   }
 
   // Manage Environment Variables
@@ -713,8 +713,8 @@ export class ApiService {
 
   // Manage encryption
 
-  encrypt(text) {
-    return this._http.post<any>(`${this.base}encrypt/`, {
+  encrypt(text: string) {
+    return this._http.post<{ result?: string }>(`${this.base}encrypt/`, {
       action: 'encrypt',
       text: text,
     });
@@ -730,7 +730,7 @@ export class ApiService {
   } */
 
   getServerInfo() {
-    return this._http.get<any>(`${this.base}info/`);
+    return this._http.get<ServerInfo>(`${this.base}info/`);
   }
 
   getIntegrations() {
@@ -751,7 +751,7 @@ export class ApiService {
     return this._http.delete<Success>(`${this.api}integrations/${id}/`);
   }
 
-  checkBrowserstackVideo(videoUrl: string): Observable<HttpResponse<any>> {
+  checkBrowserstackVideo(videoUrl: string): Observable<HttpResponse<string>> {
     return this._http.post(
       `${this.base}checkBrowserstackVideo/`,
       {
@@ -774,11 +774,11 @@ export class ApiService {
 
   isFeatureRunning(featureId: number) {
     return this._http
-      .get<any>(`${this.base}isFeatureRunning/${featureId}/`)
+      .get<{ running: boolean }>(`${this.base}isFeatureRunning/${featureId}/`)
       .pipe(map(response => response.running));
   }
 
-  checkVideoAvailable(videoUrl: string): Observable<HttpResponse<any>> {
+  checkVideoAvailable(videoUrl: string): Observable<HttpResponse<string>> {
     return this._http.get(videoUrl, {
       headers: {
         // Fetch only the first 1024 bytes
@@ -798,19 +798,19 @@ export class ApiService {
   }
 
   uploadFiles(formData: FormData) {
-    return this._http.post<any>(`${this.api}uploads/`, formData);
+    return this._http.post<Success>(`${this.api}uploads/`, formData);
   }
 
   updateFile(file_id: number, formdata: FormData) {
-    return this._http.put<any>(`${this.api}uploads/${file_id}/`, formdata);
+    return this._http.put<Success>(`${this.api}uploads/${file_id}/`, formdata);
   }
 
   deleteFile(file_id: number) {
-    return this._http.delete<any>(`${this.api}uploads/${file_id}/`);
+    return this._http.delete<Success>(`${this.api}uploads/${file_id}/`);
   }
 
   deleteDataDrivenTest(run_id: number) {
-    return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
+    return this._http.delete<Success>(`${this.api}data_driven/${run_id}/`);
   }
 
   stopDataDrivenTest(run_id: number) {
@@ -824,7 +824,11 @@ export class ApiService {
    * @param params Optional parameters, including sheet name for Excel files
    * @returns An observable with the response from the server
    */
-  updateDataDrivenFile(fileId: number, dataOrRequest: any[] | {data: any[], column_order?: string[]}, params?: any) {
+  updateDataDrivenFile(
+    fileId: number,
+    dataOrRequest: unknown[] | { data: unknown[]; column_order?: string[] },
+    params?: { sheet?: string; [key: string]: unknown }
+  ) {
     // Create base params with skipInterceptor
     const apiParams = new InterceptorParams({
       skipInterceptor: true,
@@ -840,29 +844,30 @@ export class ApiService {
       // Add any other params except 'sheet' to apiParams
       Object.keys(params).forEach(key => {
         if (key !== 'sheet') {
-          apiParams.set(key, params[key]);
+          const v = params[key];
+          if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+            apiParams.set(key, v);
+          }
         }
       });
     } else {
       // Merge all params if no sheet parameter
       if (params) {
         Object.keys(params).forEach(key => {
-          apiParams.set(key, params[key]);
+          const v = params[key];
+          if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+            apiParams.set(key, v);
+          }
         });
       }
     }
     
     // Determine the request body format
-    let requestBody: any;
-    if (Array.isArray(dataOrRequest)) {
-      // Legacy format: just the data array
-      requestBody = { data: dataOrRequest };
-    } else {
-      // New format: object with data and optional column_order
-      requestBody = dataOrRequest;
-    }
+    const requestBody: { data: unknown[]; column_order?: string[] } = Array.isArray(dataOrRequest)
+      ? { data: dataOrRequest }
+      : dataOrRequest;
     
-    return this._http.put<any>(
+    return this._http.put<Success>(
       url,
       requestBody,
       {
@@ -888,7 +893,7 @@ export class ApiService {
       .pipe(map(response => response.housekeepinglogs));
   }
 
-  getHouseKeepingLog(id:Number) {
+  getHouseKeepingLog(id: number) {
     return this._http .get<HouseKeepingLogs>(`${this.api}housekeeping/${id}`);
   }
 
@@ -904,8 +909,8 @@ export class ApiService {
       .pipe(map(response => response.results));
   }
 
-  updateConfigurations(body) {
-    return this._http.post<any>(`${this.api}configuration/`,body);
+  updateConfigurations(body: Partial<Configuration> | Record<string, unknown>) {
+    return this._http.post<Configuration>(`${this.api}configuration/`, body);
   }
 
 
@@ -966,8 +971,8 @@ export class ApiService {
    * Start the mobile emulators the mobile available mobiles list
    * @returns Observable<IMobile>
    */
-  startMobile(body) {
-    return this._http.post<Container>(`${this.api}container_service/`, body)
+  startMobile(body: Record<string, unknown>) {
+    return this._http.post<Container>(`${this.api}container_service/`, body);
   }
 
  /**
@@ -975,18 +980,17 @@ export class ApiService {
  * @param {string} container_id - The ID of the container to be terminated.
  * @returns Observable<void> - An observable that completes when the delete request is successful.
  */
-  terminateMobile(container_id) {
-    return this._http.delete(`${this.api}container_service/${container_id}/`);
+  terminateMobile(container_id: string | number) {
+    return this._http.delete<Success>(`${this.api}container_service/${container_id}/`);
   }
 
   /**
    * Updates the properties of a mobile emulator identified by its container ID.
-   * @param {string} container_id - The ID of the container to be updated.
-   * @param {any} body - The request payload containing the updated properties for the mobile emulator.
-   * @returns Observable<EditFeatureResponse> - An observable containing the response from the update request.
+   * @param container_id The ID of the container to be updated.
+   * @param body The request payload containing the updated properties for the mobile emulator.
    */
-  updateMobile(container_id, body) {
-    return this._http.put(`${this.api}container_service/${container_id}/`, body);
+  updateMobile(container_id: string | number, body: Partial<Container> & Record<string, unknown>) {
+    return this._http.put<Container>(`${this.api}container_service/${container_id}/`, body);
   }
 
 
@@ -998,8 +1002,8 @@ export class ApiService {
     return this._http.delete(`${this.api}container_service/${id}/`);
   }
 
-  startContainerServices(body:any) {
-    return this._http.post(`${this.api}container_service/`,body);
+  startContainerServices(body: Record<string, unknown>) {
+    return this._http.post<Container>(`${this.api}container_service/`, body);
   }
 
   runHouseKeeping() {
@@ -1109,7 +1113,7 @@ export class ApiService {
   }
 
   getUsageStatistics() {
-    return this._http.get<any>(`${this.base}cometausage/`);
+    return this._http.get<Record<string, unknown>>(`${this.base}cometausage/`);
   }
 
 }

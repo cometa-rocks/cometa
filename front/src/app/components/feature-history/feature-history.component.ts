@@ -21,6 +21,7 @@ import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { MatDialogModule } from '@angular/material/dialog';
 import { parseISO, isValid } from 'date-fns';
+
 @Component({
   selector: 'cometa-feature-history',
   templateUrl: './feature-history.component.html',
@@ -45,9 +46,9 @@ export class FeatureHistoryComponent implements OnInit {
   error: string | null = null;
   selectedBackupIds: Set<string> = new Set(); // Track multiple open step expansions
   selectedChangesBackupIds: Set<string> = new Set(); // Track multiple open change expansions
-  currentFeature: any = null;
+  currentFeature: (Feature & { detailedSteps?: FeatureStep[] }) | null = null;
   loadingChanges: boolean = false;
-  cachedChanges: Map<string, any> = new Map(); // Cache for comparison results by backup ID
+  cachedChanges: Map<string, FeatureHistoryCompareResult | null> = new Map();
 
   constructor(
     private _api: ApiService,
@@ -149,54 +150,38 @@ export class FeatureHistoryComponent implements OnInit {
   /**
    * Convert backup entry to feature format for edit-feature component
    */
-  private convertBackupToFeature(backupEntry: FeatureHistoryEntry): any {
+  private convertBackupToFeature(backupEntry: FeatureHistoryEntry): Record<string, unknown> {
+    const rest = Object.keys(backupEntry).reduce((acc: Record<string, unknown>, key) => {
+      const handledKeys = [
+        'backup_id', 'timestamp', 'user_name', 'user_id', 'feature_name',
+        'description', 'steps_count', 'steps', 'browsers', 'schedule',
+        'send_mail', 'send_mail_on_error', 'network_logging', 'generate_dataset',
+        'continue_on_failure', 'send_telegram_notification'
+      ];
+      if (!handledKeys.includes(key)) {
+        acc[key] = backupEntry[key as keyof FeatureHistoryEntry];
+      }
+      return acc;
+    }, {});
     return {
-      // Basic feature information
       feature_name: backupEntry.feature_name,
       description: backupEntry.description,
-      
-      // Browser selection
       browsers: backupEntry.browsers || [],
-      
-      // Schedule
       schedule: backupEntry.schedule || '',
-      
-      // Email options
       send_mail: backupEntry.send_mail || false,
       send_mail_on_error: backupEntry.send_mail_on_error || false,
-      
-      // Recording options
       network_logging: backupEntry.network_logging || false,
       generate_dataset: backupEntry.generate_dataset || false,
-      
-      // Advanced options
       continue_on_failure: backupEntry.continue_on_failure || false,
-      
-      // Notifications
       send_telegram_notification: backupEntry.send_telegram_notification || false,
-      
-      // Copy any other properties that might exist in the backup
-      ...Object.keys(backupEntry).reduce((acc, key) => {
-        // Skip properties we've already handled explicitly
-        const handledKeys = [
-          'backup_id', 'timestamp', 'user_name', 'user_id', 'feature_name', 
-          'description', 'steps_count', 'steps', 'browsers', 'schedule',
-          'send_mail', 'send_mail_on_error', 'network_logging', 'generate_dataset',
-          'continue_on_failure', 'send_telegram_notification'
-        ];
-        
-        if (!handledKeys.includes(key)) {
-          acc[key] = backupEntry[key];
-        }
-        return acc;
-      }, {} as any)
+      ...rest,
     };
   }
 
   /**
    * Convert backup steps to steps format for edit-feature component
    */
-  private convertBackupToSteps(backupEntry: FeatureHistoryEntry): any[] {
+  private convertBackupToSteps(backupEntry: FeatureHistoryEntry): FeatureHistoryStep[] {
     if (!backupEntry.steps || !Array.isArray(backupEntry.steps)) {
       return [];
     }
@@ -242,7 +227,7 @@ export class FeatureHistoryComponent implements OnInit {
     });
   }
 
-  getSelectedBackupChanges(): any {
+  getSelectedBackupChanges(): FeatureHistoryEntry | null {
     if (this.selectedChangesBackupIds.size === 0) return null;
     const selectedBackupId = Array.from(this.selectedChangesBackupIds)[0]; // Get the first selected backup ID
     const selectedEntry = this.history.find(entry => entry.backup_id === selectedBackupId);
@@ -261,7 +246,7 @@ export class FeatureHistoryComponent implements OnInit {
 
 
 
-  hasStepCountChanged(backupEntry: any): boolean {
+  hasStepCountChanged(backupEntry: FeatureHistoryEntry): boolean {
     // Simple step count comparison
     const currentSteps = this.currentFeature.steps || 0;
     const backupSteps = backupEntry.steps_count || 0;
@@ -269,7 +254,7 @@ export class FeatureHistoryComponent implements OnInit {
     return currentSteps !== backupSteps;
   }
 
-  hasStepContentChanged(backupEntry: any): boolean {
+  hasStepContentChanged(backupEntry: FeatureHistoryEntry): boolean {
     // For now, just return false - we'll implement step content comparison later
     return false;
   }
@@ -277,7 +262,7 @@ export class FeatureHistoryComponent implements OnInit {
 
 
   // Helper method to get backup steps array
-  getBackupSteps(backupEntry: any): any[] {    
+  getBackupSteps(backupEntry: FeatureHistoryEntry): FeatureHistoryStep[] {    
     if (!backupEntry || !backupEntry.steps) {
       return [];
     }
@@ -293,7 +278,7 @@ export class FeatureHistoryComponent implements OnInit {
 
 
 
-  hasScheduleChanged(backupEntry: any): boolean {
+  hasScheduleChanged(backupEntry: FeatureHistoryEntry): boolean {
     const currentSchedule = this.currentFeature.schedule;
     const backupSchedule = backupEntry.schedule;
     
@@ -320,7 +305,7 @@ export class FeatureHistoryComponent implements OnInit {
     return false;
   }
 
-  hasBrowsersChanged(backupEntry: any): boolean {
+  hasBrowsersChanged(backupEntry: FeatureHistoryEntry): boolean {
     const currentBrowsers = this.currentFeature.browsers || [];
     const backupBrowsers = backupEntry.browsers || [];
     
@@ -341,15 +326,15 @@ export class FeatureHistoryComponent implements OnInit {
     // If both have browsers, compare the actual configurations
     if (currentBrowsers.length > 0 && backupBrowsers.length > 0) {
       // Create simplified browser strings for comparison
-      const currentBrowserStrings = currentBrowsers.map((b: any) => {
-        const browser = b.browser || b.browser_name || 'Unknown';
-        const version = b.browser_version || b.version || 'latest';
+      const currentBrowserStrings = currentBrowsers.map((b: BrowserstackBrowser | Record<string, unknown>) => {
+        const browser = (b as Record<string, unknown>).browser ?? (b as Record<string, unknown>).browser_name ?? 'Unknown';
+        const version = (b as Record<string, unknown>).browser_version ?? (b as Record<string, unknown>).version ?? 'latest';
         return `${browser}-${version}`;
       }).sort();
-      
-      const backupBrowserStrings = backupBrowsers.map((b: any) => {
-        const browser = b.browser || b.browser_name || 'Unknown';
-        const version = b.browser_version || b.version || 'latest';
+
+      const backupBrowserStrings = backupBrowsers.map((b: BrowserstackBrowser | Record<string, unknown>) => {
+        const browser = (b as Record<string, unknown>).browser ?? (b as Record<string, unknown>).browser_name ?? 'Unknown';
+        const version = (b as Record<string, unknown>).browser_version ?? (b as Record<string, unknown>).version ?? 'latest';
         return `${browser}-${version}`;
       }).sort();
       
@@ -361,10 +346,10 @@ export class FeatureHistoryComponent implements OnInit {
     return true;
   }
 
-  getChangeValue(obj: any, key: string): string {
+  getChangeValue(obj: Feature | FeatureHistoryEntry | Record<string, unknown> | null, key: string): string {
     if (!obj) return 'N/A';
     
-    let value = obj[key];
+    let value = (obj as Record<string, unknown>)[key];
     
     // Handle special cases for the new change types
     if (key === 'step_count_changed') {
@@ -374,7 +359,7 @@ export class FeatureHistoryComponent implements OnInit {
         return String(this.currentFeature.steps || 0);
       } else {
         // This is the backup entry - use the same value as the UI button (from backend)
-        return String(obj.steps_count || 0);
+        return String((obj as FeatureHistoryEntry).steps_count || 0);
       }
     }
     
@@ -388,15 +373,16 @@ export class FeatureHistoryComponent implements OnInit {
     
     if (key === 'browsers_changed') {
       // For browsers, return a clean list of browsers
-      const browsers = obj.browsers || [];
-      if (browsers.length === 0) {
+      const browsers = (obj as Record<string, unknown>).browsers ?? [];
+      const browsersList = Array.isArray(browsers) ? browsers : [];
+      if (browsersList.length === 0) {
         return 'No browsers selected';
       }
-      
+
       // Create simplified browser strings
-      const browserStrings = browsers.map((b: any) => {
-        const browser = b.browser || b.browser_name || 'Unknown';
-        const version = b.browser_version || b.version || 'latest';
+      const browserStrings = browsersList.map((b: BrowserstackBrowser | Record<string, unknown>) => {
+        const browser = (b as Record<string, unknown>).browser ?? (b as Record<string, unknown>).browser_name ?? 'Unknown';
+        const version = (b as Record<string, unknown>).browser_version ?? (b as Record<string, unknown>).version ?? 'latest';
         return `${browser}-${version}`;
       });
       
@@ -504,14 +490,14 @@ export class FeatureHistoryComponent implements OnInit {
     return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
-  getSelectedBackupSteps(): any[] {
+  getSelectedBackupSteps(): FeatureHistoryStep[] {
     if (this.selectedBackupIds.size === 0) return [];
     const selectedBackupId = Array.from(this.selectedBackupIds)[0]; // Get the first selected backup ID
     const selectedEntry = this.history.find(entry => entry.backup_id === selectedBackupId);
     return selectedEntry ? selectedEntry.steps : [];
   }
 
-  formatJsonContent(content: any): string {
+  formatJsonContent(content: unknown): string {
     try {
       return JSON.stringify(content, null, 2);
     } catch (error) {
@@ -519,7 +505,7 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
-  formatStep(step: any): string {
+  formatStep(step: FeatureHistoryStep | FeatureStep | unknown): string {
     try {
       // With the new unified backup structure, steps are directly in the backup data
       if (!step) {
@@ -537,9 +523,9 @@ export class FeatureHistoryComponent implements OnInit {
       }
 
       // If step is an object with step properties (individual step)
-      if (typeof step === 'object' && step.step_keyword && step.step_content) {
-        const keyword = step.step_keyword || '';
-        const content = step.step_content || '';
+      if (typeof step === 'object' && step !== null && 'step_keyword' in step && 'step_content' in step) {
+        const keyword = (step as FeatureStep).step_keyword || '';
+        const content = (step as FeatureStep).step_content || '';
         
         if (keyword && content) {
           return `${keyword} ${content}`;
@@ -551,8 +537,8 @@ export class FeatureHistoryComponent implements OnInit {
       }
 
       // If step is an object, it might contain step_content array (legacy format)
-      if (typeof step === 'object' && step.step_content && Array.isArray(step.step_content)) {
-        return `${step.step_content.length} steps`;
+      if (typeof step === 'object' && step !== null && 'step_content' in step && Array.isArray((step as { step_content: unknown }).step_content)) {
+        return `${(step as { step_content: unknown[] }).step_content.length} steps`;
       }
       
       return 'Invalid step data';
@@ -562,7 +548,7 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
-  getStepFlags(step: any): { label: string; value: boolean; color: string }[] {
+  getStepFlags(step: Record<string, unknown> | null | undefined): { label: string; value: boolean; color: string }[] {
     try {
       // With new unified structure, step is the actual step data
       if (!step || typeof step !== 'object') {
@@ -587,7 +573,7 @@ export class FeatureHistoryComponent implements OnInit {
     }
   }
 
-  getIndividualStepFlags(individualStep: any): { label: string; value: boolean; color: string }[] {
+  getIndividualStepFlags(individualStep: Record<string, unknown> | null | undefined): { label: string; value: boolean; color: string }[] {
     try {
       if (!individualStep || typeof individualStep !== 'object') {
         return [];
@@ -615,7 +601,7 @@ export class FeatureHistoryComponent implements OnInit {
 
 
 
-  isArray(value: any): boolean {
+  isArray(value: unknown): boolean {
     return Array.isArray(value);
   }
 
@@ -781,7 +767,7 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   // Helper method to get changes for a specific backup ID
-  getChangesForBackup(backupId: string): any {
+  getChangesForBackup(backupId: string): FeatureHistoryCompareResult | null | undefined {
     if (!this.currentFeature) return null;
     
     // Don't show changes for the current version (topmost backup)
@@ -790,10 +776,11 @@ export class FeatureHistoryComponent implements OnInit {
     }
     
     // Return cached result if available
-    if (this.cachedChanges.has(backupId)) {
-      return this.cachedChanges.get(backupId);
+    const cached = this.cachedChanges.get(backupId);
+    if (cached !== undefined) {
+      return cached;
     }
-    
+
     // Get the backup entry for this specific backup ID
     const backupEntry = this.history.find(entry => entry.backup_id === backupId);
     if (!backupEntry) return null;
@@ -804,12 +791,12 @@ export class FeatureHistoryComponent implements OnInit {
   }
 
   // Compare feature versions for a specific backup entry
-  compareFeatureVersionsForBackup(backupEntry: any): any {
+  compareFeatureVersionsForBackup(backupEntry: FeatureHistoryEntry): FeatureHistoryCompareResult | null {
     if (!this.currentFeature || !backupEntry) return null;
 
     try {
       // Helper function to safely compare boolean values
-      const compareBoolean = (current: any, backup: any, field: string) => {
+      const compareBoolean = (current: unknown, backup: unknown, _field: string) => {
         // Convert both values to boolean for comparison
         const currentVal = Boolean(current);
         const backupVal = Boolean(backup);
@@ -832,8 +819,8 @@ export class FeatureHistoryComponent implements OnInit {
         browsers_changed: this.hasBrowsersChanged(backupEntry),
         send_mail: compareBoolean(this.currentFeature.send_mail, backupEntry.send_mail, 'send_mail'),
         send_mail_on_error: compareBoolean(this.currentFeature.send_mail_on_error, backupEntry.send_mail_on_error, 'send_mail_on_error'),
-        network_logging: compareBoolean(this.currentFeature.network_logging, backupEntry.network_logging, 'network_logging'),
-        generate_dataset: compareBoolean(this.currentFeature.generate_dataset, backupEntry.generate_dataset, 'generate_dataset'),
+        network_logging: compareBoolean((this.currentFeature as unknown as Record<string, unknown>).network_logging, backupEntry.network_logging, 'network_logging'),
+        generate_dataset: compareBoolean((this.currentFeature as unknown as Record<string, unknown>).generate_dataset, backupEntry.generate_dataset, 'generate_dataset'),
         continue_on_failure: compareBoolean(this.currentFeature.continue_on_failure, backupEntry.continue_on_failure, 'continue_on_failure'),
         send_telegram_notification: compareBoolean(this.currentFeature.send_telegram_notification, backupEntry.send_telegram_notification, 'send_telegram_notification')
       };

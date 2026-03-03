@@ -25,7 +25,7 @@ export class FileUploadService {
     private _snack: MatSnackBar
   ) {}
 
-  startUpload(files: File[], formData: FormData, department: Department, user) {
+  startUpload(files: File[], formData: FormData, department: Department, user: { name?: string }) {
     this.setTempFiles([...files], department, user);
 
     // starts websocket comunication for each uploaded file
@@ -39,10 +39,10 @@ export class FileUploadService {
   }
 
   // temporarilty inserts uploaded files into department state, temporary files contain information received from file input event
-  private setTempFiles(files: File[], department: any, user: any) {
-    const payload = {
-      files: [...this.getTempFilesInfo(files, user), ...department.files],
-    } as any;
+  private setTempFiles(files: File[], department: Department, user: { name?: string }) {
+    const payload: { files: UploadedFile[] } = {
+      files: [...this.getTempFilesInfo(files, user), ...(department.files ?? [])],
+    };
 
     // dispatches temporary files into department state
     this._store.dispatch(
@@ -51,7 +51,7 @@ export class FileUploadService {
   }
 
   // gets information of file input for each file
-  private getTempFilesInfo(files: File[], user) {
+  private getTempFilesInfo(files: File[], user: { name?: string }) {
     const uploadedFiles: UploadedFile[] = [];
 
     files.forEach(file => {
@@ -63,7 +63,7 @@ export class FileUploadService {
   }
 
   // sets up temporary file object
-  private getTempFileObject(file: File, user) {
+  private getTempFileObject(file: File, user: { name?: string }) {
     const uploadedFile = <UploadedFile>{};
     const { name, size, type } = file;
 
@@ -81,16 +81,16 @@ export class FileUploadService {
   }
 
   // Handle upload errors by updating file status to Error
-  private handleUploadError(files: File[], department: any) {
+  private handleUploadError(files: File[], department: Department) {
     const fileNames = files.map(f => f.name);
-    const updatedFiles = department.files.map((file: any) => {
+    const updatedFiles = (department.files ?? []).map((file: UploadedFile) => {
       if (fileNames.includes(file.name) && file.status === 'Uploading') {
-        return { ...file, status: 'Error' };
+        return { ...file, status: 'Error' as const };
       }
       return file;
     });
 
-    const payload = { files: updatedFiles };
+    const payload: Partial<Department> = { files: updatedFiles };
     this._store.dispatch(
       new Departments.UpdateDepartment(department.department_id, payload)
     );
@@ -126,10 +126,10 @@ export class FileUploadService {
 
   // removes recieved file from recieved department's files array and actualises the department state
   removeFile(file: UploadedFile, department: Department) {
-    const files = department.files.filter((f: UploadedFile) => f.id != null);
-    const payload = {
+    const files = (department.files ?? []).filter((f: UploadedFile) => f.id != null);
+    const payload: { files: UploadedFile[] } = {
       files: [...files],
-    } as any;
+    };
 
     // dispatches new files array that does not contain invalid file into department state
     this._store.dispatch(
@@ -138,13 +138,13 @@ export class FileUploadService {
   }
 
   updateFileState(file: UploadedFile, department: Department) {
-    const files = department.files.filter((f: UploadedFile) => f.id != file.id);
+    const files = (department.files ?? []).filter((f: UploadedFile) => f.id != file.id);
 
     const updatedfile = { ...file, is_removed: !file.is_removed };
 
-    const payload = {
+    const payload: { files: UploadedFile[] } = {
       files: [...files, updatedfile],
-    } as any;
+    };
 
     this._store.dispatch(
       new Departments.UpdateDepartment(department.department_id, payload)
