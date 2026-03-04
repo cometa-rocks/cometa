@@ -18,6 +18,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  finalize,
   map,
   shareReplay,
   switchMap,
@@ -294,10 +295,11 @@ export class FeatureActionsComponent implements OnInit {
                   new WebSockets.FeatureTaskQueued(featureStore.feature_id)
                 )
                 .pipe(map(_ => res))
-            )
+            ),
+            finalize(() => (this.isRunButtonDisabled = false))
           )
-          .subscribe(
-            res => {
+          .subscribe({
+            next: res => {
               if (res.success) {
                 this._snack.open(
                   `Feature ${featureStore.feature_name} is running...`,
@@ -305,18 +307,17 @@ export class FeatureActionsComponent implements OnInit {
                 );
                 this.openLiveSteps(featureStore.feature_id);
               } else {
-                this._snack.open('An error ocurred', 'OK');
+                this._snack.open('An error occurred.', 'OK');
               }
             },
-            err => {
-              this._snack.open('An error ocurred', 'OK');
+            error: () => {
+              this._snack.open('An error occurred while starting the feature. Please try again.', 'OK', { duration: 5000 });
             }
-            
-          );
+          });
       } else {
         this._snack.open("This feature doesn't have browsers selected.", 'OK');
+        this.isRunButtonDisabled = false;
       }
-      this.isRunButtonDisabled = false;
     }
   }
 

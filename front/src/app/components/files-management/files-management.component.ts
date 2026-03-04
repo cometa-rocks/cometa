@@ -1028,10 +1028,14 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           this.log.msg('2', `Error fetching file data for file ${fileId}`, 'GetData', error);
           this.file_data[fileId].isLoading = false;
           this.cdRef.markForCheck();
+          this._snackBar.open('Failed to load file data. Please try again.', 'Close', {
+            duration: 5000,
+            panelClass: ['cometa-snackbar']
+          });
         }
       });
   }
-  
+
   // Inline editing functionality
   isEditing(fileId: number, rowIndex: number, columnField: string): boolean {
     return this.editingCell !== null &&
@@ -3146,21 +3150,24 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           });
         }
       },
-      error: (error: any) => {
+      error: (error: unknown) => {
         // Mark all files as no longer in progress
         fileIds.forEach(fileId => {
           this.schedulingInProgress.delete(fileId);
         });
-        
         this.log.msg('2', 'Error in bulk schedule check', 'Schedule', error);
-        // Mark all files as not having schedules if the call failed
         fileIds.forEach(fileId => {
           this.fileScheduleStatus[fileId] = false;
         });
+        this._snackBar.open('Failed to load schedule information.', 'Close', {
+          duration: 4000,
+          panelClass: ['cometa-snackbar']
+        });
+        this.cdRef.markForCheck();
       }
     });
   }
-  
+
   /**
    * Check schedule status for a single file
    */
@@ -3238,17 +3245,20 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         
         if (onComplete) onComplete();
       },
-      error: (error) => {
-        // Mark as no longer in progress
+      error: (error: unknown) => {
         this.schedulingInProgress.delete(fileId);
-        
         this.log.msg('2', `Error checking schedule for file ${fileId}`, 'Schedule', error);
         this.fileScheduleStatus[fileId] = false;
+        this._snackBar.open('Failed to load schedule for this file.', 'Close', {
+          duration: 4000,
+          panelClass: ['cometa-snackbar']
+        });
+        this.cdRef.markForCheck();
         if (onComplete) onComplete();
       }
     });
   }
-  
+
   /**
    * Update column classes to apply schedule styling
    */
