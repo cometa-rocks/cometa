@@ -19,6 +19,8 @@ appium-inspector/
 *.launch
 .settings/
 *.sublime-workspace
+**/index.html
+src/index.html
 
 # IDE - VSCode
 .vscode/*

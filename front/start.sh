@@ -45,8 +45,8 @@ function install_essentials(){
 	echo -e "\e[32mOK\e[0m"
 
 	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	curl -sL https://deb.nodesource.com/setup_18.x | bash - >> output.log 2>&1
-	apt-get install -y nodejs=18.* >> output.log 2>&1
+	curl -sL https://deb.nodesource.com/setup_20.x | bash - >> output.log 2>&1
+	apt-get install -y nodejs=20.* >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 
 	# create lbtest1.html just in case we are running behind a LB
@@ -204,8 +204,8 @@ function serve_project() {
 function serve_project_auto() {
 	# replace baseHref inside index.html before serving
 	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
-	# serve the project
-	nohup npx ng serve & > /usr/local/apache2/angular_serve.logs 2>&1 &
+	# serve the project (must run from Angular workspace; redirect before & to capture output)
+	cd /code/front && nohup npx ng serve >> /usr/local/apache2/angular_serve.logs 2>&1 &
 }
 
 # #########

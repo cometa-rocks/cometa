@@ -33,7 +33,7 @@ export class UserState {
   @Action(User.GetUser)
   getUser({ patchState, dispatch }: StateContext<UserInfo>) {
     return this._api.doOIDCLogin().pipe(
-      tap(account => {
+      tap((account: UserInfo) => {
         // set up localstorage instance for each existing property in account settings object
         // does the same as below commented >>>> localstorage.setItem
         Object.keys(account.settings).forEach(key => {

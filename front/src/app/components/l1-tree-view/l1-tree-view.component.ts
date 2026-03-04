@@ -95,13 +95,13 @@ export class L1TreeViewComponent implements OnInit {
   draw() {
     // Check if the tree-view element exists before proceeding
     // This prevents "Cannot read properties of null (reading 'getBoundingClientRect')" errors
-    const treeViewElement = d3.select('#tree-view').node();
-    if (!treeViewElement) {
+    const treeViewElement = d3.select('#tree-view').node() as Element | null;
+    if (!treeViewElement || !(treeViewElement as any).getBoundingClientRect) {
       console.warn('Tree view element not found, skipping draw operation');
       return;
     }
     
-    const boundries = treeViewElement.getBoundingClientRect();
+    const boundries = (treeViewElement as Element).getBoundingClientRect();
     // viewer width and height
     const width = boundries.width;
     const height = boundries.height;
@@ -115,25 +115,25 @@ export class L1TreeViewComponent implements OnInit {
 
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3
-      .linkHorizontal()
-      .x(d => {
+      .linkHorizontal<any, { source: { x: number; y: number }; target: { x: number; y: number } }>()
+      .x((d: any) => {
         let appendText = 0;
         if (d.data) appendText = this.widthChecker(d.data.name) + textSpace + 5;
         return d.y + appendText;
       })
-      .y(d => d.x + 1);
+      .y((d: any) => d.x + 1);
 
-    let root = d3.hierarchy(this.viewingData);
+    let root = d3.hierarchy(this.viewingData) as any;
     root.x0 = dy / 2;
     root.y0 = 0;
-    root.descendants().forEach((d, i) => {
+    root.descendants().forEach((d: any, i: number) => {
       d.id = i;
     });
 
     const zoom = d3
       .zoom()
       .scaleExtent([1, 10])
-      .on('zoom', event => {
+      .on('zoom', (event: any) => {
         svg.attr('transform', event.transform);
       });
 
@@ -159,7 +159,7 @@ export class L1TreeViewComponent implements OnInit {
       .attr('cursor', 'pointer')
       .attr('pointer-events', 'all');
 
-    const collapse = d => {
+    const collapse = (d: any) => {
       if (d.children) {
         d._children = d.children;
         d._children.forEach(collapse);
@@ -167,7 +167,7 @@ export class L1TreeViewComponent implements OnInit {
       }
     };
 
-    const expand = d => {
+    const expand = (d: any) => {
       if (d._children) {
         d.children = d._children;
         d.children.forEach(expand);
@@ -175,7 +175,7 @@ export class L1TreeViewComponent implements OnInit {
       }
     };
 
-    const toggle = d => {
+    const toggle = (d: any) => {
       if (d._children) {
         d.children = d._children;
         d._children = null;
@@ -185,20 +185,20 @@ export class L1TreeViewComponent implements OnInit {
       }
     };
 
-    function centerNode(source) {
+    function centerNode(source: any) {
       const t = d3.zoomTransform(parent.node());
       const selectedNode = d3
         .selectAll('g')
-        .filter(d => (d ? d.id == source.id : false))
-        .node();
+        .filter((d: any) => (d ? d.id == source.id : false))
+        .node() as SVGGraphicsElement | null;
       
       // Check if the node exists before calling getBBox
-      if (!selectedNode) {
+      if (!selectedNode || typeof (selectedNode as any).getBBox !== 'function') {
         console.warn('Node not found for centering, skipping center operation');
         return;
       }
       
-      const boundries = selectedNode.getBBox();
+      const boundries = (selectedNode as SVGGElement).getBBox();
       let x = -source.y0;
       let y = -source.x0;
       x = x * t.k + width / 2 - margins.left - boundries.width / 2;
@@ -209,10 +209,10 @@ export class L1TreeViewComponent implements OnInit {
       d3.select('svg')
         .transition()
         .duration(250)
-        .call(zoom.transform, d3.zoomIdentity.translate(x, y).scale(t.k));
+        .call(zoom.transform as any, d3.zoomIdentity.translate(x, y).scale(t.k));
     }
 
-    const update = source => {
+    const update = (source: any) => {
       const duration = 250;
       const nodes = root.descendants().reverse();
       const links = root.links();
@@ -220,9 +220,9 @@ export class L1TreeViewComponent implements OnInit {
       // Compute the new tree layout.
       tree(root);
 
-      let left = root;
-      let right = root;
-      root.eachBefore(node => {
+      let left: any = root;
+      let right: any = root;
+      root.eachBefore((node: any) => {
         if (node.x < left.x) left = node;
         if (node.x > right.x) right = node;
       });
@@ -231,21 +231,21 @@ export class L1TreeViewComponent implements OnInit {
       const transition = parent
         .transition()
         .duration(duration)
-        .attr('viewBox', [-margins.left, left.x - margins.top, width, height])
+        .attr('viewBox', [-margins.left, left.x - margins.top, width, height].join(' '))
         .tween(
           'resize',
           window.ResizeObserver ? null : () => () => svg.dispatch('toggle')
         );
 
       // Update the nodes…
-      const node = gNode.selectAll('g').data(nodes, d => d.id);
+      const node = gNode.selectAll('g').data(nodes, (d: any) => d.id);
       let feature: Feature;
 
       // Enter any new nodes at the parent's previous position.
       const nodeEnter = node
         .enter()
         .append('g')
-        .attr('transform', d => `translate(${source.y0},${source.x0})`)
+        .attr('transform', (_d: any) => `translate(${source.y0},${source.x0})`)
         .attr('fill-opacity', 0)
         .attr('stroke-opacity', 0)
         .on('click', (event, d) => {
@@ -253,8 +253,8 @@ export class L1TreeViewComponent implements OnInit {
           update(d);
           centerNode(d);
         })
-        .on('dblclick', (event, d) => {
-          if (d.data.type == 'feature') {
+        .on('dblclick', (_event: any, d: any) => {
+          if (d.data && d.data.type == 'feature') {
             this._router.navigate(['/from/tree-view/', d.data.id]);
           }
         });
@@ -269,18 +269,18 @@ export class L1TreeViewComponent implements OnInit {
           `translate(-${imageSize / 2}px, ${imageSize / 2}px)`
         )
         .attr('font-size', '20px')
-        .attr('fill', d =>
-          d.data.type === 'feature' && d.data.depends_on_others
+        .attr('fill', (d: any) =>
+          d.data && d.data.type === 'feature' && d.data.depends_on_others
             ? 'gray'
             : 'black'
         )
-        .attr('class', d =>
-          d.data.type != 'feature' && !d.children && !d._children
+        .attr('class', (d: any) =>
+          d.data && d.data.type != 'feature' && !d.children && !d._children
             ? 'disabled'
             : ''
         )
-        .text(d => {
-          switch (d.data.type) {
+        .text((d: any) => {
+          switch (d.data?.type) {
             case 'department':
               return 'domain';
             case 'folder':
@@ -300,12 +300,12 @@ export class L1TreeViewComponent implements OnInit {
         .attr('dy', '0.40em')
         .attr('x', textSpace)
         .attr('text-anchor', 'start')
-        .attr('class', d => `node-text node-text-${d.data.type}`)
-        .text(d => d.data.name);
+        .attr('class', (d: any) => `node-text node-text-${d.data?.type || ''}`)
+        .text((d: any) => d.data?.name || '');
 
       nodeEnter
         .append('circle')
-        .attr('r', d => (d.parent ? 5 : 0))
+        .attr('r', (d: any) => (d.parent ? 5 : 0))
         .attr('fill', 'gray')
         .attr('transform', `translate(${-textSpace - 5}, 1)`);
 
@@ -313,7 +313,7 @@ export class L1TreeViewComponent implements OnInit {
       const nodeUpdate = node
         .merge(nodeEnter)
         .transition(transition)
-        .attr('transform', d => `translate(${d.y},${d.x})`)
+        .attr('transform', (d: any) => `translate(${d.y},${d.x})`)
         .attr('fill-opacity', 1)
         .attr('stroke-opacity', 1);
 
@@ -322,43 +322,43 @@ export class L1TreeViewComponent implements OnInit {
         .exit()
         .transition(transition)
         .remove()
-        .attr('transform', d => `translate(${source.y},${source.x})`)
+        .attr('transform', (_d: any) => `translate(${source.y},${source.x})`)
         .attr('fill-opacity', 0)
         .attr('stroke-opacity', 0);
 
       // Update the links…
-      const link = gLink.selectAll('path').data(links, d => d.target.id);
+      const link = gLink.selectAll('path').data(links, (d: any) => d.target.id);
       // Enter any new links at the parent's previous position.
       const linkEnter = link
         .enter()
         .append('path')
-        .attr('d', d => {
+        .attr('d', (_d: any) => {
           const o = { x: source.x0, y: source.y0 };
-          return diagonal({ source: o, target: o });
+          return diagonal({ source: o, target: o } as any);
         });
       // Transition links to their new position.
       link
         .merge(linkEnter)
         .transition(transition)
-        .attr('d', d => {
+        .attr('d', (d: any) => {
           const target = {
             x: d.target.x,
             y: d.target.y - 15,
           };
-          return diagonal({ source: d.source, target: target });
+          return diagonal({ source: d.source, target: target } as any);
         });
       // Transition exiting nodes to the parent's new position.
       link
         .exit()
         .transition(transition)
         .remove()
-        .attr('d', d => {
+        .attr('d', (_d: any) => {
           const o = { x: source.x, y: source.y };
-          return diagonal({ source: o, target: o });
+          return diagonal({ source: o, target: o } as any);
         });
 
       // Stash the old positions for transition.
-      root.eachBefore(d => {
+      root.eachBefore((d: any) => {
         d.x0 = d.x;
         d.y0 = d.y;
       });

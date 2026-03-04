@@ -21,7 +21,7 @@ export class VariablesState {
 
   @Action(Variables.GetVariables)
   getAll({ setState }: StateContext<VariablePair[]>) {
-    return this._api.getVariables().pipe(tap(vars => setState(vars)));
+    return this._api.getVariables().pipe(tap((vars: VariablePair[]) => setState(vars)));
   }
 
   @Action(Variables.DeleteVariable)

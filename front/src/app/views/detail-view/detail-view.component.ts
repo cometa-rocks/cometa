@@ -206,15 +206,15 @@ export class DetailViewComponent implements OnInit {
         // Map to current step object value in this component
         map(_ => this.currentStepResult$.getValue()),
         // Perform removal in backend
-        switchMap(step =>
+        switchMap((step: StepResult) =>
           this._api.removeScreenshot(step.step_result_id, type).pipe(
-            filter(json => !!json.success),
+            filter((json: any) => !!json?.success),
             map(_ => step)
           )
         ),
         // Perform removal in current step without affecting pipe value
-        tap(step => {
-          const currentStep = { ...step };
+        tap((step: StepResult) => {
+          const currentStep = { ...step } as StepResult;
           if (currentStep.screenshots[type]) {
             currentStep.screenshots[type] = 'removed';
           } else {
@@ -223,15 +223,15 @@ export class DetailViewComponent implements OnInit {
           this.currentStepResult$.next(currentStep);
         })
       )
-      .subscribe(step => {
+      .subscribe((step: StepResult) => {
         if (type === 'style') {
           // Get template filename
           const templateFile =
-            step.screenshot_template || step.template_name || '';
+            (step as any).screenshot_template || (step as any).template_name || '';
           if (templateFile) {
             // Remove template style image if is of type template and exists
             this._api
-              .removeTemplate(step.step_result_id, templateFile)
+              .removeTemplate((step as any).step_result_id, templateFile)
               .subscribe(
                 res => {
                   if (!res.success) {
@@ -285,7 +285,7 @@ export class DetailViewComponent implements OnInit {
         distinctUntilChanged(),
         switchMap(stepResultId => this._api.getStepResult(stepResultId))
       )
-      .subscribe(stepResult => {
+      .subscribe((stepResult: StepResult) => {
         this.currentStepResult$.next(stepResult);
         this.logger.msg('4',stepResult,'detail-view');
       });

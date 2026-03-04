@@ -567,7 +567,7 @@ export class MainViewComponent implements OnInit {
     this.buttons = this.columns
     .filter(col => col.buttons)
     .map(col => col.buttons)
-    .reduce((acc, val) => acc.concat(val), []);
+    .reduce((acc, val) => acc.concat(Array.isArray(val) ? val : []), [] as any[]);
   }
 
   // return to v2 dashboard
