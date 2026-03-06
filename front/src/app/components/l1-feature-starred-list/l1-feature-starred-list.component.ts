@@ -17,8 +17,8 @@ import { Observable, combineLatest, of, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
@@ -37,8 +37,8 @@ interface TableData {
     CommonModule, 
     MatIconModule, 
     L1FeatureItemListComponent,
-    MatLegacyFormFieldModule,
-    MatLegacySelectModule,
+    MatFormFieldModule,
+    MatSelectModule,
     FormsModule
   ],
   templateUrl: './l1-feature-starred-list.component.html',

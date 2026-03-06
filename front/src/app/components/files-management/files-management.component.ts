@@ -15,7 +15,7 @@ import {
   HostListener
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSelectChange } from '@angular/material/select';
 import { MtxGridColumn, MtxGridModule } from '@ng-matero/extensions/grid';
@@ -32,7 +32,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -92,7 +92,7 @@ import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
     FormsModule,
     MtxGridModule,
     MatIconModule,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatDividerModule,
     MatExpansionModule,
     MatFormFieldModule,

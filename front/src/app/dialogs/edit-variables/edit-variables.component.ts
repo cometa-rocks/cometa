@@ -10,13 +10,13 @@ import {
   HostListener,
 } from '@angular/core';
 import {
-  MatLegacyDialog as MatDialog,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialog,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserState } from '@store/user.state';
 import { map,  Observable, Subject, takeUntil } from 'rxjs';
 import { VariablesState } from '@store/variables.state';
@@ -28,24 +28,24 @@ import {
 } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatSort, Sort, MatSortModule } from '@angular/material/sort';
 import {
-  MatLegacyTableDataSource as MatTableDataSource,
-  MatLegacyTableModule,
-} from '@angular/material/legacy-table';
+  MatTableDataSource,
+  MatTableModule,
+} from '@angular/material/table';
 import {
-  MatLegacyCheckboxChange as MatCheckboxChange,
-  MatLegacyCheckboxModule,
-} from '@angular/material/legacy-checkbox';
+  MatCheckboxChange,
+  MatCheckboxModule,
+} from '@angular/material/checkbox';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service'; 
@@ -72,23 +72,23 @@ interface PassedData {
   standalone: true,
   imports: [
     NgIf,
-    MatLegacyDialogModule,
+    MatDialogModule,
     CdkDrag,
     CdkDragHandle,
-    MatLegacyFormFieldModule,
+    MatFormFieldModule,
     MatIconModule,
-    MatLegacyInputModule,
+    MatInputModule,
     ReactiveFormsModule,
     FormsModule,
-    MatLegacyButtonModule,
-    MatLegacyMenuModule,
+    MatButtonModule,
+    MatMenuModule,
     NgFor,
-    MatLegacyCheckboxModule,
-    MatLegacyTableModule,
+    MatCheckboxModule,
+    MatTableModule,
     MatSortModule,
-    MatLegacySelectModule,
-    MatLegacyOptionModule,
-    MatLegacyTooltipModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatTooltipModule,
     AmParsePipe,
     AmDateFormatPipe,
     DraggableWindowModule

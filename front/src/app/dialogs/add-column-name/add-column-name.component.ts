@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule, MatLegacyDialogRef } from '@angular/material/legacy-dialog';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
@@ -22,10 +22,10 @@ interface AddColumnDialogData {
   imports: [
     CommonModule,
     FormsModule,
-    MatLegacyDialogModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
-    MatLegacyButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
   ],
 })
 export class AddColumnNameDialogComponent {
@@ -33,7 +33,7 @@ export class AddColumnNameDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: AddColumnDialogData,
-    private _dialogRef: MatLegacyDialogRef<AddColumnNameDialogComponent>,
+    private _dialogRef: MatDialogRef<AddColumnNameDialogComponent>,
     public inputFocusService: InputFocusService
   ) {
     // Pre-fill with current value if provided (for rename operation)

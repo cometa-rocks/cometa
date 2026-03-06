@@ -35,6 +35,7 @@
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
               <mat-select
+                panelClass="edit-feature-select-panel"
                 formControlName="department_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -48,6 +49,7 @@
             <mat-form-field appearance="fill" class="edit-app">
               <mat-label>Application</mat-label>
               <mat-select
+                panelClass="edit-feature-select-panel"
                 formControlName="app_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -61,6 +63,7 @@
             <mat-form-field appearance="fill" class="edit-env">
               <mat-label>Environment</mat-label>
               <mat-select
+                panelClass="edit-feature-select-panel"
                 formControlName="environment_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
@@ -351,72 +354,68 @@
           </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Email address, use tab to separate emails. </mat-label>
-            <mat-chip-list #chipList>
-              <mat-chip
+          <div class="chip-list-field full-width">
+            <label class="chip-list-label">Email address, use tab to separate emails.</label>
+            <mat-chip-grid #emailGrid>
+              <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_address').value"
                 [removable]="true"
-                (removed)="removeAddress(addr, 'email_address')"
-                >{{ addr }}
+                (removed)="removeAddress(addr, 'email_address')">
+                {{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
+              </mat-chip-row>
               <input
                 formControlName="address_to_add"
-                [matChipInputFor]="chipList"
+                [matChipInputFor]="emailGrid"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
                 (matChipInputTokenEnd)="addAddress($event, 'email_address')"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()" />
-            </mat-chip-list>
-          </mat-form-field>
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label
-              >CC (Carbon Copy): Enter email addresses, use tab to separate emails.
-            </mat-label>
-            <mat-chip-list #ccChipList>
-              <mat-chip
+            </mat-chip-grid>
+          </div>
+          <div class="chip-list-field full-width">
+            <label class="chip-list-label">CC (Carbon Copy): Enter email addresses, use tab to separate emails.</label>
+            <mat-chip-grid #ccGrid>
+              <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_cc_address').value"
                 [removable]="true"
-                (removed)="removeAddress(addr, 'email_cc_address')"
-                >{{ addr }}
+                (removed)="removeAddress(addr, 'email_cc_address')">
+                {{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
-            <input
-              formControlName="address_to_add"
-              [matChipInputFor]="ccChipList"
-              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-              [matChipInputAddOnBlur]="true"
-              (matChipInputTokenEnd)="addAddress($event, 'email_cc_address')"
-              (focus)="onInputFocus()"
-              (blur)="onInputBlur()"
+              </mat-chip-row>
+              <input
+                formControlName="address_to_add"
+                [matChipInputFor]="ccGrid"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                [matChipInputAddOnBlur]="true"
+                (matChipInputTokenEnd)="addAddress($event, 'email_cc_address')"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()"
               />
-            </mat-chip-list>
-          </mat-form-field>
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label
-              >BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.
-            </mat-label>
-            <mat-chip-list #bccChipList>
-              <mat-chip
+            </mat-chip-grid>
+          </div>
+          <div class="chip-list-field full-width">
+            <label class="chip-list-label">BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.</label>
+            <mat-chip-grid #bccGrid>
+              <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_bcc_address').value"
                 [removable]="true"
-                (removed)="removeAddress(addr, 'email_bcc_address')"
-                >{{ addr }}
+                (removed)="removeAddress(addr, 'email_bcc_address')">
+                {{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
-              </mat-chip>
-            <input
-              formControlName="address_to_add"
-              [matChipInputFor]="bccChipList"
-              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-              [matChipInputAddOnBlur]="true"
-              (matChipInputTokenEnd)="addAddress($event, 'email_bcc_address')"
-              (focus)="onInputFocus()"
-              (blur)="onInputBlur()"
+              </mat-chip-row>
+              <input
+                formControlName="address_to_add"
+                [matChipInputFor]="bccGrid"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                [matChipInputAddOnBlur]="true"
+                (matChipInputTokenEnd)="addAddress($event, 'email_bcc_address')"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()"
               />
-            </mat-chip-list>
-          </mat-form-field>
+            </mat-chip-grid>
+          </div>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
               >Subject. Leave it empty for a default subject.
@@ -826,6 +825,7 @@
               <mat-form-field class="form-field-blue compact" appearance="fill">
                 <mat-label>Preview Timezone</mat-label>
                 <mat-select 
+                  panelClass="edit-feature-select-panel"
                   [(ngModel)]="timezone" 
                   [ngModelOptions]="{standalone: true}"
                   (selectionChange)="onTimezoneChange($event)"
