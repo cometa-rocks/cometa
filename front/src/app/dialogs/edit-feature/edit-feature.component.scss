@@ -10,15 +10,44 @@
   text-decoration: solid;
 }
 
-// Chip lists no longer inside mat-form-field (MDC form field requires MatFormFieldControl; legacy chip list doesn't provide it)
-.chip-list-field {
-  display: block;
-  margin-bottom: 1.25em;
-  .chip-list-label {
+// Chip lists inside mat-form-field for consistent MDC form field appearance
+:host ::ng-deep .chip-list-field.mat-mdc-form-field {
+  overflow: visible;
+  margin-bottom: 0.5em;
+
+  .mat-mdc-form-field-flex {
+    align-items: flex-start;
+  }
+  .mat-mdc-text-field-wrapper {
+    overflow: visible;
+  }
+  .mat-mdc-form-field-infix {
+    padding-top: 24px;
+    padding-bottom: 12px;
+    min-height: 56px;
+    overflow: visible;
+    width: 100%;
     display: block;
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.6);
-    margin-bottom: 4px;
+  }
+  // Let chip grid wrap so chips and input don't overlap the label or next field
+  .mat-mdc-chip-set,
+  mat-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    row-gap: 8px;
+    width: 100%;
+    min-height: 32px;
+  }
+  .mat-mdc-chip-row,
+  .mat-mdc-chip {
+    margin: 0;
+    flex-shrink: 0;
+  }
+  input {
+    flex: 1 1 120px;
+    min-width: 120px;
   }
 }
 
@@ -231,8 +260,6 @@ a {
 }
 
 .schedule-header-inline {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -284,7 +311,7 @@ a {
 
 .timezone-selection-inline {
   flex-shrink: 0;
-  margin-left: 20px;
+  margin-top: 10px;
   
   .mat-mdc-form-field {
     width: 180px;
@@ -342,7 +369,20 @@ a {
 
 .schedule {
   width: 100%;
+  .schedule-row {
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+  }
 }
+
+.schedule ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: transparent;
+  input {
+    text-align: center;
+  }
+}
+
 
 .edit-feature-loader {
   margin: 0 auto;
@@ -694,7 +734,6 @@ button {
 
 
 .schedule ::ng-deep .mat-mdc-form-field-infix {
-  width: auto !important;
   text-align: center;
 }
 
@@ -1128,5 +1167,5 @@ button {
   .maximum-notifications-check-telegram {
     margin-left: 0 !important;
   }
-  
+
 }

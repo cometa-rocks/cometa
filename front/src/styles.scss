@@ -362,6 +362,7 @@ h3 {
 .mat-mdc-dialog-actions,
 .mat-dialog-actions {
   justify-content: flex-end !important;
+  padding-right: 24px !important;
 }
 
 .form-field-blue {
@@ -440,6 +441,12 @@ h3 {
   font-size: 14px;
   white-space: nowrap !important;
   text-overflow: unset !important;
+}
+
+/* Browser selection: timezone dropdown options 14px */
+.browser-timezone-select-panel .mat-mdc-option,
+.browser-timezone-select-panel .mat-mdc-option .mdc-list-item__primary-text {
+  font-size: 14px;
 }
 
 .modify-user-panel .mat-mdc-dialog-content,
@@ -1121,6 +1128,11 @@ video-player .header {
   .mat-error {
     font-size: 0.8rem !important;
   }
+}
+
+/* Keep form field background unchanged on focus/hover (disable focus overlay) */
+.mat-mdc-form-field .mat-mdc-form-field-focus-overlay {
+  opacity: 0 !important;
 }
 
 span.code {

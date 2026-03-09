@@ -486,7 +486,9 @@ export class EditFeature implements OnInit, OnDestroy {
       email_cc_address: [[]],
       email_bcc_address: [[]],
       email_body: [''],
-      address_to_add: [''], // Used only for adding new email addresses
+      address_to_add_email: [''],
+      address_to_add_cc: [''],
+      address_to_add_bcc: [''],
       depends_on_others: [false],
       run_now: [false], // Value changed to false so the create testcase dialog will have the schedule checkbox disabled by default
       send_notification: [false], // Parent control for all notifications
@@ -1026,7 +1028,7 @@ export class EditFeature implements OnInit, OnDestroy {
         'Limited account: You can only add the email assigned to your account',
         'OK'
       );
-      this.featureForm.get('address_to_add').setValue('');
+      this.clearAddressToAdd(fieldName);
       return;
     }
     const addresses = this.featureForm.get(fieldName).value.concat();
@@ -1035,7 +1037,18 @@ export class EditFeature implements OnInit, OnDestroy {
       this.featureForm.get(fieldName).setValue(addresses);
       this.featureForm.get(fieldName).markAsDirty();
     }
-    this.featureForm.get('address_to_add').setValue('');
+    this.clearAddressToAdd(fieldName);
+  }
+
+  private clearAddressToAdd(fieldName: string) {
+    const controlName =
+      fieldName === 'email_address'
+        ? 'address_to_add_email'
+        : fieldName === 'email_cc_address'
+          ? 'address_to_add_cc'
+          : 'address_to_add_bcc';
+    const c = this.featureForm.get(controlName);
+    if (c) c.setValue('');
   }
 
   // Open variables popup, only if a environment is selected (see HTML)

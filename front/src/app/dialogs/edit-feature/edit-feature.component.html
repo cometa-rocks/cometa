@@ -354,8 +354,8 @@
           </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <div class="chip-list-field full-width">
-            <label class="chip-list-label">Email address, use tab to separate emails.</label>
+          <mat-form-field appearance="fill" class="full-width chip-list-field">
+            <mat-label>Email address, use tab to separate emails.</mat-label>
             <mat-chip-grid #emailGrid>
               <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_address').value"
@@ -365,7 +365,7 @@
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip-row>
               <input
-                formControlName="address_to_add"
+                formControlName="address_to_add_email"
                 [matChipInputFor]="emailGrid"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
@@ -373,9 +373,9 @@
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()" />
             </mat-chip-grid>
-          </div>
-          <div class="chip-list-field full-width">
-            <label class="chip-list-label">CC (Carbon Copy): Enter email addresses, use tab to separate emails.</label>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width chip-list-field">
+            <mat-label>CC (Carbon Copy): Enter email addresses, use tab to separate emails.</mat-label>
             <mat-chip-grid #ccGrid>
               <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_cc_address').value"
@@ -385,7 +385,7 @@
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip-row>
               <input
-                formControlName="address_to_add"
+                formControlName="address_to_add_cc"
                 [matChipInputFor]="ccGrid"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
@@ -394,9 +394,9 @@
                 (blur)="onInputBlur()"
               />
             </mat-chip-grid>
-          </div>
-          <div class="chip-list-field full-width">
-            <label class="chip-list-label">BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.</label>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width chip-list-field">
+            <mat-label>BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.</mat-label>
             <mat-chip-grid #bccGrid>
               <mat-chip-row
                 *ngFor="let addr of featureForm.get('email_bcc_address').value"
@@ -406,7 +406,7 @@
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip-row>
               <input
-                formControlName="address_to_add"
+                formControlName="address_to_add_bcc"
                 [matChipInputFor]="bccGrid"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
@@ -415,7 +415,7 @@
                 (blur)="onInputBlur()"
               />
             </mat-chip-grid>
-          </div>
+          </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
               >Subject. Leave it empty for a default subject.
@@ -888,7 +888,7 @@
             How to format a cron schedule (click)
           </h5> -->
           <table  class="schedule">
-            <tr>
+            <tr class="schedule-row">
               <td>
                 <mat-form-field class="form-field-blue">
                   <mat-label>Minute</mat-label>
