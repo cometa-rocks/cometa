@@ -2,13 +2,15 @@
 @import 'breakpoints';
 
 :host {
-  display: block;
-  padding: 0 10px;
-  padding: 30px 10px 0px;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
   position: relative;
-  min-height: 100%;
-  height: 650px;
+  min-height: 650px;
+  height: 100%;
+  box-sizing: border-box;
 }
+
 
 .mat-dialog-title {
   margin: 0;
@@ -23,7 +25,8 @@
 .search-wrapper {
   display: block;
 
-  mat-icon {
+  ::ng-deep mat-icon,
+  ::ng-deep .mat-icon {
     margin-right: 15px;
   }
 }
@@ -33,7 +36,7 @@
 
 .env-info {
   display: flex;
-
+  margin-left: 25px;
   .env-item {
     margin-right: 20px;
     .env-title {
@@ -53,75 +56,73 @@
   overflow-y: auto;
   scroll-behavior: smooth;
 
-  table {
+  table.mat-mdc-table {
     width: 100%;
+  }
 
-    .var-row:hover {
-      background-color: rgb(242, 242, 242);
+  .var-row:hover {
+    background-color: rgb(242, 242, 242);
+  }
+
+  .var-row.edit {
+    cursor: pointer;
+    td.mat-mdc-cell {
+      border-bottom: 1px solid $blue;
     }
+  }
 
-    .var-row.edit {
-      cursor: pointer;
-      td.mat-cell {
-        border-bottom: 1px solid $blue;
-      }
+  td.mat-mdc-cell {
+    small {
+      display: block;
+      font-size: 10px;
     }
+  }
 
-    td.mat-cell {
-      small {
-        display: block;
-        font-size: 10px;
-      }
+  th.mat-mdc-header-cell {
+    font-size: 13px;
+    font-weight: bold;
+    color: $blue;
+  }
+
+  td.mat-mdc-cell,
+  th.mat-mdc-header-cell {
+    padding-right: 20px;
+  }
+
+  tr.mat-mdc-header-row {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+  }
+
+  input {
+    background-color: transparent;
+    border: 0;
+    box-sizing: border-box;
+    width: 100%;
+    outline: 0;
+    pointer-events: none;
+    &.edit {
+      pointer-events: all;
     }
+  }
 
-    th.mat-header-cell {
-      font-size: 13px;
-      font-weight: bold;
-      color: $blue;
-    }
+  .validation-error {
+    color: $blue;
+  }
 
-    td.mat-cell,
-    th.mat-header-cell {
-      padding-right: 20px;
-    }
+  .actions-wrapper {
+    display: flex;
 
-    tr.mat-header-row {
-      position: sticky;
-      z-index: 1;
-      top: 0;
-    }
+    .action-wrapper {
+      line-height: 22px;
+      button {
+        padding: 0px 3px;
+        cursor: pointer;
 
-    input {
-      background-color: transparent;
-      border: 0;
-      box-sizing: border-box;
-      width: 100%;
-      outline: 0;
-      pointer-events: none;
-      &.edit {
-        pointer-events: all;
-      }
-    }
-
-    .validation-error {
-      color: $blue;
-    }
-
-    .actions-wrapper {
-      display: flex;
-
-      .action-wrapper {
-        height: 22px;
-        line-height: 22px;
-        button {
-          padding: 0;
-          height: 22px !important;
-          line-height: 22px !important;
-          cursor: pointer;
-
-          mat-icon {
-            margin-right: 0 !important;
-          }
+        ::ng-deep mat-icon,
+        ::ng-deep .mat-icon {
+          margin-right: 0 !important;
         }
       }
     }
@@ -148,6 +149,7 @@ p.inuse {
   position: absolute;
   left: -1px;
   font-size: 17px;
+  top: 15px;
 }
 
 .container-father {
@@ -205,9 +207,9 @@ p.inuse {
 //   height: 40px;
 // }
 
-.mat-dialog-actions {
+.mat-mdc-dialog-actions {
   position: absolute;
-  bottom: 0;
+  bottom: 20px;
   right: 0;
   margin: 0;
   padding: 8px 0;
@@ -217,3 +219,10 @@ p.inuse {
 .not-feature {
   height: 45px;
 }
+
+:host ::ng-deep draggable-window {
+  position: absolute;
+  top: 50px !important;
+  right: 30px !important;
+}
+

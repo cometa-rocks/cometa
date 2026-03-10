@@ -680,6 +680,15 @@ h3 {
     overflow: auto;
     overflow-y: hidden;
   }
+  // Position draggable window so it is visible and interactive (same as edit-feature-panel)
+  .mat-mdc-dialog-container draggable-window,
+  .mat-dialog-container draggable-window {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    pointer-events: auto;
+  }
 }
 
 .api-testing-dialog {
@@ -742,17 +751,29 @@ h3 {
 //   width: 500px;
 // }
 
-
+// Target both MDC and legacy menu item (e.g. edit-variables table actions use mat-menu-item)
+.mat-mdc-menu-item,
 .mat-menu-item {
   span {
     font-weight: bold;
-    color: rgba(black, 0.6);
+    color: rgba(black, 0.54);
     display: inline-block;
     vertical-align: middle;
   }
-  .mat-icon {
+  // Both .mat-icon (class) and mat-icon (element): MDC icon has the class; use !important so it wins over MatIcon's ViewEncapsulation.None styles
+  .mat-icon,
+  mat-icon {
     /* margin-right: 10px !important; */
-    font-size: 21px;
+    font-size: 21px !important;
+    color: rgba(black, 0.54);
+    display: inline-block;
+    height: 21px  ;
+    width: 21px;
+    line-height: 21px;
+  }
+  .mat-icon:hover,
+  mat-icon:hover {
+    background-color: transparent;
   }
 }
 
