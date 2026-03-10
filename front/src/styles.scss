@@ -93,7 +93,7 @@ body {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.mat-menu-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
+.mat-mdc-menu-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
@@ -243,14 +243,14 @@ body::-webkit-scrollbar-corner {
   box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.14);
 }
 
-.mat-menu-panel.search {
+.mat-mdc-menu-panel.search {
   position: relative !important;
   left: 20px !important;
   top: 5px !important;
   background: #f0f0f0 !important;
 }
 
-.mat-menu-panel.new-search {
+.mat-mdc-menu-panel.new-search {
   position: relative !important;
   left: auto !important;
   right: 15px !important;
@@ -267,7 +267,7 @@ body::-webkit-scrollbar-corner {
   color: $secondary-color !important;
 }
 
-.mat-menu-panel.feature-options {
+.mat-mdc-menu-panel.feature-options {
   background: darken(white, 0.5) !important;
   .mat-icon {
     font-size: 21px !important;
@@ -289,7 +289,7 @@ body::-webkit-scrollbar-corner {
   }
 }
 
-.mat-menu-panel.folderOptionsMenu {
+.mat-mdc-menu-panel.folderOptionsMenu {
   background: darken(white, 0.5) !important;
   .mat-icon {
     font-size: 21px !important;
@@ -318,14 +318,15 @@ body::-webkit-scrollbar-corner {
 }
 
 
-.mat-menu-item {
-  height: 30px !important;
+.mat-mdc-menu-item {
+  min-height: 30px !important;
   line-height: 30px !important;
   font-size: 11pt !important;
   font-family: 'CorpoS' !important;
+  width: 100% !important;
 }
 
-.mat-menu-content {
+.mat-mdc-menu-content {
   padding: 5px 0 !important;
 }
 
@@ -804,7 +805,7 @@ h3 {
   background: transparent !important;
 }
 
-.mat-menu-panel {
+.mat-mdc-menu-panel {
   min-height: 30px !important;
 }
 
