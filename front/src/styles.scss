@@ -1158,11 +1158,6 @@ video-player .header {
 }
 
 /* Override MDC filled text field background to match app body */
-.mdc-text-field--filled:not(.mdc-text-field--disabled) {
-  background-color: $body-bg-color;  
-  padding: 0;
-}
-
 span.code {
   background-color: rgba(black, 0.04);
   padding: 0.2em 0.33em;
@@ -1241,15 +1236,8 @@ mat-mdc-dialog-container draggable-window {
 }
 
 
-.mat-mdc-dialog-container,
-.mat-dialog-container {
-  resize: both;
-}
 
-.no-resize-dialog .mat-mdc-dialog-container,
-.no-resize-dialog .mat-dialog-container {
-  resize: none !important;
-}
+
 
 // ########## Custom tooltip ##########
 
