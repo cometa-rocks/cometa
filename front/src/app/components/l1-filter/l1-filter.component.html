@@ -43,7 +43,8 @@ Author: dph000
   </div>
   <!-- Search bar -->
   <div class="new-search-input" [class.search-opened]="openedSearch$ | async">
-    <mat-form-field>
+    <mat-form-field appearance="fill" class="form-field-blue">
+      <mat-label>Search in co.meta</mat-label>
       <input
         matInput
         class="search-input-box"
@@ -55,7 +56,6 @@ Author: dph000
         #addTest  
         (focus)="sendInputFocusToParent(true)" 
         (blur)="sendInputFocusToParent(false)">
-
     </mat-form-field>
   </div>
   <!-- Filters list, if there is any active -->
