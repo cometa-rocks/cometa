@@ -1157,6 +1157,12 @@ video-player .header {
   opacity: 0 !important;
 }
 
+/* Override MDC filled text field background to match app body */
+.mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: $body-bg-color;  
+  padding: 0;
+}
+
 span.code {
   background-color: rgba(black, 0.04);
   padding: 0.2em 0.33em;
