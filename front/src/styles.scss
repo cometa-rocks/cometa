@@ -733,18 +733,32 @@ h3 {
 
 .mobile-emulator-panel-dialog {
   background-color: $bg-mat-dialog-container;
-  // width: 80vw;
-  // height: 85vh;
-  min-width: 80vw;
-  min-height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
   .mat-mdc-dialog-container,
   .mat-dialog-container {
-    max-height: 100dvh;
-    max-width: 100dvw;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+  .mat-mdc-dialog-container .mdc-dialog__surface,
+  .mat-dialog-container .mat-dialog-surface {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
+  }
+  // Position draggable window like edit-feature-panel (top-right, visible and interactive)
+  .mat-mdc-dialog-container draggable-window,
+  .mat-dialog-container draggable-window {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    pointer-events: auto;
   }
 }
 

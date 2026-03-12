@@ -1,6 +1,52 @@
 @import 'color';
 @import 'breakpoints';
 
+// Layout like edit-feature: header top, content scrollable, footer bottom
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 85vw;
+  height: 85vh;
+  min-width: 85vw;
+  min-height: 85vh;
+  overflow: auto; 
+  resize: both;
+}
+
+:host form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content.modify-emulator-content,
+:host ::ng-deep .mat-dialog-content.modify-emulator-content {
+  flex-grow: 1;
+  min-height: 0;
+  overflow: auto;
+  // Footer ever sticky to the bottom of the dialog
+  max-height: calc(91dvh - 64px);
+}
+
+:host ::ng-deep .mat-mdc-dialog-actions,
+:host ::ng-deep .mat-dialog-actions {
+  flex-shrink: 0;
+  justify-content: flex-end !important;
+  padding: 24px !important;
+}
+
+// Dialog title decoration (same as edit-feature)
+:host ::ng-deep .mat-mdc-dialog-title,
+:host ::ng-deep .mdc-dialog__title,
+:host ::ng-deep .mat-dialog-title {
+  color: $blue;
+  margin: 0 0 20px;
+  display: block;
+}
+
 ::ng-deep .selected-apks {
   padding-left: -2px;
 }
@@ -95,14 +141,14 @@
   color: #1565c0;
 }
 
-::ng-deep .mat-dialog-container {
-  resize: both;
-}
 
+
+:host::ng-deep .mat-mdc-expansion-panel-header,
 :host::ng-deep .mat-expansion-panel-header {
   padding: 0 27px 0 24px;
 }
 
+:host::ng-deep .mat-mdc-dialog-content,
 :host::ng-deep .mat-dialog-content {
   padding: 0 10px 5px;
   @include for-tablet-portrait-up {
@@ -110,6 +156,7 @@
   }
 }
 
+:host::ng-deep .mat-mdc-expansion-panel-body,
 :host::ng-deep .mat-expansion-panel-body {
   padding: 0 15px 16px;
   @include for-tablet-portrait-up {
@@ -291,25 +338,27 @@ h2, h3 {
   margin: 0;
 }
 
-// Asegura que el panel del dropdown sea lo suficientemente ancho y permita ver todo el texto
+// Asegura que el panel del dropdown sea lo suficientemente ancho y permita ver todo el texto (legacy + MDC)
+::ng-deep .mat-mdc-select-panel,
 ::ng-deep .mat-select-panel {
-  min-width: 400px !important; // o el valor que prefieras
+  min-width: 400px !important;
   max-width: none !important;
   width: auto !important;
   white-space: normal !important;
   overflow-x: auto !important;
 }
 
-// Opciones: que el texto nunca se corte
+// Opciones: que el texto nunca se corte (legacy + MDC)
+::ng-deep .mat-mdc-select-panel .mat-mdc-option,
 ::ng-deep .mat-select-panel .mat-option {
   white-space: normal !important;
   text-overflow: unset !important;
   overflow: visible !important;
   max-width: none !important;
+  font-size: 14px;
 }
 
 // High z-index snackbar
 ::ng-deep .high-z-index-snackbar {
   z-index: 10000 !important;
 }
-

@@ -247,7 +247,7 @@ export class FeatureActionsComponent implements OnInit {
       this._dialog
         .open(LogOutputComponent, {
           disableClose: true,
-          panelClass: 'enter-value-panel',
+          panelClass: 'log-output-panel',
           data: featureResultId,
         })
         .afterClosed()

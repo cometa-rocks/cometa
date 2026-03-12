@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostBinding, HostListener, ChangeDetectorRef } from '@angular/core';
 import {
   MatDialogRef,
   MAT_DIALOG_DATA,
@@ -78,9 +78,16 @@ export class EditSchedule {
   contextType: 'feature' | 'file' = 'feature';
 
   // formLayout is a variable to steer the layout of the schedule edit form
-  // ... value: "1" ... means the first layout
-  // ... value: "2" ... second layout proposed from Cosimo
+  // ... value: "1" ... means the first layout (horizontal)
+  // ... value: "2" ... second layout proposed from Cosimo (vertical)
   formLayout: Number;
+
+  @HostBinding('class.schedule-layout-vertical') get isVerticalLayout(): boolean {
+    return this.formLayout === 2;
+  }
+  @HostBinding('class.schedule-layout-horizontal') get isHorizontalLayout(): boolean {
+    return this.formLayout === 1;
+  }
   // The text shown in the link to toggle the layout
   formLayoutTextSelected: String;
   // The Icon shown in front of the link etxt

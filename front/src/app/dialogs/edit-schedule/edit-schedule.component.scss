@@ -1,5 +1,23 @@
 @import 'color';
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: auto;
+  resize: both;
+  min-width: 600px;
+}
+
+:host.schedule-layout-horizontal {
+  min-height: 350px;
+}
+
+:host.schedule-layout-vertical {
+  width: 600px;
+  min-height: 750px;
+}
+
 .grid-schedule {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
@@ -63,4 +81,8 @@ input {
     margin-left: 10px;
     list-style: '\2192  ';
   }
+}
+
+.mat-mdc-dialog-actions, .mat-dialog-actions {
+  padding: 24px 24px !important;
 }
