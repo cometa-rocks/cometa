@@ -8,6 +8,7 @@ import {
   OnDestroy,
   ElementRef,
   HostListener,
+  HostBinding,
 } from '@angular/core';
 import {
   MatDialog,
@@ -119,6 +120,9 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   destroy$ = new Subject<void>();
   searchTerm: string = '';
   isDialog: boolean = false;
+  @HostBinding('class.edit-variables-no-dialog') get isNoDialog(): boolean {
+    return !this.isDialog;
+  }
   dataSource;
   departmentChecked = false;
   featureChecked = false;

@@ -17,9 +17,29 @@
   height: 40px;
 }
 
-.mat-dialog-content {
+.mat-mdc-dialog-content {
   display: unset;
-  margin-bottom: 60px; // Espacio para los botones
+  margin-bottom: 60px;
+}
+
+// No-dialog: content area overflow hidden, title no padding, form field height, no filled background
+:host.edit-variables-no-dialog {
+  ::ng-deep .mat-mdc-dialog-content,
+  ::ng-deep .mdc-dialog__content {
+    overflow: hidden;
+  }
+  ::ng-deep .mat-mdc-dialog-title,
+  ::ng-deep .mat-dialog-title,
+  h2[mat-dialog-title] {
+    padding: 0;
+  }
+  ::ng-deep .mat-mdc-form-field {
+    height: 70px;
+  }
+  ::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled),
+  ::ng-deep .mdc-text-field--disabled.mdc-text-field--filled {
+    background-color: transparent !important;
+  }
 }
 
 .search-wrapper {
@@ -29,9 +49,41 @@
   ::ng-deep .mat-icon {
     margin-right: 15px;
   }
+
+  // First-image look: background #0000000a, thin grey underline, no padding (edit-variables search only)
+  ::ng-deep .mdc-text-field,
+  ::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled),
+  ::ng-deep .mat-mdc-form-field-focus-overlay,
+  ::ng-deep .mat-mdc-form-field-flex {
+    background-color: #0000000a !important;
+  }
+  ::ng-deep .mdc-text-field {
+    padding: 0 !important;
+  }
+
+  &.search-no-dialog {
+    margin-top: 10px;
+  }
+  ::ng-deep .mat-mdc-form-field-focus-overlay {
+    opacity: 0 !important;
+  }
+  ::ng-deep .mdc-line-ripple::before {
+    border-bottom-color: rgba(0, 0, 0, 0.42);
+  }
+  ::ng-deep .mdc-line-ripple::after {
+    border-bottom-color: rgba(0, 0, 0, 0.42) !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field-icon-prefix {
+    width: 45px;
+  }
 }
+// No-dialog: fixed height and scrollable table
 .table-wrapper.component {
-  height: calc(100% - 275px);
+  height: 530px;
+  min-height: 200px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .env-info {
@@ -129,9 +181,29 @@
   }
 }
 
+// Buttons: look like first image (light grey border, light background) after legacy removal
+.amv_add_variable,
+.add.not-feature {
+  border: 1px solid $border-color !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  &:disabled {
+    opacity: 0.6;
+  }
+  &:not(:disabled):hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+  }
+}
+
 .amv_add_variable {
   margin-left: 15px;
   font-weight: bold;
+}
+
+// Columns Shown button: same light grey border as first image
+.columns-button-wrapper button,
+.button-column.not-feature {
+  border: 1px solid $border-color !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
 }
 
 .add-variable {
@@ -149,7 +221,7 @@ p.inuse {
   position: absolute;
   left: -1px;
   font-size: 17px;
-  top: 15px;
+  top: 0px;
 }
 
 .container-father {
