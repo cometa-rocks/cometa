@@ -1,5 +1,11 @@
 @import 'color';
 
+// Container is outside this component (ancestor), so use :host for padding
+:host {
+  display: block;
+  padding: 24px;
+}
+
 h2 {
   margin: 10px 0;
   font-size: 13pt;
@@ -9,7 +15,7 @@ account:nth-child(2n + 2) {
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 5px;
 }
-mat-dialog-content {
+mat-mdc-dialog-content {
   width: 100%;
 }
 hr {

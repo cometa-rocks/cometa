@@ -68,6 +68,7 @@ export class DepartmentComponent {
         department_name: this.department.department_name,
       } as AccountsDialogData,
       width: '90%',
+      panelClass: 'accounts-dialog-panel',
     });
   }
 

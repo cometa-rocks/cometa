@@ -317,6 +317,81 @@ body::-webkit-scrollbar-corner {
   }
 }
 
+// Step options menu (step-editor): clean layout like pre-MDC (checkbox, timeout row, delete with red icon)
+.mat-mdc-menu-panel.step-options-menu,
+.mat-menu-panel.step-options-menu {
+  .mat-mdc-menu-item,
+  .mat-menu-item,
+  [mat-menu-item] {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    min-height: 38px !important;
+    .mat-mdc-menu-item-text,
+    .mat-menu-item-text {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      width: 100%;
+    }
+    .mat-checkbox,
+    mat-checkbox {
+      margin-left: -10px;
+    }
+    .mat-icon,
+    mat-icon {
+      font-size: 20px !important;
+      width: 24px !important;
+      height: 24px !important;
+      margin-right: 8px !important;
+      flex-shrink: 0;
+    }
+    span {
+      font-size: 15px;
+    } 
+  }
+  .custom-timeout {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    .mat-mdc-menu-item-text,
+    .mat-menu-item-text {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      gap: 0;
+    }
+    span,
+    input {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    input {
+      width: 65px;
+      height: 25px;
+      margin: 0 6px;
+      padding: 5px 8px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+      background: #fff;
+      text-align: center;
+      font: inherit;
+      box-sizing: border-box;
+      font-size: 14px;
+      text-align: left;
+    }
+    span:last-of-type {
+      margin-left: 0;
+      font-size: 15px;
+    }
+  }
+  // Delete button: red trash icon
+  .delete-step .mat-icon,
+  .delete-step mat-icon {
+    color: $live-steps-spinner-color !important;
+  }
+}
 
 .mat-mdc-menu-item {
   min-height: 30px !important;
@@ -450,18 +525,25 @@ h3 {
   font-size: 14px;
 }
 
-.modify-user-panel .mat-mdc-dialog-content,
-.modify-user-panel .mat-dialog-content {
-  @media (min-width: 900px) {
-    width: 700px;
+.modify-user-panel {
+  .mat-mdc-dialog-container,
+  .mat-dialog-container {
+    resize: both;
+    overflow: auto;
   }
-  @media (max-width: 900px) {
-    width: auto;
-    .mat-mdc-form-field,
-    .mat-form-field {
-      display: block;
-      width: 100%;
-      min-width: 200px;
+  .mat-mdc-dialog-content,
+  .mat-dialog-content {
+    @media (min-width: 900px) {
+      width: 700px;
+    }
+    @media (max-width: 900px) {
+      width: auto;
+      .mat-mdc-form-field,
+      .mat-form-field {
+        display: block;
+        width: 100%;
+        min-width: 200px;
+      }
     }
   }
 }
@@ -692,6 +774,16 @@ h3 {
   }
 }
 
+.accounts-dialog-panel {
+  .mat-mdc-dialog-container,
+  .mat-dialog-container {
+    resize: both;
+    overflow: auto;
+    min-width: 1200px;
+    min-height: 500px;
+  }
+}
+
 .api-testing-dialog {
   min-width: 95%;
   min-height: 70%;
@@ -776,8 +868,9 @@ h3 {
     vertical-align: middle;
   }
   // Both .mat-icon (class) and mat-icon (element): MDC icon has the class; use !important so it wins over MatIcon's ViewEncapsulation.None styles
-  .mat-icon,
-  mat-icon {
+  // Exclude .mat-warn so color="warn" (e.g. delete icon) keeps theme color
+  .mat-icon:not(.mat-warn),
+  mat-icon:not(.mat-warn) {
     /* margin-right: 10px !important; */
     font-size: 21px !important;
     color: rgba(black, 0.54);
@@ -1089,10 +1182,38 @@ video-player .header {
 // modifies styles of root and first child containers of modify department dialog
 .modify-department-panel {
   display: inline;
-  max-width: 70%;
   .mat-mdc-dialog-content,
   .mat-dialog-content {
     width: 100%;
+  }
+  .mdc-dialog__title {
+    padding-left: 0;
+  }
+  // Align all content to the left (override .description-option form/checkbox indent)
+  .description-option {
+    .mat-mdc-form-field,
+    .mat-form-field {
+      margin-left: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .mat-mdc-checkbox,
+    .mat-checkbox {
+      margin-left: 0;
+    }
+    // option-row: checkbox and optional inline field (e.g. "Delete after") on one line
+    .option-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    // Description aligned with checkbox label; only when it follows .option-row
+    .option-row + .description {
+      padding-left: 45px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
   }
 }
 
@@ -1112,7 +1233,7 @@ video-player .header {
   }
   .mat-mdc-form-field .mat-mdc-floating-label,
   .mat-form-field-appearance-outline .mat-form-field-label {
-    top: 1.3em !important;
+    top: 0.5em !important;
   }
   .mat-mdc-form-field.mat-form-field-should-float .mat-mdc-floating-label,
   .mat-form-field-appearance-outline.mat-form-field-can-float.mat-form-field-should-float
@@ -1127,11 +1248,11 @@ video-player .header {
   .mat-mdc-form-field .mat-mdc-form-field-icon-suffix,
   .mat-form-field-appearance-outline .mat-form-field-prefix,
   .mat-form-field-appearance-outline .mat-form-field-suffix {
-    top: 0em !important;
+    top: 0.5em !important;
   }
   .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
   .mat-focused .mat-form-field-appearance-outline .mat-form-field-label {
-    top: 1.3em !important;
+    top: 0.5em !important;
   }
   .mat-mdc-form-field .mat-mdc-form-field-infix,
   .mat-form-field-appearance-outline .mat-form-field-infix {

@@ -171,8 +171,8 @@
 
   .edit-button,
   .delete-button {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border-radius: 20px;
     border: none;
     background: transparent;
@@ -232,4 +232,9 @@
     white-space: normal;
     overflow-wrap: break-word;
   }
+}
+
+// Fill appearance form field background (accounts component only)
+.mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background-color: #0000000a;
 }
