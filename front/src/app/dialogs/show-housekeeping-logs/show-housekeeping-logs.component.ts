@@ -8,22 +8,22 @@ import {
 import { ApiService } from '@services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
 import { NgFor, AsyncPipe, KeyValuePipe, NgIf } from '@angular/common';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatSelectModule } from '@angular/material/select';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -34,22 +34,22 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    MatLegacyDialogModule,
+    MatDialogModule,
     ReactiveFormsModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatFormFieldModule,
+    MatInputModule,
     DisableAutocompleteDirective,
-    MatLegacySelectModule,
+    MatSelectModule,
     NgFor,
     NgIf,
-    MatLegacyOptionModule,
-    MatLegacyButtonModule,
+    MatOptionModule,
+    MatButtonModule,
     AmParsePipe,
     AmDateFormatPipe,
     SortByPipe,
     AsyncPipe,
     KeyValuePipe,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
   ],
 })
 export class ShowHousekeepingLogDialog implements OnInit {

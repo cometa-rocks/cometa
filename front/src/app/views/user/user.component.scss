@@ -222,12 +222,55 @@ p {
   font-size: 15px;
 }
 
+// Dropdowns: underline-only style (like first image), no white box/border after MDC migration (user component only)
+:host ::ng-deep .global-settings mat-form-field,
+:host ::ng-deep .edit-feature-toggles mat-form-field {
+  .mat-mdc-text-field-wrapper,
+  .mdc-text-field--filled,
+  .mat-mdc-form-field-focus-overlay,
+  .mat-mdc-form-field-flex,
+  .mat-mdc-form-field-infix {
+    background-color: transparent !important;
+  }
+  .mat-mdc-text-field-wrapper {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42) !important;
+    padding: 0 !important;
+  }
+  .mat-mdc-form-field-subscript-wrapper {
+    padding: 0 !important;
+  }
+  .mat-mdc-form-field-focus-overlay {
+    display: none;
+  }
+  .mdc-line-ripple::before {
+    border-bottom-color: rgba(0, 0, 0, 0.42);
+  }
+  &.mat-focused .mdc-line-ripple::after {
+    border-bottom-color: $blue;
+  }
+}
+
+// Select panel: same approach as edit-feature (panelClass + min-width max-content so option text is not cut off)
+::ng-deep .user-settings-select-panel {
+  min-width: max-content;
+  max-width: 90vw;
+}
+::ng-deep .user-settings-select-panel .mat-mdc-option .mdc-list-item__primary-text,
+::ng-deep .user-settings-select-panel .mat-mdc-option,
+::ng-deep .user-settings-select-panel .mat-option {
+  font-size: 14px !important;
+  white-space: nowrap !important;
+  text-overflow: unset !important;
+}
+
 @include for-phone-only {
-  p mat-form-field, li mat-form-field{
+  p mat-form-field,
+  li mat-form-field {
     width: 100%;
   }
-
-
 }
 
 .int-dept {

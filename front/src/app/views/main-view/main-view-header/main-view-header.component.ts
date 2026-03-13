@@ -13,10 +13,10 @@ import {
   Optional,
 } from '@angular/core';
 import {
-  MatLegacyCheckboxChange as MatCheckboxChange,
-  MatLegacyCheckboxModule,
-} from '@angular/material/legacy-checkbox';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatCheckboxChange,
+  MatCheckboxModule,
+} from '@angular/material/checkbox';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -30,9 +30,9 @@ import { User } from '@store/actions/user.actions';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { NgClass, NgFor, AsyncPipe } from '@angular/common';
 import { LetDirective } from '../../../directives/ng-let.directive';
 
@@ -45,14 +45,14 @@ import { LetDirective } from '../../../directives/ng-let.directive';
   imports: [
     LetDirective,
     NgClass,
-    MatLegacyMenuModule,
+    MatMenuModule,
     StopPropagationDirective,
-    MatLegacyCheckboxModule,
+    MatCheckboxModule,
     CdkDropList,
     NgFor,
     CdkDrag,
     CdkDragHandle,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     MatDividerModule,
     TranslateModule,
     AsyncPipe,

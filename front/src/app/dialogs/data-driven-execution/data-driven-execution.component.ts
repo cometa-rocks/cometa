@@ -26,15 +26,15 @@ import { SortByPipe } from '@pipes/sort-by.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatOptionModule } from '@angular/material/core';
 import { NgFor, NgIf } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { API_BASE } from 'app/tokens';
 
 @Component({
@@ -43,18 +43,18 @@ import { API_BASE } from 'app/tokens';
   styleUrls: ['./data-driven-execution.component.scss'],
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     MatExpansionModule,
-    MatLegacyFormFieldModule,
-    MatLegacySelectModule,
+    MatFormFieldModule,
+    MatSelectModule,
     ReactiveFormsModule,
     FormsModule,
     NgFor,
-    MatLegacyOptionModule,
+    MatOptionModule,
     NgIf,
     MatIconModule,
     MtxGridModule,
-    MatLegacyButtonModule,
+    MatButtonModule,
     StopPropagationDirective,
     AmParsePipe,
     AmDateFormatPipe,

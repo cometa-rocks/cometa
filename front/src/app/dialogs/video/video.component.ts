@@ -9,9 +9,9 @@ import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
 import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { LogService } from '@services/log.service';
 import { CommonModule } from '@angular/common';
@@ -24,9 +24,9 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     NgIf,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyButtonModule,
-    MatLegacyTooltipModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatTooltipModule,
     MatIconModule,
     TranslateModule,
     BrowserIconPipe,

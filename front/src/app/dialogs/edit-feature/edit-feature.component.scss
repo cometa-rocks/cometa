@@ -1,13 +1,54 @@
 @import 'color';
 @import 'breakpoints';
 
-:host::ng-deep .edit-feature-info .mat-form-field .mat-form-field-infix {
+:host ::ng-deep .edit-feature-info .mat-mdc-form-field .mat-mdc-form-field-infix {
   width: 130px;
 }
 
 #title {
   color: rgba(0, 0, 0, 0.80);
   text-decoration: solid;
+}
+
+// Chip lists inside mat-form-field for consistent MDC form field appearance
+:host ::ng-deep .chip-list-field.mat-mdc-form-field {
+  overflow: visible;
+  margin-bottom: 0.5em;
+
+  .mat-mdc-form-field-flex {
+    align-items: flex-start;
+  }
+  .mat-mdc-text-field-wrapper {
+    overflow: visible;
+  }
+  .mat-mdc-form-field-infix {
+    padding-top: 24px;
+    padding-bottom: 12px;
+    min-height: 56px;
+    overflow: visible;
+    width: 100%;
+    display: block;
+  }
+  // Let chip grid wrap so chips and input don't overlap the label or next field
+  .mat-mdc-chip-set,
+  mat-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    row-gap: 8px;
+    width: 100%;
+    min-height: 32px;
+  }
+  .mat-mdc-chip-row,
+  .mat-mdc-chip {
+    margin: 0;
+    flex-shrink: 0;
+  }
+  input {
+    flex: 1 1 120px;
+    min-width: 120px;
+  }
 }
 
 .checkbox-container {
@@ -19,10 +60,23 @@
   padding-right: 5px;
 }
 
+// Slightly smaller checkboxes in edit-feature
+:host ::ng-deep mat-checkbox {
+  .mdc-checkbox {
+    transform: scale(0.90);
+    transform-origin: left center;
+  }
+}
+
+:host ::ng-deep .checkbox-container mat-checkbox .mdc-form-field label,
+:host ::ng-deep .checkbox-container mat-checkbox .mat-mdc-checkbox-label {
+  white-space: nowrap;
+}
+
 .checkbox-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 21px;
+  width: 21px;
+  height: 21px;
   margin-right: 8px;
   color: rgba(0, 0, 0, 0.6);
   vertical-align: middle;
@@ -88,7 +142,7 @@
   @include for-tablet-landscape-up {
     flex-wrap: nowrap;
   }
-  .mat-form-field {
+  .mat-mdc-form-field {
     @-moz-document url-prefix() {
       textarea {
         height: 15px;
@@ -110,18 +164,18 @@
 .table-container {
   max-height: 300px;
   overflow: auto;
-  tr.mat-header-row {
+  tr.mat-mdc-header-row {
     position: sticky;
     z-index: 1;
     top: 0;
   }
-  table.mat-table {
+  table.mat-mdc-table {
     width: 100%;
     min-width: 700px;
   }
 
-  td.mat-cell,
-  th.mat-header-cell {
+  td.mat-mdc-cell,
+  th.mat-mdc-header-cell {
     padding: 0;
   }
 
@@ -131,7 +185,7 @@
     }
   }
 
-  .mat-column-name {
+  .mat-mdc-column-name {
     height: 50px;
     div.name-wrapper {
       display: flex;
@@ -158,26 +212,26 @@ a {
   text-decoration: none;
 }
 
-.mat-radio-button {
+.mat-mdc-radio-button {
   margin: 0 10px;
 }
 
-.mat-expansion-panel {
+.mat-mdc-expansion-panel {
   // overflow: unset;
 }
 
-:host::ng-deep .mat-expansion-panel-header {
+:host ::ng-deep .mat-mdc-expansion-panel-header {
   padding: 0 27px 0 24px;
 }
 
-:host::ng-deep .mat-dialog-content {
+:host ::ng-deep .mat-mdc-dialog-content {
   padding: 0 10px 5px;
   @include for-tablet-portrait-up {
     padding: 0 24px 5px;
   }
 }
 
-:host::ng-deep .mat-expansion-panel-body {
+:host ::ng-deep .mat-mdc-expansion-panel-body {
   padding: 0 15px 16px;
   @include for-tablet-portrait-up {
     padding: 0 24px 16px;
@@ -206,8 +260,6 @@ a {
 }
 
 .schedule-header-inline {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -225,37 +277,33 @@ a {
   right: 0;
   z-index: 10;
   
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 200px;
     font-size: 14px;
     
     &.compact {
-      .mat-form-field-wrapper {
+      .mat-mdc-text-field-wrapper {
         padding-bottom: 0;
       }
       
-      .mat-form-field-infix {
+      .mat-mdc-form-field-infix {
         border-top: 0;
         padding: 0.5em 0;
       }
-      
-      .mat-form-field-underline {
-        bottom: 0;
-      }
     }
     
-    ::ng-deep .mat-form-field-infix {
+    ::ng-deep .mat-mdc-form-field-infix {
       width: auto !important;
       text-align: left;
     }
     
-    ::ng-deep .mat-hint {
+    ::ng-deep .mat-mdc-form-field-hint {
       font-size: 10px;
       color: rgba(0, 0, 0, 0.6);
       text-align: center;
     }
     
-    ::ng-deep .mat-form-field-label {
+    ::ng-deep .mat-mdc-floating-label {
       font-size: 12px;
     }
   }
@@ -263,39 +311,36 @@ a {
 
 .timezone-selection-inline {
   flex-shrink: 0;
-  margin-left: 20px;
+  margin-top: 10px;
   
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 180px;
     font-size: 14px;
     
     &.compact {
-      .mat-form-field-wrapper {
+      .mat-mdc-text-field-wrapper {
         padding-bottom: 0;
       }
       
-      .mat-form-field-infix {
+      .mat-mdc-form-field-infix {
         border-top: 0;
         padding: 0.5em 0;
       }
       
-      .mat-form-field-underline {
-        bottom: 0;
-      }
     }
     
-    ::ng-deep .mat-form-field-infix {
+    ::ng-deep .mat-mdc-form-field-infix {
       width: auto !important;
       text-align: left;
     }
     
-    ::ng-deep .mat-hint {
+    ::ng-deep .mat-mdc-form-field-hint {
       font-size: 10px;
       color: rgba(0, 0, 0, 0.6);
       text-align: center;
     }
     
-    ::ng-deep .mat-form-field-label {
+    ::ng-deep .mat-mdc-floating-label {
       font-size: 12px;
     }
   }
@@ -305,16 +350,16 @@ a {
   text-align: center;
   margin: 20px 0 30px;
   
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 250px;
     max-width: 100%;
     
-    ::ng-deep .mat-form-field-infix {
+    ::ng-deep .mat-mdc-form-field-infix {
       width: auto !important;
       text-align: center;
     }
     
-    ::ng-deep .mat-hint {
+    ::ng-deep .mat-mdc-form-field-hint {
       font-size: 11px;
       color: rgba(0, 0, 0, 0.6);
       text-align: center;
@@ -324,7 +369,35 @@ a {
 
 .schedule {
   width: 100%;
+  text-align: center;
+  td {
+    text-align: center;
+  }
+  .schedule-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    text-align: center;
+  }
 }
+
+.schedule ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: transparent;
+  input {
+    text-align: center;
+  }
+}
+
+.schedule ::ng-deep .mat-mdc-form-field-infix {
+  text-align: center;
+  .mdc-floating-label,
+  .mat-mdc-floating-label,
+  mat-label {
+    text-align: center;
+    width: 135%;
+  }
+}
+
 
 .edit-feature-loader {
   margin: 0 auto;
@@ -401,7 +474,7 @@ a {
       margin-right: 0;
       margin-bottom: 0;
       margin-left: 10px;
-      
+
       &.notification-parent {
         margin-right: 0;
         margin-bottom: 0;
@@ -456,21 +529,26 @@ a {
     
   // }
   
-  // Checkboxes Section - Four Columns with Headers
+  // Checkboxes Section - Four Columns with Headers (no vertical gap in checkbox columns)
   .checkboxes-section {
     display: flex;
     gap: 20px;
     flex: 1;
-    
+
     .checkbox-column {
       display: flex;
       flex-direction: column;
-      gap: 10px;
       min-width: 0;
       flex: 1;
     }
+
+
+    // Actions column: 10px gap between buttons only (do not change buttons-section scss below)
+    .checkbox-column.buttons-section {
+      gap: 10px;
+    }
   }
-  
+
   // Vertical Divider
   .section-divider {
     height: auto;
@@ -478,7 +556,8 @@ a {
     align-self: stretch;
     opacity: 0.6;
     
-    &::ng-deep .mat-divider-vertical {
+    &::ng-deep .mat-divider-vertical,
+    &::ng-deep .mat-mdc-divider-vertical {
       border-right-color: #dee2e6;
       border-right-width: 2px;
     }
@@ -488,7 +567,7 @@ a {
   .buttons-section {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     // min-width: 150px;
     
     .column-header {
@@ -521,7 +600,7 @@ a {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
+      gap: 10px;
       width: 100%;
       position: relative;
       
@@ -535,6 +614,7 @@ a {
         button {
           width: 80%;
           min-width: 112px; // First
+          letter-spacing: 0px;
         }
         
         .button-container {
@@ -548,6 +628,7 @@ a {
           button {
             width: 80%;
             min-width: 112px; // Second
+            gap: 10px;
           }
           
           .memberShip {
@@ -625,7 +706,8 @@ a {
   // }
 }
 
-::ng-deep .options .mat-ripple-element {
+::ng-deep .options .mat-ripple-element,
+::ng-deep .options .mat-mdc-ripple-element {
   background-color: rgba($color: $blue, $alpha: 0.1) !important;
 }
 
@@ -666,12 +748,7 @@ button {
 
 
 
-.schedule::ng-deep .mat-form-field-infix {
-  width: auto !important;
-  text-align: center;
-}
-
-.mat-radio-button {
+.mat-mdc-radio-button {
   display: block;
   margin-top: 15px;
   margin-left: 0;
@@ -726,19 +803,19 @@ button {
   overflow: hidden;
 }
 
-::ng-deep .mat-dialog-content.editFeatureContent {
+::ng-deep .mat-mdc-dialog-content.editFeatureContent {
   flex-grow: 1; 
   max-height: calc(91dvh - 64px);
 }
 
-:host::ng-deep .mtx-grid-icon {
+:host ::ng-deep .mtx-grid-icon {
   width: 24px !important;
   height: 24px !important;
   font-size: 24px !important;
 }
 
 .error-highlight {
-  ::ng-deep .mat-form-field-flex {
+  ::ng-deep .mat-mdc-form-field-flex {
     position: relative;
     &::before {
       content: '';
@@ -838,27 +915,33 @@ button {
         margin-bottom: 0;
       }
 
-      .mat-checkbox-checked .mat-checkbox-background {
+      .mat-mdc-checkbox.mat-checkbox-checked .mdc-checkbox__background,
+      .mat-mdc-checkbox .mdc-checkbox--selected .mdc-checkbox__background {
         background-color: $blue !important;
       }
 
-      .mat-checkbox-indeterminate .mat-checkbox-background {
+      .mat-mdc-checkbox.mat-checkbox-indeterminate .mdc-checkbox__background,
+      .mat-mdc-checkbox .mdc-checkbox--indeterminate .mdc-checkbox__background {
         background-color: $blue !important;
       }
 
-      .mat-checkbox-checked .mat-checkbox-checkmark-path {
+      .mat-mdc-checkbox.mat-checkbox-checked .mdc-checkbox__checkmark-path,
+      .mat-mdc-checkbox .mdc-checkbox--selected .mdc-checkbox__checkmark-path {
         stroke: white !important;
       }
 
-      .mat-checkbox-checked .mat-checkbox-mixedmark {
+      .mat-mdc-checkbox.mat-checkbox-checked .mdc-checkbox__mixedmark,
+      .mat-mdc-checkbox .mdc-checkbox--selected .mdc-checkbox__mixedmark {
         background-color: white !important;
       }
 
-      .mat-checkbox-ripple .mat-ripple-element {
+      .mat-mdc-checkbox .mat-ripple-element,
+      .mat-mdc-checkbox .mat-mdc-ripple-element {
         background-color: rgba($blue, 0.12) !important;
       }
 
-      .mat-checkbox-focused .mat-checkbox-frame {
+      .mat-mdc-checkbox.mat-checkbox-focused .mdc-checkbox__background,
+      .mat-mdc-checkbox .mdc-checkbox--selected .mdc-checkbox__background {
         border-color: $blue !important;
       }
     }
@@ -911,11 +994,11 @@ button {
       }
       
       .override-field {
-        .mat-form-field-label {
+        .mat-mdc-floating-label {
           font-weight: 500;
         }
         
-        .mat-hint {
+        .mat-mdc-form-field-hint {
           font-size: 0.8rem;
           color: #666;
         }
@@ -946,9 +1029,7 @@ button {
 // Indented notification sub-options styles
 .notification-sub-options {
   position: relative;
-  margin-top: 8px;
   margin-left: 24px;
-  padding-left: 8px;
   border-left: 2px solid #e0e0e0;
   min-width: 120px;
   
@@ -972,7 +1053,7 @@ button {
   margin-top: 15px;
   clear: both;
   
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 300px;
     max-width: 100%;
   }
@@ -1019,7 +1100,7 @@ button {
   margin-top: 15px;
   clear: both;
   
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 300px;
     max-width: 100%;
   }
@@ -1027,27 +1108,27 @@ button {
 
 // Mobile alignment fixes for checkboxes and radio buttons
 @media (max-width: 768px) {
-  .mat-radio-button,
-  .mat-checkbox {
+  .mat-mdc-radio-button,
+  .mat-mdc-checkbox {
     margin-left: 0 !important;
     text-align: left;
     display: block;
     width: 100%;
     
     // Ensure the radio/checkbox content aligns to the left
-    ::ng-deep .mat-radio-label,
-    ::ng-deep .mat-checkbox-label {
+    ::ng-deep .mdc-label,
+    ::ng-deep .mat-mdc-checkbox-label {
       text-align: left;
       justify-content: flex-start;
     }
     
     // Fix for radio button alignment
-    ::ng-deep .mat-radio-container {
+    ::ng-deep .mdc-radio {
       margin-right: 8px;
     }
     
-    // Fix for checkbox alignment  
-    ::ng-deep .mat-checkbox-inner-container {
+    // Fix for checkbox alignment
+    ::ng-deep .mdc-checkbox {
       margin-right: 8px;
     }
   }
@@ -1059,7 +1140,7 @@ button {
     align-items: flex-start;
     margin-left: 0;
     
-    .mat-radio-button {
+    .mat-mdc-radio-button {
       margin-bottom: 8px;
       margin-left: 0;
     }
@@ -1097,4 +1178,6 @@ button {
   .maximum-notifications-check-telegram {
     margin-left: 0 !important;
   }
+
+
 }

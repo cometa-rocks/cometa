@@ -10,13 +10,14 @@ import {
   HostListener
 } from '@angular/core';
 import {
-  MatLegacyDialog as MatDialog,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialog,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserState } from '@store/user.state';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -48,7 +49,6 @@ import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
-import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { Configuration } from '@store/actions/config.actions';
 import { E } from '@angular/cdk/keycodes';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -62,7 +62,7 @@ import { KEY_CODES } from '@others/enums';
   standalone: true,
   imports: [
     NgIf,
-    MatLegacyDialogModule,
+    MatDialogModule,
     CdkDrag,
     CdkDragHandle,
     MatLegacyFormFieldModule,

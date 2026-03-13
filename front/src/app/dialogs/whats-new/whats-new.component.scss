@@ -1,7 +1,7 @@
 @import 'color';
 @import 'breakpoints';
 
-.mat-dialog-title {
+.mat-mdc-dialog-title {
   margin: 0;
   padding: 12px 15px;
   box-sizing: border-box;
@@ -19,12 +19,14 @@
     font-family: 'CorpoS', sans-serif;
     font-weight: bold;
     font-size: 14pt;
+    margin-bottom: 2px;
   }
   .date {
     width: 100%;
     font-size: 9pt;
     font-weight: bold;
     color: rgba(black, 0.75);
+    margin-top: 0;
   }
   .close {
     display: block;
@@ -121,17 +123,17 @@
 
 ::ng-deep .whats-new-panel {
   // Default width and height for the dialog
-  height: 75vh;
+  height: 76vh;
   width: 50vw;
   @include for-tablet-portrait-up {
     max-width: 100%;
   }
 }
 
-::ng-deep .whats-new-panel .mat-dialog-container {
+::ng-deep .whats-new-panel .mat-mdc-dialog-container {
   padding: 0;
   border-radius: 5px;
-  .mat-dialog-content {
+  .mat-mdc-dialog-content {
     padding: 0;
     margin: 0;
     overflow-x: hidden;
@@ -166,10 +168,15 @@
       background: transparent;
     }
   }
-  .mat-dialog-actions {
+  .mat-mdc-dialog-actions {
     margin: 0;
     padding: 15px;
     box-sizing: border-box;
     box-shadow: 0 0 7px rgba(black, 0.15);
   }
+}
+
+// Dialog surface: hide vertical overflow (panel has panelClass 'whats-new-panel')
+::ng-deep .whats-new-panel .mdc-dialog__surface {
+  overflow-y: hidden;
 }

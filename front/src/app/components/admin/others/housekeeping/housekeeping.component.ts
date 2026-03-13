@@ -6,7 +6,7 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { ShowHousekeepingLogDialog } from '@dialogs/show-housekeeping-logs/show-housekeeping-logs.component';
 
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 
 @Component({

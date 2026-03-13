@@ -8,11 +8,11 @@ import {
 } from '@angular/core';
 
 import {
-  MatLegacyDialog as MatDialog,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatDialog,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
@@ -26,18 +26,18 @@ import { VersionSortPipe } from '@pipes/version-sort.pipe';
 import { TranslateNamePipe } from '@pipes/translate-name.pipe';
 import { CheckBrowserExistsPipe } from '@pipes/check-browser-exists.pipe';
 import { CheckSelectedBrowserPipe } from '@pipes/check-selected-browser.pipe';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import {
   NgIf,
   NgFor,
@@ -95,21 +95,21 @@ import { MobileWebSockets } from '@store/actions/mobile.actions';
   standalone: true,
   imports: [
     NgIf,
-    MatLegacyFormFieldModule,
-    MatLegacySelectModule,
+    MatFormFieldModule,
+    MatSelectModule,
     ReactiveFormsModule,
     NgFor,
-    MatLegacyOptionModule,
-    MatLegacyInputModule,
+    MatOptionModule,
+    MatInputModule,
     StopPropagationDirective,
     NgClass,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     ContextMenuModule,
-    MatLegacyCheckboxModule,
-    MatLegacyButtonModule,
+    MatCheckboxModule,
+    MatButtonModule,
     MatIconModule,
     LetDirective,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     AsyncPipe,
     TitleCasePipe,
     KeyValuePipe,
@@ -123,7 +123,7 @@ import { MobileWebSockets } from '@store/actions/mobile.actions';
     BrowserComboTextPipe,
     SortByPipe,
     TranslateModule,
-    MatLegacyDialogModule,
+    MatDialogModule,
     MatSlideToggleModule,
     MatDividerModule,
     DraggableWindowModule,
