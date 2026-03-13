@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModifyUserComponent } from '@dialogs/modify-user/modify-user.component';
 import { ModifyPasswordComponent } from '@dialogs/modify-password/modify-password.component';
 import { Store, Select } from '@ngxs/store';
@@ -16,7 +16,7 @@ import {
 } from '@dialogs/are-you-sure/are-you-sure.component';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 import { InputFocusService } from '@services/inputFocus.service';
@@ -30,7 +30,7 @@ import { InputFocusService } from '@services/inputFocus.service';
   imports: [
     DisableAutocompleteDirective,
     NgIf,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     AmParsePipe,
     AmDateFormatPipe,
     AsyncPipe,

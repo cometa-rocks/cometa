@@ -12,10 +12,10 @@
 import { Component, OnInit, Inject, ChangeDetectionStrategy} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '@services/api.service';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { LogService } from '@services/log.service';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
@@ -29,7 +29,7 @@ import { parseISO, isValid } from 'date-fns';
   imports: [
     CommonModule,
     MatIconModule,
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatChipsModule,
     TitleCasePipe,
     DraggableWindowModule,

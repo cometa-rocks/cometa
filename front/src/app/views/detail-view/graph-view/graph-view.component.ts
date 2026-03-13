@@ -40,24 +40,24 @@ import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pip
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { CometaDatePipe } from '@pipes/cometa-date.pipe';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgIf, NgClass, AsyncPipe, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChangeDetectorRef } from '@angular/core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 interface StepSummaryResponse {
   summary: {
@@ -92,7 +92,7 @@ interface StepSummaryResponse {
     NgIf,
     NgFor,
     NgClass,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     AmParsePipe,
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
@@ -102,14 +102,14 @@ interface StepSummaryResponse {
     AsyncPipe,
     CometaDatePipe,
     FormsModule,
-    MatLegacySelectModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
-    MatLegacyDialogModule,
-    MatLegacyOptionModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDialogModule,
+    MatOptionModule,
     MatIconModule,
-    MatLegacyTooltipModule,
-    MatLegacyButtonModule,
+    MatTooltipModule,
+    MatButtonModule,
     MatExpansionModule
   ],
   providers: [

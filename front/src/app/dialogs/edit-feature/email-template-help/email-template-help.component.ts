@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { NgFor } from '@angular/common';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'cometa-email-template-help',
@@ -9,7 +9,7 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
   styleUrls: ['email-template-help.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, NgFor, MatLegacyButtonModule],
+  imports: [MatDialogModule, NgFor, MatButtonModule],
 })
 export class EmailTemplateHelp {
 

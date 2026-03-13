@@ -654,8 +654,8 @@ mat-dialog-content {
   .moreInfo {
     transform: scale(1.2);
     position: relative;
-    top: -12px;
-    left: -12px;
+    top: -16px;
+    left: -16px;
   }
   .moreInfoShared {
     transform: scale(1.2);
@@ -851,7 +851,8 @@ mobile-list {
   .emulator-info {
     .moreInfoStrong {
       position: relative;
-      left: -24px;
+      top: 4px;
+      left: -31px;
     }
   }
 }

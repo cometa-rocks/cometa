@@ -135,7 +135,7 @@
           Language:
           <!-- Language selection options -->
           <mat-form-field>
-            <mat-select [value]="config$.language">
+            <mat-select [value]="config$.language" panelClass="user-settings-select-panel">
               <mat-option
                 (click)="setLang(lang.key)"
                 *ngFor="
@@ -222,7 +222,7 @@
               <!-- Department pre-selection options -->
               <mat-form-field>
                 <mat-label class="custom-label">Preselect Department</mat-label>
-                <mat-select [value]="account.settings?.preselectDepartment">
+                <mat-select [value]="account.settings?.preselectDepartment" panelClass="user-settings-select-panel">
                   <mat-option
                     (click)="
                       preselectSave('preselectDepartment', department.department_id)
@@ -238,7 +238,7 @@
               <!-- Application pre-selection options -->
               <mat-form-field>
                 <mat-label class="custom-label">Preselect Application</mat-label>
-                <mat-select [value]="account.settings?.preselectApplication">
+                <mat-select [value]="account.settings?.preselectApplication" panelClass="user-settings-select-panel">
                   <mat-option
                     (click)="
                       preselectSave('preselectApplication', application.app_id)
@@ -254,7 +254,7 @@
               <!-- Environment pre-selection options -->
               <mat-form-field>
                 <mat-label class="custom-label">Preselect Environment</mat-label>
-                <mat-select [value]="account.settings?.preselectEnvironment">
+                <mat-select [value]="account.settings?.preselectEnvironment" panelClass="user-settings-select-panel">
                   <mat-option
                     (click)="
                       preselectSave(

@@ -1,17 +1,17 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Features } from '@store/actions/features.actions';
 import { AsyncPipe } from '@angular/common';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
@@ -21,9 +21,9 @@ import { LetDirective } from '../../directives/ng-let.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     LetDirective,
-    MatLegacyButtonModule,
+    MatButtonModule,
     AsyncPipe,
   ],
 })

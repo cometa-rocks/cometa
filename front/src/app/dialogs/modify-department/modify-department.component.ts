@@ -7,11 +7,11 @@ import {
 } from '@angular/forms';
 import { ApiService } from '@services/api.service';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { DepartmentsState } from '@store/departments.state';
 import { Store } from '@ngxs/store';
@@ -19,17 +19,17 @@ import { UserState } from '@store/user.state';
 import { Departments } from '@store/actions/departments.actions';
 import { BehaviorSubject } from 'rxjs';
 import {
-  MatLegacyCheckboxChange as MatCheckboxChange,
-  MatLegacyCheckboxModule,
-} from '@angular/material/legacy-checkbox';
+  MatCheckboxChange,
+  MatCheckboxModule,
+} from '@angular/material/checkbox';
 import { AsyncPipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { KEY_CODES } from '@others/enums';
 
@@ -40,15 +40,15 @@ import { KEY_CODES } from '@others/enums';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     ReactiveFormsModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
+    MatFormFieldModule,
+    MatInputModule,
     DisableAutocompleteDirective,
-    MatLegacyCheckboxModule,
-    MatLegacyTooltipModule,
+    MatCheckboxModule,
+    MatTooltipModule,
     LetDirective,
-    MatLegacyButtonModule,
+    MatButtonModule,
     TranslateModule,
     AsyncPipe,
   ],
