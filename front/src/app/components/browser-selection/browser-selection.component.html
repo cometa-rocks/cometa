@@ -124,9 +124,9 @@
         <br>
         <h4>Select Browsers Timezone</h4>
         <div class="browsers-box">
-          <mat-form-field appearance="fill" >
+          <mat-form-field appearance="fill" class="browser-timezone-field">
             <mat-label>Available Timezones</mat-label>
-            <mat-select [formControl]="testing_timezone" [(ngModel)]="selectedTimeZone" #selectElement>
+            <mat-select [formControl]="testing_timezone" [(ngModel)]="selectedTimeZone" #selectElement panelClass="browser-timezone-select-panel">
               <!-- Available Timezones -->
               <mat-option
                 *ngFor="let timezone of listOfTimeZones" 

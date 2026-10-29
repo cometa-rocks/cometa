@@ -8,9 +8,9 @@ import {
 import { finalize } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import {
-  MatLegacySnackBar as MatSnackBar,
-  MatLegacySnackBarRef as MatSnackBarRef,
-} from '@angular/material/legacy-snack-bar';
+  MatSnackBar,
+  MatSnackBarRef,
+} from '@angular/material/snack-bar';
 import { LoadingSnack } from '@components/snacks/loading/loading.snack';
 import { TranslateService } from '@ngx-translate/core';
 

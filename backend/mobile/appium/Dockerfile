@@ -13,10 +13,19 @@ RUN apt-get update && apt-get install -y \
     curl procps supervisor \
     && apt-get clean
 
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean
+# Node.js 22.23.4 (21 Oct 2026 security release). Node 20 from NodeSource is EOL.
+ARG NODE_VERSION=22.23.4
+RUN arch="$(dpkg --print-architecture)" \
+    && case "$arch" in \
+         amd64) node_arch=x64 ;; \
+         arm64) node_arch=arm64 ;; \
+         *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+       esac \
+    && curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" -o /tmp/node.tar.xz \
+    && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
+    && rm -f /tmp/node.tar.xz \
+    && node -e "if(process.versions.node!=='${NODE_VERSION}') process.exit(1)" \
+    && npm -v
 
 # Install OpenJDK (Java)
 RUN apt-get install -y openjdk-11-jre \

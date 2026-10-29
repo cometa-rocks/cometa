@@ -22,7 +22,7 @@ import { UntypedFormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
 import { Router } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { UserState } from '@store/user.state';
 import { Features } from '@store/actions/features.actions';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -46,14 +46,14 @@ import { L1TreeViewComponent } from '../l1-tree-view/l1-tree-view.component';
 import { L1FeatureListComponent } from '../l1-feature-list/l1-feature-list.component';
 import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
 import { MobileListComponent } from '../../dialogs/mobile-list/mobile-list.component';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { L1FilterComponent } from '../l1-filter/l1-filter.component';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { FolderTreeComponent } from '../folder-tree/folder-tree.component';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
@@ -100,14 +100,14 @@ import { FeatureMetricsUsageComponent } from '@components/feature-metrics-usage/
   ],
   standalone: true,
   imports: [
-    MatLegacyButtonModule,
+    MatButtonModule,
     MatIconModule,
     NgIf,
     FolderTreeComponent,
     LetDirective,
     L1FilterComponent,
     MatRippleModule,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgFor,
     L1FeatureItemListComponent,
     L1FeatureListComponent,

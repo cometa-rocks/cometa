@@ -1,8 +1,13 @@
 @import 'color';
 @import 'breakpoints';
 
+:host {
+  display: block;
+  padding: 24px;
+}
+
 h2 {
-  color: $blue;
+  color: $blue !important;
 }
 
 button {
@@ -20,11 +25,11 @@ button.submit {
   margin-top: 10px;
 }
 
-:host::ng-deep .mat-dialog-content {
+:host::ng-deep .mat-mdc-dialog-content {
   display: flex;
   flex-wrap: wrap;
   @include for-phone-landscape-up {
-    .mat-form-field {
+    .mat-mdc-form-field {
       flex: 0 calc(50% - 10px);
       &:nth-child(odd) {
         margin-right: 10px;
@@ -39,3 +44,5 @@ button.submit {
 .extra-info {
   flex: 1 100%;
 }
+
+// Panel resize is applied via panelClass 'modify-user-panel' in styles.scss (overlay is outside this component)

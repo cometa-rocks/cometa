@@ -13,7 +13,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Select, Store } from '@ngxs/store';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DOCUMENT, NgIf } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { KEY_CODES } from '@others/enums';
@@ -57,7 +57,7 @@ import { ApiService } from '@services/api.service';
     ]),
   ],
   standalone: true,
-  imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive, TranslateModule, AsyncPipe, LetDirective],
+  imports: [RouterLink, NgIf, MatTooltipModule, RouterLinkActive, TranslateModule, AsyncPipe, LetDirective],
 })
 export class HeaderComponent {
   @Select(UserState) account$: Observable<UserInfo>;

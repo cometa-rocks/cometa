@@ -12,4 +12,3 @@ __pycache__
 behave/**/screenshots/
 behave/**/junit_reports/
 node_modules/
-package-lock.json

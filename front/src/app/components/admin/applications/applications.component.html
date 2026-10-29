@@ -11,6 +11,6 @@
 <application
   [app]="app"
   *ngFor="
-    let app of applications$ | async | sortBy: 'app_name';
+    let app of ((applications$ | async) || []) | sortBy: 'app_name';
     trackBy: trackByFn">
 </application>

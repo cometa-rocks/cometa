@@ -43,6 +43,9 @@
   font-feature-settings: 'liga';
 }
 
+/* Icons inside dialogs/overlay (legacy migration: ensure font applies in cdk-overlay and MDC dialog) */
+
+
 @font-face {
   font-family: CorpoS;
   src: url(^assets/c063003t.ttf) format('truetype');
@@ -90,7 +93,7 @@ body {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.mat-menu-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
+.mat-mdc-menu-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
@@ -240,14 +243,14 @@ body::-webkit-scrollbar-corner {
   box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.14);
 }
 
-.mat-menu-panel.search {
+.mat-mdc-menu-panel.search {
   position: relative !important;
   left: 20px !important;
   top: 5px !important;
   background: #f0f0f0 !important;
 }
 
-.mat-menu-panel.new-search {
+.mat-mdc-menu-panel.new-search {
   position: relative !important;
   left: auto !important;
   right: 15px !important;
@@ -264,7 +267,7 @@ body::-webkit-scrollbar-corner {
   color: $secondary-color !important;
 }
 
-.mat-menu-panel.feature-options {
+.mat-mdc-menu-panel.feature-options {
   background: darken(white, 0.5) !important;
   .mat-icon {
     font-size: 21px !important;
@@ -286,7 +289,7 @@ body::-webkit-scrollbar-corner {
   }
 }
 
-.mat-menu-panel.folderOptionsMenu {
+.mat-mdc-menu-panel.folderOptionsMenu {
   background: darken(white, 0.5) !important;
   .mat-icon {
     font-size: 21px !important;
@@ -314,15 +317,91 @@ body::-webkit-scrollbar-corner {
   }
 }
 
+// Step options menu (step-editor): clean layout like pre-MDC (checkbox, timeout row, delete with red icon)
+.mat-mdc-menu-panel.step-options-menu,
+.mat-menu-panel.step-options-menu {
+  .mat-mdc-menu-item,
+  .mat-menu-item,
+  [mat-menu-item] {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    min-height: 38px !important;
+    .mat-mdc-menu-item-text,
+    .mat-menu-item-text {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      width: 100%;
+    }
+    .mat-checkbox,
+    mat-checkbox {
+      margin-left: -10px;
+    }
+    .mat-icon,
+    mat-icon {
+      font-size: 20px !important;
+      width: 24px !important;
+      height: 24px !important;
+      margin-right: 8px !important;
+      flex-shrink: 0;
+    }
+    span {
+      font-size: 15px;
+    } 
+  }
+  .custom-timeout {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    .mat-mdc-menu-item-text,
+    .mat-menu-item-text {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      gap: 0;
+    }
+    span,
+    input {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    input {
+      width: 65px;
+      height: 25px;
+      margin: 0 6px;
+      padding: 5px 8px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+      background: #fff;
+      text-align: center;
+      font: inherit;
+      box-sizing: border-box;
+      font-size: 14px;
+      text-align: left;
+    }
+    span:last-of-type {
+      margin-left: 0;
+      font-size: 15px;
+    }
+  }
+  // Delete button: red trash icon
+  .delete-step .mat-icon,
+  .delete-step mat-icon {
+    color: $live-steps-spinner-color !important;
+  }
+}
 
-.mat-menu-item {
-  height: 30px !important;
+.mat-mdc-menu-item {
+  min-height: 30px !important;
   line-height: 30px !important;
   font-size: 11pt !important;
   font-family: 'CorpoS' !important;
+  width: 100% !important;
 }
 
-.mat-menu-content {
+.mat-mdc-menu-content {
   padding: 5px 0 !important;
 }
 
@@ -349,21 +428,28 @@ h3 {
 }
 
 .step_adding
+  .mat-mdc-checkbox.mat-checkbox-disabled:not(.mat-checkbox-checked) .mdc-checkbox__background,
+.step_adding
   .mat-checkbox-disabled:not(.mat-checkbox-checked)
   .mat-checkbox-frame {
   border-color: rgba(0, 0, 0, 0.54) !important;
 }
 
+.mat-mdc-dialog-actions,
 .mat-dialog-actions {
   justify-content: flex-end !important;
+  padding-right: 24px !important;
 }
 
 .form-field-blue {
   &.mat-focused {
+    .mat-mdc-form-field-focus-overlay,
     .mat-form-field-ripple {
       background-color: $blue !important;
     }
+    .mat-mdc-floating-label,
     .mat-form-field-label,
+    .mat-mdc-select-arrow,
     .mat-select-arrow {
       color: $blue !important;
     }
@@ -373,10 +459,13 @@ h3 {
   }
 }
 
+.checkbox-blue .mdc-checkbox__background,
 .checkbox-blue .mat-checkbox-frame {
   border-color: $blue !important;
 }
 
+.checkbox-blue.mat-checkbox-checked .mdc-checkbox__background,
+.checkbox-blue .mdc-checkbox--selected .mdc-checkbox__background,
 .checkbox-blue.mat-checkbox-checked .mat-checkbox-background {
   background-color: $blue !important;
 }
@@ -385,20 +474,23 @@ h3 {
 //   width: 500px;
 // }
 
-.enter-value-panel .mat-dialog-content {
+.enter-value-panel .mat-mdc-dialog-content {
   width: auto !important;
 }
 
-.add-step-panel .mat-dialog-content {
+.add-step-panel .mat-mdc-dialog-content {
   width: auto !important;
 }
 
-.edit-feature-panel .mat-dialog-content {
+.edit-feature-panel .mat-mdc-dialog-content {
   width: 100%;
 }
 
-.edit-feature-panel .mat-mdc-dialog-surface {
-  padding: 24px;
+.edit-feature-panel .mat-mdc-dialog-container .mat-mdc-dialog-title,
+.edit-feature-panel .mat-mdc-dialog-container .mdc-dialog__title {
+  color: $blue;
+  margin: 0 0 20px;
+  display: block;
 }
 
 .edit-feature-panel {
@@ -410,24 +502,53 @@ h3 {
   }
 }
 
+.edit-feature-step-suggestions .mat-mdc-option .mdc-list-item__primary-text,
 .edit-feature-step-suggestions .mat-option-text {
   font-family: 'Segoe UI', 'CorpoS';
 }
 
-.modify-user-panel .mat-dialog-content {
-  @media (min-width: 900px) {
-    width: 700px;
+/* Edit-feature select dropdowns: width adapts to longest option name */
+.edit-feature-select-panel {
+  min-width: max-content;
+  max-width: 90vw;
+}
+.edit-feature-select-panel .mat-mdc-option .mdc-list-item__primary-text,
+.edit-feature-select-panel .mat-mdc-option {
+  font-size: 14px;
+  white-space: nowrap !important;
+  text-overflow: unset !important;
+}
+
+/* Browser selection: timezone dropdown options 14px */
+.browser-timezone-select-panel .mat-mdc-option,
+.browser-timezone-select-panel .mat-mdc-option .mdc-list-item__primary-text {
+  font-size: 14px;
+}
+
+.modify-user-panel {
+  .mat-mdc-dialog-container,
+  .mat-dialog-container {
+    resize: both;
+    overflow: auto;
   }
-  @media (max-width: 900px) {
-    width: auto;
-    .mat-form-field {
-      display: block;
-      width: 100%;
-      min-width: 200px;
+  .mat-mdc-dialog-content,
+  .mat-dialog-content {
+    @media (min-width: 900px) {
+      width: 700px;
+    }
+    @media (max-width: 900px) {
+      width: auto;
+      .mat-mdc-form-field,
+      .mat-form-field {
+        display: block;
+        width: 100%;
+        min-width: 200px;
+      }
     }
   }
 }
 
+.modify-password-panel .mat-mdc-dialog-content,
 .modify-password-panel .mat-dialog-content {
   @media (min-width: 650px) {
     width: 445px;
@@ -437,6 +558,7 @@ h3 {
   }
   @media (max-width: 650px) {
     width: auto;
+    .mat-mdc-form-field,
     .mat-form-field {
       display: block;
       width: 100%;
@@ -445,23 +567,7 @@ h3 {
   }
 }
 
-.modify-password-panel .mat-dialog-content {
-  @media (min-width: 650px) {
-    width: 445px;
-    .move-right {
-      margin-left: 30px;
-    }
-  }
-  @media (max-width: 650px) {
-    width: auto;
-    .mat-form-field {
-      display: block;
-      width: 100%;
-      min-width: 250px;
-    }
-  }
-}
-
+.create-user-panel .mat-mdc-dialog-content,
 .create-user-panel .mat-dialog-content {
   @media (min-width: 900px) {
     width: 680px;
@@ -471,6 +577,7 @@ h3 {
   }
   @media (max-width: 900px) {
     width: auto;
+    .mat-mdc-form-field,
     .mat-form-field {
       display: block;
       width: 100%;
@@ -579,15 +686,20 @@ h3 {
   }
 }
 
-.edit-feature-panel .mat-dialog-container,
-.create-test-panel .mat-dialog-container {
-  background-color: darken(white, 3);
+.edit-feature-panel .mat-mdc-dialog-container,
+.edit-feature-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.edit-feature-panel .mat-mdc-dialog-container .mdc-dialog__surface,
+.create-test-panel .mat-mdc-dialog-container,
+.create-test-panel .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+.create-test-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  background-color: #f7f7f7;
 }
 
 .create-test-panel {
   width: 80vw;
 }
 
+.mat-mdc-expansion-panel-header-title,
 .mat-expansion-panel-header-title {
   span {
     text-transform: uppercase;
@@ -610,6 +722,7 @@ h3 {
   width: 100%;
   height: 100%;
   background-color: rgba(black, 0.5) !important;
+  .mat-mdc-dialog-container,
   .mat-dialog-container {
     border-radius: 0;
     box-shadow: none !important;
@@ -642,6 +755,7 @@ h3 {
 .edit-variable-panel {
   min-width: 95%;
   min-height: 60%;
+  .mat-mdc-dialog-container,
   .mat-dialog-container {
     max-height: 100dvh;
     max-width: 100dvw;
@@ -649,12 +763,32 @@ h3 {
     overflow: auto;
     overflow-y: hidden;
   }
+  // Position draggable window so it is visible and interactive (same as edit-feature-panel)
+  .mat-mdc-dialog-container draggable-window,
+  .mat-dialog-container draggable-window {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    pointer-events: auto;
+  }
+}
+
+.accounts-dialog-panel {
+  .mat-mdc-dialog-container,
+  .mat-dialog-container {
+    resize: both;
+    overflow: auto;
+    min-width: 1200px;
+    min-height: 500px;
+  }
 }
 
 .api-testing-dialog {
   min-width: 95%;
   min-height: 70%;
-  .mat-dialog-container {   
+  .mat-mdc-dialog-container,
+  .mat-dialog-container {
     resize: both;
     overflow: auto;
   }
@@ -681,6 +815,7 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
+  .mat-mdc-dialog-container,
   .mat-dialog-container {
     max-height: 100dvh;
     max-width: 100dvw;
@@ -690,17 +825,32 @@ h3 {
 
 .mobile-emulator-panel-dialog {
   background-color: $bg-mat-dialog-container;
-  // width: 80vw;
-  // height: 85vh;
-  min-width: 80vw;
-  min-height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  .mat-mdc-dialog-container,
   .mat-dialog-container {
-    max-height: 100dvh;
-    max-width: 100dvw;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+  .mat-mdc-dialog-container .mdc-dialog__surface,
+  .mat-dialog-container .mat-dialog-surface {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
+  }
+  // Position draggable window like edit-feature-panel (top-right, visible and interactive)
+  .mat-mdc-dialog-container draggable-window,
+  .mat-dialog-container draggable-window {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    pointer-events: auto;
   }
 }
 
@@ -708,17 +858,30 @@ h3 {
 //   width: 500px;
 // }
 
-
+// Target both MDC and legacy menu item (e.g. edit-variables table actions use mat-menu-item)
+.mat-mdc-menu-item,
 .mat-menu-item {
   span {
     font-weight: bold;
-    color: rgba(black, 0.6);
+    color: rgba(black, 0.54);
     display: inline-block;
     vertical-align: middle;
   }
-  .mat-icon {
+  // Both .mat-icon (class) and mat-icon (element): MDC icon has the class; use !important so it wins over MatIcon's ViewEncapsulation.None styles
+  // Exclude .mat-warn so color="warn" (e.g. delete icon) keeps theme color
+  .mat-icon:not(.mat-warn),
+  mat-icon:not(.mat-warn) {
     /* margin-right: 10px !important; */
-    font-size: 21px;
+    font-size: 21px !important;
+    color: rgba(black, 0.54);
+    display: inline-block;
+    height: 21px  ;
+    width: 21px;
+    line-height: 21px;
+  }
+  .mat-icon:hover,
+  mat-icon:hover {
+    background-color: transparent;
   }
 }
 
@@ -744,20 +907,23 @@ h3 {
   margin-bottom: 30px;
 }
 
+.mat-mdc-paginator,
 .mat-paginator {
   background: transparent !important;
 }
 
-.mat-menu-panel {
+.mat-mdc-menu-panel {
   min-height: 30px !important;
 }
 
+.mat-mdc-expansion-panel-header-description,
 .mat-expansion-panel-header-description {
   @include for-phone-only {
     display: none !important;
   }
 }
 
+.mat-mdc-dialog-content,
 .mat-dialog-content {
   @include for-phone-only {
     width: auto !important;
@@ -779,6 +945,7 @@ h3 {
   margin: auto;
 }
 
+.mat-mdc-dialog-actions button,
 .mat-dialog-actions button {
   font-weight: bold;
 }
@@ -877,6 +1044,7 @@ h3 {
     */
 }
 
+.paginator-center .mat-mdc-paginator-container,
 .paginator-center .mat-paginator-container {
   justify-content: center;
 }
@@ -898,6 +1066,7 @@ h3 {
   cursor: pointer;
 }
 
+.mat-mdc-expansion-panel-body,
 .mat-expansion-panel-body {
   position: relative;
 }
@@ -1013,25 +1182,60 @@ video-player .header {
 // modifies styles of root and first child containers of modify department dialog
 .modify-department-panel {
   display: inline;
-  max-width: 70%;
+  .mat-mdc-dialog-content,
   .mat-dialog-content {
     width: 100%;
+  }
+  .mdc-dialog__title {
+    padding-left: 0;
+  }
+  // Align all content to the left (override .description-option form/checkbox indent)
+  .description-option {
+    .mat-mdc-form-field,
+    .mat-form-field {
+      margin-left: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .mat-mdc-checkbox,
+    .mat-checkbox {
+      margin-left: 0;
+    }
+    // option-row: checkbox and optional inline field (e.g. "Delete after") on one line
+    .option-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    // Description aligned with checkbox label; only when it follows .option-row
+    .option-row + .description {
+      padding-left: 45px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
   }
 }
 
 .description-option {
+  .mat-mdc-form-field.step_timeout_from,
+  .mat-mdc-form-field.step_timeout_to,
+  .mat-mdc-form-field.step_timeout,
   .mat-form-field.step_timeout_from,
   .mat-form-field.step_timeout_to,
   .mat-form-field.step_timeout {
     width: 150px;
     margin: 0;
   }
+  .mat-mdc-form-field,
   .mat-form-field {
     margin-left: 20px;
   }
+  .mat-mdc-form-field .mat-mdc-floating-label,
   .mat-form-field-appearance-outline .mat-form-field-label {
-    top: 1.3em !important;
+    top: 0.5em !important;
   }
+  .mat-mdc-form-field.mat-form-field-should-float .mat-mdc-floating-label,
   .mat-form-field-appearance-outline.mat-form-field-can-float.mat-form-field-should-float
     .mat-form-field-label,
   .mat-form-field-appearance-outline.mat-form-field-can-float
@@ -1040,15 +1244,17 @@ video-player .header {
     .mat-form-field-label {
     transform: translateY(-1.2em) scale(0.75) !important;
   }
+  .mat-mdc-form-field .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field .mat-mdc-form-field-icon-suffix,
   .mat-form-field-appearance-outline .mat-form-field-prefix,
   .mat-form-field-appearance-outline .mat-form-field-suffix {
-    top: 0em !important;
+    top: 0.5em !important;
   }
-  .mat-focused {
-    .mat-form-field-appearance-outline .mat-form-field-label {
-      top: 1.3em !important;
-    }
+  .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
+  .mat-focused .mat-form-field-appearance-outline .mat-form-field-label {
+    top: 0.5em !important;
   }
+  .mat-mdc-form-field .mat-mdc-form-field-infix,
   .mat-form-field-appearance-outline .mat-form-field-infix {
     padding: 0.45em;
   }
@@ -1069,15 +1275,24 @@ video-player .header {
   }
 }
 
+.mat-mdc-form-field,
 .mat-form-field {
+  .mat-mdc-floating-label,
   .mat-form-field-label {
     font-size: 1rem !important;
   }
+  .mat-mdc-form-field-error,
   .mat-error {
     font-size: 0.8rem !important;
   }
 }
 
+/* Keep form field background unchanged on focus/hover (disable focus overlay) */
+.mat-mdc-form-field .mat-mdc-form-field-focus-overlay {
+  opacity: 0 !important;
+}
+
+/* Override MDC filled text field background to match app body */
 span.code {
   background-color: rgba(black, 0.04);
   padding: 0.2em 0.33em;
@@ -1139,29 +1354,34 @@ input[type='number'] {
   height: 26px;
 }
 
+.edit-feature-panel .mat-mdc-dialog-container draggable-window {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+}
+
 draggable-window{
   display: none;
 }
 
-mat-dialog-container draggable-window{
+mat-dialog-container draggable-window,
+mat-mdc-dialog-container draggable-window {
   display: block;
 }
 
-.mat-dialog-container {
-  resize: both;
-}
 
-.no-resize-dialog .mat-dialog-container {
-  resize: none !important;
-}
+
+
 
 // ########## Custom tooltip ##########
 
 // Make sure tooltip overflow is visible ouside the expansion panel
 .edit-feature-panel {
-  .mat-expansion-panel,
-  .mat-expansion-panel-header,
-  .mat-expansion-panel-content {
+  .mat-mdc-expansion-panel,
+  .mat-mdc-expansion-panel-header,
+  .mat-mdc-expansion-panel-content,
+  .mat-mdc-expansion-panel-body {
     overflow: visible !important;
   }
 }

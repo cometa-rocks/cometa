@@ -14,7 +14,7 @@ import {
 } from '@angular/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { SafeStyle, DomSanitizer } from '@angular/platform-browser';
 import { API_BASE } from 'app/tokens';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
@@ -42,7 +42,7 @@ import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
@@ -119,7 +119,7 @@ import { LogService } from '@services/log.service';
     FeatureActionsComponent,
     NgIf,
     NgClass,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     AmParsePipe,
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
