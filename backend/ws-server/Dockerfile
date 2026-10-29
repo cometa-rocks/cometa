@@ -15,7 +15,8 @@ RUN apt-get update \
 RUN groupadd -g 1472 cometa \
     && useradd -u 1472 -g cometa -m cometa -s /bin/bash
     
-RUN npm install -g pm2
+RUN npm install -g pm2 \
+    && npm cache clean --force
 
 # Set the working directory inside the container
 WORKDIR /home/cometa/app
