@@ -11,9 +11,6 @@
     "pm2": "6.0.14",
     "socket.io": "4.1.2"
   },
-  "devDependencies": {
-    "socket.io": "4.1.2"
-  },
   "scripts": {
     "server-start": "pm2 start --no-daemon app/index.js",
     "start": "npm ci && npm install -g pm2@6.0.14 && pm2 start --no-daemon app/index.js",
