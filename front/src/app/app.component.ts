@@ -138,7 +138,7 @@ export class CometaComponent implements OnInit {
       .pipe(
         switchMap(_ =>
           this._http
-            .get(`https://${location.hostname}/callback?info=json`, {
+            .get(`https://${location.host}/callback?info=json`, {
               responseType: 'text',
             })
             .pipe(retry(3))
