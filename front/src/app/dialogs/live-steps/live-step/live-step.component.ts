@@ -19,8 +19,8 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -64,7 +64,7 @@ import { DatePipe } from '@angular/common';
   imports: [
     LetDirective,
     NgClass,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgIf,
     NgFor,
     MatIconModule,

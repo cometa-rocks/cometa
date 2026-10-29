@@ -1,9 +1,9 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -11,7 +11,7 @@ import { ConfigState } from '@store/config.state';
 import { classifyByProperty } from 'ngx-amvara-toolbox';
 import { TranslateModule } from '@ngx-translate/core';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { NgIf, NgFor } from '@angular/common';
 
 @Component({
@@ -21,10 +21,10 @@ import { NgIf, NgFor } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyDialogModule,
+    MatDialogModule,
     NgIf,
     NgFor,
-    MatLegacyButtonModule,
+    MatButtonModule,
     SafeHtmlPipe,
     TranslateModule,
   ],

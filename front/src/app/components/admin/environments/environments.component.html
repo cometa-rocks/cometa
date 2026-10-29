@@ -11,6 +11,6 @@
 <environment
   [environment]="env"
   *ngFor="
-    let env of environments$ | async | sortBy: 'environment_name';
+    let env of ((environments$ | async) || []) | sortBy: 'environment_name';
     trackBy: trackByFn
   "></environment>

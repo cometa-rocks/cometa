@@ -1,11 +1,22 @@
-# Use Node.js version 22 LTS as the base image
-FROM node:22
+# Node.js 22.23.4 LTS — patched for the 21 Oct 2026 security release
+# (CVE-2026-111497 Brotli RCE, CVE-2026-106069 TLS hostname bypass,
+# CVE-2026-105482 dns.resolve NUL truncation). Floating `node:22` had
+# resolved to 22.18.0 in cometa/socket:1.8.
+# Slim image. The full node:22.23.4 image is about 1.6 GB before the app
+# is added. The published cometa/socket tags are about 400 MB.
+FROM node:22.23.4-slim
+
+# The compose health check runs `curl`. The slim base does not include it.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create cometa user/group (uid/gid 1472) and set working directory
 RUN groupadd -g 1472 cometa \
     && useradd -u 1472 -g cometa -m cometa -s /bin/bash
     
-RUN npm install -g pm2
+RUN npm install -g pm2 \
+    && npm cache clean --force
 
 # Set the working directory inside the container
 WORKDIR /home/cometa/app
@@ -32,11 +43,13 @@ USER cometa
 COPY --chown=cometa:cometa ./app/ /home/cometa/app/app/
 COPY --chown=cometa:cometa ./package.json /home/cometa/app/package.json
 
-# Install dependencies
-RUN npm install
+# Install production dependencies in one layer so chmod does not
+# copy node_modules a second time.
+RUN npm install --omit=dev \
+    && npm cache clean --force \
+    && chmod -R 755 /home/cometa/app/node_modules
 
-# Permissions for dependencies directory
-RUN chmod -R 755 /home/cometa/app/node_modules
+COPY --chown=cometa:cometa ./version.json /home/cometa/app/version.json
 
 # Expose the port the app runs on
 EXPOSE 3001

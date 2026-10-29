@@ -1,6 +1,13 @@
 @import 'color';
 @import 'breakpoints';
 
+:host{
+  display: block;
+  padding: 24px 0 24px 24px;
+  width: 1000px;
+  height: 670px;
+}
+
 h2 {
   color: $blue;
 }
@@ -34,4 +41,22 @@ button.submit {
   @include for-tablet-landscape-only {
     grid-template-columns: 150px 150px 50px;
   }
+}
+
+::ng-deep .mat-mdc-dialog-content {
+  padding: 0 !important;
+}
+
+// Timeout input: center the number vertically within the field
+::ng-deep .mat-mdc-form-field.step_timeout .mat-mdc-form-field-infix,
+::ng-deep .mat-form-field.step_timeout .mat-form-field-infix {
+  display: flex;
+  align-items: center;
+}
+::ng-deep .mat-mdc-form-field.step_timeout input,
+::ng-deep .mat-form-field.step_timeout input {
+  line-height: 1.5;
+  padding-top: 0;
+  padding-bottom: 0;
+  box-sizing: border-box;
 }

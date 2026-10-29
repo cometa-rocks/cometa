@@ -33,11 +33,11 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { BehaveChartTestComponent } from '../../components/behave-charts/behave-chart.component';
@@ -69,11 +69,11 @@ import { log } from 'ngx-amvara-toolbox';
     LetDirective,
     MtxGridModule,
     StopPropagationDirective,
-    MatLegacyMenuModule,
+    MatMenuModule,
     MatDividerModule,
-    MatLegacyTooltipModule,
-    MatLegacyCheckboxModule,
-    MatLegacyButtonModule,
+    MatTooltipModule,
+    MatCheckboxModule,
+    MatButtonModule,
     MatIconModule,
     TranslateModule,
     AmParsePipe,

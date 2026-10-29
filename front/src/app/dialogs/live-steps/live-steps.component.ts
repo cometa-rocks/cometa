@@ -9,14 +9,14 @@ import {
   QueryList,
 } from '@angular/core';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
 import { Store, Actions, ofActionCompleted, ofActionDispatched, ofActionSuccessful } from '@ngxs/store';
 import { Subscribe } from 'app/custom-decorators';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   distinctUntilKeyChanged,
   filter,
@@ -27,9 +27,9 @@ import {
   take,
 } from 'rxjs/operators';
 import {
-  MatLegacyCheckboxChange as MatCheckboxChange,
-  MatLegacyCheckboxModule,
-} from '@angular/material/legacy-checkbox';
+  MatCheckboxChange,
+  MatCheckboxModule,
+} from '@angular/material/checkbox';
 import { Observable, Subscription, Subject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -45,13 +45,13 @@ import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
 import { BrowserResultStatusPipe } from '@pipes/browser-result-status.pipe';
 import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { LiveStepComponent } from './live-step/live-step.component';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { MatLegacyTabsModule } from '@angular/material/legacy-tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 import {
   NgIf,
   NgFor,
@@ -113,20 +113,20 @@ interface DDTFeature {
   standalone: true,
   imports: [
     NgIf,
-    MatLegacyDialogModule,
-    MatLegacyTabsModule,
+    MatDialogModule,
+    MatTabsModule,
     LetDirective,
     NgFor,
     MatIconModule,
-    MatLegacyTooltipModule,
+    MatTooltipModule,
     NgSwitch,
     NgSwitchCase,
-    MatLegacyProgressSpinnerModule,
+    MatProgressSpinnerModule,
     NgTemplateOutlet,
     NgSwitchDefault,
     LiveStepComponent,
-    MatLegacyCheckboxModule,
-    MatLegacyButtonModule,
+    MatCheckboxModule,
+    MatButtonModule,
     AsyncPipe,
     KeyValuePipe,
     AmParsePipe,

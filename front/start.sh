@@ -44,9 +44,18 @@ function install_essentials(){
 	apt-get install -y vim nano git curl gnupg2 >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 
-	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	curl -sL https://deb.nodesource.com/setup_18.x | bash - >> output.log 2>&1
-	apt-get install -y nodejs=18.* >> output.log 2>&1
+	echo -e "\e[37mInstalling NodeJS 22.23.4 (patched for CVE-2026-111497)...\e[0m"
+	NODE_VERSION=22.23.4
+	arch="$(dpkg --print-architecture)"
+	case "$arch" in
+		amd64) node_arch=x64 ;;
+		arm64) node_arch=arm64 ;;
+		*) echo "unsupported architecture: $arch"; exit 1 ;;
+	esac
+	curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" -o /tmp/node.tar.xz >> output.log 2>&1
+	tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 >> output.log 2>&1
+	rm -f /tmp/node.tar.xz
+	node -v >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 
 	# create lbtest1.html just in case we are running behind a LB

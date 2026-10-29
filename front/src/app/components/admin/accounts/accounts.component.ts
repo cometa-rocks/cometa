@@ -7,14 +7,14 @@ import { AsyncPipe, NgIf, NgClass, NgSwitch, NgSwitchCase, NgSwitchDefault, NgFo
 import { AccountComponent } from './account/account.component';
 import { NetworkPaginatedListComponent } from '../../network-paginated-list/network-paginated-list.component';
 import { DisableAutocompleteDirective } from '../../../directives/disable-autocomplete.directive';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { InputFocusService } from '@services/inputFocus.service';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
@@ -28,9 +28,9 @@ import { Store, Select, Actions, ofActionDispatched } from '@ngxs/store';
 import { HttpClient } from '@angular/common/http';
 import { Configuration } from '@store/actions/config.actions';
 import { CustomSelectors } from '@others/custom-selectors';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModifyUserComponent } from '@dialogs/modify-user/modify-user.component';
 import { Accounts } from '@store/actions/accounts.actions';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
@@ -44,14 +44,14 @@ import { filter } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
-    MatLegacyButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
     MatIconModule,
-    MatLegacyTooltipModule,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyCheckboxModule,
-    MatLegacyMenuModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatCheckboxModule,
+    MatMenuModule,
     MatDividerModule,
     ReactiveFormsModule,
     DisableAutocompleteDirective,

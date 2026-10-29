@@ -1,11 +1,11 @@
 import { Component, ChangeDetectionStrategy, Inject, HostListener } from '@angular/core';
 import {
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-  MatLegacyDialogRef as MatDialogRef,
-} from '@angular/material/legacy-dialog';
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { TranslateService } from '@ngx-translate/core';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { KEY_CODES } from '@others/enums';
 
 @Component({
@@ -14,7 +14,7 @@ import { KEY_CODES } from '@others/enums';
   styleUrls: ['./are-you-sure.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class AreYouSureDialog {
   static panelClass = 'no-resize-dialog';

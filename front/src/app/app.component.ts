@@ -12,7 +12,7 @@ import { SocketService } from '@services/socket.service';
 import { interval, Observable, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, retry, switchMap } from 'rxjs/operators';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { CookiesExpiredDialog } from '@dialogs/cookies-expired/cookies-expired.component';
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { TourService } from '@services/tour.service';
@@ -138,7 +138,7 @@ export class CometaComponent implements OnInit {
       .pipe(
         switchMap(_ =>
           this._http
-            .get(`https://${location.hostname}/callback?info=json`, {
+            .get(`https://${location.host}/callback?info=json`, {
               responseType: 'text',
             })
             .pipe(retry(3))

@@ -1,5 +1,7 @@
 # Use Python 3.11 base image from the Docker Hub
-FROM python:3.11
+# Slim base. python:3.11 carries the compiler toolchain and is the main
+# reason a behave image lands near 5 GB. Runtime packages are installed below.
+FROM python:3.11-slim AS builder
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 
@@ -17,6 +19,10 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     supervisor \
     psmisc \
     libgl1 \
+    libglib2.0-0 \
+    curl \
+    ca-certificates \
+    gnupg \
     && apt-get purge -y --auto-remove exim* \
     && rm -rf /var/lib/apt/lists/*
 
@@ -112,46 +118,77 @@ USER cometa
 # Update file permissions
 RUN chmod -R 755 /opt/code
 
-# Install Poetry via curl
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Add Poetry to PATH
-ENV PATH="/home/cometa/.local/bin:$PATH"
-
-# Verify Poetry installation
-RUN poetry --version
-
-# # Configure Poetry to avoid creating virtual environments
-RUN poetry config virtualenvs.create false --local
+# Build Python dependencies, then drop the compilers, Poetry, and pip cache.
+# cx-oracle 8.3.0 imports pkg_resources during its build. setuptools>=82
+# removed that module, so pin setuptools 78 and install without build isolation.
 USER root
+ENV PATH="/root/.local/bin:$PATH"
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update -y \
-    && apt-get install -y gcc g++ make python3-dev libssl-dev openssl \
-    && python3 -m ensurepip \
-    && python3 -m pip install --upgrade pip setuptools wheel
+    && apt-get install -y --no-install-recommends \
+        gcc g++ make python3-dev libssl-dev openssl \
+        pkg-config default-libmysqlclient-dev libmariadb3 \
+        libpq-dev libpq5 \
+    && python3 -m pip install --no-cache-dir --upgrade pip "setuptools==78.1.0" wheel \
+    && curl -sSL https://install.python-poetry.org | python3 - \
+    && poetry config virtualenvs.create false \
+    && (poetry export --without-hashes -f requirements.txt -o /tmp/requirements.txt \
+        || (poetry self add poetry-plugin-export \
+            && poetry export --without-hashes -f requirements.txt -o /tmp/requirements.txt)) \
+    && python3 -m pip install --no-cache-dir --no-build-isolation -r /tmp/requirements.txt \
+    && python3 -m pip install --no-cache-dir behave \
+    && rm -rf /tmp/requirements.txt /root/.cache /root/.local /home/cometa/.cache \
+    && apt-get purge -y gcc g++ make python3-dev pkg-config default-libmysqlclient-dev libpq-dev \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configure Poetry for root user and install Python dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+# Playwright 1.51.0 bundles Node.js 22.14.0. No Playwright release through
+# 1.64.1 (14 Oct 2026) ships a driver on the patched lines
+# (22.23.4 / 24.22.1 / 26.12.1). Keep only the node binary, not the SDK.
+ARG PLAYWRIGHT_NODE_VERSION=22.23.4
+ENV PLAYWRIGHT_NODEJS_PATH=/opt/node/bin/node
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends xz-utils; \
+    rm -rf /var/lib/apt/lists/*; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+      amd64) node_arch=x64 ;; \
+      arm64) node_arch=arm64 ;; \
+      *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://nodejs.org/dist/v${PLAYWRIGHT_NODE_VERSION}/node-v${PLAYWRIGHT_NODE_VERSION}-linux-${node_arch}.tar.xz" -o /tmp/node.tar.xz; \
+    mkdir -p /tmp/node-extract /opt/node/bin; \
+    tar -xJf /tmp/node.tar.xz -C /tmp/node-extract --strip-components=1; \
+    cp -a /tmp/node-extract/bin/node /opt/node/bin/node; \
+    rm -rf /tmp/node-extract /tmp/node.tar.xz; \
+    /opt/node/bin/node -e "const v=process.versions; if(v.node!=='${PLAYWRIGHT_NODE_VERSION}') { console.error(v); process.exit(1); } console.log(JSON.stringify({node:v.node,openssl:v.openssl,ares:v.ares,undici:v.undici}))"; \
+    driver_node="$(find /usr /opt /home -path '*/playwright/driver/node' -type f -print -quit)"; \
+    test -n "$driver_node"; \
+    cp -a /opt/node/bin/node "$driver_node"; \
+    chmod 755 "$driver_node" /opt/node/bin/node; \
+    "$driver_node" -e "if(process.versions.node!=='${PLAYWRIGHT_NODE_VERSION}') process.exit(1)"; \
+    python3 -c "import os; from playwright._impl._driver import compute_driver_executable; node, cli = compute_driver_executable(); assert node==os.environ['PLAYWRIGHT_NODEJS_PATH'], node; print(node)"; \
+    chown -R cometa:cometa /opt/node; \
+    apt-get purge -y xz-utils; \
+    apt-get autoremove -y; \
+    rm -rf /var/lib/apt/lists/*
 
+USER root
+# Playwright ships its own Node 22.14.0 binary (~120 MB). The image already
+# runs the patched binary via PLAYWRIGHT_NODEJS_PATH, so the bundled copy
+# is removed before the filesystem is flattened into one layer.
+RUN find /usr/local -path '*/playwright/driver/node' -type f -delete
+RUN chmod +x /opt/code/behave_django/start_pod.sh /opt/code/run_remote_from_django.sh
 
-
+FROM scratch
+COPY --from=builder / /
+ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LANG=C.UTF-8 \
+    PYTHON_VERSION=3.11.18 \
+    PLAYWRIGHT_NODEJS_PATH=/opt/node/bin/node
 USER cometa
-
-
-
-# Install Behave for testing
-RUN pip install behave
-
-
-# Set the entry point script, ensure it's executable
-
-RUN chmod +x /opt/code/behave_django/start_pod.sh
-RUN chmod +x /opt/code/run_remote_from_django.sh
-
 WORKDIR /opt/code/behave_django
-
-# Finish setup, execute the entrypoint script
 ENTRYPOINT ["/bin/sh", "-c", "/opt/code/behave_django/start_pod.sh"]
 
 

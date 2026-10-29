@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, Inject, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  MatLegacyDialogRef as MatDialogRef,
-  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
-  MatLegacyDialogModule,
-} from '@angular/material/legacy-dialog';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'feature-created',
@@ -13,7 +13,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   styleUrls: ['feature-created.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatDialogModule, MatButtonModule],
 })
 export class FeatureCreated {
   static panelClass = 'no-resize-dialog';

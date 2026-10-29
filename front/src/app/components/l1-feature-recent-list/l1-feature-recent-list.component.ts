@@ -25,15 +25,15 @@ import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatLegacyPaginator as MatPaginator } from '@angular/material/legacy-paginator';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Features } from '@store/actions/features.actions';
 import { Subscribe } from 'ngx-amvara-toolbox';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { Configuration } from '@store/actions/config.actions';
@@ -49,15 +49,15 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { WelcomeComponent } from '../welcome/welcome.component';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 import {
@@ -98,20 +98,20 @@ import { StarredService } from '@services/starred.service';
     NgIf,
     MtxGridModule,
     WelcomeComponent,
-    MatLegacyProgressSpinnerModule,
-    MatLegacyButtonModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
     MatIconModule,
-    MatLegacyFormFieldModule,
-    MatLegacySelectModule,
-    MatLegacyTooltipModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatTooltipModule,
     NgClass,
     NgSwitch,
     NgSwitchCase,
     NgSwitchDefault,
     NgFor,
     StopPropagationDirective,
-    MatLegacyCheckboxModule,
-    MatLegacyMenuModule,
+    MatCheckboxModule,
+    MatMenuModule,
     MatDividerModule,
     TranslateModule,
     AmParsePipe,

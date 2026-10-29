@@ -24,7 +24,7 @@
 
 <mat-dialog-content>
   <ng-container *ngIf="variables.length > 0; else text">
-    <mat-form-field appearance="fill" class="search-wrapper">
+    <mat-form-field appearance="fill" class="search-wrapper" [class.search-no-dialog]="!isDialog">
       <mat-label>Search</mat-label>
       <mat-icon matPrefix>search</mat-icon>
       <input

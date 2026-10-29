@@ -1,12 +1,62 @@
 @import 'color';
 
+:host {
+  display: block;
+  padding: 24px;
+  width: 1200px;
+  
+}
+
 .global-timeout-modifier {
   display: grid;
   grid-template-columns: 150px 150px;
   place-items: center start;
-  gap: 5px;
+  gap: 20px;
 }
 
 h2 {
-  color: $blue;
+  color: $blue !important;
+  padding-left: 0px;
+}
+
+::ng-deep .mat-mdc-dialog-content {
+  padding: 0 !important;
+}
+
+// From/To fields only: notch padding and label vertical centering
+::ng-deep .mat-mdc-form-field.step_timeout_from,
+::ng-deep .mat-mdc-form-field.step_timeout_to {
+  .mdc-notched-outline__notch {
+    
+    display: flex;
+    align-items: center;
+  }
+  .mat-mdc-form-field-flex {
+    display: flex;
+    align-items: center;
+  }
+  .mat-mdc-form-field-infix {
+    display: flex;
+    align-items: center;
+  }
+  input {
+    line-height: 1.5;
+    padding-top: 0;
+    padding-bottom: 0;
+    box-sizing: border-box;
+  }
+  .mat-mdc-form-field-icon-suffix {
+    align-self: center;
+  }
+}
+
+.modify-department-timeout-panel {
+  display: inline;
+  .mat-mdc-dialog-content,
+  .mat-dialog-content {
+    width: 100%;
+  }
+  .mdc-dialog__title {
+    padding-left: 0;
+  }
 }

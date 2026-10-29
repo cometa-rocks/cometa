@@ -1,2 +1,2 @@
-npm install
+npm ci
 node app/index.js

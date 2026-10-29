@@ -1,9 +1,18 @@
 @import 'color';
 
+:host {
+  display: block;
+  padding: 24px;
+}
+
 :host::ng-deep .enter-value.mat-form-field.mat-focused .mat-form-field-ripple {
   background-color: $blue;
 }
 
 :host::ng-deep .mat-form-field {
+  width: 100%;
+}
+
+.mat-mdc-form-field {
   width: 100%;
 }

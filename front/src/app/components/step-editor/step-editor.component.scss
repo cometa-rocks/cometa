@@ -47,7 +47,7 @@
   }
 }
 
-::ng-deep .step-options-menu .mat-menu-item {
+::ng-deep .step-options-menu .mat-mdc-menu-item {
   height: 38px !important;
   line-height: 38px !important;
   font-weight: bold !important;
@@ -59,12 +59,13 @@
   flex-direction: row;
   width: 100%;
   flex-wrap: wrap;
-  
+  align-items: stretch;
+
   @include for-tablet-portrait-up {
     flex-direction: row;
     flex-wrap: nowrap;
   }
-  
+
   &.odd-row {
     background-color: white;
   }
@@ -76,11 +77,12 @@
 .first-block {
   display: flex;
   flex-direction: row;
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   width: 100%;
   flex-wrap: wrap;
   order: 1;
-  
+
   @include for-tablet-portrait-up {
     flex-wrap: nowrap;
     order: unset;
@@ -117,30 +119,45 @@
     flex: 0 1 auto;
     flex-wrap: nowrap;
     order: 1;
-    
+    flex-shrink: 0;
+
     @include for-tablet-portrait-up {
       flex: 0 0 420px;
       order: unset;
     }
   }
-  
+
+  /* Match header column widths: index 40px, enable 60px, screenshot/compare/select-step 80px each, prefix 80px = 420px */
   ::ng-deep mat-checkbox {
     text-align: center;
     position: relative;
-    
+
     // Mobile styles
     flex: 0 0 35px;
     padding: 10px 0px 0px;
     transform: scale(1);
-    
-    // Desktop styles (original)
+
+    // Desktop: align with headers
     @include for-tablet-portrait-up {
-      flex: 0 0 50px;
-      padding: 10px 15px 0;
+      padding: 10px 0px 0;
       transform: none;
     }
-    
-    &.enable, &.more-vert {
+
+    &.enable {
+      @include for-tablet-portrait-up {
+        flex: 0 0 60px;
+      }
+    }
+
+    &.screenshot,
+    &.compare,
+    &.select-step {
+      @include for-tablet-portrait-up {
+        flex: 0 0 80px;
+      }
+    }
+
+    &.more-vert {
       flex: 0 0 30px;
     }
   }
@@ -241,11 +258,16 @@
     
     @include for-tablet-portrait-up {
       flex: 0 0 40px;
-      line-height: 45px;
+      line-height: 60px;
       font-size: 14px;
     }
   }
   
+  .first-block > .move-row {
+    flex: 0 0 30px;
+    flex-shrink: 0;
+  }
+
   .move-row {
     flex: 0 0 30px;
     background-image: url(^assets/move-row.svg);
@@ -261,12 +283,17 @@
       flex: 0 0 30px;
       background-size: 25px;
       background-position-x: 5px;
-      background-position-y: 10px;
+      background-position-y: 15px;
       visibility: hidden;
       order: unset;
     }
   }
   
+  .first-block > .more-vert-step {
+    flex: 0 0 50px;
+    flex-shrink: 0;
+  }
+
   .more-vert-step {
     flex: 0 0 30px;
     order: 0;
@@ -275,7 +302,6 @@
       font-size: 20px;
       width: 20px;
       height: 20px;
-      line-height: 16px;
     }
     
     @include for-tablet-portrait-up {
@@ -574,7 +600,7 @@
     font-weight: bold;
     
     @include for-tablet-portrait-up {
-      flex: 0 0 30px;
+      flex: 0 0 50px;
       gap: 4px;
     }
 
@@ -1103,9 +1129,10 @@ textarea {
   height: 40px;
   position: relative;
   flex: 0 0 40px;
+  flex-shrink: 0;
   min-height: 40px;
   order: 11;
-  
+
   @include for-tablet-portrait-up {
     height: 64px;
     flex: 0 0 100px;
@@ -1192,9 +1219,10 @@ textarea {
   height: 40px;
   position: relative;
   flex: 0 0 50px;
+  flex-shrink: 0;
   min-height: 40px;
   order: 12;
-  
+
   @include for-tablet-portrait-up {
     height: 64px;
     flex: 0 0 80px;

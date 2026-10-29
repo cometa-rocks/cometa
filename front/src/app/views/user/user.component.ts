@@ -1,19 +1,19 @@
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { UserState } from '@store/user.state';
 import { ConfigState } from '@store/config.state';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { Tour, TourExtended, Tours } from '@services/tours';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Observable } from 'rxjs';
 import { Select, Store } from '@ngxs/store';
 import { map } from 'rxjs/operators';
 import { TourService } from '@services/tour.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { InviteUserDialog } from '@dialogs/invite-user/invite-user.component';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { IntegrationsState } from '@store/integrations.state';
 import { ApiService } from '@services/api.service';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Integrations } from '@store/actions/integrations.actions';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
@@ -26,12 +26,12 @@ import { SortByPipe } from '@pipes/sort-by.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { FilterByPropertyPipe } from '@pipes/filter-by-property.pipe';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule } from '@angular/material/legacy-select';
-import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
-import { MatLegacyInputModule } from '@angular/material/legacy-input';
-import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import {
   NgIf,
@@ -59,12 +59,12 @@ import { MatButtonModule } from '@angular/material/button';
     NgIf,
     NgFor,
     MatIconModule,
-    MatLegacyFormFieldModule,
-    MatLegacyInputModule,
-    MatLegacyRadioModule,
-    MatLegacySelectModule,
-    MatLegacyOptionModule,
-    MatLegacyTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatRadioModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatTooltipModule,
     NgClass,
     TranslateModule,
     FilterByPropertyPipe,

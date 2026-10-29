@@ -97,7 +97,7 @@ services:
 
   ws:
     container_name: cometa_socket
-    image: node:22
+    image: node:22.23.4
     # platform hint for running on apple silicon
     platform: linux/amd64
     working_dir: /home/node/app
@@ -168,12 +168,11 @@ services:
       - testing
     restart: always
 
-  # This service is only used for build the appium_inspector dist files
-  # With image node:20, once build is done, copy the build files to front folder
-  # When apache front container starts using image node:20 to build the front code, this can be done with in the apache container it self
-  # After that appium.inspector should be removed 
+  # This service is only used for build the appium_inspector dist files.
+  # Node 20 is EOL and outside the 21 Oct 2026 security release. Use the patched 22.23.4 image.
+  # After that appium.inspector should be removed
   appium.inspector:
-    image: node:20
+    image: node:22.23.4
     # platform hint for running on apple silicon
     platform: linux/amd64
     volumes:

@@ -545,57 +545,86 @@
       justify-content: flex-start;
       flex-wrap: wrap;
 
-      @include for-tablet-portrait-up { 
-        margin-right: 20px; 
-        flex: 0 8%; 
-        max-width: 8%; 
+      @include for-tablet-portrait-up {
+        margin-right: 20px;
+        flex: 0 8%;
+        max-width: 8%;
         flex-wrap: nowrap;
       }
-      
+
       .option {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px; // Increased from 32px
-        height: 36px; // Increased from 32px
-        margin-right: 10px; // Increased from 8px
-        
+        width: 36px;
+        height: 36px;
+        margin-right: 10px;
+
         &:last-child {
           margin-right: 0;
         }
         &:hover {
-          background: $transparent-bg; // Subtle hover background
-          transform: scale(1.05); // Slight scale effect on hover
+          background: $transparent-bg;
+          transform: scale(1.05);
         }
       }
-      
-      button, a {
+
+      button,
+      a {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px; // mobile
-        height: 32px; // mobile
-        border-radius: 4px; // Rounded corners for buttons
-        transition: all 0.2s ease-in-out; // Smooth transitions
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 0;
+        border-radius: 4px;
+        transition: all 0.2s ease-in-out;
         &:hover {
-          background: $transparent-bg; // Subtle hover background
-          transform: scale(1.05); // Slight scale effect on hover
+          background: $transparent-bg;
+          transform: scale(1.05);
         }
-        
-        @include for-tablet-portrait-up { 
-          width: 36px; 
-          height: 36px; 
+
+        @include for-tablet-portrait-up {
+          width: 36px;
+          height: 36px;
+          min-width: 36px;
+          min-height: 36px;
         }
       }
 
-      // Icons utility class in item-options context
-      .icons {
-        font-size: 1.1rem;
+      // MDC icon button: override default 48px so it matches our option size
+      .mat-mdc-icon-button {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 0;
+        @include for-tablet-portrait-up {
+          width: 36px;
+          height: 36px;
+          min-width: 36px;
+          min-height: 36px;
+        }
+      }
+
+      // Icons: keep small so they fit the button (legacy + MDC)
+      .icons,
+      mat-icon {
+        font-size: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+        line-height: 20px !important;
       }
 
       @include for-tablet-portrait-up {
-        .icons {
-          font-size: 1.4rem;
+        .icons,
+        mat-icon {
+          font-size: 22px !important;
+          width: 22px !important;
+          height: 22px !important;
+          line-height: 22px !important;
         }
       }
     }
