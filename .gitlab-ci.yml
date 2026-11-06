@@ -192,36 +192,36 @@ security:shai-hulud-scan:
     - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
-# main script anchor to avoid code
-# redundancy. 
-.kubernetes_deployment_script: &kubernetes_deployment_script
-  stage: deploy
-  script:
-    bash scripts/kubernetes_cicd_deployment.sh
+# # main script anchor to avoid code
+# # redundancy. 
+# .kubernetes_deployment_script: &kubernetes_deployment_script
+#   stage: deploy
+#   script:
+#     bash scripts/kubernetes_cicd_deployment.sh
 
-.docker_deployment_script: &docker_deployment_script
-  stage: deploy
-  # main script anchor to avoid code
-  # redundancy. 
-  script:
-    bash scripts/docker_cicd_deployment.sh
+# .docker_deployment_script: &docker_deployment_script
+#   stage: deploy
+#   # main script anchor to avoid code
+#   # redundancy. 
+#   script:
+#     bash scripts/docker_cicd_deployment.sh
     
 
-# create a deploy job for amvara3 for branch prod
-deploy:amvara3.prod:
-  <<: *docker_deployment_script
-  extends: .amvara3.prod
+# # create a deploy job for amvara3 for branch prod
+# deploy:amvara3.prod:
+#   <<: *docker_deployment_script
+#   extends: .amvara3.prod
 
-# create a deploy job for amvara6 for branch stage
-deploy:amvara6.stage: 
-  <<: *docker_deployment_script
-  extends: .amvara6.stage
+# # create a deploy job for amvara6 for branch stage
+# deploy:amvara6.stage: 
+#   <<: *docker_deployment_script
+#   extends: .amvara6.stage
 
-# pre stage deploy to amvara8 and it usages the docker-compose-build.yml file to deploy the application
-# this used to make sure Dockerfile for all services are working correctly
-# Deploy to amvara8
-deploy:amvara8.pre-stage:
-  extends: .amvara8.pre-stage
+# # pre stage deploy to amvara8 and it usages the docker-compose-build.yml file to deploy the application
+# # this used to make sure Dockerfile for all services are working correctly
+# # Deploy to amvara8
+# deploy:amvara8.pre-stage:
+#   extends: .amvara8.pre-stage
 
 
 # # create a deploy job for amvara3 for branch prod
