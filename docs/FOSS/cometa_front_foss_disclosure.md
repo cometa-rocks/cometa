@@ -678,7 +678,7 @@ Full license texts: [LICENSES.md](./LICENSES.md)
 | **FOSS License (exact name)** | Highsoft proprietary (see highcharts.com/license) |
 | **Copyright information** | © Highsoft AS |
 | **License text** | [See License](./LICENSES.md#highcharts-11-0-1) |
-| **Author's notes** | None |
+| **Author's notes** | Proprietary Highsoft charting library. |
 | **Source code location** | https://github.com/highcharts/highcharts-dist |
 | **Source of supply** | https://www.npmjs.com/package/highcharts/v/11.0.1 |
 | **Reference date** | – |
@@ -694,7 +694,7 @@ Full license texts: [LICENSES.md](./LICENSES.md)
 | **FOSS License (exact name)** | SEE LICENSE IN LICENSE |
 | **Copyright information** | © Black Label |
 | **License text** | [See License](./LICENSES.md#highcharts-angular-2-10-0) |
-| **Author's notes** | None |
+| **Author's notes** | Angular wrapper for Highcharts; see the Highcharts license. |
 | **Source code location** | https://github.com/highcharts/highcharts-angular |
 | **Source of supply** | https://www.npmjs.com/package/highcharts-angular/v/2.10.0 |
 | **Reference date** | – |
@@ -790,7 +790,7 @@ Full license texts: [LICENSES.md](./LICENSES.md)
 | **FOSS License (exact name)** | UNKNOWN |
 | **Copyright information** | © ngx-amvara-toolbox contributors |
 | **License text** | [See License](./LICENSES.md#ngx-amvara-toolbox-0-0-17) |
-| **Author's notes** | None |
+| **Author's notes** | Internal Amvara Angular toolbox package; no license declared on the public npm registry. |
 | **Source code location** | https://www.npmjs.com/package/ngx-amvara-toolbox |
 | **Source of supply** | https://www.npmjs.com/package/ngx-amvara-toolbox/v/0.0.17 |
 | **Reference date** | – |
