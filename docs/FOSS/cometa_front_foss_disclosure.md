@@ -22,7 +22,7 @@ Full license texts: [LICENSES.md](./LICENSES.md)
 | **FOSS License (exact name)** | Apache-2.0 |
 | **Copyright information** | © The Apache Software Foundation |
 | **License text** | [See License](./LICENSES.md#apache-http-server-2-4-64) |
-| **Author's notes** | Internal Amvara Angular toolbox package; no license declared on the public npm registry. |
+| **Author's notes** | None |
 | **Source code location** | https://github.com/apache/httpd |
 | **Source of supply** | https://hub.docker.com/_/httpd |
 | **Reference date** | – |
